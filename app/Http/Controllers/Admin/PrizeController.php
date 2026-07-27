@@ -48,7 +48,7 @@ class PrizeController extends Controller
     public function update(Request $request, Prize $prize)
     {
         $validated = $request->validate([
-            'position' => 'required|integer|unique:prizes,position,' . $prize->id,
+            'position' => 'required|integer|unique:prizes,position,'.$prize->id,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'value' => 'required|numeric|min:0',

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SavingsGoal extends Model
 {
     use HasFactory;
-    
+
     // Explicit table name
     protected $table = 'savings_goals';
 

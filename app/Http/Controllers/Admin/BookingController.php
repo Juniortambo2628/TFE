@@ -74,7 +74,7 @@ class BookingController extends Controller
                 'amount_paid' => $booking->amount_paid,
                 'booking_date' => $booking->booking_date?->format('M d, Y'),
                 'created_at' => $booking->created_at->format('M d, Y'),
-                'payment_schedules' => $booking->paymentSchedules->map(fn($s) => [
+                'payment_schedules' => $booking->paymentSchedules->map(fn ($s) => [
                     'id' => $s->id,
                     'amount' => $s->amount,
                     'due_date' => $s->due_date->format('M d, Y'),

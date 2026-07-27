@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 class PaystackService
 {
     protected $baseUrl;
+
     protected $secretKey;
 
     public function __construct()
@@ -18,7 +19,7 @@ class PaystackService
     /**
      * Verify a transaction by its reference
      *
-     * @param string $reference
+     * @param  string  $reference
      * @return array
      */
     public function verifyTransaction($reference)
@@ -33,16 +34,16 @@ class PaystackService
         return [
             'status' => false,
             'message' => 'Verification failed',
-            'data' => $response->json()
+            'data' => $response->json(),
         ];
     }
 
     /**
      * Initialize a transaction (Server Side)
      *
-     * @param string $email
-     * @param int $amount (in kobo/cents)
-     * @param string $reference
+     * @param  string  $email
+     * @param  int  $amount  (in kobo/cents)
+     * @param  string  $reference
      * @return array
      */
     public function initializeTransaction($email, $amount, $reference)

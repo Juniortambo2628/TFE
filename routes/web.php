@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
@@ -14,6 +13,7 @@ Route::get('/dashboard', function () {
     if (Auth::user()->is_partner) {
         return redirect()->route('partner.dashboard');
     }
+
     return redirect()->route('fan.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -40,11 +40,11 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/journey', [\App\Http\Controllers\Fan\JourneyController::class, 'index'])->name('journey');
     Route::get('/bookings/{booking}', [\App\Http\Controllers\Fan\JourneyController::class, 'show'])->name('bookings.show');
     Route::get('/wallet', [\App\Http\Controllers\Fan\WalletController::class, 'index'])->name('wallet');
-    
+
     // API Routes for Fan Dashboard
     Route::post('/budget/save', [\App\Http\Controllers\Fan\BudgetController::class, 'store'])->name('budget.save');
     Route::get('/budget/active', [\App\Http\Controllers\Fan\BudgetController::class, 'getActive'])->name('budget.active');
-    
+
     // Feature Pages
     Route::get('/match-schedule', [\App\Http\Controllers\Fan\MatchScheduleController::class, 'index'])->name('match-schedule');
     Route::get('/communication', [\App\Http\Controllers\Fan\CommunicationController::class, 'index'])->name('communication');
@@ -82,7 +82,7 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/stories/{story}/replies', [\App\Http\Controllers\Fan\StoriesController::class, 'getReplies'])->name('stories.replies');
     Route::get('/stories/{story}/viewers', [\App\Http\Controllers\Fan\StoriesController::class, 'viewers'])->name('stories.viewers');
     Route::delete('/stories/{story}', [\App\Http\Controllers\Fan\StoriesController::class, 'destroy'])->name('stories.destroy');
-    
+
     // Ad tracking
     Route::post('/ads/{ad}/impression', [\App\Http\Controllers\Fan\AdController::class, 'trackImpression'])->name('ads.impression');
     Route::post('/ads/{ad}/click', [\App\Http\Controllers\Fan\AdController::class, 'trackClick'])->name('ads.click');
@@ -145,33 +145,33 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
 // Admin Routes
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Users Management
     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users');
     Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/toggle-admin', [\App\Http\Controllers\Admin\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
     Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
-    
+
     // Profile Management
     Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'password'])->name('profile.password');
-    
+
     // Payments Management
     Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments');
     Route::put('/payments/{paymentTransaction}/status', [\App\Http\Controllers\Admin\PaymentController::class, 'updateStatus'])->name('payments.status');
-    
+
     // Events Management
     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events');
     Route::post('/events', [\App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
     Route::put('/events/{event}', [\App\Http\Controllers\Admin\EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [\App\Http\Controllers\Admin\EventController::class, 'destroy'])->name('events.destroy');
-    
+
     // Content Management
     Route::get('/content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content');
     Route::post('/content/settings', [\App\Http\Controllers\Admin\ContentController::class, 'updateSettings'])->name('content.settings.update');
     Route::delete('/content/posts/{post}', [\App\Http\Controllers\Admin\ContentController::class, 'deletePost'])->name('content.posts.delete');
-    
+
     // News Management
     Route::get('/news', [\App\Http\Controllers\Admin\NewsController::class, 'index'])->name('news.index');
     Route::post('/news', [\App\Http\Controllers\Admin\NewsController::class, 'store'])->name('news.store');
@@ -183,7 +183,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/ads', [\App\Http\Controllers\Admin\AdController::class, 'store'])->name('ads.store');
     Route::put('/ads/{ad}', [\App\Http\Controllers\Admin\AdController::class, 'update'])->name('ads.update');
     Route::delete('/ads/{ad}', [\App\Http\Controllers\Admin\AdController::class, 'destroy'])->name('ads.destroy');
-    
+
     // Settings
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
@@ -264,4 +264,3 @@ Route::middleware(['auth', 'verified'])->prefix('partner')->name('partner.')->gr
     Route::post('/messages', [\App\Http\Controllers\Partner\CommunicationController::class, 'store'])->name('messages.store');
     Route::post('/messages/{budget}/read', [\App\Http\Controllers\Partner\CommunicationController::class, 'markAsRead'])->name('messages.read');
 });
-

@@ -3,13 +3,13 @@
 namespace App\Services;
 
 use App\Models\User;
-use PragmaRX\Google2FA\Google2FA;
-use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
+use PragmaRX\Google2FA\Google2FA;
 
 class TwoFactorService
 {
@@ -37,7 +37,7 @@ class TwoFactorService
 
         $renderer = new ImageRenderer(
             new RendererStyle(200),
-            new SvgImageBackEnd()
+            new SvgImageBackEnd
         );
 
         $writer = new Writer($renderer);

@@ -3,24 +3,24 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Models\User;
 
 class CompleteProfileController extends Controller
 {
     public function create()
     {
         $user = Auth::user();
-        
+
         // If profile is already complete, redirect to dashboard
-        if (!empty($user->phone) && !empty($user->country) && !is_null($user->seeking_financing)) {
+        if (! empty($user->phone) && ! empty($user->country) && ! is_null($user->seeking_financing)) {
             return redirect()->route('fan.dashboard');
         }
 
         return Inertia::render('Auth/CompleteProfile', [
-            'user' => $user
+            'user' => $user,
         ]);
     }
 

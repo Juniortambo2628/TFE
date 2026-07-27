@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -33,9 +33,10 @@ class BudgetController extends Controller
             ->get()
             ->map(function ($favorite) {
                 $fixture = $favorite->fixture;
-                if (!$fixture) {
+                if (! $fixture) {
                     return null;
                 }
+
                 return [
                     'fixture_id' => $fixture->id,
                     'home_team' => $fixture->home_team,
@@ -49,16 +50,16 @@ class BudgetController extends Controller
             ->toArray();
 
         return Inertia::render('Fan/BudgetCalculator', [
-            'savedBudgets'  => $savedBudgets,
+            'savedBudgets' => $savedBudgets,
             'userFavorites' => $favoriteFixtures,
-            'budgetToEdit'  => $budgetToEdit,
+            'budgetToEdit' => $budgetToEdit,
         ]);
     }
 
     public function itineraries()
     {
         $userId = Auth::id();
-        
+
         $itineraries = Budget::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -66,7 +67,7 @@ class BudgetController extends Controller
                 return [
                     'id' => $budget->id,
                     'name' => $budget->name,
-                    'reference_id' => 'REQ-' . str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                    'reference_id' => 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
                     'created_at' => $budget->created_at->format('M d, Y'),
                     'total_cost' => $budget->total_cost,
                     'partner_cost' => $budget->partner_cost,
@@ -79,7 +80,7 @@ class BudgetController extends Controller
             });
 
         return Inertia::render('Fan/Itineraries', [
-            'itineraries' => $itineraries
+            'itineraries' => $itineraries,
         ]);
     }
 
@@ -89,7 +90,7 @@ class BudgetController extends Controller
             abort(403);
         }
 
-        if (!in_array($budget->partner_status, ['approved', 'modified'])) {
+        if (! in_array($budget->partner_status, ['approved', 'modified'])) {
             return back()->with('error', 'Only approved or modified budgets can be confirmed.');
         }
 
@@ -115,7 +116,7 @@ class BudgetController extends Controller
         // Mark THIS specific budget as confirmed
         $budget->update([
             'partner_status' => 'confirmed',
-            'is_active' => false
+            'is_active' => false,
         ]);
 
         return redirect()->route('fan.journey')->with('success', 'Itinerary confirmed! Your booking is now pending payment.');
@@ -153,7 +154,7 @@ class BudgetController extends Controller
             Budget::where('user_id', $user->id)
                 ->where('id', '!=', $budget->id)
                 ->update(['is_active' => false]);
-            
+
             return back()->with('success', 'Itinerary updated successfully!');
         }
 

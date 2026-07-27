@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Traits\HasSocialStats;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
@@ -18,7 +18,7 @@ class ProfileController extends Controller
         $currentUser = Auth::user();
         $viewingUser = $currentUser;
         $isOwnProfile = true;
-        
+
         return $this->renderProfile($currentUser, $viewingUser, $isOwnProfile);
     }
 
@@ -27,25 +27,25 @@ class ProfileController extends Controller
         $currentUser = Auth::user();
         $viewingUser = $user;
         $isOwnProfile = $currentUser->id === $viewingUser->id;
-        
+
         return $this->renderProfile($currentUser, $viewingUser, $isOwnProfile);
     }
 
     private function renderProfile($currentUser, $viewingUser, $isOwnProfile)
     {
-        
+
         // Get social stats using trait
         $socialMetrics = $this->getSocialStats($viewingUser->id);
-        
+
         $stats = array_merge($socialMetrics, [
             'tribes' => \Illuminate\Support\Facades\DB::table('tribe_members')->where('user_id', $viewingUser->id)->count(),
         ]);
-        
+
         // Check if current user is following the viewed user
         $isFollowing = \App\Models\Follow::where('follower_id', $currentUser->id)
             ->where('following_id', $viewingUser->id)
             ->exists();
-        
+
         $countryMap = [
             'argentina' => 'ar',
             'brazil' => 'br',
@@ -69,13 +69,13 @@ class ProfileController extends Controller
 
         $teamLower = strtolower(trim($viewingUser->team_support ?? ''));
         $flagCode = $countryMap[$teamLower] ?? null;
-        
+
         // If not found in team_support, try country
-        if (!$flagCode && $viewingUser->country) {
+        if (! $flagCode && $viewingUser->country) {
             $countryLower = strtolower(trim($viewingUser->country));
             $flagCode = $countryMap[$countryLower] ?? null;
             // Catch-all mapping could be added here or just use the code directly if it's already 2-letter
-            if (!$flagCode && strlen($countryLower) === 2) {
+            if (! $flagCode && strlen($countryLower) === 2) {
                 $flagCode = $countryLower;
             }
         }
@@ -87,13 +87,13 @@ class ProfileController extends Controller
             'avatar' => $viewingUser->profile?->avatar_path ?? $viewingUser->avatar ?? asset('assets/img/avatars/default-avatar.png'),
             'country' => $viewingUser->country ?? 'Kenya',
             'team_support' => $viewingUser->team_support ?? '',
-            'marketing_consent' => (bool)$viewingUser->marketing_consent,
-            'community_consent' => (bool)$viewingUser->community_consent,
-            'terms_agreed' => (bool)$viewingUser->terms_agreed,
+            'marketing_consent' => (bool) $viewingUser->marketing_consent,
+            'community_consent' => (bool) $viewingUser->community_consent,
+            'terms_agreed' => (bool) $viewingUser->terms_agreed,
             'date_of_birth' => $viewingUser->date_of_birth?->format('Y-m-d'),
             'phone' => $viewingUser->phone,
             'bio' => $viewingUser->bio,
-            'cover_image' => $viewingUser->cover_image ?? ($flagCode ? asset('assets/Flags/' . $flagCode . '.png') : null),
+            'cover_image' => $viewingUser->cover_image ?? ($flagCode ? asset('assets/Flags/'.$flagCode.'.png') : null),
         ];
 
         // Get followers and following detailed lists using trait
@@ -111,7 +111,7 @@ class ProfileController extends Controller
             ->latest()
             ->take(5)
             ->get()
-            ->map(function($post) {
+            ->map(function ($post) {
                 return [
                     'id' => $post->id,
                     'content' => $post->content,
@@ -132,15 +132,15 @@ class ProfileController extends Controller
             'followers' => $followers,
             'followingList' => $following,
             'auth' => [
-                'user' => $currentUser
-            ]
+                'user' => $currentUser,
+            ],
         ]);
     }
-    
+
     public function update(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'country' => 'nullable|string|max:255',
@@ -157,12 +157,12 @@ class ProfileController extends Controller
 
         // Mapping newsletter to community or marketing if not separate in DB
         // Based on model, we have marketing_consent and community_consent.
-        
+
         // Handle cover_image — could be a file upload or a URL string
         if ($request->hasFile('cover_image')) {
             $request->validate(['cover_image' => 'image|max:2048']);
             $path = $request->file('cover_image')->store('profiles', 'public');
-            $validated['cover_image'] = '/storage/' . $path;
+            $validated['cover_image'] = '/storage/'.$path;
         } elseif ($request->filled('cover_image')) {
             $validated['cover_image'] = $request->input('cover_image');
         } else {
@@ -177,17 +177,17 @@ class ProfileController extends Controller
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar_url' => 'required|url'
+            'avatar_url' => 'required|url',
         ]);
 
         $user = Auth::user();
-        
+
         // Update or create profile
         $profile = \App\Models\Profile::firstOrCreate(
             ['user_id' => $user->id],
             ['settings' => []]
         );
-        
+
         $profile->avatar_path = $request->avatar_url;
         $profile->save();
 

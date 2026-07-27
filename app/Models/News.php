@@ -22,6 +22,6 @@ class News extends Model
 
     public function getImageUrlAttribute()
     {
-        return $this->image ? asset('storage/' . $this->image) : asset('assets/img/logo/TFE-logo.png');
+        return $this->image ? asset('storage/'.$this->image) : asset('assets/img/logo/TFE-logo.png');
     }
 }

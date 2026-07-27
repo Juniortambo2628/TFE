@@ -5,16 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\News;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class NewsController extends Controller
 {
     public function index()
     {
         $news = News::latest()->paginate(20);
+
         return Inertia::render('Admin/News', [
-            'news' => $news
+            'news' => $news,
         ]);
     }
 
@@ -46,7 +47,9 @@ class NewsController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($news->image) Storage::disk('public')->delete($news->image);
+            if ($news->image) {
+                Storage::disk('public')->delete($news->image);
+            }
             $validated['image'] = $request->file('image')->store('news', 'public');
         }
 
@@ -57,8 +60,11 @@ class NewsController extends Controller
 
     public function destroy(News $news)
     {
-        if ($news->image) Storage::disk('public')->delete($news->image);
+        if ($news->image) {
+            Storage::disk('public')->delete($news->image);
+        }
         $news->delete();
+
         return back()->with('success', 'News article deleted');
     }
 }

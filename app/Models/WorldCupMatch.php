@@ -37,7 +37,7 @@ class WorldCupMatch extends Model
 
     public function getIsPredictionOpenAttribute()
     {
-        return $this->status === 'open' && 
+        return $this->status === 'open' &&
                ($this->prediction_deadline === null || $this->prediction_deadline->isFuture());
     }
 
@@ -56,7 +56,7 @@ class WorldCupMatch extends Model
         return $query->where('status', 'open')
             ->where(function ($q) {
                 $q->whereNull('prediction_deadline')
-                  ->orWhere('prediction_deadline', '>', now());
+                    ->orWhere('prediction_deadline', '>', now());
             });
     }
 }

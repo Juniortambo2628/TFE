@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Follow;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
@@ -16,7 +15,7 @@ class FollowController extends Controller
     public function toggle(User $user)
     {
         $currentUser = Auth::user();
-        
+
         if ($currentUser->id === $user->id) {
             return back()->with('error', 'You cannot follow yourself.');
         }
@@ -45,11 +44,11 @@ class FollowController extends Controller
     public function preview(User $user)
     {
         $currentUser = Auth::user();
-        
+
         $followersCount = Follow::where('following_id', $user->id)->count();
         $followingCount = Follow::where('follower_id', $user->id)->count();
         $postsCount = \App\Models\Post::where('user_id', $user->id)->count();
-        
+
         $isFollowing = Follow::where('follower_id', $currentUser->id)
             ->where('following_id', $user->id)
             ->exists();

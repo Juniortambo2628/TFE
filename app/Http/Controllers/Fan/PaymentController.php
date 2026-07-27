@@ -7,15 +7,15 @@ use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransaction;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        
+
         // Payment history
         $payments = Payment::where('user_id', $user->id)
             ->orderByDesc('created_at')
@@ -149,15 +149,15 @@ class PaymentController extends Controller
             'reference' => $reference,
             'public_key' => config('services.paystack.public_key', env('PAYSTACK_PUBLIC_KEY')),
             'status' => 'success',
-            'message' => 'Payment initiated'
+            'message' => 'Payment initiated',
         ];
 
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
             return response()->json($data);
         }
 
         return back()
-            ->with('success', 'Payment initiated. Reference: ' . $reference)
+            ->with('success', 'Payment initiated. Reference: '.$reference)
             ->with('payment_reference', $reference)
             ->with('paystack_public_key', $data['public_key']);
     }
@@ -180,7 +180,7 @@ class PaymentController extends Controller
                             'status' => 'completed',
                             'method' => $result['data']['channel'] ?? $txn->method,
                         ]);
-                        
+
                         // Credit Wallet / Create Payment Record
                         Payment::create([
                             'user_id' => $txn->user_id,
@@ -194,7 +194,7 @@ class PaymentController extends Controller
 
                         // Handle Booking Link
                         $metadata = $txn->metadata; // Already an array due to model casting
-                        if (!empty($metadata['booking_id'])) {
+                        if (! empty($metadata['booking_id'])) {
                             $booking = \App\Models\Booking::find($metadata['booking_id']);
                             if ($booking) {
                                 $booking->increment('amount_paid', $txn->amount);
@@ -211,13 +211,14 @@ class PaymentController extends Controller
 
                     return back()->with('success', 'Payment successful!');
                 }
+
                 return back()->with('info', 'Payment already processed.');
             }
-             
+
             // Optional: Create transaction if missing (e.g. direct webhook)
-             return back()->with('error', 'Transaction reference not found.');
+            return back()->with('error', 'Transaction reference not found.');
         }
 
-        return back()->with('error', 'Payment verification failed: ' . ($result['message'] ?? 'Unknown error'));
+        return back()->with('error', 'Payment verification failed: '.($result['message'] ?? 'Unknown error'));
     }
 }

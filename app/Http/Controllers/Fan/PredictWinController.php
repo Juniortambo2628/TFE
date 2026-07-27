@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\WorldCupMatch;
 use App\Models\Prediction;
 use App\Models\Prize;
+use App\Models\WorldCupMatch;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class PredictWinController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        
+
         // Get upcoming matches open for predictions
         $upcomingMatches = WorldCupMatch::openForPrediction()
             ->orderBy('date')
@@ -42,10 +42,10 @@ class PredictWinController extends Controller
         $totalPredictions = $predictionStats->total_predictions;
         $correctPredictions = $predictionStats->correct_predictions;
         $totalPoints = $predictionStats->total_points ?? 0;
-        
+
         // Calculate rank
         $rank = $this->getUserRank($user->id, $totalPoints);
-        
+
         $userStats = [
             'total_predictions' => $totalPredictions,
             'correct_predictions' => $correctPredictions,
@@ -86,7 +86,7 @@ class PredictWinController extends Controller
         $match = WorldCupMatch::findOrFail($validated['match_id']);
 
         // Check if match is open for predictions
-        if (!$match->is_prediction_open) {
+        if (! $match->is_prediction_open) {
             return back()->withErrors(['match' => 'This match is no longer open for predictions.']);
         }
 
@@ -101,6 +101,7 @@ class PredictWinController extends Controller
                 'home_score' => $validated['home_score'],
                 'away_score' => $validated['away_score'],
             ]);
+
             return back()->with('success', 'Prediction updated successfully!');
         }
 
@@ -111,7 +112,7 @@ class PredictWinController extends Controller
             'home_score' => $validated['home_score'],
             'away_score' => $validated['away_score'],
         ]);
-        
+
         return back()->with('success', 'Prediction submitted successfully!');
     }
 
@@ -170,8 +171,9 @@ class PredictWinController extends Controller
     {
         $parts = explode(' ', $name);
         if (count($parts) >= 2) {
-            return $parts[0] . ' ' . substr($parts[1], 0, 1) . '.';
+            return $parts[0].' '.substr($parts[1], 0, 1).'.';
         }
+
         return $name;
     }
 }

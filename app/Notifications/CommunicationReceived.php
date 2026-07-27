@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -51,7 +50,7 @@ class CommunicationReceived extends Notification
     {
         return [
             'title' => 'New Message',
-            'message' => $this->messageData['excerpt'] ?? 'You have a new message from ' . ($this->messageData['sender_name'] ?? 'The Experience'),
+            'message' => $this->messageData['excerpt'] ?? 'You have a new message from '.($this->messageData['sender_name'] ?? 'The Experience'),
             'action_url' => route('fan.communication'),
             'type' => 'communication',
             'sender_id' => $this->messageData['sender_id'] ?? null,

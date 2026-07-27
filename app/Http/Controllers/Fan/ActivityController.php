@@ -4,11 +4,10 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\PaymentTransaction;
 use App\Models\EventRsvp;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class ActivityController extends Controller
 {
@@ -23,14 +22,14 @@ class ActivityController extends Controller
             ->get()
             ->map(function ($booking) {
                 return [
-                    'id' => 'booking_' . $booking->id,
+                    'id' => 'booking_'.$booking->id,
                     'type' => 'booking',
-                    'title' => 'New Booking: ' . $booking->package_name,
-                    'description' => 'Status: ' . ucfirst($booking->status),
+                    'title' => 'New Booking: '.$booking->package_name,
+                    'description' => 'Status: '.ucfirst($booking->status),
                     'amount' => $booking->total_amount,
                     'date' => $booking->created_at->format('M d, Y'),
                     'raw_date' => $booking->created_at,
-                    'icon' => 'fa-ticket-alt'
+                    'icon' => 'fa-ticket-alt',
                 ];
             });
 
@@ -41,14 +40,14 @@ class ActivityController extends Controller
             ->get()
             ->map(function ($payment) {
                 return [
-                    'id' => 'payment_' . $payment->id,
+                    'id' => 'payment_'.$payment->id,
                     'type' => 'payment',
                     'title' => $payment->description ?: 'Payment Successful',
-                    'description' => 'Reference: ' . $payment->reference,
+                    'description' => 'Reference: '.$payment->reference,
                     'amount' => $payment->amount,
                     'date' => $payment->created_at->format('M d, Y'),
                     'raw_date' => $payment->created_at,
-                    'icon' => 'fa-credit-card'
+                    'icon' => 'fa-credit-card',
                 ];
             });
 
@@ -59,14 +58,14 @@ class ActivityController extends Controller
             ->get()
             ->map(function ($rsvp) {
                 return [
-                    'id' => 'rsvp_' . $rsvp->id,
+                    'id' => 'rsvp_'.$rsvp->id,
                     'type' => 'rsvp',
-                    'title' => 'Registered for ' . ($rsvp->event->title ?? 'Event'),
-                    'description' => 'Status: ' . ucfirst($rsvp->status),
+                    'title' => 'Registered for '.($rsvp->event->title ?? 'Event'),
+                    'description' => 'Status: '.ucfirst($rsvp->status),
                     'amount' => 0,
                     'date' => $rsvp->created_at->format('M d, Y'),
                     'raw_date' => $rsvp->created_at,
-                    'icon' => 'fa-calendar-check'
+                    'icon' => 'fa-calendar-check',
                 ];
             });
 
@@ -76,7 +75,7 @@ class ActivityController extends Controller
             ->values();
 
         return Inertia::render('Fan/Activities', [
-            'activities' => $activities
+            'activities' => $activities,
         ]);
     }
 }

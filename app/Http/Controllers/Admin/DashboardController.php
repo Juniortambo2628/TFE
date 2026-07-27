@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Payment;
 use App\Models\Event;
-use App\Models\Tribe;
-use App\Models\Post;
 use App\Models\PaymentTransaction;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\Post;
+use App\Models\Tribe;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -31,7 +29,7 @@ class DashboardController extends Controller
                 'Watch Party' => Event::where('type', 'Watch Party')->count(),
                 'Tournament' => Event::where('type', 'Tournament')->count(),
                 'Community' => Event::where('type', 'Community')->count(),
-            ]
+            ],
         ];
 
         // Recent users
@@ -75,6 +73,7 @@ class DashboardController extends Controller
                 ->whereYear('created_at', $previousYear->year)
                 ->whereMonth('created_at', $previousYear->month)
                 ->sum('amount');
+
             return [
                 'Month' => $date->format('M'),
                 'Revenue' => (float) $current,

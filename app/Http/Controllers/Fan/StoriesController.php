@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Story;
-use App\Models\StoryView;
-use App\Models\StoryReply;
 use App\Models\Ad;
+use App\Models\Story;
+use App\Models\StoryReply;
+use App\Models\StoryView;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class StoriesController extends Controller
 {
@@ -22,7 +22,7 @@ class StoriesController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // Get all active (non-expired) stories with user info (eager-loaded to avoid N+1)
         $stories = Story::with(['user', 'views', 'replies.user', 'linkedStories.user'])
             ->withCount('replies')
@@ -33,6 +33,7 @@ class StoriesController extends Controller
             ->groupBy('user_id')
             ->map(function ($userStories) use ($user) {
                 $storyUser = $userStories->first()->user;
+
                 return [
                     'user' => [
                         'id' => $storyUser->id,
@@ -42,8 +43,8 @@ class StoriesController extends Controller
                     'stories' => $userStories->map(function ($story) use ($user) {
                         // Use pre-loaded linked stories instead of N+1 query
                         $linkedStories = $story->linkedStories
-                            ->filter(fn($linked) => $linked->expires_at->isFuture())
-                            ->map(fn($linked) => [
+                            ->filter(fn ($linked) => $linked->expires_at->isFuture())
+                            ->map(fn ($linked) => [
                                 'id' => $linked->id,
                                 'media_url' => $linked->media_url,
                                 'media_type' => $linked->media_type,
@@ -56,7 +57,7 @@ class StoriesController extends Controller
                                 ],
                             ])
                             ->values();
-                        
+
                         return [
                             'id' => $story->id,
                             'media_url' => $story->media_url,
@@ -71,7 +72,7 @@ class StoriesController extends Controller
                         ];
                     })->values(),
                     'has_unviewed' => $userStories->contains(function ($story) use ($user) {
-                        return !$story->isViewedBy($user);
+                        return ! $story->isViewedBy($user);
                     }),
                 ];
             })
@@ -131,9 +132,9 @@ class StoriesController extends Controller
 
         $file = $request->file('media');
         $mediaType = strpos($file->getMimeType(), 'video') !== false ? 'video' : 'image';
-        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $fileName = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
         $filePath = $file->storeAs('stories', $fileName, 'public');
-        $mediaUrl = asset('storage/' . $filePath);
+        $mediaUrl = asset('storage/'.$filePath);
 
         $story = Story::create([
             'user_id' => Auth::id(),
@@ -159,7 +160,7 @@ class StoriesController extends Controller
         }
 
         // Check if already viewed
-        if (!$story->isViewedBy($user)) {
+        if (! $story->isViewedBy($user)) {
             StoryView::create([
                 'story_id' => $story->id,
                 'user_id' => $user->id,
@@ -242,7 +243,7 @@ class StoriesController extends Controller
         ]);
 
         $linkedStory = Story::findOrFail($request->input('linked_story_id'));
-        
+
         // Can only link to own stories
         if ($linkedStory->user_id !== Auth::id()) {
             return back()->withErrors(['error' => 'You can only link to your own stories']);

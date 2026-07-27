@@ -28,7 +28,7 @@ class SettingsController extends Controller
             if ($request->hasFile($key)) {
                 $path = $request->file($key)->store('settings', 'public');
                 SiteSetting::set($key, Storage::url($path), 'image');
-            } else if (!is_array($value)) {
+            } elseif (! is_array($value)) {
                 // Determine type
                 $type = is_bool($value) ? 'boolean' : 'text';
                 SiteSetting::set($key, $value, $type);

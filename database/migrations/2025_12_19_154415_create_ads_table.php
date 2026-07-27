@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('impressions')->default(0);
             $table->integer('clicks')->default(0);
             $table->timestamps();
-            
+
             $table->index('ad_type');
             $table->index('is_active');
         });

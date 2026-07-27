@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
@@ -16,7 +15,7 @@ class ProfileController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         $profile = [
             'id' => $user->id,
             'name' => $user->name,
@@ -54,7 +53,7 @@ class ProfileController extends Controller
         if ($request->hasFile('cover_image')) {
             $request->validate(['cover_image' => 'image|max:2048']);
             $path = $request->file('cover_image')->store('profiles', 'public');
-            $validated['cover_image'] = '/storage/' . $path;
+            $validated['cover_image'] = '/storage/'.$path;
         } elseif ($request->filled('cover_image')) {
             $validated['cover_image'] = $request->input('cover_image');
         }

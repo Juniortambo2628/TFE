@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Testimonial;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TestimonialController extends Controller
 {
@@ -14,7 +14,7 @@ class TestimonialController extends Controller
             ->latest()
             ->take(6)
             ->get();
-            
+
         return response()->json($testimonials);
     }
 
@@ -31,7 +31,7 @@ class TestimonialController extends Controller
 
         return response()->json([
             'message' => 'Thank you! Your testimonial has been submitted.',
-            'testimonial' => $testimonial
+            'testimonial' => $testimonial,
         ], 201);
     }
 }

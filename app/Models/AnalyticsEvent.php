@@ -12,7 +12,7 @@ class AnalyticsEvent extends Model
     protected $fillable = ['event_name', 'metadata', 'user_id'];
 
     protected $casts = [
-        'metadata' => 'array'
+        'metadata' => 'array',
     ];
 
     public function user()
@@ -25,7 +25,7 @@ class AnalyticsEvent extends Model
         return self::create([
             'event_name' => $name,
             'metadata' => $data,
-            'user_id' => auth()->id()
+            'user_id' => auth()->id(),
         ]);
     }
 }

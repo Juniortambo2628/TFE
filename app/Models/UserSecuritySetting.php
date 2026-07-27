@@ -8,7 +8,7 @@ class UserSecuritySetting extends Model
 {
     protected $fillable = [
         'user_id', 'two_factor_enabled', 'two_factor_secret',
-        'two_factor_recovery_codes', 'login_notifications', 'last_password_change'
+        'two_factor_recovery_codes', 'login_notifications', 'last_password_change',
     ];
 
     protected $casts = [
@@ -18,7 +18,7 @@ class UserSecuritySetting extends Model
     ];
 
     protected $hidden = [
-        'two_factor_secret', 'two_factor_recovery_codes'
+        'two_factor_secret', 'two_factor_recovery_codes',
     ];
 
     public function user()

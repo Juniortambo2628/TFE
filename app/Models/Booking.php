@@ -20,7 +20,7 @@ class Booking extends Model
         'flight_info',
         'accommodation',
         'matches',
-        'expires_at'
+        'expires_at',
     ];
 
     protected $casts = [

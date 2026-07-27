@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FavoriteMatch extends Model
 {
     protected $fillable = [
-        'user_id', 'fixture_id'
+        'user_id', 'fixture_id',
     ];
 
     public function user()

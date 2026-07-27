@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
@@ -67,14 +67,16 @@ class Post extends Model
     public function toggleLike(User $user): bool
     {
         $existingLike = $this->likes()->where('user_id', $user->id)->first();
-        
+
         if ($existingLike) {
             $existingLike->delete();
             $this->decrement('likes_count');
+
             return false; // unliked
         } else {
             $this->likes()->create(['user_id' => $user->id]);
             $this->increment('likes_count');
+
             return true; // liked
         }
     }
@@ -91,7 +93,7 @@ class Post extends Model
         ]);
 
         $this->increment('share_count');
-        
+
         return $repost;
     }
 

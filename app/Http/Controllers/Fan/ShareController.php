@@ -20,19 +20,19 @@ class ShareController extends Controller
     public function getShareOptions()
     {
         $user = Auth::user();
-        
+
         // Get all users (for individual messaging)
         $users = User::where('id', '!=', $user->id)
             ->select('id', 'name', 'avatar')
             ->orderBy('name')
             ->get();
-        
+
         // Get public tribes
         $publicTribes = Tribe::where('privacy', 'public')
             ->select('id', 'name', 'avatar', 'privacy')
             ->orderBy('name')
             ->get();
-        
+
         // Get tribes user is a member of
         $memberTribes = Tribe::whereHas('members', function ($query) use ($user) {
             $query->where('user_id', $user->id);
@@ -40,7 +40,7 @@ class ShareController extends Controller
             ->select('id', 'name', 'avatar', 'privacy')
             ->orderBy('name')
             ->get();
-        
+
         return response()->json([
             'users' => $users,
             'publicTribes' => $publicTribes,
@@ -77,7 +77,7 @@ class ShareController extends Controller
             if ($shareable->user_id !== $user->id && $shareable->isExpired()) {
                 return response()->json(['error' => 'Story has expired'], 400);
             }
-            $shareUrl = route('fan.stories') . '?story=' . $shareId;
+            $shareUrl = route('fan.stories').'?story='.$shareId;
             $shareContent = $shareable->caption ?? 'Story';
         }
 
@@ -90,7 +90,7 @@ class ShareController extends Controller
                 if ($recipient['type'] === 'user') {
                     // Share to individual user
                     $recipientUser = User::findOrFail($recipient['id']);
-                    
+
                     if ($recipientUser->id === $user->id) {
                         continue; // Skip self
                     }
@@ -99,7 +99,7 @@ class ShareController extends Controller
                         'user_id' => $recipientUser->id,
                         'sender_id' => $user->id,
                         'subject' => "Shared {$shareType} from {$user->name}",
-                        'body' => $messageText . "\n\n" . $shareContent . "\n\nView: " . $shareUrl,
+                        'body' => $messageText."\n\n".$shareContent."\n\nView: ".$shareUrl,
                         'share_type' => $shareType,
                         'share_id' => $shareId,
                         'is_read' => false,
@@ -107,22 +107,23 @@ class ShareController extends Controller
                 } else {
                     // Share to tribe
                     $tribe = Tribe::findOrFail($recipient['id']);
-                    
+
                     // Check permissions
-                    if ($tribe->privacy === 'private' && !$tribe->hasMember($user)) {
+                    if ($tribe->privacy === 'private' && ! $tribe->hasMember($user)) {
                         $errors[] = "You don't have permission to share to {$tribe->name}";
+
                         continue;
                     }
 
                     // Create message for each tribe member
                     $tribeMembers = $tribe->members()->where('user_id', '!=', $user->id)->get();
-                    
+
                     foreach ($tribeMembers as $member) {
                         $messages[] = Message::create([
                             'user_id' => $member->user_id,
                             'sender_id' => $user->id,
                             'subject' => "Shared {$shareType} in {$tribe->name}",
-                            'body' => $messageText . "\n\n" . $shareContent . "\n\nView: " . $shareUrl,
+                            'body' => $messageText."\n\n".$shareContent."\n\nView: ".$shareUrl,
                             'share_type' => $shareType,
                             'share_id' => $shareId,
                             'tribe_id' => $tribe->id,
@@ -142,7 +143,8 @@ class ShareController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['share' => 'Failed to share: ' . $e->getMessage()]);
+
+            return back()->withErrors(['share' => 'Failed to share: '.$e->getMessage()]);
         }
     }
 }

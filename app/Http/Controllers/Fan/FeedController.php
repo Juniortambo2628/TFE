@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
-use App\Models\PostComment;
+use App\Models\Ad;
 use App\Models\Follow;
 use App\Models\Hashtag;
-use App\Models\Ad;
+use App\Models\Post;
+use App\Models\PostComment;
 use App\Traits\HasSocialStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +49,7 @@ class FeedController extends Controller
                         'name' => $post->user->name,
                         'avatar' => $post->user->avatar ?? null,
                     ],
-                    'thread_replies' => $post->threadReplies->take(2)->map(fn($reply) => [
+                    'thread_replies' => $post->threadReplies->take(2)->map(fn ($reply) => [
                         'id' => $reply->id,
                         'content' => $reply->content,
                         'image_url' => $reply->image_url,
@@ -60,7 +60,7 @@ class FeedController extends Controller
                             'avatar' => $reply->user->avatar ?? null,
                         ],
                     ]),
-                    'comments' => $post->comments->take(3)->map(fn($c) => [
+                    'comments' => $post->comments->take(3)->map(fn ($c) => [
                         'id' => $c->id,
                         'content' => $c->content,
                         'created_at' => $c->created_at->diffForHumans(),
@@ -89,7 +89,7 @@ class FeedController extends Controller
         $trendingHashtags = Hashtag::orderByDesc('post_count')
             ->take(10)
             ->get()
-            ->map(fn($h) => ['id' => $h->id, 'name' => $h->name, 'count' => $h->post_count]);
+            ->map(fn ($h) => ['id' => $h->id, 'name' => $h->name, 'count' => $h->post_count]);
 
         // Get active feed ads (show 1 ad per 5 posts)
         $feedAds = Ad::where('ad_type', 'feed')
@@ -111,7 +111,7 @@ class FeedController extends Controller
 
         // Get suggested users (not following)
         $suggestedUsers = \App\Models\User::where('id', '!=', $userId)
-            ->whereDoesntHave('followers', function($query) use ($userId) {
+            ->whereDoesntHave('followers', function ($query) use ($userId) {
                 $query->where('follower_id', $userId);
             })
             ->where('is_admin', false)
@@ -119,7 +119,7 @@ class FeedController extends Controller
             ->inRandomOrder()
             ->take(5)
             ->get()
-            ->map(function($u) {
+            ->map(function ($u) {
                 return [
                     'id' => $u->id,
                     'name' => $u->name,
@@ -150,16 +150,16 @@ class FeedController extends Controller
 
         // Require either content or image
         $content = $request->input('content');
-        if (empty($content) && !$request->hasFile('image')) {
+        if (empty($content) && ! $request->hasFile('image')) {
             return back()->withErrors(['content' => 'Post must have either text content or an image.']);
         }
 
         $imageUrl = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $imageName = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
             $imagePath = $image->storeAs('posts', $imageName, 'public');
-            $imageUrl = asset('storage/' . $imagePath);
+            $imageUrl = asset('storage/'.$imagePath);
         }
 
         $post = Post::create([
@@ -173,16 +173,16 @@ class FeedController extends Controller
         // Extract and attach hashtags
         if ($content) {
             preg_match_all('/#(\w+)/', $content, $matches);
-            if (!empty($matches[1])) {
+            if (! empty($matches[1])) {
                 $hashtagNames = array_unique($matches[1]);
                 foreach ($hashtagNames as $hashtagName) {
                     $hashtag = Hashtag::firstOrCreate(
                         ['name' => strtolower($hashtagName)],
                         ['post_count' => 0]
                     );
-                    
+
                     // Attach hashtag to post if not already attached
-                    if (!$post->hashtags()->where('hashtag_id', $hashtag->id)->exists()) {
+                    if (! $post->hashtags()->where('hashtag_id', $hashtag->id)->exists()) {
                         $post->hashtags()->attach($hashtag->id);
                         $hashtag->increment('post_count');
                     }
@@ -235,7 +235,7 @@ class FeedController extends Controller
     public function repost(Post $post)
     {
         $repost = $post->repost(Auth::user());
-        
+
         return back()->with('success', 'Post reposted!');
     }
 
@@ -245,7 +245,7 @@ class FeedController extends Controller
     public function share(Post $post)
     {
         $post->incrementShare();
-        
+
         return back()->with('success', 'Post shared!');
     }
 

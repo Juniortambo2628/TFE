@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Message extends Model
 {
     protected $fillable = [
-        'user_id', 'sender_id', 'subject', 'body', 'is_read', 'share_type', 'share_id', 'tribe_id', 'budget_id', 'sender_type'
+        'user_id', 'sender_id', 'subject', 'body', 'is_read', 'share_type', 'share_id', 'tribe_id', 'budget_id', 'sender_type',
     ];
-    
+
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');

@@ -8,8 +8,8 @@ class PaymentTransaction extends Model
 {
     protected $fillable = [
         'user_id', 'amount', 'currency', 'type', 'method', 'status',
-        'reference', 'mpesa_receipt', 'stripe_payment_intent', 
-        'description', 'metadata'
+        'reference', 'mpesa_receipt', 'stripe_payment_intent',
+        'description', 'metadata',
     ];
 
     protected $casts = [
@@ -34,6 +34,6 @@ class PaymentTransaction extends Model
 
     public static function generateReference()
     {
-        return 'TXN-' . strtoupper(uniqid()) . '-' . time();
+        return 'TXN-'.strtoupper(uniqid()).'-'.time();
     }
 }

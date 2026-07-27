@@ -14,7 +14,7 @@ class TribeController extends Controller
         $tribes = Tribe::with('creator')
             ->orderByDesc('created_at')
             ->paginate(15)
-            ->through(fn($tribe) => [
+            ->through(fn ($tribe) => [
                 'id' => $tribe->id,
                 'name' => $tribe->name,
                 'slug' => $tribe->slug,
@@ -25,14 +25,14 @@ class TribeController extends Controller
             ]);
 
         return Inertia::render('Admin/Tribes', [
-            'tribes' => $tribes
+            'tribes' => $tribes,
         ]);
     }
 
     public function show(Tribe $tribe)
     {
         return Inertia::render('Admin/TribeDetail', [
-            'tribe' => $tribe->load(['creator', 'members.user'])
+            'tribe' => $tribe->load(['creator', 'members.user']),
         ]);
     }
 
@@ -53,6 +53,7 @@ class TribeController extends Controller
     public function destroy(Tribe $tribe)
     {
         $tribe->delete();
+
         return back()->with('success', 'Tribe deleted');
     }
 }

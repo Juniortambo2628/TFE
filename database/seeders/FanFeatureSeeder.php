@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Product;
-use App\Models\WorldCupMatch;
-use App\Models\Prize;
 use App\Models\Event;
 use App\Models\Fixture;
+use App\Models\Prize;
+use App\Models\Product;
+use App\Models\WorldCupMatch;
+use Illuminate\Database\Seeder;
 
 class FanFeatureSeeder extends Seeder
 {

@@ -23,7 +23,7 @@ class Budget extends Model
         'partner_cost',
         'partner_breakdown',
         'partner_notes',
-        'partner_document'
+        'partner_document',
     ];
 
     protected $casts = [

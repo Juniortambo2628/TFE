@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
@@ -20,7 +20,7 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'category' => $product->category,
                     'price' => $product->price,
-                    'image_url' => $product->image ? asset('storage/' . $product->image) : null,
+                    'image_url' => $product->image ? asset('storage/'.$product->image) : null,
                     'in_stock' => $product->in_stock,
                     'stock_quantity' => $product->stock_quantity,
                 ];
@@ -73,7 +73,7 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             if ($product->image) {
-                Storage:: disk('public')->delete($product->image);
+                Storage::disk('public')->delete($product->image);
             }
             $validated['image'] = $request->file('image')->store('products', 'public');
         }

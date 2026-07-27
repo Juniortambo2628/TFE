@@ -18,11 +18,12 @@ class Ad extends Model
         'impressions',
         'clicks',
     ];
+
     protected $appends = ['image_display_url'];
 
     public function getImageDisplayUrlAttribute()
     {
-        return $this->image_url ? asset('storage/' . $this->image_url) : asset('assets/img/logo/TFE-logo.png');
+        return $this->image_url ? asset('storage/'.$this->image_url) : asset('assets/img/logo/TFE-logo.png');
     }
 
     protected $casts = [

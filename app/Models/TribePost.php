@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class TribePost extends Model
 {
     protected $fillable = [
-        'tribe_id', 'user_id', 'title', 'content', 'is_pinned', 'view_count'
+        'tribe_id', 'user_id', 'title', 'content', 'is_pinned', 'view_count',
     ];
 
     protected $casts = [

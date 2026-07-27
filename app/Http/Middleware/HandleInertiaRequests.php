@@ -35,16 +35,16 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'notifications' => $request->user() ? $request->user()->notifications()->latest()->take(5)->get() : [],
                 'unreadNotificationsCount' => $request->user() ? $request->user()->unreadNotifications()->count() : 0,
-                'messages' => $request->user() ? ($request->user()->is_admin 
+                'messages' => $request->user() ? ($request->user()->is_admin
                     ? collect($request->user()->receivedMessages()->with('sender')->latest()->take(5)->get())
-                        ->merge(\App\Models\ContactMessage::latest()->take(5)->get()->map(function($m) {
+                        ->merge(\App\Models\ContactMessage::latest()->take(5)->get()->map(function ($m) {
                             return [
                                 'id' => $m->id,
                                 'sender' => ['name' => $m->name],
                                 'body' => $m->message,
                                 'subject' => $m->subject,
                                 'created_at' => $m->created_at,
-                                'is_contact_form' => true
+                                'is_contact_form' => true,
                             ];
                         }))
                         ->sortByDesc('created_at')
@@ -62,7 +62,7 @@ class HandleInertiaRequests extends Middleware
                 'two_factor_setup' => $request->session()->get('two_factor_setup'),
                 'two_factor_code' => $request->session()->get('two_factor_code'),
             ],
-            'adminSettings' => ($request->user() && $request->user()->is_admin) 
+            'adminSettings' => ($request->user() && $request->user()->is_admin)
                 ? \App\Models\SiteSetting::all()->pluck('value', 'key')
                 : null,
         ];

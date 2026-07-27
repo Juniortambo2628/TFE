@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class JourneyController extends Controller
 {
@@ -24,19 +23,19 @@ class JourneyController extends Controller
         $totalPaid = \App\Models\PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->sum('amount');
-        
+
         $paymentsCount = \App\Models\PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->count();
 
         // Total Due = Pending Installments + Balances on bookings without schedules
         $scheduledPending = $paymentSchedules->where('status', 'pending')->sum('amount');
-        
+
         // Use indexed collection for O(n) lookup instead of O(n*m) contains()
         $scheduledBookingIds = $paymentSchedules->pluck('booking_id')->filter()->flip();
-        $unscheduledBookingBalance = $bookings->filter(function($booking) use ($scheduledBookingIds) {
-            return !$scheduledBookingIds->has($booking->id);
-        })->sum(function($booking) {
+        $unscheduledBookingBalance = $bookings->filter(function ($booking) use ($scheduledBookingIds) {
+            return ! $scheduledBookingIds->has($booking->id);
+        })->sum(function ($booking) {
             return max(0, $booking->total_amount - $booking->amount_paid);
         });
 
@@ -45,20 +44,20 @@ class JourneyController extends Controller
         // Prepare data for view
         $paymentData = [
             'totalBookings' => $bookings->count(),
-            'totalPaid' => (float)$totalPaid,
-            'totalDue' => (float)$totalDue,
+            'totalPaid' => (float) $totalPaid,
+            'totalDue' => (float) $totalDue,
             'paymentsCount' => $paymentsCount,
             'bookings' => $bookings,
             'paymentSchedules' => $paymentSchedules,
-            'payments' => $payments, 
+            'payments' => $payments,
         ];
-        
+
         // Mock active budget if null, just to be safe during migration/testing, or return null.
         // Code handles null.
 
         return Inertia::render('Fan/Journey', [
             'paymentData' => $paymentData,
-            'activeBudget' => $activeBudget
+            'activeBudget' => $activeBudget,
         ]);
     }
 
@@ -69,13 +68,13 @@ class JourneyController extends Controller
         }
 
         $matches = [];
-        if (!empty($booking->matches)) {
+        if (! empty($booking->matches)) {
             $matches = \App\Models\Fixture::whereIn('id', $booking->matches)->get();
         }
 
         return Inertia::render('Fan/BookingDetails', [
             'booking' => $booking,
-            'matches' => $matches
+            'matches' => $matches,
         ]);
     }
 }

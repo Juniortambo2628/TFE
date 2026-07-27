@@ -79,7 +79,7 @@ class PaymentController extends Controller
 
             // 2. Update Booking if linked
             $metadata = $paymentTransaction->metadata; // Cast handles decoding
-            if (!empty($metadata['booking_id'])) {
+            if (! empty($metadata['booking_id'])) {
                 $booking = \App\Models\Booking::find($metadata['booking_id']);
                 if ($booking) {
                     $booking->increment('amount_paid', $paymentTransaction->amount);

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('webauthn_credentials', function (Blueprint $table) {
             // Using 191 as a safe length for unique indexes in utf8mb4
             $table->string('id', 191)->primary();
-            
+
             // WebAuthn user relationship (Morph)
             $table->string('authenticatable_type');
             $table->unsignedBigInteger('authenticatable_id');

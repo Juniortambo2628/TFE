@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Announcement extends Model
 {
     protected $fillable = [
-        'title', 'content', 'type', 'is_active', 'expires_at'
+        'title', 'content', 'type', 'is_active', 'expires_at',
     ];
 
     protected $casts = [
@@ -20,7 +20,7 @@ class Announcement extends Model
         return $query->where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now());
+                    ->orWhere('expires_at', '>', now());
             });
     }
 }

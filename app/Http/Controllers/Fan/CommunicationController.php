@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Message;
 use App\Models\Announcement;
-use App\Models\Story;
+use App\Models\Message;
 use App\Models\Post;
+use App\Models\Story;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class CommunicationController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        
+
         // User messages with shared content
         $messages = Message::where('user_id', $user->id)
             ->with(['sender', 'sharedStory.user', 'sharedPost.user'])
@@ -104,7 +104,7 @@ class CommunicationController extends Controller
     {
         $message = Message::where('user_id', Auth::id())->findOrFail($id);
         $message->update(['is_read' => true]);
-        
+
         return back()->with('success', 'Message marked as read');
     }
 
@@ -112,7 +112,7 @@ class CommunicationController extends Controller
     {
         $message = Message::where('user_id', Auth::id())->findOrFail($id);
         $message->delete();
-        
+
         return back()->with('success', 'Message deleted');
     }
 }

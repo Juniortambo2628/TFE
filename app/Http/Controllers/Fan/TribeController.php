@@ -4,13 +4,12 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tribe;
-use App\Models\TribeMember;
 use App\Models\TribePost;
 use App\Models\TribePostReply;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class TribeController extends Controller
 {
@@ -63,9 +62,9 @@ class TribeController extends Controller
     public function show(Tribe $tribe)
     {
         $user = Auth::user();
-        
+
         // Check if user can view this tribe
-        if ($tribe->privacy !== 'public' && !$tribe->hasMember($user)) {
+        if ($tribe->privacy !== 'public' && ! $tribe->hasMember($user)) {
             return back()->with('error', 'This is a private tribe. Join to view content.');
         }
 
@@ -188,9 +187,9 @@ class TribeController extends Controller
     public function leave(Tribe $tribe)
     {
         $user = Auth::user();
-        
+
         if ($tribe->removeMember($user)) {
-             return back()->with('success', 'You have left the tribe.');
+            return back()->with('success', 'You have left the tribe.');
         }
 
         return back()->with('error', 'You are not a member of this tribe.');
@@ -203,7 +202,7 @@ class TribeController extends Controller
     {
         $user = Auth::user();
 
-        if (!$tribe->hasMember($user)) {
+        if (! $tribe->hasMember($user)) {
             return back()->with('error', 'You must be a member to post.');
         }
 
@@ -229,7 +228,7 @@ class TribeController extends Controller
     {
         $user = Auth::user();
 
-        if (!$tribe->hasMember($user)) {
+        if (! $tribe->hasMember($user)) {
             return back()->with('error', 'You must be a member to reply.');
         }
 
@@ -254,12 +253,12 @@ class TribeController extends Controller
      */
     public function update(Request $request, Tribe $tribe)
     {
-        if (!$tribe->isAdmin(Auth::user())) {
+        if (! $tribe->isAdmin(Auth::user())) {
             return back()->with('error', 'Unauthorized. Only admins can edit the tribe.');
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:tribes,name,' . $tribe->id,
+            'name' => 'required|string|max:100|unique:tribes,name,'.$tribe->id,
             'description' => 'nullable|string|max:1000',
             'privacy' => 'in:public,private,invite_only',
             'banner' => 'nullable',
@@ -269,7 +268,7 @@ class TribeController extends Controller
         if ($request->hasFile('banner')) {
             $request->validate(['banner' => 'image|max:2048']);
             $path = $request->file('banner')->store('tribes', 'public');
-            $validated['banner'] = '/storage/' . $path;
+            $validated['banner'] = '/storage/'.$path;
         } elseif ($request->filled('banner')) {
             $validated['banner'] = $request->input('banner');
         } else {
@@ -290,12 +289,12 @@ class TribeController extends Controller
      */
     public function toggleRole(Tribe $tribe, $userId)
     {
-        if (!$tribe->isAdmin(Auth::user())) {
+        if (! $tribe->isAdmin(Auth::user())) {
             return back()->with('error', 'Unauthorized.');
         }
 
         $member = $tribe->members()->where('user_id', $userId)->first();
-        
+
         if ($member) {
             // Cannot demote owner
             if ($tribe->created_by == $userId) {
@@ -304,8 +303,8 @@ class TribeController extends Controller
 
             $newRole = $member->role === 'admin' ? 'member' : 'admin';
             $member->update(['role' => $newRole]);
-            
-            return back()->with('success', 'Member role updated to ' . $newRole);
+
+            return back()->with('success', 'Member role updated to '.$newRole);
         }
 
         return back()->with('error', 'Member not found.');

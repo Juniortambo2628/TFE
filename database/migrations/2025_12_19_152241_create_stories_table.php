@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('caption')->nullable();
             $table->timestamp('expires_at'); // 24 hours from creation
             $table->timestamps();
-            
+
             $table->index('user_id');
             $table->index('expires_at');
         });
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->foreignId('story_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['story_id', 'user_id']); // Prevent duplicate views
             $table->index('story_id');
             $table->index('user_id');

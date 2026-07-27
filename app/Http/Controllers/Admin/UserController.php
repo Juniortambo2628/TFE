@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -18,7 +17,7 @@ class UserController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('email', 'like', "%{$request->search}%");
+                    ->orWhere('email', 'like', "%{$request->search}%");
             });
         }
 
@@ -49,9 +48,9 @@ class UserController extends Controller
                     'predictions_count' => $user->predictions_count,
                     'followers_count' => $user->followers_count,
                     'events_count' => $user->event_rsvps_count,
-                    'marketing_consent' => (bool)$user->marketing_consent,
-                    'community_consent' => (bool)$user->community_consent,
-                    'terms_agreed' => (bool)$user->terms_agreed,
+                    'marketing_consent' => (bool) $user->marketing_consent,
+                    'community_consent' => (bool) $user->community_consent,
+                    'terms_agreed' => (bool) $user->terms_agreed,
                 ];
             });
 
@@ -73,7 +72,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'phone' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:100',
             'country_code' => 'nullable|string|max:10',
@@ -94,15 +93,15 @@ class UserController extends Controller
 
     public function toggleAdmin(User $user)
     {
-        $user->update(['is_admin' => !$user->is_admin]);
-        
+        $user->update(['is_admin' => ! $user->is_admin]);
+
         return back()->with('success', $user->is_admin ? 'User promoted to admin' : 'Admin privileges removed');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        
+
         return back()->with('success', 'User deleted');
     }
 }

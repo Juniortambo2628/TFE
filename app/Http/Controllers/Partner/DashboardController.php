@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Budget;
-use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        if (!Auth::user()->is_partner) {
+        if (! Auth::user()->is_partner) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -33,14 +33,14 @@ class DashboardController extends Controller
 
     public function show(Budget $budget)
     {
-         if (!Auth::user()->is_partner) {
+        if (! Auth::user()->is_partner) {
             abort(403, 'Unauthorized access.');
         }
 
         return Inertia::render('Partner/RequestView', [
             'budget' => [
                 'id' => $budget->id,
-                'reference_id' => 'REQ-' . str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                'reference_id' => 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
                 'created_at' => $budget->created_at->format('Y-m-d H:i:s'),
                 'original_cost' => $budget->total_cost,
                 'original_breakdown' => $budget->breakdown,
@@ -52,13 +52,13 @@ class DashboardController extends Controller
                 'partner_cost' => $budget->partner_cost,
                 'partner_breakdown' => $budget->partner_breakdown,
                 'partner_notes' => $budget->partner_notes,
-            ]
+            ],
         ]);
     }
 
     public function update(Request $request, Budget $budget)
     {
-         if (!Auth::user()->is_partner) {
+        if (! Auth::user()->is_partner) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -67,7 +67,7 @@ class DashboardController extends Controller
             'partner_breakdown' => 'required', // Can be array or JSON string depending on frontend
             'partner_notes' => 'nullable|string',
             'status' => 'required|in:approved,modified',
-            'document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120'
+            'document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
         // Process partner_breakdown if it came as a string (rare with new frontend but good to keep)
@@ -86,7 +86,7 @@ class DashboardController extends Controller
         // Handle document upload
         if ($request->hasFile('document')) {
             $file = $request->file('document');
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $filename = time().'_'.$file->getClientOriginalName();
             $path = $file->storeAs('documents/partner', $filename, 'public');
             $updateData['partner_document'] = $path;
         }
@@ -116,7 +116,7 @@ class DashboardController extends Controller
             ->map(function ($budget) {
                 return [
                     'id' => $budget->id,
-                    'reference_id' => 'REQ-' . str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                    'reference_id' => 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
                     'created_at' => $budget->created_at->format('Y-m-d H:i'),
                     'total_cost' => $budget->total_cost,
                     'status' => $budget->partner_status,

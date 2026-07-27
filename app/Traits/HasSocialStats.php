@@ -10,7 +10,7 @@ trait HasSocialStats
     /**
      * Get social statistics for a user.
      *
-     * @param int $userId
+     * @param  int  $userId
      * @return array
      */
     protected function getSocialStats($userId)
@@ -31,8 +31,8 @@ trait HasSocialStats
     /**
      * Get followers list for a user.
      *
-     * @param int $userId
-     * @param int|null $limit
+     * @param  int  $userId
+     * @param  int|null  $limit
      * @return \Illuminate\Support\Collection
      */
     protected function getFollowers($userId, $limit = null)
@@ -50,8 +50,8 @@ trait HasSocialStats
     /**
      * Get following list for a user.
      *
-     * @param int $userId
-     * @param int|null $limit
+     * @param  int  $userId
+     * @param  int|null  $limit
      * @return \Illuminate\Support\Collection
      */
     protected function getFollowing($userId, $limit = null)

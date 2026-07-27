@@ -47,6 +47,7 @@ class Prediction extends Model
             $this->is_exact = true;
             $this->is_correct = true;
             $this->points_earned = 10;
+
             return 10;
         }
 
@@ -57,11 +58,13 @@ class Prediction extends Model
         if ($predictedResult === $actualResult) {
             $this->is_correct = true;
             $this->points_earned = 5;
+
             return 5;
         }
 
         $this->is_correct = false;
         $this->points_earned = 0;
+
         return 0;
     }
 }

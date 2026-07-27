@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('stories', function (Blueprint $table) {
-            if (!Schema::hasColumn('stories', 'linked_story_id')) {
+            if (! Schema::hasColumn('stories', 'linked_story_id')) {
                 $table->foreignId('linked_story_id')->nullable()->after('user_id')->constrained('stories')->onDelete('set null');
             }
         });
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('content');
             $table->timestamps();
-            
+
             $table->index('story_id');
             $table->index('user_id');
         });
@@ -35,7 +35,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('story_replies');
-        
+
         Schema::table('stories', function (Blueprint $table) {
             if (Schema::hasColumn('stories', 'linked_story_id')) {
                 $table->dropForeign(['linked_story_id']);

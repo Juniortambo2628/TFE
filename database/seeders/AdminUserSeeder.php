@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
@@ -26,11 +25,11 @@ class AdminUserSeeder extends Seeder
                 'phone' => '1234567890',
                 'country' => 'Kenya',
                 'first_name' => 'System',
-                'last_name' => 'Admin'
+                'last_name' => 'Admin',
             ]
         );
 
-        if (!$admin->is_admin) {
+        if (! $admin->is_admin) {
             $admin->update(['is_admin' => true]);
         }
     }

@@ -25,7 +25,7 @@ class TwoFactorChallengeController extends Controller
      */
     public function create(Request $request): Response
     {
-        if (!$request->session()->has('login.id')) {
+        if (! $request->session()->has('login.id')) {
             return redirect()->route('login');
         }
 
@@ -41,7 +41,7 @@ class TwoFactorChallengeController extends Controller
             'code' => 'required|string',
         ]);
 
-        if (!$request->session()->has('login.id')) {
+        if (! $request->session()->has('login.id')) {
             return redirect()->route('login');
         }
 
@@ -50,7 +50,7 @@ class TwoFactorChallengeController extends Controller
 
         if ($this->twoFactorService->verifyCode($secret, $request->code)) {
             Auth::login($user, $request->session()->get('login.remember', false));
-            
+
             $request->session()->forget(['login.id', 'login.remember']);
             $request->session()->regenerate();
 

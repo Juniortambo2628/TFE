@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::table('messages', function (Blueprint $table) {
             $table->unsignedBigInteger('budget_id')->nullable()->after('tribe_id');
             $table->string('sender_type')->nullable()->after('budget_id'); // 'partner' or 'fan'
-            
+
             $table->foreign('budget_id')
                 ->references('id')
                 ->on('budgets')

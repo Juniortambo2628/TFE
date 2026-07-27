@@ -61,7 +61,7 @@ class RegisteredUserController extends Controller
 
         try {
             $user = User::create([
-                'name' => $request->first_name . ' ' . $request->last_name,
+                'name' => $request->first_name.' '.$request->last_name,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $request->email,
@@ -95,15 +95,16 @@ class RegisteredUserController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Registration failed at creation/login', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }
     }
+
     public function checkEmail(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         $exists = User::where('email', $request->email)->exists();

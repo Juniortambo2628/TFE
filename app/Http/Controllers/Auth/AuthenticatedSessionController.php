@@ -39,7 +39,7 @@ class AuthenticatedSessionController extends Controller
         if ($user->two_factor_enabled) {
             // Log out but keep track of who is logging in
             Auth::logout();
-            
+
             $request->session()->put('login.id', $user->id);
             $request->session()->put('login.remember', $request->boolean('remember'));
 
@@ -74,11 +74,11 @@ class AuthenticatedSessionController extends Controller
         $device = $this->parseDevice($userAgent);
 
         $loginData = [
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'ip_address' => $ip,
             'user_agent' => $userAgent,
-            'device'     => $device,
-            'location'   => 'Unknown', // Could integrate IP geolocation later
+            'device' => $device,
+            'location' => 'Unknown', // Could integrate IP geolocation later
             'successful' => true,
         ];
 
@@ -90,9 +90,9 @@ class AuthenticatedSessionController extends Controller
         if ($settings && $settings->login_notifications) {
             $user->notify(new LoginAlertNotification([
                 'ip_address' => $ip,
-                'device'     => $device,
-                'location'   => 'Unknown',
-                'time'       => now()->format('M d, Y \a\t h:i A'),
+                'device' => $device,
+                'location' => 'Unknown',
+                'time' => now()->format('M d, Y \a\t h:i A'),
             ]));
         }
     }

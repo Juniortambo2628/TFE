@@ -12,9 +12,9 @@ class AnnouncementsController extends Controller
     public function index()
     {
         $announcements = Announcement::latest()->paginate(15);
-        
+
         return Inertia::render('Admin/Announcements', [
-            'announcements' => $announcements
+            'announcements' => $announcements,
         ]);
     }
 
@@ -24,7 +24,7 @@ class AnnouncementsController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'type' => 'required|string|in:info,success,warning,danger',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         Announcement::create($validated);
@@ -38,7 +38,7 @@ class AnnouncementsController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'type' => 'required|string|in:info,success,warning,danger',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $announcement->update($validated);
@@ -48,15 +48,15 @@ class AnnouncementsController extends Controller
 
     public function toggle(Announcement $announcement)
     {
-        $announcement->update(['is_active' => !$announcement->is_active]);
-        
+        $announcement->update(['is_active' => ! $announcement->is_active]);
+
         return back()->with('success', 'Announcement status updated');
     }
 
     public function destroy(Announcement $announcement)
     {
         $announcement->delete();
-        
+
         return back()->with('success', 'Announcement deleted');
     }
 }

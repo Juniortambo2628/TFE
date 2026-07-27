@@ -11,7 +11,7 @@ class AnalyticsController extends Controller
     {
         $request->validate([
             'event' => 'required|string',
-            'data' => 'nullable|array'
+            'data' => 'nullable|array',
         ]);
 
         AnalyticsEvent::log($request->event, $request->data);

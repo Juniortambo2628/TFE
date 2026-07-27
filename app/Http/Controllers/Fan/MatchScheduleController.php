@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Fixture;
 use App\Models\FavoriteMatch;
+use App\Models\Fixture;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class MatchScheduleController extends Controller
 {
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         // Get user's favorite match IDs
         $favoriteIds = FavoriteMatch::where('user_id', $user->id)
             ->pluck('fixture_id')
@@ -84,6 +84,7 @@ class MatchScheduleController extends Controller
 
         if ($existing) {
             $existing->delete();
+
             return back()->with('success', 'Match removed from favorites');
         }
 

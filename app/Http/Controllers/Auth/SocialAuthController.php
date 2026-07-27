@@ -4,17 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
 {
     public function redirect($provider)
     {
         $driver = Socialite::driver($provider);
-        
+
         if (app()->environment('local')) {
             $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
         }
@@ -32,7 +31,7 @@ class SocialAuthController extends Controller
             }
 
             $socialUser = $driver->user();
-            
+
             $user = User::updateOrCreate([
                 'email' => $socialUser->getEmail(),
             ], [
@@ -55,8 +54,9 @@ class SocialAuthController extends Controller
             return redirect()->intended(route('fan.dashboard'));
 
         } catch (\Exception $e) {
-            Log::error('Social Auth Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Unable to login with ' . ucfirst($provider));
+            Log::error('Social Auth Error: '.$e->getMessage());
+
+            return redirect()->route('login')->with('error', 'Unable to login with '.ucfirst($provider));
         }
     }
 

@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laragear\WebAuthn\Contracts\WebAuthnAuthenticatable;
 use Laragear\WebAuthn\WebAuthnAuthentication;
 
-class User extends Authenticatable implements WebAuthnAuthenticatable, MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, WebAuthnAuthentication;
@@ -83,7 +83,7 @@ class User extends Authenticatable implements WebAuthnAuthenticatable, MustVerif
         'privacy_consent_at' => 'datetime',
         'community_consent' => 'boolean',
     ];
-    
+
     public function profile()
     {
         return $this->hasOne(Profile::class);
@@ -144,6 +144,7 @@ class User extends Authenticatable implements WebAuthnAuthenticatable, MustVerif
         return $this->belongsToMany(Tribe::class, 'tribe_members')
             ->withPivot('role', 'joined_at');
     }
+
     /**
      * Determine if the user has verified their email address.
      *

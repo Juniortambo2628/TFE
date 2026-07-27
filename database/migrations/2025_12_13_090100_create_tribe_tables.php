@@ -14,78 +14,78 @@ return new class extends Migration
     {
         // Update posts table with missing columns
         Schema::table('posts', function (Blueprint $table) {
-            if (!Schema::hasColumn('posts', 'visibility')) {
+            if (! Schema::hasColumn('posts', 'visibility')) {
                 $table->string('visibility')->default('public')->after('content');
             }
-            if (!Schema::hasColumn('posts', 'comment_count')) {
+            if (! Schema::hasColumn('posts', 'comment_count')) {
                 $table->unsignedInteger('comment_count')->default(0)->after('likes_count');
             }
-            if (!Schema::hasColumn('posts', 'share_count')) {
+            if (! Schema::hasColumn('posts', 'share_count')) {
                 $table->unsignedInteger('share_count')->default(0)->after('comment_count');
             }
         });
 
         // Update tribes table with missing columns
         Schema::table('tribes', function (Blueprint $table) {
-            if (!Schema::hasColumn('tribes', 'slug')) {
+            if (! Schema::hasColumn('tribes', 'slug')) {
                 $table->string('slug', 100)->nullable()->unique()->after('name');
             }
-            if (!Schema::hasColumn('tribes', 'avatar')) {
+            if (! Schema::hasColumn('tribes', 'avatar')) {
                 $table->string('avatar')->nullable()->after('description');
             }
-            if (!Schema::hasColumn('tribes', 'banner')) {
+            if (! Schema::hasColumn('tribes', 'banner')) {
                 $table->string('banner')->nullable()->after('avatar');
             }
-            if (!Schema::hasColumn('tribes', 'member_count')) {
+            if (! Schema::hasColumn('tribes', 'member_count')) {
                 $table->unsignedInteger('member_count')->default(0)->after('created_by');
             }
-            if (!Schema::hasColumn('tribes', 'posts_count')) {
+            if (! Schema::hasColumn('tribes', 'posts_count')) {
                 $table->unsignedInteger('posts_count')->default(0)->after('member_count');
             }
-            if (!Schema::hasColumn('tribes', 'privacy')) {
+            if (! Schema::hasColumn('tribes', 'privacy')) {
                 $table->string('privacy')->default('public')->after('posts_count');
             }
         });
 
         // Create post_likes table if not exists
-        if (!Schema::hasTable('post_likes')) {
+        if (! Schema::hasTable('post_likes')) {
             Schema::create('post_likes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('post_id')->constrained()->onDelete('cascade');
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->timestamps();
-                
+
                 $table->unique(['post_id', 'user_id']);
             });
         }
 
         // Create post_comments table if not exists
-        if (!Schema::hasTable('post_comments')) {
+        if (! Schema::hasTable('post_comments')) {
             Schema::create('post_comments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('post_id')->constrained()->onDelete('cascade');
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->text('content');
                 $table->timestamps();
-                
+
                 $table->index(['post_id', 'created_at']);
             });
         }
 
         // Create follows table if not exists
-        if (!Schema::hasTable('follows')) {
+        if (! Schema::hasTable('follows')) {
             Schema::create('follows', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('follower_id')->constrained('users')->onDelete('cascade');
                 $table->foreignId('following_id')->constrained('users')->onDelete('cascade');
                 $table->timestamps();
-                
+
                 $table->unique(['follower_id', 'following_id']);
             });
         }
 
         // Create hashtags table if not exists
-        if (!Schema::hasTable('hashtags')) {
+        if (! Schema::hasTable('hashtags')) {
             Schema::create('hashtags', function (Blueprint $table) {
                 $table->id();
                 $table->string('name', 100)->unique();
@@ -95,11 +95,11 @@ return new class extends Migration
         }
 
         // Create post_hashtags pivot table if not exists
-        if (!Schema::hasTable('post_hashtags')) {
+        if (! Schema::hasTable('post_hashtags')) {
             Schema::create('post_hashtags', function (Blueprint $table) {
                 $table->foreignId('post_id')->constrained()->onDelete('cascade');
                 $table->foreignId('hashtag_id')->constrained()->onDelete('cascade');
-                
+
                 $table->primary(['post_id', 'hashtag_id']);
             });
         }
@@ -115,12 +115,12 @@ return new class extends Migration
         Schema::dropIfExists('follows');
         Schema::dropIfExists('post_comments');
         Schema::dropIfExists('post_likes');
-        
+
         // Remove added columns from posts
         Schema::table('posts', function (Blueprint $table) {
             $table->dropColumn(['visibility', 'comment_count', 'share_count']);
         });
-        
+
         // Remove added columns from tribes
         Schema::table('tribes', function (Blueprint $table) {
             $table->dropColumn(['slug', 'avatar', 'banner', 'member_count', 'posts_count', 'privacy']);

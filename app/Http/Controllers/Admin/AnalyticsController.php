@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AnalyticsEvent;
 use App\Models\Budget;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class AnalyticsController extends Controller
 {
@@ -60,7 +58,7 @@ class AnalyticsController extends Controller
                 'avg_itinerary_cost' => Budget::avg('total_cost') ?: 0,
                 'avg_calc_cost' => AnalyticsEvent::where('event_name', 'calculator_use')
                     ->avg('metadata->estimated_cost') ?: 0,
-            ]
+            ],
         ]);
     }
 }

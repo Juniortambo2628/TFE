@@ -5,17 +5,16 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventRsvp;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class EventController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        
+
         // Get upcoming events with user's RSVP status (eager-loaded to avoid N+1)
         $userRsvpMap = EventRsvp::where('user_id', $user->id)
             ->pluck('status', 'event_id');
@@ -85,7 +84,7 @@ class EventController extends Controller
             ['status' => $validated['status']]
         );
 
-        $message = match($validated['status']) {
+        $message = match ($validated['status']) {
             'attending' => 'You are attending this event!',
             'maybe' => 'RSVP updated to maybe',
             'not_attending' => 'RSVP cancelled',

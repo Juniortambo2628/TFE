@@ -7,7 +7,6 @@ use Illuminate\Notifications\Notification;
 
 class LoginAlertNotification extends Notification
 {
-
     protected $loginData;
 
     public function __construct(array $loginData)

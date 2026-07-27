@@ -34,7 +34,7 @@ class WebAuthnRegisterController
     public function destroy(string $id)
     {
         auth()->user()->webAuthnCredentials()->where('id', $id)->delete();
-        
+
         return back()->with('success', 'Passkey removed successfully');
     }
 }

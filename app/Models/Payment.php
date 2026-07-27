@@ -17,7 +17,7 @@ class Payment extends Model
         'transaction_id',
         'status',
         'paid_at',
-        'created_at'
+        'created_at',
     ];
 
     protected $casts = [

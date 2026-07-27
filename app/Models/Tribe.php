@@ -29,7 +29,7 @@ class Tribe extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($tribe) {
             if (empty($tribe->slug)) {
                 $tribe->slug = Str::slug($tribe->name);
@@ -72,6 +72,7 @@ class Tribe extends Model
             'joined_at' => now(),
         ]);
         $this->increment('member_count');
+
         return $member;
     }
 
@@ -84,6 +85,7 @@ class Tribe extends Model
         if ($deleted) {
             $this->decrement('member_count');
         }
+
         return $deleted > 0;
     }
 

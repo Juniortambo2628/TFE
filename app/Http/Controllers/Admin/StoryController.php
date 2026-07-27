@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Story;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class StoryController extends Controller
@@ -14,7 +13,7 @@ class StoryController extends Controller
         $stories = Story::with('user')
             ->orderByDesc('created_at')
             ->paginate(20)
-            ->through(fn($story) => [
+            ->through(fn ($story) => [
                 'id' => $story->id,
                 'user_name' => $story->user->name ?? 'Unknown',
                 'media_type' => $story->media_type,
@@ -25,13 +24,14 @@ class StoryController extends Controller
             ]);
 
         return Inertia::render('Admin/Stories', [
-            'stories' => $stories
+            'stories' => $stories,
         ]);
     }
 
     public function destroy(Story $story)
     {
         $story->delete();
+
         return back()->with('success', 'Story deleted successfully');
     }
 }

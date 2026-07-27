@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Products table for Fan Store
-        if (!Schema::hasTable('products')) {
+        if (! Schema::hasTable('products')) {
             Schema::create('products', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -27,7 +27,7 @@ return new class extends Migration
         }
 
         // World Cup Matches for Predictions
-        if (!Schema::hasTable('world_cup_matches')) {
+        if (! Schema::hasTable('world_cup_matches')) {
             Schema::create('world_cup_matches', function (Blueprint $table) {
                 $table->id();
                 $table->string('home_team');
@@ -46,7 +46,7 @@ return new class extends Migration
         }
 
         // Predictions table
-        if (!Schema::hasTable('predictions')) {
+        if (! Schema::hasTable('predictions')) {
             Schema::create('predictions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -57,13 +57,13 @@ return new class extends Migration
                 $table->boolean('is_correct')->default(false);
                 $table->boolean('is_exact')->default(false);
                 $table->timestamps();
-                
+
                 $table->unique(['user_id', 'match_id']);
             });
         }
 
         // Prizes table
-        if (!Schema::hasTable('prizes')) {
+        if (! Schema::hasTable('prizes')) {
             Schema::create('prizes', function (Blueprint $table) {
                 $table->id();
                 $table->string('position'); // 1st, 2nd, 3rd
@@ -74,9 +74,6 @@ return new class extends Migration
                 $table->timestamps();
             });
         }
-
-
-
 
     }
 

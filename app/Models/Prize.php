@@ -29,6 +29,6 @@ class Prize extends Model
 
     public function getFormattedValueAttribute()
     {
-        return 'KES ' . number_format($this->value);
+        return 'KES '.number_format($this->value);
     }
 }

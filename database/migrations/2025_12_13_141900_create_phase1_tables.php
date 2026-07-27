@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Announcements table for admin broadcasts
-        if (!Schema::hasTable('announcements')) {
+        if (! Schema::hasTable('announcements')) {
             Schema::create('announcements', function (Blueprint $table) {
                 $table->id();
                 $table->string('title');
@@ -22,7 +22,7 @@ return new class extends Migration
         }
 
         // Event RSVPs
-        if (!Schema::hasTable('event_rsvps')) {
+        if (! Schema::hasTable('event_rsvps')) {
             Schema::create('event_rsvps', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -34,7 +34,7 @@ return new class extends Migration
         }
 
         // Payment methods
-        if (!Schema::hasTable('payment_methods')) {
+        if (! Schema::hasTable('payment_methods')) {
             Schema::create('payment_methods', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -49,7 +49,7 @@ return new class extends Migration
         }
 
         // Payment transactions (enhanced)
-        if (!Schema::hasTable('payment_transactions')) {
+        if (! Schema::hasTable('payment_transactions')) {
             Schema::create('payment_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -68,7 +68,7 @@ return new class extends Migration
         }
 
         // User security settings
-        if (!Schema::hasTable('user_security_settings')) {
+        if (! Schema::hasTable('user_security_settings')) {
             Schema::create('user_security_settings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -82,7 +82,7 @@ return new class extends Migration
         }
 
         // Login history
-        if (!Schema::hasTable('login_history')) {
+        if (! Schema::hasTable('login_history')) {
             Schema::create('login_history', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -96,7 +96,7 @@ return new class extends Migration
         }
 
         // Tribe posts (discussions within tribes)
-        if (!Schema::hasTable('tribe_posts')) {
+        if (! Schema::hasTable('tribe_posts')) {
             Schema::create('tribe_posts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tribe_id')->constrained()->onDelete('cascade');
@@ -110,7 +110,7 @@ return new class extends Migration
         }
 
         // Tribe post replies
-        if (!Schema::hasTable('tribe_post_replies')) {
+        if (! Schema::hasTable('tribe_post_replies')) {
             Schema::create('tribe_post_replies', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('tribe_post_id')->constrained()->onDelete('cascade');
@@ -121,7 +121,7 @@ return new class extends Migration
         }
 
         // Favorite matches
-        if (!Schema::hasTable('favorite_matches')) {
+        if (! Schema::hasTable('favorite_matches')) {
             Schema::create('favorite_matches', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');

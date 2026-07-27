@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TribeMember extends Model
 {
     public $timestamps = false;
-    
+
     protected $fillable = [
         'tribe_id',
         'user_id',

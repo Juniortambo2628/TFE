@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('messages', function (Blueprint $table) {
-            if (!Schema::hasColumn('messages', 'share_type')) {
+            if (! Schema::hasColumn('messages', 'share_type')) {
                 $table->string('share_type')->nullable()->after('body'); // 'post' or 'story'
             }
-            if (!Schema::hasColumn('messages', 'share_id')) {
+            if (! Schema::hasColumn('messages', 'share_id')) {
                 $table->unsignedBigInteger('share_id')->nullable()->after('share_type');
             }
-            if (!Schema::hasColumn('messages', 'tribe_id')) {
+            if (! Schema::hasColumn('messages', 'tribe_id')) {
                 $table->unsignedBigInteger('tribe_id')->nullable()->after('share_id');
             }
         });

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\UserSecuritySetting;
 use App\Models\LoginHistory;
+use App\Models\UserSecuritySetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -31,7 +31,7 @@ class SecurityService
             ->orderByDesc('created_at')
             ->limit(10)
             ->get()
-            ->map(fn($login) => [
+            ->map(fn ($login) => [
                 'id' => $login->id,
                 'ip_address' => $login->ip_address,
                 'device' => $login->device ?? 'Unknown',
@@ -61,7 +61,7 @@ class SecurityService
             'passkeys' => $user->webAuthnCredentials()
                 ->orderByDesc('created_at')
                 ->get()
-                ->map(fn($p) => [
+                ->map(fn ($p) => [
                     'id' => $p->id,
                     'alias' => $p->alias,
                     'created_at' => $p->created_at?->toIso8601String(),
@@ -78,7 +78,7 @@ class SecurityService
 
         $user = $request->user();
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect']);
         }
 
@@ -99,6 +99,7 @@ class SecurityService
 
         if ($user->two_factor_enabled) {
             $this->twoFactorService->disable($user);
+
             return back()->with('success', 'Two-factor authentication disabled');
         }
 
@@ -126,6 +127,7 @@ class SecurityService
 
         if ($this->twoFactorService->verifyCode($request->secret, $request->code)) {
             $this->twoFactorService->enable($user, $request->secret);
+
             return back()->with('success', 'Two-factor authentication enabled successfully!');
         }
 
@@ -139,7 +141,7 @@ class SecurityService
 
         if ($settings) {
             $settings->update([
-                'login_notifications' => !$settings->login_notifications,
+                'login_notifications' => ! $settings->login_notifications,
             ]);
         }
 

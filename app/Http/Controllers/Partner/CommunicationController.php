@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
-use App\Models\Message;
 use App\Models\Budget;
+use App\Models\Message;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class CommunicationController extends Controller
 {
@@ -17,7 +17,7 @@ class CommunicationController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // Get all budgets that have partner status (requests submitted to partners)
         $budgets = Budget::whereNotNull('partner_status')
             ->with(['user:id,name,email'])
@@ -43,7 +43,7 @@ class CommunicationController extends Controller
 
             return [
                 'budget_id' => $budget->id,
-                'reference_id' => $budget->reference_id ?? 'REQ-' . str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                'reference_id' => $budget->reference_id ?? 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
                 'status' => $budget->partner_status,
                 'total_cost' => $budget->partner_cost ?? $budget->total_cost,
                 'match_count' => $budget->match_count,
@@ -87,7 +87,7 @@ class CommunicationController extends Controller
             'sender_id' => Auth::id(),
             'budget_id' => $budget->id,
             'sender_type' => 'partner',
-            'subject' => 'RE: ' . ($budget->reference_id ?? 'REQ-' . str_pad($budget->id, 6, '0', STR_PAD_LEFT)),
+            'subject' => 'RE: '.($budget->reference_id ?? 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT)),
             'body' => $validated['body'],
             'is_read' => false,
         ]);

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentSchedule extends Model
 {
     use HasFactory;
-    
+
     // Explicit table name if needed, but defaults to payment_schedules
     protected $table = 'payment_schedules';
 
