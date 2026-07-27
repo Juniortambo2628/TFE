@@ -57,7 +57,7 @@ jobs:
         restore-keys: ${{ runner.os }}-node-
 
     - name: Install NPM dependencies
-      run: npm ci
+      run: npm install --legacy-peer-deps
 
     - name: Build production assets
       run: npm run build
