@@ -139,12 +139,17 @@ jobs:
           find storage -type f -exec chmod 664 {} \;
           find bootstrap/cache -type d -exec chmod 775 {} \;
 
-          echo "─── Checking .env file ───"
-          if [ ! -f .env ]; then
-            echo "⚠️  WARNING: .env file not found!"
-            echo "   Please upload .env manually to ${{ env.BACKEND_DIR }}/.env"
-            echo "   Skipping artisan commands that require .env..."
-            exit 1
+          echo "─── Setting up .env file ───"
+          if [ -n "${{ secrets.PRODUCTION_ENV }}" ]; then
+            echo "${{ secrets.PRODUCTION_ENV }}" > .env
+            echo "✅ .env created from GitHub Secrets."
+          elif [ ! -f .env ]; then
+            echo "⚠️  WARNING: .env file not found and PRODUCTION_ENV secret is empty!"
+            echo "   Copying .env.example.production to .env as fallback..."
+            cp .env.example.production .env
+            php artisan key:generate --force || true
+          else
+            echo "✅ Existing .env found."
           fi
 
           echo "─── Running Composer post-install scripts ───"
