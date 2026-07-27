@@ -97,14 +97,25 @@ jobs:
         ENDSSH
 
     # ─────────────────────────────────────────────
-    # 4. DEPLOY: Sync files via tar and scp (rsync alternative)
+    # 4. PREPARE .ENV & COMPRESS (rsync alternative)
     # ─────────────────────────────────────────────
+    - name: Prepare production .env
+      env:
+        SECRET_ENV: ${{ secrets.PRODUCTION_ENV }}
+      run: |
+        if [ -n "$SECRET_ENV" ]; then
+          echo "$SECRET_ENV" > .env
+          echo "✅ .env created from GitHub Secrets."
+        else
+          echo "⚠️  WARNING: PRODUCTION_ENV secret is empty. Using .env.example.production..."
+          cp .env.example.production .env
+        fi
+
     - name: Compress deployment files
       run: |
         tar -czf ../deploy.tar.gz \
           --exclude='.git' \
           --exclude='node_modules' \
-          --exclude='.env' \
           --exclude='storage/app/public/*' \
           --exclude='storage/framework/sessions/*' \
           --exclude='storage/framework/cache/data/*' \
@@ -118,7 +129,7 @@ jobs:
 
     - name: Upload and extract deployment files
       run: |
-        scp -P ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ../deploy.tar.gz ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:/tmp/deploy.tar.gz
+        cat ../deploy.tar.gz | ssh -p ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} 'cat > /tmp/deploy.tar.gz'
         ssh -p ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
           tar -xzf /tmp/deploy.tar.gz -C ${{ env.BACKEND_DIR }}
           rm /tmp/deploy.tar.gz
@@ -139,18 +150,8 @@ jobs:
           find storage -type f -exec chmod 664 {} \;
           find bootstrap/cache -type d -exec chmod 775 {} \;
 
-          echo "─── Setting up .env file ───"
-          if [ -n "${{ secrets.PRODUCTION_ENV }}" ]; then
-            echo "${{ secrets.PRODUCTION_ENV }}" > .env
-            echo "✅ .env created from GitHub Secrets."
-          elif [ ! -f .env ]; then
-            echo "⚠️  WARNING: .env file not found and PRODUCTION_ENV secret is empty!"
-            echo "   Copying .env.example.production to .env as fallback..."
-            cp .env.example.production .env
-            php artisan key:generate --force || true
-          else
-            echo "✅ Existing .env found."
-          fi
+          echo "─── Ensure app key is set ───"
+          php artisan key:generate --force || true
 
           echo "─── Running Composer post-install scripts ───"
           php artisan package:discover --ansi 2>/dev/null || true
@@ -166,7 +167,12 @@ jobs:
           php artisan event:cache 2>/dev/null || true
 
           echo "─── Setting up storage symlink ───"
-          php artisan storage:link --force 2>/dev/null || true
+          if ! php artisan storage:link --force 2>/dev/null; then
+            echo "⚠️  php artisan storage:link failed (exec disabled), attempting manual symlink..."
+            rm -rf public/storage
+            ln -sfn ../storage/app/public public/storage
+            echo "✅ Manual storage symlink created."
+          fi
 
           echo "─── Setting up API symlink ───"
           # Symlink: tfe.okjtech.co.ke/api -> tfe-core/public
