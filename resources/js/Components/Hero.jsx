@@ -261,7 +261,8 @@ export default function Hero({ stadiums }) {
 
     return (
         <section className="banner-section position-relative d-flex align-items-end min-vh-100 tfe-hero-slider" id="hero">
-            <div className="stadium-slider-wrapper position-absolute top-0 start-0 w-100 h-100">
+            {/* Background Layer - Only this dissolves on slide change */}
+            <div className="stadium-slider-wrapper position-absolute top-0 start-0 w-100 h-100 z-0">
                 <AnimatePresence mode='wait'>
                     <motion.div 
                         key={currentSlide}
@@ -269,214 +270,233 @@ export default function Hero({ stadiums }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 1.5, ease: "easeInOut" }}
+                        transition={{ duration: 0.8, ease: "easeInOut" }}
                         style={{ 
                             backgroundImage: `url(${activeStadium.image})`, 
                             backgroundSize: 'cover', 
                             backgroundPosition: 'center' 
                         }}
-                    >
-                        <div className="stadium-slide-overlay" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.9))', position: 'absolute', inset: 0 }}></div>
-                        <div className="container h-100 position-relative">
-                            <div className="d-flex flex-column gap-4 pb-8 position-relative z-1 min-vh-100 justify-content-center pb-5">
-                                <div className="row align-items-center gx-0">
-                                    {/* Left Content */}
-                                    <div className="col-xl-7 px-3 px-md-0">
-                                        <motion.div 
-                                            initial={{ x: -50, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: 0.3, duration: 0.6 }}
-                                        >
-                                            <h1 className="mb-3 fs-16 text-white lh-1 fw-bold">{activeStadium.name}</h1>
-                                            <p className="mb-4 text-white fs-5 text-opacity-80">{activeStadium.location}</p>
+                    />
+                </AnimatePresence>
+                <div className="stadium-slide-overlay" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.9))', position: 'absolute', inset: 0 }}></div>
+            </div>
+
+            {/* Content Layer - Persistent across slide changes */}
+            <div className="container h-100 position-relative z-1">
+                <div className="d-flex flex-column gap-4 pb-8 position-relative min-vh-100 justify-content-center pb-5">
+                    <div className="row align-items-center gx-0">
+                        {/* Left Content */}
+                        <div className="col-xl-7 px-3 px-md-0">
+                            <motion.div 
+                                key={`left-${currentSlide}`}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <h1 className="mb-3 display-4 text-white lh-1 fw-bold">{activeStadium.name}</h1>
+                                <p className="mb-4 text-white fs-5 text-opacity-80">{activeStadium.location}</p>
+                                
+                                <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 gap-md-3 mt-4" style={{ maxWidth: 'fit-content' }}>
+                                    <button onClick={() => openModal()} className="btn-glass-pill justify-content-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                        <span>View Matches</span>
+                                        <i className="fas fa-calendar-alt ms-2"></i>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+
+                        {/* Right Content: Countdown & Stats */}
+                        <div className="col-xl-5 d-none d-xl-block">
+                            <div className="d-flex flex-column align-items-center align-items-xl-end gap-4">
+                                {/* Persistent Countdown */}
+                                <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center align-items-xl-end glass-card border border-white/5" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)' }}>
+                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>KICKOFF</div>
+                                    <div className="d-flex gap-3 gap-md-4">
+                                        {[
+                                            { label: 'Days', value: timeLeft.days || 0, max: 1000 },
+                                            { label: 'Hrs', value: timeLeft.hours || 0, max: 24 },
+                                            { label: 'Mins', value: timeLeft.minutes || 0, max: 60 },
+                                            { label: 'Secs', value: timeLeft.seconds || 0, max: 60 }
+                                        ].map((item, idx) => {
+                                            const size = 64;
+                                            const radius = 28;
+                                            const center = size / 2;
+                                            const circumference = 2 * Math.PI * radius;
+                                            const strokeDashoffset = circumference - (item.value / item.max) * circumference;
                                             
-                                            <div className="d-flex flex-wrap gap-3 mb-5">
-                                                <div className="stadium-stat-card">
-                                                    <div className="stat-icon"><i className="fas fa-users"></i></div>
-                                                    <div className="stat-label">Capacity</div>
-                                                    <div className="stat-value">{activeStadium.capacity}</div>
-                                                </div>
-                                                <div className="stadium-stat-card">
-                                                    <div className="stat-icon"><i className="fas fa-history"></i></div>
-                                                    <div className="stat-label">Opened</div>
-                                                    <div className="stat-value">{activeStadium.history}</div>
-                                                </div>
-                                                <div className="stadium-stat-card">
-                                                    <div className="stat-icon"><i className="fas fa-star"></i></div>
-                                                    <div className="stat-label">Fun Fact</div>
-                                                    <div className="stat-value">{activeStadium.fun_fact}</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 gap-md-3" style={{ maxWidth: 'fit-content' }}>
-                                                <button onClick={() => openModal()} className="btn-glass-pill justify-content-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                                                    <span>View Matches</span>
-                                                    <i className="fas fa-calendar-alt ms-2"></i>
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    </div>
-
-                                    {/* Right Content: Countdown */}
-                                    <div className="col-xl-5 d-none d-xl-block">
-                                        <motion.div 
-                                            initial={{ x: 50, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: 0.5, duration: 0.6 }}
-                                            className="d-flex flex-column align-items-center align-items-xl-end"
-                                        >
-                                            <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center align-items-xl-end glass-card border border-white/5" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)' }}>
-                                                <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>KICKOFF</div>
-                                                <div className="d-flex gap-3 gap-md-4">
-                                                    {[
-                                                        { label: 'Days', value: timeLeft.days || 0, max: 1000 },
-                                                        { label: 'Hrs', value: timeLeft.hours || 0, max: 24 },
-                                                        { label: 'Mins', value: timeLeft.minutes || 0, max: 60 },
-                                                        { label: 'Secs', value: timeLeft.seconds || 0, max: 60 }
-                                                    ].map((item, idx) => {
-                                                        const size = 64;
-                                                        const radius = 28;
-                                                        const center = size / 2;
-                                                        const circumference = 2 * Math.PI * radius;
-                                                        const strokeDashoffset = circumference - (item.value / item.max) * circumference;
-                                                        
-                                                        return (
-                                                            <div key={idx} className="d-flex flex-column align-items-center">
-                                                                <div className="position-relative" style={{ width: `${size}px`, height: `${size}px` }}>
-                                                                    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-                                                                        <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-                                                                        <circle cx={center} cy={center} r={radius} fill="transparent" stroke="#FF2D20" strokeWidth="2" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
-                                                                    </svg>
-                                                                    <div className="position-absolute top-50 start-50 translate-middle text-center">
-                                                                        <div className="text-white fw-bold fs-5 font-monospace">
-                                                                            {String(item.value).padStart(2, '0')}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-white-50 text-uppercase mt-2 fw-medium" style={{ fontSize: '10px' }}>{item.label}</div>
+                                            return (
+                                                <div key={idx} className="d-flex flex-column align-items-center">
+                                                    <div className="position-relative" style={{ width: `${size}px`, height: `${size}px` }}>
+                                                        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+                                                            <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
+                                                            <circle cx={center} cy={center} r={radius} fill="transparent" stroke="#DC143C" strokeWidth="2" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+                                                        </svg>
+                                                        <div className="position-absolute top-50 start-50 translate-middle text-center">
+                                                            <div className="text-white fw-bold fs-5 font-monospace">
+                                                                {String(item.value).padStart(2, '0')}
                                                             </div>
-                                                        );
-                                                    })}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-white-50 text-uppercase mt-2 fw-medium" style={{ fontSize: '10px' }}>{item.label}</div>
                                                 </div>
-                                            </div>
-                                        </motion.div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Stadium Slider Controls */}
-                            <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex" style={{ zIndex: 1200, pointerEvents: 'auto' }}>
-                                <button 
-                                    className="slider-nav-btn prev" 
-                                    onClick={() => setCurrentSlide((prev) => (prev - 1 + stadiums.length) % stadiums.length)}
-                                >
-                                    <i className="fas fa-chevron-left"></i>
-                                </button>
-                                <button 
-                                    className="slider-nav-btn next" 
-                                    onClick={() => setCurrentSlide((prev) => (prev + 1) % stadiums.length)}
-                                >
-                                    <i className="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Mobile Countdown (visible only on mobile) */}
-                        <div className="container d-block d-xl-none position-relative z-1 mb-4">
-                            <div className="d-flex justify-content-center">
-                                <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center" style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)' }}>
-                                     <div className="text-white-50 text-uppercase mb-2 small text-center w-100" style={{ letterSpacing: '0.2em', marginRight: '-0.2em', fontSize: '10px' }}>KICKOFF</div>
-                                     <div className="d-flex gap-3">
-                                        {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
-                                            <div key={unit} className="text-center">
-                                                <div className="text-white fw-bold fs-5 font-monospace">{String(timeLeft[unit] || 0).padStart(2, '0')}</div>
-                                                <div className="text-white-50 text-uppercase small" style={{ fontSize: '8px' }}>{unit.charAt(0)}</div>
-                                            </div>
-                                        ))}
-                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bottom Enhancements: Flag Carousel & Stadium Badge */}
-                        <div className="hero-bottom-section">
-                             {/* Flag Carousel Container - Only show if we have flags */}
-                            {flagTrack.length > 0 && (
+                                {/* Dynamic Stadium Stats Glass Card */}
                                 <motion.div 
-                                    className="flag-carousel-container mb-3" 
-                                    ref={carouselRef}
-                                    onMouseEnter={() => setIsPaused(true)}
-                                    onMouseLeave={() => {
-                                        if (!showMatchModal) setIsPaused(false);
-                                    }}
-                                    style={{ pointerEvents: 'auto', zIndex: 100 }}
+                                    key={`stats-${currentSlide}`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                    className="p-4 rounded-3xl d-inline-flex flex-column align-items-start glass-card border border-white/5 w-100" 
+                                    style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)', maxWidth: '420px' }}
                                 >
-                                    <motion.div 
-                                        className="flag-track"
-                                    drag="x"
-                                    dragConstraints={carouselRef}
-                                    initial={{ x: 0 }}
-                                    animate={!isPaused ? { x: [0, "-50%"] } : {}}
-                                    transition={{
-                                        x: {
-                                            repeat: Infinity,
-                                            repeatType: "loop",
-                                            duration: 30,
-                                            ease: "linear",
-                                        },
-                                    }}
-                                    style={{ pointerEvents: 'auto' }}
-                                >
-                                    {flagTrack.map((f, i) => (
-                                        <motion.div 
-                                            key={`${f}-${i}`} 
-                                            className="flag-item"
-                                            whileHover={{ scale: 1.1, translateY: -5 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onTap={() => {
-                                                console.log("Flag tapped:", f);
-                                                openModal(f);
-                                            }}
-                                            style={{ pointerEvents: 'auto', zIndex: 110 }}
-                                        >
-                                            <img src={`${assetUrl}assets/Flags/${f}.png`} alt={f} draggable="false" />
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-
-                                {/* Navigation Arrows for Flags */}
-                                <div className="carousel-arrow left" onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    setIsPaused(true);
-                                    controls.start({ x: "-25%", transition: { duration: 0.5 } });
-                                }}>
-                                    <i className="fas fa-chevron-left"></i>
-                                </div>
-                                    <div className="carousel-arrow right" onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        setIsPaused(true);
-                                        controls.start({ x: "-75%", transition: { duration: 0.5 } });
-                                    }}>
-                                        <i className="fas fa-chevron-right"></i>
+                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
+                                        <div className="text-white-50 small"><i className="fas fa-users me-2"></i>Capacity</div>
+                                        <div className="text-white fw-bold">{activeStadium.capacity}</div>
+                                    </div>
+                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
+                                        <div className="text-white-50 small"><i className="fas fa-history me-2"></i>Opened</div>
+                                        <div className="text-white fw-bold">{activeStadium.history}</div>
+                                    </div>
+                                    <div className="d-flex flex-column w-100">
+                                        <div className="text-white-50 small mb-1"><i className="fas fa-star me-2 text-warning"></i>Fun Fact</div>
+                                        <div className="text-white small lh-sm">{activeStadium.fun_fact}</div>
                                     </div>
                                 </motion.div>
-                            )}
-
-                            {/* Stadium Badge */}
-                            <div className="hero-stadium-badge">
-                                <div className="badge-dot"></div>
-                                <span className="text-white fw-bold text-uppercase tracking-wider">{activeStadium.name}</span>
-                                <span className="text-white text-opacity-50">• {activeStadium.location.split(',').pop().trim()}</span>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Attribution Glass Pill */}
-                        <div className="stadium-attribution position-absolute bottom-0 end-0 m-3">
-                            <small className="text-white text-opacity-60">{activeStadium.attribution}</small>
+                {/* Stadium Slider Controls */}
+                <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex" style={{ zIndex: 1200, pointerEvents: 'auto' }}>
+                    <button 
+                        className="slider-nav-btn prev" 
+                        onClick={() => setCurrentSlide((prev) => (prev - 1 + stadiums.length) % stadiums.length)}
+                    >
+                        <i className="fas fa-chevron-left"></i>
+                    </button>
+                    <button 
+                        className="slider-nav-btn next" 
+                        onClick={() => setCurrentSlide((prev) => (prev + 1) % stadiums.length)}
+                    >
+                        <i className="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Countdown (visible only on mobile) */}
+            <div className="container d-block d-xl-none position-relative z-1 mb-4">
+                <div className="d-flex justify-content-center">
+                    <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center" style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)' }}>
+                         <div className="text-white-50 text-uppercase mb-2 small text-center w-100" style={{ letterSpacing: '0.2em', marginRight: '-0.2em', fontSize: '10px' }}>KICKOFF</div>
+                         <div className="d-flex gap-3">
+                            {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
+                                <div key={unit} className="text-center">
+                                    <div className="text-white fw-bold fs-5 font-monospace">{String(timeLeft[unit] || 0).padStart(2, '0')}</div>
+                                    <div className="text-white-50 text-uppercase small" style={{ fontSize: '8px' }}>{unit.charAt(0)}</div>
+                                </div>
+                            ))}
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Enhancements: Flag Carousel & Stadium Badge */}
+            <div className="hero-bottom-section">
+                 {/* Flag Carousel Container - Only show if we have flags */}
+                {flagTrack.length > 0 && (
+                    <motion.div 
+                        className="flag-carousel-container mb-3" 
+                        ref={carouselRef}
+                        onMouseEnter={() => setIsPaused(true)}
+                        onMouseLeave={() => {
+                            if (!showMatchModal) setIsPaused(false);
+                        }}
+                        key={`flags-${currentSlide}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        style={{ pointerEvents: 'auto', zIndex: 100 }}
+                    >
+                        <motion.div 
+                            className="flag-track"
+                        drag="x"
+                        dragConstraints={carouselRef}
+                        initial={{ x: 0 }}
+                        animate={!isPaused ? { x: [0, "-50%"] } : {}}
+                        transition={{
+                            x: {
+                                repeat: Infinity,
+                                repeatType: "loop",
+                                duration: 30,
+                                ease: "linear",
+                            },
+                        }}
+                        style={{ pointerEvents: 'auto' }}
+                    >
+                        {flagTrack.map((f, i) => (
+                            <motion.div 
+                                key={`${f}-${i}`} 
+                                className="flag-item"
+                                whileHover={{ scale: 1.1, translateY: -5 }}
+                                whileTap={{ scale: 0.9 }}
+                                onTap={() => {
+                                    console.log("Flag tapped:", f);
+                                    openModal(f);
+                                }}
+                                style={{ pointerEvents: 'auto', zIndex: 110 }}
+                            >
+                                <img src={`${assetUrl}assets/Flags/${f}.png`} alt={f} draggable="false" />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+
+                    {/* Navigation Arrows for Flags */}
+                    <div className="carousel-arrow left" onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setIsPaused(true);
+                        controls.start({ x: "-25%", transition: { duration: 0.5 } });
+                    }}>
+                        <i className="fas fa-chevron-left"></i>
+                    </div>
+                        <div className="carousel-arrow right" onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setIsPaused(true);
+                            controls.start({ x: "-75%", transition: { duration: 0.5 } });
+                        }}>
+                            <i className="fas fa-chevron-right"></i>
                         </div>
                     </motion.div>
-                </AnimatePresence>
+                )}
+
+                {/* Stadium Badge */}
+                <motion.div 
+                    key={`badge-${currentSlide}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="hero-stadium-badge"
+                >
+                    <div className="badge-dot"></div>
+                    <span className="text-white fw-bold text-uppercase tracking-wider">{activeStadium.name}</span>
+                    <span className="text-white text-opacity-50">• {activeStadium.location.split(',').pop().trim()}</span>
+                </motion.div>
             </div>
+
+            {/* Attribution Glass Pill */}
+            <motion.div 
+                key={`attr-${currentSlide}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="stadium-attribution position-absolute bottom-0 end-0 m-3 z-1"
+            >
+                <small className="text-white text-opacity-60">{activeStadium.attribution}</small>
+            </motion.div>
 
             {/* Refactored Match Modal using DashboardModal */}
             <DashboardModal

@@ -7,7 +7,7 @@
  */
 :root,
 [data-bs-theme=light] {
-  --bs-blue: #C1FF72;
+  --bs-blue: #DC143C;
   --bs-indigo: #6610f2;
   --bs-purple: #6f42c1;
   --bs-pink: #d63384;
@@ -21,28 +21,28 @@
   --bs-white: #fff;
   --bs-gray: #6c757d;
   --bs-gray-dark: #343a40;
-  --bs-gray-100: rgba(31, 42, 46, 0.12);
+  --bs-gray-100: rgba(26, 10, 14, 0.12);
   --bs-gray-200: #F4F8FA;
-  --bs-gray-300: rgba(31, 42, 46, 0.6);
-  --bs-gray-400: rgba(31, 42, 46, 0.7);
-  --bs-gray-500: #1F2A2E;
+  --bs-gray-300: rgba(26, 10, 14, 0.6);
+  --bs-gray-400: rgba(26, 10, 14, 0.7);
+  --bs-gray-500: #1A0A0E;
   --bs-gray-600: #6c757d;
   --bs-gray-700: #495057;
   --bs-gray-800: #343a40;
   --bs-gray-900: #212529;
-  --bs-primary: #C1FF72;
-  --bs-secondary: #1f2a2e;
-  --bs-light: rgba(31, 42, 46, 0.12);
-  --bs-dark: #1F2A2E;
-  --bs-muted: rgba(31, 42, 46, 0.6);
-  --bs-dark-light: rgba(31, 42, 46, 0.7);
+  --bs-primary: #DC143C;
+  --bs-secondary: #1A0A0E;
+  --bs-light: rgba(26, 10, 14, 0.12);
+  --bs-dark: #1A0A0E;
+  --bs-muted: rgba(26, 10, 14, 0.6);
+  --bs-dark-light: rgba(26, 10, 14, 0.7);
   --bs-light-gray: #F4F8FA;
-  --bs-primary-rgb: 193, 255, 114;
-  --bs-secondary-rgb: 31, 42, 46;
-  --bs-light-rgb: 31, 42, 46;
-  --bs-dark-rgb: 31, 42, 46;
-  --bs-muted-rgb: 31, 42, 46;
-  --bs-dark-light-rgb: 31, 42, 46;
+  --bs-primary-rgb: 220, 20, 60;
+  --bs-secondary-rgb: 26, 10, 14;
+  --bs-light-rgb: 26, 10, 14;
+  --bs-dark-rgb: 26, 10, 14;
+  --bs-muted-rgb: 26, 10, 14;
+  --bs-dark-light-rgb: 26, 10, 14;
   --bs-light-gray-rgb: 244, 248, 250;
   --bs-primary-text-emphasis: #4d662e;
   --bs-secondary-text-emphasis: #0c1112;
@@ -16414,14 +16414,17 @@ textarea.form-control-lg {
   }
 }
 .header.fixed-header {
-  padding: 20px 0;
-  background-color: var(--bs-primary);
+  padding: 15px 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .header.fixed-header .logo .logo-dark {
-  display: block;
+  display: none;
 }
 .header.fixed-header .logo .logo-white {
-  display: none;
+  display: block;
 }
 .header.fixed-header .light-dark {
   color: var(--bs-dark) !important;
