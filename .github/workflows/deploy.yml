@@ -101,7 +101,7 @@ jobs:
     # ─────────────────────────────────────────────
     - name: Compress deployment files
       run: |
-        tar -czf deploy.tar.gz \
+        tar -czf ../deploy.tar.gz \
           --exclude='.git' \
           --exclude='node_modules' \
           --exclude='.env' \
@@ -114,12 +114,11 @@ jobs:
           --exclude='The-Football-Experience' \
           --exclude='.phpunit.result.cache' \
           --exclude='production_env.txt' \
-          --exclude='deploy.tar.gz' \
           .
 
     - name: Upload and extract deployment files
       run: |
-        scp -P ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no deploy.tar.gz ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:/tmp/deploy.tar.gz
+        scp -P ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ../deploy.tar.gz ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:/tmp/deploy.tar.gz
         ssh -p ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
           tar -xzf /tmp/deploy.tar.gz -C ${{ env.BACKEND_DIR }}
           rm /tmp/deploy.tar.gz
