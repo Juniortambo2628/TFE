@@ -14,64 +14,74 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.head_ref || github.ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup PHP 8.3
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.3'
-        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, fileinfo
         coverage: none
 
-    - name: Get composer cache directory
+    - name: Get Composer cache directory
       id: composer-cache
       run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
-    - name: Cache dependencies
+    - name: Cache Composer dependencies
       uses: actions/cache@v4
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: ${{ runner.os }}-composer-
 
-    - name: Install Dependencies
+    - name: Cache Node modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
+
+    - name: Install Composer dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-    - name: Install NPM dependencies
-      run: npm install
-
-    - name: Build frontend
-      run: npm run build
-
-    - name: Generate key
+    - name: Generate application key
       run: php artisan key:generate
 
-    - name: Directory Permissions
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build frontend assets
+      run: npm run build
+
+    - name: Set directory permissions
       run: chmod -R 777 storage bootstrap/cache
 
-    - name: Create Database
+    - name: Create SQLite database
       run: |
         mkdir -p database
         touch database/database.sqlite
 
-    - name: Run Migrations
+    - name: Run migrations
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
       run: php artisan migrate --force
 
-    - name: Run Pint (Autofix Code Style)
+    # ─── AUTOFIX: Run Laravel Pint ───
+    - name: Run Pint (code style autofix)
       run: ./vendor/bin/pint || true
 
-    - name: Commit Linting Changes
+    - name: Commit Pint autofixes
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: "style: Apply Laravel Pint autofixes"
+        commit_message: "style: apply Laravel Pint autofixes"
         branch: ${{ github.head_ref || github.ref_name }}
 
+    # ─── TEST SUITE ───
     - name: Run test suite
       env:
         DB_CONNECTION: sqlite
