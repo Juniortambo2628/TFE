@@ -1,0 +1,713 @@
+/* Dashboard Dedicated Styles */
+
+/* Grid Layouts */
+.summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.content-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 992px) {
+    .content-cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .quick-actions-card {
+        grid-column: span 1;
+    }
+    .activity-card {
+        grid-column: span 1;
+    }
+    .payments-list-card {
+        grid-column: span 2;
+    }
+}
+
+/* Card Styles */
+.dashboard-header-card {
+    background: #1a1d21;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background-image: linear-gradient(45deg, rgba(227, 27, 35, 0.1) 0%, transparent 100%);
+}
+
+.header-content h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.header-content p {
+    color: #a0a0a0;
+    margin: 0;
+}
+
+.summary-card {
+    background: #1a1d21;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.budget-card .card-icon { background: rgba(227, 27, 35, 0.2); color: #e31b23; }
+.expenses-card .card-icon { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.projects-card .card-icon { background: rgba(13, 202, 240, 0.2); color: #0dcaf0; }
+.photos-card .card-icon { background: rgba(13, 110, 253, 0.2); color: #0d6efd; }
+
+.card-content {
+    flex: 1;
+}
+
+.card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.25rem;
+}
+
+.card-label {
+    color: #a0a0a0;
+}
+
+/* NEW: Dashboard Content Card (Dark Theme) */
+.dashboard-content-card {
+    background: #1a1d21;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #fff;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-content-card .card-header {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #fff;
+    padding: 1.25rem;
+}
+
+.dashboard-content-card .card-body {
+    padding: 1.5rem;
+}
+
+.dashboard-content-card .card-title {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Form Styles for Dark Theme Cards */
+.dashboard-content-card .form-control,
+.dashboard-content-card .form-select,
+.dashboard-content-card .input-group-text,
+.dashboard-content-card .btn-outline-secondary {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dashboard-content-card .input-group-text {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-content-card .form-control:focus,
+.dashboard-content-card .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #e31b23;
+    color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba(227, 27, 35, 0.25);
+}
+
+.dashboard-content-card .form-control::placeholder {
+    color: #6c757d;
+}
+
+.dashboard-content-card label,
+.dashboard-content-card .text-muted {
+    color: #a0a0a0 !important;
+}
+
+/* List Groups in Dark Cards */
+.dashboard-content-card .list-group-item {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.dashboard-content-card .bg-light {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Button Overrides */
+.dashboard-content-card .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.dashboard-content-card .btn-primary {
+    background-color: #e31b23;
+    border-color: #e31b23;
+}
+
+.dashboard-content-card .btn-primary:hover {
+    background-color: #c91820;
+    border-color: #c91820;
+}
+
+.dashboard-content-card .btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+/* Alert Styling */
+.dashboard-content-card .alert-info {
+    background-color: rgba(13, 202, 240, 0.15);
+    border-color: rgba(13, 202, 240, 0.2);
+    color: #0dcaf0;
+}
+
+/* Header Dropdown Custom Styles */
+.mark-read-link {
+    color: #e31b23 !important;
+    text-decoration: none !important;
+    transition: color 0.3s ease;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.mark-read-link:hover {
+    color: #ffffff !important;
+}
+
+.unread-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #e31b23;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.notification-item:hover, .message-item:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    cursor: pointer;
+}
+/* Standardized Premium Fan Button */
+.btn-fan-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px; /* Pill shape */
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+
+.btn-fan-custom:hover {
+    background: #dc143c;
+    border-color: #dc143c;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 20, 60, 0.4);
+}
+
+.btn-fan-custom i {
+    font-size: 1.1rem;
+}
+
+.btn-fan-custom-sm {
+    padding: 6px 18px;
+    font-size: 0.85rem;
+}
+
+/* Card Background with Overlay Utility */
+.fan-card-bg {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    border: 1px solid rgba(220, 20, 60, 0.3);
+}
+
+.fan-card-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(20, 0, 0, 0.85) 0%, rgba(20, 0, 0, 0.4) 100%);
+    z-index: 0;
+}
+
+.fan-card-bg > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Premium Gaming Card Overhaul (EA Sports Style) */
+.fan-card-premium {
+    position: relative;
+    border-radius: 24px; /* Large rounded corners */
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem !important;
+    min-height: 180px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.fan-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+    z-index: 1;
+}
+
+.fan-card-premium:hover {
+    transform: scale(1.03) translateY(-10px);
+    z-index: 10;
+}
+
+/* Red Neon Glow - Crimson Elite */
+.glow-red {
+    border-color: rgba(220, 20, 60, 0.5);
+    box-shadow: 0 0 20px rgba(220, 20, 60, 0.2);
+    background-color: rgba(20, 0, 0, 0.4);
+}
+
+.glow-red:hover {
+    border-color: #dc143c;
+    box-shadow: 0 0 35px rgba(220, 20, 60, 0.6), inset 0 0 20px rgba(220, 20, 60, 0.2);
+    background-color: rgba(40, 0, 0, 0.5);
+}
+
+/* Blue Neon Glow - Cyber Blue */
+.glow-blue {
+    border-color: rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.2);
+    background-color: rgba(0, 10, 30, 0.4);
+}
+
+.glow-blue:hover {
+    border-color: #007bff;
+    box-shadow: 0 0 35px rgba(0, 123, 255, 0.6), inset 0 0 20px rgba(0, 123, 255, 0.2);
+    background-color: rgba(0, 20, 50, 0.5);
+}
+
+/* Centered Gaming Content */
+.card-content-gaming {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    width: 100%;
+}
+
+.card-icon-gaming {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: #fff;
+    /* Remove filter: drop-shadow which might be causing the 'red blocks' issue in some browsers */
+}
+
+.card-icon-gaming i {
+    text-shadow: 0 0 15px currentColor;
+}
+
+.fan-card-premium:hover .card-icon-gaming {
+    transform: scale(1.2) rotate(5deg);
+}
+
+.card-title-gaming {
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.card-value-gaming {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #fff;
+    margin-top: 0.5rem;
+    text-shadow: 0 0 15px rgba(220, 20, 60, 0.8);
+}
+
+/* Quick Action Grid Adjustments */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Mobile Responsive - Gaming Cards */
+@media (max-width: 768px) {
+    .summary-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .fan-card-premium {
+        padding: 1rem !important;
+        min-height: 140px;
+        border-radius: 16px;
+    }
+    
+    .card-icon-gaming {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-title-gaming {
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+        word-break: break-word;
+        hyphens: auto;
+    }
+    
+    .card-value-gaming {
+        font-size: 1.2rem;
+        margin-top: 0.25rem;
+    }
+    
+    .card-subtitle-gaming {
+        font-size: 0.55rem;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .fan-card-premium {
+        padding: 0.75rem !important;
+        min-height: 120px;
+        border-radius: 12px;
+    }
+    
+    .card-icon-gaming {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .card-title-gaming {
+        font-size: 0.6rem;
+        line-height: 1.2;
+    }
+    
+    .card-value-gaming {
+        font-size: 1rem;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.4rem;
+    }
+    
+    .quick-action-btn {
+        padding: 8px 4px;
+    }
+    
+    .quick-action-btn i {
+        font-size: 16px;
+    }
+    
+    .quick-action-btn span {
+        font-size: 0.6rem;
+    }
+}
+
+/* ========== Suggested Matches Section ========== */
+.suggested-matches-section {
+    margin-bottom: 2rem;
+}
+
+.suggested-matches-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .suggested-matches-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .suggested-matches-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.suggested-matches-section .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.suggested-matches-section .card-header .team-flag-badge {
+    width: 32px;
+    height: 22px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.suggested-matches-section .card-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.suggested-matches-section .card-header .match-count {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+}
+
+.suggested-matches-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.suggested-matches-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.suggested-match-card {
+    flex: 0 0 300px;
+    scroll-snap-align: start;
+    background: linear-gradient(145deg, rgba(26, 29, 33, 0.95), rgba(15, 17, 21, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.suggested-match-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.8) 100%);
+    z-index: 0;
+    transition: background 0.3s ease;
+}
+
+.suggested-match-card:hover {
+    border-color: rgba(227, 27, 35, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.suggested-match-card:hover::before {
+    background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.75) 100%);
+}
+
+.suggested-match-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.match-card-stage {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.match-card-teams {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: 100%;
+}
+
+.match-card-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 0;
+    width: 40%;
+}
+
+.match-card-team img {
+    width: 36px;
+    height: 24px;
+    border-radius: 3px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.match-card-team span {
+    font-size: 0.75rem;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.match-card-vs {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    flex: 0 0 20%;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.match-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.match-card-meta span {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.match-card-meta span i {
+    width: 14px;
+    text-align: center;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.7rem;
+}
+
+.btn-plan-trip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #e31b23, #c0121a);
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: auto;
+}
+
+.btn-plan-trip:hover {
+    background: linear-gradient(135deg, #ff2d35, #e31b23);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(227, 27, 35, 0.4);
+}
+
+.suggested-matches-empty {
+    text-align: center;
+    padding: 2rem;
+    color: rgba(255,255,255,0.4);
+    background: rgba(26, 29, 33, 0.6);
+    border-radius: 1rem;
+    border: 1px dashed rgba(255,255,255,0.08);
+}
+
+.suggested-matches-empty i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    color: rgba(255,255,255,0.15);
+}
+
+.suggested-matches-empty p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 576px) {
+    .suggested-match-card {
+        flex: 0 0 260px;
+        padding: 1rem;
+    }
+}

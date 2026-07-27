@@ -1,0 +1,110 @@
+/* ==========================================================================
+   DESIGN TOKENS - Single Source of Truth for Dashboard Styles
+   All colors, spacing, typography, and effects used across Fan/Admin/Partner
+   ========================================================================== */
+
+:root {
+    /* ── Brand Colors ── */
+    --tfe-red: #e31b23;
+    --tfe-crimson: #dc143c;
+    --fan-cyan: #00d2ff;
+    --fan-pink: #ff2d55;
+    --admin-blue: #3b82f6;
+    --partner-amber: #d97706;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --purple: #8b5cf6;
+
+    /* ── Text Colors ── */
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-muted: #888888;
+    --text-dim: #666666;
+    --text-light: #aaaaaa;
+
+    /* ── Surface Colors ── */
+    --surface-base: #000000;
+    --surface-card: #111111;
+    --surface-elevated: #1a1a1a;
+    --surface-input: #1a1a1a;
+    --surface-hover: rgba(255, 255, 255, 0.03);
+    --surface-subtle: rgba(255, 255, 255, 0.02);
+
+    /* ── Border Colors ── */
+    --border-default: #222222;
+    --border-light: #333333;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-divider: rgba(255, 255, 255, 0.1);
+
+    /* ── Accent Tint Backgrounds ── */
+    --tint-red: rgba(227, 27, 35, 0.15);
+    --tint-blue: rgba(59, 130, 246, 0.15);
+    --tint-amber: rgba(217, 119, 6, 0.15);
+    --tint-green: rgba(16, 185, 129, 0.15);
+    --tint-purple: rgba(139, 92, 246, 0.15);
+    --tint-cyan: rgba(0, 210, 255, 0.15);
+
+    /* ── Spacing ── */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
+    --space-3xl: 48px;
+
+    /* ── Border Radius ── */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-full: 50%;
+    --radius-pill: 9999px;
+
+    /* ── Font Sizes ── */
+    --fs-2xs: 0.65rem;
+    --fs-xs: 0.7rem;
+    --fs-sm: 0.75rem;
+    --fs-base: 0.8rem;
+    --fs-md: 0.875rem;
+    --fs-lg: 0.95rem;
+    --fs-xl: 1.1rem;
+    --fs-2xl: 1.25rem;
+    --fs-3xl: 1.5rem;
+    --fs-4xl: 2rem;
+    --fs-5xl: 2.5rem;
+
+    /* ── Font Weights ── */
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-extrabold: 800;
+
+    /* ── Shadows ── */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+    /* ── Transitions ── */
+    --transition-fast: all 0.15s ease;
+    --transition-base: all 0.2s ease;
+    --transition-slow: all 0.3s ease;
+
+    /* ── Z-Index Scale ── */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 500;
+    --z-modal: 1000;
+    --z-toast: 1100;
+    --z-overlay: 1050;
+
+    /* ── Opacity ── */
+    --opacity-disabled: 0.5;
+    --opacity-muted: 0.6;
+    --opacity-subtle: 0.7;
+    --opacity-light: 0.8;
+}

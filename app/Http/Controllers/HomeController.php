@@ -1,0 +1,181 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class HomeController extends Controller
+{
+    public function index()
+    {
+        $stadiums = [
+            [
+                'name' => 'Estadio Azteca',
+                'location' => 'Mexico City, Mexico',
+                'capacity' => '~87,523',
+                'history' => '1966',
+                'fun_fact' => 'El Coloso',
+                'iconic' => 'Maradona',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Estadio_Azteca_desde_el_aire_1.webp'),
+                'attribution' => 'By Luicheto - Own work, CC BY-SA 4.0'
+            ],
+            [
+                'name' => 'MetLife Stadium',
+                'location' => 'East Rutherford, New Jersey',
+                'capacity' => '~82,500',
+                'history' => '2010',
+                'fun_fact' => 'NYC Proximity',
+                'iconic' => '2026 Final',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Metlife_stadium.webp'),
+                'attribution' => 'By Anthony Quintano from Hillsborough, NJ, United States, CC BY 2.0'
+            ],
+            [
+                'name' => 'BMO Field',
+                'location' => 'Toronto, Ontario, Canada',
+                'capacity' => '~45,000',
+                'history' => '2007',
+                'fun_fact' => 'Intimate',
+                'iconic' => 'MLS Cup 2017',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/BMO_Field.webp'),
+                'attribution' => 'This image was originally posted to Flickr by paul bica, CC BY 2.0'
+            ],
+            [
+                'name' => 'SoFi Stadium',
+                'location' => 'Inglewood, Los Angeles, California',
+                'capacity' => '~70,240',
+                'history' => '2020',
+                'fun_fact' => 'Futuristic',
+                'iconic' => 'Super Bowl LVI',
+                'image' => asset('assets/WC26_Stadia_HD_images/SoFi_stadium/SoFi_Stadium.jpg'),
+                'attribution' => 'By Thank You (21 Millions+) views, CC BY 2.0'
+            ],
+            [
+                'name' => 'AT&T Stadium',
+                'location' => 'Dallas/Arlington, Texas',
+                'capacity' => '~80,000',
+                'history' => '2009',
+                'fun_fact' => 'Jerry World',
+                'iconic' => 'Semi-Final',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Cowboys_stadium_inside_view_3.webp'),
+                'attribution' => 'By Michael Barera, CC BY-SA 4.0'
+            ],
+            [
+                'name' => 'Mercedes-Benz Stadium',
+                'location' => 'Atlanta, Georgia',
+                'capacity' => '~71,000',
+                'history' => '2017',
+                'fun_fact' => 'Pinwheel Roof',
+                'iconic' => 'MLS Cup',
+                'image' => asset('assets/WC26_Stadia_HD_images/Mercedes_Benz_Stadium/Mercedes-Benz_Stadium.jpg'),
+                'attribution' => 'By Eoghanacht - Own work, CC0'
+            ],
+            [
+                'name' => 'BC Place',
+                'location' => 'Vancouver, British Columbia, Canada',
+                'capacity' => '~54,500',
+                'history' => '1983',
+                'fun_fact' => 'Waterfront',
+                'iconic' => 'Canadian Icon',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/BC_Place_Opening_Day_2011-09-30.webp'),
+                'attribution' => 'By Yvrphoto - Own work, CC BY-SA 3.0'
+            ],
+            [
+                'name' => 'Lumen Field',
+                'location' => 'Seattle, Washington',
+                'capacity' => '~68,740',
+                'history' => '2002',
+                'fun_fact' => 'Loudest',
+                'iconic' => 'Sounders',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/CenturyLink_Field_&_Safeco_Field.webp'),
+                'attribution' => 'By Brian Uhreen, CC BY 2.0'
+            ],
+            [
+                'name' => 'GEHA Field at Arrowhead Stadium',
+                'location' => 'Kansas City, Missouri',
+                'capacity' => '~76,416',
+                'history' => '1972',
+                'fun_fact' => 'Tailgating',
+                'iconic' => 'Chiefs',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Aerial_view_of_Arrowhead_Stadium_08-31-2013_crop.webp'),
+                'attribution' => 'By Kj1595 - Own work, CC BY-SA 4.0'
+            ],
+            [
+                'name' => 'NRG Stadium',
+                'location' => 'Houston, Texas',
+                'capacity' => '~72,220',
+                'history' => '2002',
+                'fun_fact' => 'Diverse Culture',
+                'iconic' => 'Gulf Coast',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/NRG_Stadium,_LEAGUES_CUP_2024_TIGRES_INTER_MIAMI.jnp.webp'),
+                'attribution' => 'By Gradias - Own work, CC0'
+            ],
+            [
+                'name' => 'Gillette Stadium',
+                'location' => 'Foxborough, Massachusetts',
+                'capacity' => '~64,628',
+                'history' => '2002',
+                'fun_fact' => 'Patriot Place',
+                'iconic' => 'Patriots Dynasty',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Stadiumguillete.webp'),
+                'attribution' => 'By Kenneth C. Zirkel - Own work, CC BY-SA 4.0'
+            ],
+            [
+                'name' => 'Lincoln Financial Field',
+                'location' => 'Philadelphia, Pennsylvania',
+                'capacity' => '~67,594',
+                'history' => '2003',
+                'fun_fact' => 'Eagle Motif',
+                'iconic' => 'Philly Sports',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Lincoln_Financial_Field.webp'),
+                'attribution' => 'By Ron Reiring - Lincoln Financial Field, CC BY 2.0'
+            ],
+            [
+                'name' => 'Estadio Akron',
+                'location' => 'Zapopan/Guadalajara, Jalisco, Mexico',
+                'capacity' => '~49,850',
+                'history' => '2010',
+                'fun_fact' => 'Estadio Chivas',
+                'iconic' => 'Liga MX',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Estadio_Akron_02-07-2022_cabecera_sur_lado_derecho.webp'),
+                'attribution' => 'By Alejan98 - Own work, CC0'
+            ],
+            [
+                'name' => 'Levi\'s Stadium',
+                'location' => 'Santa Clara, San Francisco Bay Area, California',
+                'capacity' => '~68,500',
+                'history' => '2014',
+                'fun_fact' => 'Silicon Valley',
+                'iconic' => 'Super Bowl 50',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Levis_Stadium.webp'),
+                'attribution' => 'This image was originally posted to Flickr by Matthew Almon Roth, CC BY-SA 2.0'
+            ],
+            [
+                'name' => 'Hard Rock Stadium',
+                'location' => 'Miami Gardens, Miami, Florida',
+                'capacity' => '~64,767',
+                'history' => '1987',
+                'fun_fact' => 'Tropical',
+                'iconic' => 'Miami Culture',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Hard_Rock_Stadium_2017.webp'),
+                'attribution' => 'By TheSoccerBoy - Own work, CC BY-SA 4.0'
+            ],
+            [
+                'name' => 'Estadio BBVA',
+                'location' => 'Guadalupe/Monterrey, Nuevo León, Mexico',
+                'capacity' => '~53,500',
+                'history' => '2015',
+                'fun_fact' => 'Steel Giant',
+                'iconic' => 'Liga MX',
+                'image' => asset('assets/WC26_Stadia_HD_images/optimized_webP/Estadio_BBVA.webp'),
+                'attribution' => 'By Presidencia de la República Mexicana, CC BY 2.0'
+            ],
+        ];
+
+        return Inertia::render('Home', [
+            'appName' => config('app.name'),
+            'stadiums' => $stadiums,
+        ]);
+    }
+}
+

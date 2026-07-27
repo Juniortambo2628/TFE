@@ -1,0 +1,1136 @@
+/**
+ * Dashboard Core JavaScript
+ * Main dashboard functionality and initialization
+ *
+ * Dependencies: dashboard-config.js (must be loaded first)
+ */
+
+class DashboardCore {
+    constructor()
+    {
+        this.config = window.DASHBOARD_CONFIG || {};
+        this.isInitialized = false;
+        this.currentTheme = (this.config.theme && this.config.theme.defaultTheme) || 'light';
+        this.sidebarCollapsed = false;
+        this.isMobile = window.innerWidth <= ((this.config.sidebar && this.config.sidebar.collapseBreakpoint) || 768);
+        this.eventListeners = new Map();
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
+    }
+
+    /**
+     * Initialize the dashboard
+     */
+    init()
+    {
+        if (this.isInitialized) {
+            return;
+        }
+
+        try {
+            this.setupEventListeners();
+            this.initializeTheme();
+            this.initializeSidebar();
+            this.initializeHeader();
+            this.initializeNavigation();
+            this.initializeNotifications();
+            this.initializeDataTables();
+            this.initializeCharts();
+            this.initializeModals();
+            this.initializeTooltips();
+            this.initializeKeyboardShortcuts();
+            this.initializeAccessibility();
+            this.initializePerformance();
+
+            this.isInitialized = true;
+
+            // Call init callback
+            if (this.config.callbacks ? .onInit) {
+                this.config.callbacks.onInit(this);
+            }
+
+            console.log('Dashboard initialized successfully');
+        } catch (error) {
+            console.error('Dashboard initialization failed:', error);
+            this.handleError(error);
+        }
+    }
+
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners()
+    {
+        // Window resize
+        this.addEventListener(window, 'resize', this.handleResize.bind(this));
+
+        // Theme toggle
+        const themeToggle = document.querySelector('[data-theme-toggle]');
+        if (themeToggle) {
+            this.addEventListener(themeToggle, 'click', this.toggleTheme.bind(this));
+        }
+
+        // Sidebar toggle
+        const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+        if (sidebarToggle) {
+            this.addEventListener(sidebarToggle, 'click', this.toggleSidebar.bind(this));
+        }
+
+        // Mobile sidebar close
+        if (this.config.sidebar ? .enableMobileToggle) {
+            this.addEventListener(document, 'click', this.handleMobileSidebarClose.bind(this));
+        }
+
+        // Before unload
+        this.addEventListener(window, 'beforeunload', this.handleBeforeUnload.bind(this));
+
+        // Error handling
+        this.addEventListener(window, 'error', this.handleError.bind(this));
+        this.addEventListener(window, 'unhandledrejection', this.handleError.bind(this));
+    }
+
+    /**
+     * Initialize theme system
+     */
+    initializeTheme()
+    {
+        if (!this.config.theme ? .enableDarkMode) {
+            return;
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('dashboard-theme');
+        if (savedTheme && this.config.theme ? .enableThemePersistence) {
+            this.currentTheme = savedTheme;
+        }
+
+        // Apply theme
+        this.applyTheme(this.currentTheme);
+
+        // Update theme toggle button
+        this.updateThemeToggle();
+    }
+
+    /**
+     * Apply theme to the dashboard
+     */
+    applyTheme(theme)
+    {
+        const body = document.body;
+        const html = document.documentElement;
+
+        // Remove existing theme classes
+        body.classList.remove('theme-light', 'theme-dark');
+        html.removeAttribute('data-theme');
+
+        // Apply new theme
+        if (theme === 'dark') {
+            body.classList.add('theme-dark');
+            html.setAttribute('data-theme', 'dark');
+        } else {
+            body.classList.add('theme-light');
+            html.setAttribute('data-theme', 'light');
+        }
+
+        this.currentTheme = theme;
+
+        // Save theme preference
+        if (this.config.theme ? .enableThemePersistence) {
+            localStorage.setItem('dashboard-theme', theme);
+        }
+
+        // Call theme change callback
+        if (this.config.callbacks ? .onThemeChange) {
+            this.config.callbacks.onThemeChange(theme, this);
+        }
+    }
+
+    /**
+     * Toggle theme between light and dark
+     */
+    toggleTheme()
+    {
+        const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+        this.applyTheme(newTheme);
+        this.updateThemeToggle();
+    }
+
+    /**
+     * Update theme toggle button
+     */
+    updateThemeToggle()
+    {
+        const themeToggle = document.querySelector('[data-theme-toggle]');
+        if (!themeToggle) {
+            return;
+        }
+
+        const icon = themeToggle.querySelector('i');
+        if (icon) {
+            icon.className = this.currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        themeToggle.setAttribute(
+            'aria-label',
+            this.currentTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+        );
+    }
+
+    /**
+     * Initialize sidebar
+     */
+    initializeSidebar()
+    {
+        const sidebar = document.getElementById(this.config.sidebarId || 'dashboardSidebar');
+        if (!sidebar) {
+            return;
+        }
+
+        // Set initial state
+        if (this.isMobile) {
+            sidebar.classList.remove('show');
+        }
+
+        // Load saved sidebar state
+        const savedState = localStorage.getItem('dashboard-sidebar-collapsed');
+        if (savedState && !this.isMobile) {
+            this.sidebarCollapsed = JSON.parse(savedState);
+            this.updateSidebarState();
+        }
+    }
+
+    /**
+     * Toggle sidebar
+     */
+    toggleSidebar()
+    {
+        if (this.isMobile) {
+            const sidebar = document.getElementById(this.config.sidebarId || 'dashboardSidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('show');
+            }
+        } else {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            this.updateSidebarState();
+
+            // Save state
+            localStorage.setItem('dashboard-sidebar-collapsed', this.sidebarCollapsed);
+        }
+
+        // Call sidebar toggle callback
+        if (this.config.callbacks ? .onSidebarToggle) {
+            this.config.callbacks.onSidebarToggle(this.sidebarCollapsed, this);
+        }
+    }
+
+    /**
+     * Update sidebar state
+     */
+    updateSidebarState()
+    {
+        const sidebar = document.getElementById(this.config.sidebarId || 'dashboardSidebar');
+        const content = document.getElementById(this.config.contentId || 'dashboardContent');
+
+        if (!sidebar || !content) {
+            return;
+        }
+
+        if (this.sidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+            content.style.marginLeft = this.config.sidebar ? .sidebarCollapsedWidth || '60px';
+        } else {
+            sidebar.classList.remove('collapsed');
+            content.style.marginLeft = this.config.sidebar ? .sidebarWidth || '280px';
+        }
+    }
+
+    /**
+     * Handle mobile sidebar close
+     */
+    handleMobileSidebarClose(event)
+    {
+        if (!this.isMobile) {
+            return;
+        }
+
+        const sidebar = document.getElementById(this.config.sidebarId || 'dashboardSidebar');
+        const toggle = document.querySelector('[data-sidebar-toggle]');
+
+        if (sidebar && toggle &&
+            !sidebar.contains(event.target) &&
+            !toggle.contains(event.target)) {
+            sidebar.classList.remove('show');
+        }
+    }
+
+    /**
+     * Initialize header
+     */
+    initializeHeader()
+    {
+        const header = document.getElementById(this.config.headerId || 'dashboardHeader');
+        if (!header) {
+            return;
+        }
+
+        // Initialize header actions
+        this.initializeHeaderActions();
+    }
+
+    /**
+     * Initialize header actions
+     */
+    initializeHeaderActions()
+    {
+        // Export buttons
+        const exportButtons = document.querySelectorAll('[data-export]');
+        exportButtons.forEach(button => {
+            this.addEventListener(button, 'click', (e) => {
+                const format = e.target.dataset.export;
+                this.handleExport(format);
+            });
+        });
+
+        // Notification dropdown
+        this.initializeNotificationDropdown();
+
+        // User dropdown
+        this.initializeUserDropdown();
+    }
+
+    /**
+     * Initialize notification dropdown
+     */
+    initializeNotificationDropdown()
+    {
+        if (!this.config.notifications ? .enableNotifications) {
+            return;
+        }
+
+        const notificationDropdown = document.querySelector('.notification-dropdown');
+        if (!notificationDropdown) {
+            return;
+        }
+
+        // Load notifications
+        this.loadNotifications();
+
+        // Mark all as read
+        const markAllReadBtn = notificationDropdown.querySelector('.mark-all-read');
+        if (markAllReadBtn) {
+            this.addEventListener(markAllReadBtn, 'click', this.markAllNotificationsRead.bind(this));
+        }
+    }
+
+    /**
+     * Load notifications
+     */
+    async loadNotifications()
+    {
+        try {
+            // This would typically make an API call
+            const notifications = await this.fetchNotifications();
+            this.renderNotifications(notifications);
+        } catch (error) {
+            console.error('Failed to load notifications:', error);
+        }
+    }
+
+    /**
+     * Fetch notifications (placeholder)
+     */
+    async fetchNotifications()
+    {
+        // This would typically make an API call
+        return [
+            {
+                id: 1,
+                title: 'New user registered',
+                message: 'John Doe has joined the platform',
+                type: 'info',
+                timestamp: new Date(),
+                read: false
+        },
+            {
+                id: 2,
+                title: 'System update',
+                message: 'Dashboard has been updated to version 2.0',
+                type: 'success',
+                timestamp: new Date(),
+                read: false
+        }
+        ];
+    }
+
+    /**
+     * Render notifications
+     */
+    renderNotifications(notifications)
+    {
+        const notificationList = document.querySelector('.notification-list');
+        if (!notificationList) {
+            return;
+        }
+
+        if (notifications.length === 0) {
+            notificationList.innerHTML = '<div class="text-center p-3 text-muted">No notifications</div>';
+            return;
+        }
+
+        const html = notifications.map(notification => `
+            < div class = "notification-item ${notification.read ? 'read' : 'unread'}" data - id = "${notification.id}" >
+                < div class = "d-flex align-items-start" >
+                    < div class = "notification-icon me-2" >
+                        < i class = "fas fa-${this.getNotificationIcon(notification.type)} text-${notification.type}" > < / i >
+                    <  / div >
+                    < div class = "notification-content flex-grow-1" >
+                        < div class = "notification-title fw-bold" > ${notification.title} < / div >
+                        < div class = "notification-message text-muted small" > ${notification.message} < / div >
+                        < div class = "notification-time text-muted small" > ${this.formatTime(notification.timestamp)} < / div >
+                    <  / div >
+                    ${!notification.read ? '<div class="notification-dot bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>' : ''}
+                <  / div >
+            <  / div >
+        `).join('');
+
+        notificationList.innerHTML = html;
+
+        // Add click handlers
+        notificationList.querySelectorAll('.notification-item').forEach(item => {
+            this.addEventListener(item, 'click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                this.markNotificationRead(id);
+            });
+        });
+
+        // Update badge
+        this.updateNotificationBadge(notifications.filter(n => !n.read).length);
+    }
+
+    /**
+     * Get notification icon based on type
+     */
+    getNotificationIcon(type)
+    {
+        const icons = {
+            info: 'info-circle',
+            success: 'check-circle',
+            warning: 'exclamation-triangle',
+            error: 'times-circle',
+            system: 'cog'
+        };
+        return icons[type] || 'bell';
+    }
+
+    /**
+     * Format time for display
+     */
+    formatTime(timestamp)
+    {
+        const now = new Date();
+        const diff = now - timestamp;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) {
+            return 'Just now';
+        }
+        if (minutes < 60) {
+            return `$minutes}m ago`;
+        if (hours < 24) {
+            return `$hours}h ago`;
+        return `${days}d ago`;
+    }
+
+    /**
+     * Update notification badge
+     */
+    updateNotificationBadge(count)
+    {
+        const badge = document.querySelector('.notification-badge');
+        if (!badge) {
+            return;
+        }
+
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    /**
+     * Mark notification as read
+     */
+    markNotificationRead(id)
+    {
+        // This would typically make an API call
+        console.log('Marking notification as read:', id);
+
+        // Update UI
+        const notification = document.querySelector(`[data - id = "${id}"]`);
+        if (notification) {
+            notification.classList.remove('unread');
+            notification.classList.add('read');
+            notification.querySelector('.notification-dot') ? .remove();
+        }
+
+        // Update badge
+        const unreadCount = document.querySelectorAll('.notification-item.unread').length;
+        this.updateNotificationBadge(unreadCount);
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    markAllNotificationsRead()
+    {
+        // This would typically make an API call
+        console.log('Marking all notifications as read');
+
+        // Update UI
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.classList.remove('unread');
+            item.classList.add('read');
+            item.querySelector('.notification-dot') ? .remove();
+        });
+
+        // Update badge
+        this.updateNotificationBadge(0);
+    }
+
+    /**
+     * Initialize user dropdown
+     */
+    initializeUserDropdown()
+    {
+        const userDropdown = document.querySelector('.user-dropdown');
+        if (!userDropdown) {
+            return;
+        }
+
+        // Add click handlers for dropdown items
+        userDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            this.addEventListener(item, 'click', (e) => {
+                const action = e.target.dataset.action;
+                if (action) {
+                    this.handleUserAction(action);
+                }
+            });
+        });
+    }
+
+    /**
+     * Handle user action
+     */
+    handleUserAction(action)
+    {
+        switch (action) {
+            case 'profile':
+                this.showProfile();
+                break;
+            case 'settings':
+                this.showSettings();
+                break;
+            case 'logout':
+                this.logout();
+                break;
+            default:
+                console.log('Unknown user action:', action);
+        }
+    }
+
+    /**
+     * Show profile modal
+     */
+    showProfile()
+    {
+        // This would typically show a profile modal
+        console.log('Showing profile');
+    }
+
+    /**
+     * Show settings modal
+     */
+    showSettings()
+    {
+        // This would typically show a settings modal
+        console.log('Showing settings');
+    }
+
+    /**
+     * Logout user
+     */
+    logout()
+    {
+        if (confirm('Are you sure you want to logout?')) {
+            // This would typically make an API call and redirect
+            window.location.href = '/auth/logout.php';
+        }
+    }
+
+    /**
+     * Initialize navigation
+     */
+    initializeNavigation()
+    {
+        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+        navLinks.forEach(link => {
+            this.addEventListener(link, 'click', this.handleNavigation.bind(this));
+        });
+    }
+
+    /**
+     * Handle navigation
+     */
+    handleNavigation(event)
+    {
+        const link = event.currentTarget;
+        const url = link.getAttribute('href');
+        const isExternal = link.dataset.external === 'true';
+
+        if (isExternal) {
+            return; // Let the browser handle external links
+        }
+
+        // Check if this is an admin page navigation
+        if (url && (url.includes('.php') || url.includes('admin/'))) {
+            // Allow normal navigation for admin pages
+            return;
+        }
+
+        event.preventDefault();
+
+        // Update active state
+        this.updateActiveNavigation(link);
+
+        // Load content
+        this.loadContent(url);
+
+        // Close mobile sidebar
+        if (this.isMobile) {
+            const sidebar = document.getElementById(this.config.sidebarId || 'dashboardSidebar');
+            if (sidebar) {
+                sidebar.classList.remove('show');
+            }
+        }
+
+        // Call navigation change callback
+        if (this.config.callbacks ? .onNavigationChange) {
+            this.config.callbacks.onNavigationChange(url, this);
+        }
+    }
+
+    /**
+     * Update active navigation state
+     */
+    updateActiveNavigation(activeLink)
+    {
+        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+        });
+        activeLink.classList.add('active');
+    }
+
+    /**
+     * Load content (placeholder)
+     */
+    loadContent(url)
+    {
+        console.log('Loading content:', url);
+
+        // Show loading state
+        const contentArea = document.getElementById('dashboardContent');
+        if (contentArea) {
+            contentArea.innerHTML = `
+                < div class = "d-flex justify-content-center align-items-center" style = "height: 400px;" >
+                    < div class = "spinner-border text-primary" role = "status" >
+                        < span class = "visually-hidden" > Loading... < / span >
+                    <  / div >
+                    < span class = "ms-3" > Loading content... < / span >
+                <  / div >
+            `;
+        }
+
+        // Load content via fetch
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                if (contentArea) {
+                    contentArea.innerHTML = html;
+                    // Re-initialize any components in the new content
+                    this.initializeCharts();
+                    this.initializeDataTables();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading content:', error);
+                if (contentArea) {
+                    contentArea.innerHTML = `
+                        < div class = "alert alert-danger" role = "alert" >
+                            < h4 class = "alert-heading" > Error Loading Content < / h4 >
+                            < p > Failed to load ${url}. Please try again.< / p >
+                            < hr >
+                            < p class = "mb-0" > Error: ${error.message} < / p >
+                        <  / div >
+                    `;
+                }
+            });
+    }
+
+    /**
+     * Initialize notifications system
+     */
+    initializeNotifications()
+    {
+        // Create notification container if it doesn't exist
+        let notificationContainer = document.getElementById('notificationContainer');
+        if (!notificationContainer) {
+            notificationContainer = document.createElement('div');
+            notificationContainer.id = 'notificationContainer';
+            notificationContainer.className = 'position-fixed top-0 end-0 p-3';
+            notificationContainer.style.zIndex = '9999';
+            document.body.appendChild(notificationContainer);
+        }
+
+        // Add notification methods to the dashboard instance
+        this.showNotification = (message, type = 'info', duration = 5000) => {
+            const notification = document.createElement('div');
+            notification.className = `alert alert - ${type} alert - dismissible fade show`;
+            notification.innerHTML = `
+                ${message}
+                < button type = "button" class = "btn-close" data - bs - dismiss = "alert" > < / button >
+            `;
+
+            notificationContainer.appendChild(notification);
+
+            // Auto-remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, duration);
+            }
+        };
+
+        // Add success notification method
+        this.showSuccess = (message, duration = 5000) => {
+            this.showNotification(message, 'success', duration);
+        };
+
+        // Add error notification method
+        this.showError = (message, duration = 8000) => {
+            this.showNotification(message, 'danger', duration);
+        };
+
+        // Add warning notification method
+        this.showWarning = (message, duration = 6000) => {
+            this.showNotification(message, 'warning', duration);
+        };
+
+        // Add info notification method
+        this.showInfo = (message, duration = 5000) => {
+            this.showNotification(message, 'info', duration);
+        };
+
+        console.log('Notifications system initialized');
+    }
+
+    /**
+     * Initialize data tables
+     */
+    initializeDataTables()
+    {
+        if (!(this.config.dataTable && this.config.dataTable.enableDataTables)) {
+            return;
+        }
+
+        const tables = document.querySelectorAll('.data-table');
+        tables.forEach(table => {
+            this.initializeDataTable(table);
+        });
+    }
+
+    /**
+     * Initialize individual data table
+     */
+    initializeDataTable(table)
+    {
+        // This would typically initialize a data table library
+        console.log('Initializing data table:', table);
+    }
+
+    /**
+     * Initialize charts
+     */
+    initializeCharts()
+    {
+        if (!this.config.charts ? .enableCharts) {
+            return;
+        }
+
+        const chartContainers = document.querySelectorAll('.chart-container');
+        chartContainers.forEach(container => {
+            this.initializeChart(container);
+        });
+    }
+
+    /**
+     * Initialize individual chart
+     */
+    initializeChart(container)
+    {
+        // This would typically initialize a chart library
+        console.log('Initializing chart:', container);
+    }
+
+    /**
+     * Initialize modals
+     */
+    initializeModals()
+    {
+        if (!this.config.ui ? .enableModals) {
+            return;
+        }
+
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            this.initializeModal(modal);
+        });
+    }
+
+    /**
+     * Initialize individual modal
+     */
+    initializeModal(modal)
+    {
+        // This would typically initialize modal functionality
+        console.log('Initializing modal:', modal);
+    }
+
+    /**
+     * Initialize tooltips
+     */
+    initializeTooltips()
+    {
+        if (!this.config.ui ? .enableTooltips) {
+            return;
+        }
+
+        const tooltips = document.querySelectorAll('[data-tooltip]');
+        tooltips.forEach(element => {
+            this.initializeTooltip(element);
+        });
+    }
+
+    /**
+     * Initialize individual tooltip
+     */
+    initializeTooltip(element)
+    {
+        // This would typically initialize tooltip functionality
+        console.log('Initializing tooltip:', element);
+    }
+
+    /**
+     * Initialize keyboard shortcuts
+     */
+    initializeKeyboardShortcuts()
+    {
+        if (!this.config.ui ? .enableKeyboardShortcuts) {
+            return;
+        }
+
+        this.addEventListener(document, 'keydown', this.handleKeyboardShortcuts.bind(this));
+    }
+
+    /**
+     * Handle keyboard shortcuts
+     */
+    handleKeyboardShortcuts(event)
+    {
+        const { key, ctrlKey, altKey, shiftKey } = event;
+
+        // Ctrl/Cmd + K - Search
+        if ((ctrlKey || event.metaKey) && key === 'k') {
+            event.preventDefault();
+            this.openSearch();
+        }
+
+        // Ctrl/Cmd + B - Toggle sidebar
+        if ((ctrlKey || event.metaKey) && key === 'b') {
+            event.preventDefault();
+            this.toggleSidebar();
+        }
+
+        // Ctrl/Cmd + D - Toggle theme
+        if ((ctrlKey || event.metaKey) && key === 'd') {
+            event.preventDefault();
+            this.toggleTheme();
+        }
+
+        // Escape - Close modals/sidebar
+        if (key === 'Escape') {
+            this.closeModals();
+            if (this.isMobile) {
+                const sidebar = document.getElementById(this.config.sidebarId || 'dashboardSidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        }
+    }
+
+    /**
+     * Open search
+     */
+    openSearch()
+    {
+        // This would typically open a search modal
+        console.log('Opening search');
+    }
+
+    /**
+     * Close all modals
+     */
+    closeModals()
+    {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => {
+            modal.classList.remove('show');
+        });
+    }
+
+    /**
+     * Initialize accessibility features
+     */
+    initializeAccessibility()
+    {
+        if (!this.config.ui ? .enableAccessibility) {
+            return;
+        }
+
+        // Add ARIA labels
+        this.addAriaLabels();
+
+        // Initialize focus management
+        this.initializeFocusManagement();
+
+        // Initialize screen reader support
+        this.initializeScreenReaderSupport();
+    }
+
+    /**
+     * Add ARIA labels
+     */
+    addAriaLabels()
+    {
+        // Add ARIA labels to interactive elements
+        const buttons = document.querySelectorAll('button:not([aria-label])');
+        buttons.forEach(button => {
+            if (button.textContent.trim()) {
+                button.setAttribute('aria-label', button.textContent.trim());
+            }
+        });
+    }
+
+    /**
+     * Initialize focus management
+     */
+    initializeFocusManagement()
+    {
+        // Focus management for modals, dropdowns, etc.
+        console.log('Initializing focus management');
+    }
+
+    /**
+     * Initialize screen reader support
+     */
+    initializeScreenReaderSupport()
+    {
+        // Screen reader announcements
+        console.log('Initializing screen reader support');
+    }
+
+    /**
+     * Initialize performance optimizations
+     */
+    initializePerformance()
+    {
+        if (!this.config.performance) {
+            return;
+        }
+
+        // Lazy loading
+        if (this.config.performance.enableLazyLoading) {
+            this.initializeLazyLoading();
+        }
+
+        // Debouncing
+        if (this.config.performance.enableDebouncing) {
+            this.initializeDebouncing();
+        }
+
+        // Throttling
+        if (this.config.performance.enableThrottling) {
+            this.initializeThrottling();
+        }
+    }
+
+    /**
+     * Initialize lazy loading
+     */
+    initializeLazyLoading()
+    {
+        const lazyElements = document.querySelectorAll('[data-lazy]');
+        if (lazyElements.length === 0) {
+            return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.loadLazyElement(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+
+        lazyElements.forEach(element => {
+            observer.observe(element);
+        });
+    }
+
+    /**
+     * Load lazy element
+     */
+    loadLazyElement(element)
+    {
+        const src = element.dataset.lazy;
+        if (src) {
+            element.src = src;
+            element.removeAttribute('data-lazy');
+        }
+    }
+
+    /**
+     * Initialize debouncing
+     */
+    initializeDebouncing()
+    {
+        // This would typically set up debounced functions
+        console.log('Initializing debouncing');
+    }
+
+    /**
+     * Initialize throttling
+     */
+    initializeThrottling()
+    {
+        // This would typically set up throttled functions
+        console.log('Initializing throttling');
+    }
+
+    /**
+     * Handle window resize
+     */
+    handleResize()
+    {
+        const wasMobile = this.isMobile;
+        this.isMobile = window.innerWidth <= (this.config.sidebar ? .collapseBreakpoint || 768);
+
+        if (wasMobile !== this.isMobile) {
+            this.updateSidebarState();
+        }
+    }
+
+    /**
+     * Handle before unload
+     */
+    handleBeforeUnload(event)
+    {
+        if (this.config.callbacks ? .onBeforeUnload) {
+            const result = this.config.callbacks.onBeforeUnload(this);
+            if (result) {
+                event.preventDefault();
+                event.returnValue = result;
+            }
+        }
+    }
+
+    /**
+     * Handle errors
+     */
+    handleError(error)
+    {
+        console.error('Dashboard error:', error);
+
+        if (this.config.callbacks ? .onError) {
+            this.config.callbacks.onError(error, this);
+        }
+    }
+
+    /**
+     * Handle export
+     */
+    handleExport(format)
+    {
+        console.log('Exporting data in format:', format);
+
+        if (this.config.callbacks ? .onExport) {
+            this.config.callbacks.onExport(format, this);
+        }
+    }
+
+    /**
+     * Add event listener with cleanup
+     */
+    addEventListener(element, event, handler)
+    {
+        element.addEventListener(event, handler);
+
+        if (!this.eventListeners.has(element)) {
+            this.eventListeners.set(element, []);
+        }
+        this.eventListeners.get(element).push({ event, handler });
+    }
+
+    /**
+     * Remove all event listeners
+     */
+    removeAllEventListeners()
+    {
+        this.eventListeners.forEach((listeners, element) => {
+            listeners.forEach(({ event, handler }) => {
+                element.removeEventListener(event, handler);
+            });
+        });
+        this.eventListeners.clear();
+    }
+
+    /**
+     * Destroy dashboard instance
+     */
+    destroy()
+    {
+        this.removeAllEventListeners();
+        this.isInitialized = false;
+    }
+}
+
+// Initialize dashboard when script loads
+window.dashboard = new DashboardCore();

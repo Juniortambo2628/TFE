@@ -1,0 +1,391 @@
+/* Dark themed registration styles - isolated to registration page */
+:root {
+  --bg: #070606;
+  --card: #0f0f10;
+  --muted: #bfbfbf;
+  --input-bg: #0f1113;
+  --accent-1: #b80b1e;
+  --accent-2: #ef4050;
+  --pill-radius: 999px;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  background:
+    radial-gradient(closest-side at 50% 50%, rgba(184, 11, 30, 0.06), transparent 30%), var(--bg);
+  color: #fff;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial;
+}
+
+.container.py-5 {
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+.card {
+  max-width: 920px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(184, 11, 30, 0.12) inset;
+  animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; /* Smooth entrance */
+  opacity: 0; /* Start hidden for animation */
+  transform: translateY(20px);
+}
+.card-body {
+  padding: 34px;
+}
+
+.form-label {
+  color: #fff !important;
+  font-weight: 500;
+}
+
+.font-standard-section-pill {
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Pill back button used on auth pages */
+.pill-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  transition: all 160ms;
+}
+.pill-back-btn i {
+  font-size: 14px;
+}
+.pill-back-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.02);
+  color: #fff;
+}
+
+/* Fixed header positions for auth pages */
+.pill-fixed-left {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 9999;
+}
+.pill-fixed-right {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+@media (max-width: 520px) {
+  .pill-fixed-left,
+  .pill-fixed-right {
+    top: 12px;
+    padding: 6px 10px;
+  }
+  .pill-fixed-right {
+    right: 12px;
+  }
+  .pill-fixed-left {
+    left: 12px;
+  }
+}
+
+/* Pill inputs */
+.pill-input {
+  background: var(--input-bg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  color: #eef2f7 !important;
+  border-radius: var(--pill-radius) !important;
+  padding: 12px 20px !important;
+  box-shadow: none !important;
+}
+.pill-input::placeholder {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+.pill-input:focus {
+  outline: none !important;
+  box-shadow: 0 10px 28px rgba(184, 11, 30, 0.12);
+  border-color: var(--accent-1) !important;
+  transform: translateY(-1px);
+}
+
+/* Ensure selects and dropdowns are visible */
+select.pill-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 44px;
+}
+.searchable-dropdown-container {
+  position: relative;
+}
+.searchable-dropdown-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--pill-radius);
+  background: var(--input-bg);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #fff;
+  cursor: pointer;
+}
+.searchable-dropdown-input .selected-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+.searchable-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  background: #0b0b0b;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  margin-top: 0;
+  min-width: 220px;
+  box-sizing: border-box;
+}
+.searchable-dropdown-menu::-webkit-scrollbar {
+  display: none;
+}
+.searchable-dropdown-menu {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.search-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #0f1113;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #fff;
+}
+.dropdown-option {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  white-space: normal;
+}
+.dropdown-option:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Prevent dropdown from forcing horizontal scroll on small containers */
+.searchable-dropdown-container {
+  max-width: 100%;
+  overflow: visible;
+}
+.searchable-dropdown-container .selected-text {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Country code dropdown: increase width so codes and labels are visible */
+#countryCodeSelect + .searchable-dropdown-container {
+  display: inline-block;
+  width: auto;
+  min-width: 110px;
+}
+#countryCodeSelect + .searchable-dropdown-container .searchable-dropdown-menu {
+  min-width: 140px;
+  max-width: 280px;
+}
+
+/* Country dropdown: ensure wide menu that fits content and doesn't stack vertically */
+#countrySelect + .searchable-dropdown-container {
+  display: block;
+  width: 100%;
+}
+#countrySelect + .searchable-dropdown-container .searchable-dropdown-menu {
+  min-width: 260px;
+  max-width: 520px;
+}
+
+/* Force option text layout to normal and readable */
+.searchable-dropdown-menu .dropdown-option {
+  word-break: normal;
+  white-space: normal;
+}
+
+/* Style step titles so active/completed states are obvious */
+.progress-steps {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.progress-steps .step {
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+.progress-steps .step.active {
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(90deg, rgba(184, 11, 30, 0.12), rgba(239, 64, 80, 0.04));
+  box-shadow: 0 6px 18px rgba(184, 11, 30, 0.06);
+  border: 1px solid rgba(184, 11, 30, 0.12);
+}
+.progress-steps .step.completed {
+  color: rgba(255, 255, 255, 0.8);
+  opacity: 0.9;
+}
+
+/* Team selection */
+.team-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+.team-option {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 4px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  transition: all 0.2s;
+  text-align: center;
+  min-height: 64px;
+}
+.team-option.selected {
+  box-shadow: 0 10px 30px rgba(184, 11, 30, 0.12);
+  border-color: var(--accent-1);
+  background: linear-gradient(180deg, rgba(184, 11, 30, 0.06), rgba(0, 0, 0, 0.02));
+}
+.team-flag {
+  width: 30px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.team-name {
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+/* Progress bar */
+.progress-bar {
+  background: rgba(255, 255, 255, 0.03);
+  height: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0; /* Override default bootstrap margin if needed */
+}
+.progress-fill {
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  height: 100%;
+  width: 25%;
+}
+
+/* Top controls injected by JS */
+.registration-top-controls,
+.registration-bottom-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  gap: 12px;
+}
+.registration-top-controls .btn-control,
+.registration-bottom-controls .btn-control {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 150ms;
+  white-space: nowrap;
+}
+.registration-top-controls .btn-control:hover,
+.registration-bottom-controls .btn-control:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.02);
+}
+.registration-bottom-controls {
+  flex-wrap: nowrap;
+}
+.registration-bottom-controls .btn-control {
+  min-width: 140px;
+  flex: 0 1 auto;
+}
+.registration-bottom-controls .btn-next {
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  color: #fff;
+  border: 0;
+}
+
+/* Ensure bottom controls don't wrap the Reset button: allow Next to grow while Reset stays fixed */
+.registration-bottom-controls > .btn-reset {
+  flex: 0 0 auto;
+}
+.registration-bottom-controls > .btn-next {
+  flex: 1 1 auto;
+}
+
+/* Ensure invalid-feedback uses light text */
+.invalid-feedback {
+  color: #ffcccb;
+}
+
+@media (max-width: 768px) {
+  .registration-bottom-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .registration-bottom-controls .btn-control {
+    width: 100%;
+  }
+}
+
+/* Fix for dropdown option visibility in dark mode */
+select.pill-input option {
+  background-color: #0f1113; /* var(--input-bg) fallback */
+  color: #fff;
+  padding: 10px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

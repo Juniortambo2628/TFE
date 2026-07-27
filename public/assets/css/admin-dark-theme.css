@@ -1,0 +1,672 @@
+/**
+ * Admin Dark Theme Styles
+ * 
+ * Dark theme styles for admin dashboard and login form
+ */
+
+:root {
+    --admin-bg-dark: #1a1a1a;
+    --admin-bg-card: #2d2d2d;
+    --admin-bg-hover: #3a3a3a;
+    --admin-text-primary: #ffffff;
+    --admin-text-secondary: #b0b0b0;
+    --admin-border: #404040;
+    --admin-primary: #ffd300;
+    --primary-color: #ffd300;
+    --secondary-color: #1a1a1a;
+    --accent-color: #00bcd4;
+}
+
+/* ==================== ADMIN LOGIN FORM ==================== */
+
+body.admin-login-page {
+    background: linear-gradient(135deg, var(--admin-bg-dark) 0%, #0f0f0f 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--admin-text-primary);
+}
+
+.admin-login-container {
+    background: var(--admin-bg-card);
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    overflow: hidden;
+    max-width: 400px;
+    width: 100%;
+    border: 1px solid var(--admin-border);
+}
+
+.admin-login-header {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 2rem;
+    text-align: center;
+}
+
+.admin-login-header img {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+.admin-login-form {
+    padding: 2rem;
+    background: var(--admin-bg-card);
+}
+
+.admin-login-form .form-label {
+    color: var(--admin-text-primary);
+}
+
+.admin-login-form .form-control {
+    background-color: var(--admin-bg-hover);
+    border: 2px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    color: var(--admin-text-primary);
+}
+
+.admin-login-form .form-control:focus {
+    background-color: var(--admin-bg-hover);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(255, 211, 0, 0.25);
+    color: var(--admin-text-primary);
+}
+
+.admin-login-form .form-control::placeholder {
+    color: var(--admin-text-secondary);
+}
+
+.admin-login-form .btn-login {
+    background: var(--primary-color);
+    border: none;
+    color: var(--secondary-color);
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.admin-login-form .btn-login:hover {
+    background: #e6c200;
+    color: var(--secondary-color);
+}
+
+.admin-login-form .btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-login-form .input-group-text {
+    background: var(--admin-bg-hover);
+    border: 2px solid var(--admin-border);
+    border-right: none;
+    color: var(--admin-text-primary);
+}
+
+.admin-login-form .input-group .form-control {
+    border-left: none;
+}
+
+.admin-login-form .input-group:focus-within .input-group-text {
+    border-color: var(--primary-color);
+    background: var(--admin-bg-hover);
+}
+
+.admin-login-form .input-group:focus-within .form-control {
+    border-color: var(--primary-color);
+}
+
+.admin-login-form .alert {
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    background-color: var(--admin-bg-card);
+    color: var(--admin-text-primary);
+}
+
+.admin-login-form .alert-success {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+    color: #90ee90;
+}
+
+.admin-login-form .alert-danger {
+    background-color: rgba(220, 53, 69, 0.2);
+    border-color: #dc3545;
+    color: #ff6b7a;
+}
+
+.admin-login-form .back-link {
+    color: var(--admin-text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.admin-login-form .back-link:hover {
+    color: var(--primary-color);
+}
+
+.admin-login-form .form-check-label {
+    color: var(--admin-text-primary);
+}
+
+.admin-login-form .form-check-input {
+    background-color: var(--admin-bg-hover);
+    border-color: var(--admin-border);
+}
+
+.admin-login-form .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.admin-login-form .form-check-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(255, 211, 0, 0.25);
+}
+
+/* ==================== ADMIN DASHBOARD ==================== */
+
+body.admin-dashboard {
+    background-color: var(--admin-bg-dark) !important;
+    color: var(--admin-text-primary) !important;
+}
+
+/* Dashboard specific styles */
+.dashboard-header {
+    background: var(--admin-bg-card);
+    padding: 2rem;
+    border-bottom: 1px solid var(--admin-border);
+    margin-bottom: 2rem;
+    color: var(--admin-text-primary);
+}
+
+.stats-card {
+    background: var(--admin-bg-card);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border-left: 4px solid var(--admin-primary);
+    margin-bottom: 1rem;
+    color: var(--admin-text-primary);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--admin-primary);
+}
+
+.data-table {
+    background: var(--admin-bg-card);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.dashboard-card .data-card .table thead th {
+    background: var(--admin-primary);
+    color: #000;
+    border: none;
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.dashboard-card .data-card .table tbody {
+    background: var(--admin-bg-card);
+    color: var(--admin-text-primary);
+}
+
+.dashboard-card .data-card .table tbody tr {
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.dashboard-card .data-card .table tbody tr:hover {
+    background-color: var(--admin-bg-hover);
+}
+
+.dashboard-card .data-card .table tbody td {
+    color: var(--admin-text-primary);
+}
+
+.btn-dashboard {
+    background: var(--admin-primary);
+    color: #000;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-dashboard:hover {
+    background: #e6c200;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 211, 0, 0.3);
+}
+
+.notification-dropdown {
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--admin-bg-card);
+}
+
+.notification-item {
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+/* Form elements */
+.form-control,
+.form-select {
+    background-color: var(--admin-bg-hover);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--admin-text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--admin-bg-hover);
+    border-color: var(--admin-primary);
+    color: var(--admin-text-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 211, 0, 0.25);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--admin-text-secondary);
+    opacity: 0.7;
+}
+
+.form-control[readonly] {
+    background-color: rgba(58, 58, 58, 0.5);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.form-label {
+    color: var(--admin-text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.95rem;
+}
+
+/* Form spacing */
+.mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* Buttons in forms */
+.content-card .btn {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.content-card .btn-primary {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+    color: #000;
+}
+
+.content-card .btn-primary:hover {
+    background-color: #e6c200;
+    border-color: #e6c200;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 211, 0, 0.3);
+}
+
+.content-card .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.content-card .btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.content-card .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.content-card .btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.content-card .btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+    background-color: transparent;
+}
+
+.content-card .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Form switches */
+.form-check {
+    margin-bottom: 1rem;
+}
+
+.form-check-label {
+    color: var(--admin-text-primary);
+    margin-left: 0.5rem;
+    cursor: pointer;
+}
+
+.form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: 0.25em;
+    background-color: var(--admin-bg-hover);
+    border: 1px solid var(--admin-border);
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 211, 0, 0.25);
+}
+
+/* Cards and panels */
+.card {
+    background-color: var(--admin-bg-card);
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+.card-header {
+    background-color: var(--admin-bg-hover);
+    border-bottom-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+/* Tables */
+.table {
+    color: var(--admin-text-primary);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--admin-bg-hover);
+}
+
+/* Modals - Ensure they're hidden by default and appear as overlays */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1050;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+}
+
+.modal.show {
+    display: block;
+}
+
+.modal.fade {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.modal.fade.show {
+    opacity: 1;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+    pointer-events: none;
+}
+
+.modal.show .modal-dialog {
+    pointer-events: auto;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: var(--admin-bg-card);
+    background-clip: padding-box;
+    border: 1px solid var(--admin-border);
+    border-radius: 0.3rem;
+    outline: 0;
+    color: var(--admin-text-primary);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid var(--admin-border);
+    border-top-left-radius: calc(0.3rem - 1px);
+    border-top-right-radius: calc(0.3rem - 1px);
+    color: var(--admin-text-primary);
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+    color: var(--admin-text-primary);
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border-top: 1px solid var(--admin-border);
+    border-bottom-right-radius: calc(0.3rem - 1px);
+    border-bottom-left-radius: calc(0.3rem - 1px);
+    color: var(--admin-text-primary);
+}
+
+/* Alerts */
+.alert {
+    background-color: var(--admin-bg-card);
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+/* Text colors */
+.text-muted {
+    color: var(--admin-text-secondary) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--admin-text-primary);
+}
+
+/* Links */
+a {
+    color: var(--admin-primary);
+}
+
+a:hover {
+    color: #e6c200;
+}
+
+/* Dashboard content area - Override for admin when using fan dashboard layout */
+body.admin-dashboard .dashboard-layout {
+    background: var(--dash-bg, #070606);
+    /* padding-top is handled by fan-dashboard-cards.css (88px) */
+}
+
+/* Sidebar positioning is handled by fan-dashboard-cards.css */
+
+body.admin-dashboard .dashboard-main {
+    background: transparent;
+    color: var(--text-primary, #ffffff);
+    padding: 0;
+    margin-top: 0; /* Main content doesn't need extra margin */
+}
+
+body.admin-dashboard .dashboard-content {
+    margin-left: 0; /* Remove margin when using dashboard-layout */
+    min-height: auto;
+    background-color: transparent;
+    color: var(--admin-text-primary);
+    transition: all 0.3s ease;
+}
+
+.dashboard-card {
+    background-color: var(--admin-bg-card);
+    color: var(--admin-text-primary);
+    border-color: var(--admin-border);
+}
+
+.dashboard-card-header {
+    background-color: var(--admin-bg-hover);
+    border-bottom-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+.dashboard-card-body {
+    background-color: var(--admin-bg-card);
+    color: var(--admin-text-primary);
+}
+
+.data-card {
+    background-color: var(--admin-bg-card);
+    color: var(--admin-text-primary);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background-color: var(--admin-bg-card);
+    border-color: var(--admin-border);
+}
+
+.dropdown-item {
+    color: var(--admin-text-primary);
+}
+
+.dropdown-item:hover {
+    background-color: var(--admin-bg-hover);
+    color: var(--admin-text-primary);
+}
+
+/* Badges */
+.badge {
+    color: #000;
+}
+
+/* Pagination */
+.page-link {
+    background-color: var(--admin-bg-card);
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+.page-link:hover {
+    background-color: var(--admin-bg-hover);
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+.page-item.active .page-link {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+    color: #000;
+}
+
+/* Input groups */
+.input-group-text {
+    background-color: var(--admin-bg-hover);
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+/* Buttons */
+.btn-outline-primary,
+.btn-outline-secondary {
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover {
+    background-color: var(--admin-bg-hover);
+    border-color: var(--admin-border);
+    color: var(--admin-text-primary);
+}
+
+/* Stats cards */
+.stats-icon {
+    background-color: var(--admin-bg-hover);
+}
+
+/* Chart containers */
+.chart-container {
+    background-color: var(--admin-bg-card);
+}
+
+/* ==================== ADMIN SIDEBAR ==================== */
+/* Note: Admin sidebar now uses fan dashboard CSS classes from fan-dashboard-cards.css */
+/* This section is kept for any admin-specific overrides if needed */
+
+/* Admin sidebar uses the same structure as fan sidebar, so fan-dashboard-cards.css applies */
+
+/* ==================== ADMIN TABLE OVERRIDES ==================== */
+/* Admin dashboard uses 8-column table layout instead of 5-column */
+body.admin-dashboard .booking-table .table-header,
+body.admin-dashboard .booking-table .table-row {
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 0.8fr 0.8fr 1fr 1fr;
+}
+

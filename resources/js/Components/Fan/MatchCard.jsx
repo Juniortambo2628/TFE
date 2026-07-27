@@ -1,0 +1,208 @@
+import React from 'react';
+import WorldCup2026Data from '@/Data/WorldCup2026Data';
+import { router } from '@inertiajs/react';
+
+/**
+ * Reusable Match Card component
+ * @param {Object} match - Match object from WorldCup2026Data.matches or backend
+ * @param {boolean} isFavorite - Whether the match is favorited
+ * @param {function} onToggleFavorite - Callback function for toggling favorite
+ * @param {boolean} isSelected - Whether the match is selected (for calculator)
+ * @param {function} onToggleSelect - Callback function for toggling selection
+ * @param {string} mode - 'suggested' (dashboard style), 'schedule' (schedule list style), 'calculator' (selectable style)
+ * @param {boolean} showAction - Whether to show the action button (Plan Trip)
+ * @param {string} conflictLabel - Optional label to show if there is a conflict
+ */
+const MatchCard = ({ 
+    match, 
+    isFavorite = false, 
+    onToggleFavorite = null,
+    isSelected = false,
+    onToggleSelect = null,
+    mode = 'schedule',
+    showAction = false,
+    conflictLabel = null 
+}) => {
+    const teamSupport = match.homeTeam; // Can be used for specific styling if needed
+
+    const countryFlagMap = {
+        'argentina': 'ar', 'brazil': 'br', 'england': 'gb-eng', 'france': 'fr',
+        'germany': 'de', 'italy': 'it', 'netherlands': 'nl', 'portugal': 'pt',
+        'spain': 'es', 'kenya': 'ke', 'usa': 'us', 'mexico': 'mx', 'canada': 'ca',
+        'south africa': 'za', 'korea republic': 'kr', 'qatar': 'qa', 'switzerland': 'ch',
+        'haiti': 'ht', 'scotland': 'gb-sct', 'morocco': 'ma', 'australia': 'au',
+        'paraguay': 'py', "côte d'ivoire": 'ci', 'ecuador': 'ec', 'curaçao': 'cw',
+        'japan': 'jp', 'tunisia': 'tn', 'belgium': 'be', 'egypt': 'eg',
+        'ir iran': 'ir', 'new zealand': 'nz', 'saudi arabia': 'sa', 'uruguay': 'uy',
+        'cabo verde': 'cv', 'senegal': 'sn', 'norway': 'no', 'austria': 'at',
+        'jordan': 'jo', 'algeria': 'dz', 'ghana': 'gh', 'panama': 'pa',
+        'croatia': 'hr', 'colombia': 'co', 'uzbekistan': 'uz'
+    };
+
+    const getFlagUrl = (team) => {
+        const code = countryFlagMap[team.toLowerCase()];
+        return code ? `/assets/Flags/${code}.png` : null;
+    };
+
+    const formatMatchDate = (dateStr) => {
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const stadiumImages = {
+        'Mexico City Stadium': 'Estadio_Azteca_desde_el_aire_1.webp',
+        'Estadio Guadalajara': 'Estadio_Akron_02-07-2022_cabecera_sur_lado_derecho.webp',
+        'Estadio Monterrey': 'Estadio_BBVA.webp',
+        'Toronto Stadium': 'BMO_Field.webp',
+        'BC Place Vancouver': 'BC_Place_Opening_Day_2011-09-30.webp',
+        'Los Angeles Stadium': 'Levis_Stadium.webp',
+        'New York New Jersey Stadium': 'Metlife_stadium.webp',
+        'Dallas Stadium': 'Cowboys_stadium_inside_view_3.webp',
+        'Atlanta Stadium': 'NRG_Stadium,_LEAGUES_CUP_2024_TIGRES_INTER_MIAMI.jnp.webp',
+        'Houston Stadium': 'Nrgstadium0.webp',
+        'Philadelphia Stadium': 'Lincoln_Financial_Field.webp',
+        'Miami Stadium': 'Hard_Rock_Stadium_2017.webp',
+        'Seattle Stadium': 'CenturyLink_Field_&_Safeco_Field.webp',
+        'San Francisco Bay Area Stadium': 'Levis_Stadium.webp',
+        'Boston Stadium': 'Gillette_Stadium_entrance_and_lighthouse.webp',
+        'Kansas City Stadium': 'Arrowhead_Stadium_(October_27,_2019_-_2).webp'
+    };
+
+    const getStadiumBg = (venue) => {
+        const img = stadiumImages[venue];
+        return img ? `/assets/WC26_Stadia_HD_images/optimized_webP/${img}` : null;
+    };
+
+    const getVenueCity = (venue) => {
+        const info = WorldCup2026Data.stadiums[venue];
+        return info ? `${info.city}, ${info.country}` : venue;
+    };
+
+    // Card style for 'suggested' mode (Dashboard style)
+    if (mode === 'suggested') {
+        return (
+            <div className="suggested-match-card" style={{
+                backgroundImage: getStadiumBg(match.venue) ? `url('${getStadiumBg(match.venue)}')` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+            }}>
+                <div className="match-card-stage">
+                    {match.stage} {match.group ? `— Group ${match.group}` : ''} {match.matchday ? `· Matchday ${match.matchday}` : ''}
+                </div>
+
+                <div className="match-card-teams">
+                    <div className="match-card-team">
+                        {getFlagUrl(match.homeTeam) && (
+                            <img src={getFlagUrl(match.homeTeam)} alt={match.homeTeam} />
+                        )}
+                        <span>{match.homeTeam}</span>
+                    </div>
+                    <span className="match-card-vs">VS</span>
+                    <div className="match-card-team">
+                        {getFlagUrl(match.awayTeam) && (
+                            <img src={getFlagUrl(match.awayTeam)} alt={match.awayTeam} />
+                        )}
+                        <span>{match.awayTeam}</span>
+                    </div>
+                </div>
+
+                <div className="match-card-meta">
+                    <span><i className="fas fa-calendar-alt"></i> {formatMatchDate(match.date)}</span>
+                    <span><i className="fas fa-clock"></i> {match.time} (Local)</span>
+                    <span><i className="fas fa-map-marker-alt"></i> {getVenueCity(match.venue)}</span>
+                </div>
+
+                {showAction && (
+                    <button 
+                        className="btn-plan-trip"
+                        onClick={() => router.visit(route('fan.budget-calculator') + `?match=${match.id}`)}
+                    >
+                        <i className="fas fa-plane"></i>
+                        Plan Trip
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    // Default style for 'schedule' and 'calculator' modes
+    const stadium = WorldCup2026Data.getStadiumInfo(match.venue);
+    const getCountryFlag = (country) => {
+        const flags = { 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦' };
+        return flags[country] || '🏟️';
+    };
+
+    return (
+        <div 
+            className={`match-card ${isSelected ? 'selected' : ''} ${isFavorite ? 'favorited' : ''} ${mode === 'calculator' ? 'selectable' : ''}`}
+            onClick={onToggleSelect ? () => onToggleSelect(match.id) : undefined}
+            style={{
+                backgroundImage: getStadiumBg(match.venue) ? `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85)), url('${getStadiumBg(match.venue)}')` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative'
+            }}
+        >
+            {onToggleFavorite && (
+                <button 
+                    className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite(match.id);
+                    }}
+                    title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                    <i className={`${isFavorite ? 'fas' : 'far'} fa-star`}></i>
+                </button>
+            )}
+
+            <div className="match-header d-flex justify-content-between align-items-center">
+                <span className="match-venue">
+                    {getCountryFlag(stadium?.country)} {match.venue}
+                </span>
+                <span className="match-time">{match.time}</span>
+            </div>
+
+            <div className="match-teams">
+                <div className="team">
+                    {getFlagUrl(match.homeTeam) ? (
+                        <img src={getFlagUrl(match.homeTeam)} className="team-flag-sm" alt="" />
+                    ) : (
+                        <div className="team-avatar">{match.homeTeam.charAt(0)}</div>
+                    )}
+                    <div className="team-name">{match.homeTeam}</div>
+                </div>
+                <span className="vs-badge">VS</span>
+                <div className="team">
+                    {getFlagUrl(match.awayTeam) ? (
+                        <img src={getFlagUrl(match.awayTeam)} className="team-flag-sm" alt="" />
+                    ) : (
+                        <div className="team-avatar">{match.awayTeam.charAt(0)}</div>
+                    )}
+                    <div className="team-name">{match.awayTeam}</div>
+                </div>
+            </div>
+
+            <div className="match-footer">
+                {conflictLabel && (
+                    <span className="badge bg-danger me-2" title={conflictLabel}>
+                        <i className="fas fa-exclamation-triangle me-1"></i> Conflict
+                    </span>
+                )}
+                <div className="d-flex align-items-center gap-2">
+                    {match.group && (
+                        <span className="group-badge">Group {match.group}</span>
+                    )}
+                    <span className="stage-badge">{match.stage}</span>
+                </div>
+                {stadium?.capacity && mode !== 'calculator' && (
+                    <span className="capacity-badge">
+                        <i className="fas fa-users"></i> {Math.round(stadium.capacity / 1000)}K
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default MatchCard;

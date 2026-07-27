@@ -1,0 +1,263 @@
+/* Hero Slider Enhancements */
+
+.hero-stadium-badge {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.hero-stadium-badge span:first-of-type {
+    font-size: 0.75rem;
+}
+
+.hero-stadium-badge span:last-of-type {
+    font-size: 0.7rem;
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    background: #FF2D20;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #FF2D20;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Bottom interactive section */
+.hero-bottom-section {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    display: flex;
+    flex-column-gap: 1.5rem;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 3rem;
+    z-index: 1000 !important; /* Extremely high to beat any absolute containers */
+    pointer-events: none; /* Prevent blocking clicks to elements behind */
+}
+
+.hero-bottom-section > * {
+    pointer-events: auto; /* Re-enable clicks for children */
+}
+
+.flag-carousel-container {
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    padding: 15px 0;
+    cursor: grab;
+    position: relative;
+    display: flex;
+    align-items: center;
+    z-index: 1010 !important;
+    pointer-events: auto !important;
+}
+
+.flag-carousel-container:active {
+    cursor: grabbing;
+}
+
+.carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.flag-carousel-container:hover .carousel-arrow {
+    opacity: 1;
+}
+
+.carousel-arrow:hover {
+    background: #FF2D20;
+    border-color: #FF2D20;
+    box-shadow: 0 0 15px rgba(255, 45, 32, 0.5);
+}
+
+.carousel-arrow.left { left: 10px; }
+.carousel-arrow.right { right: 10px; }
+
+.flag-track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    padding: 0 40px; /* Space for arrows */
+}
+
+.flag-item {
+    width: 40px;
+    height: 26px;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.flag-item:hover {
+    transform: scale(1.15) translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 45, 32, 0.3);
+    border-color: #FF2D20;
+}
+
+.flag-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none; /* Prevent image drag interfering with carousel drag */
+}
+
+/* Attribution Glass Pill */
+.stadium-attribution {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 4px 12px;
+    pointer-events: none;
+}
+
+.stadium-attribution small {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.02em;
+}
+
+
+
+/* Stadium Navigation Buttons */
+.slider-nav-btn {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+    position: relative;
+    z-index: 1100 !important;
+}
+
+.slider-nav-btn:hover {
+    background: #FF2D20;
+    border-color: #FF2D20;
+    box-shadow: 0 0 20px rgba(255, 45, 32, 0.4);
+    transform: scale(1.1);
+}
+
+.slider-nav-btn:active {
+    transform: scale(0.95);
+}
+
+/* Glass Card for Countdown */
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Interaction Improvements */
+.flag-carousel-container {
+    z-index: 100 !important;
+    pointer-events: auto !important;
+}
+
+.flag-track {
+    pointer-events: auto !important;
+}
+
+.flag-item {
+    z-index: 110 !important;
+    pointer-events: auto !important;
+}
+
+.carousel-arrow {
+    z-index: 120 !important;
+    pointer-events: auto !important;
+}
+
+/* Match Modal Styling */
+.match-modal-card {
+    background: #0f0f10;
+    color: white;
+}
+
+.match-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.match-item:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.team-flag-sm {
+    width: 24px;
+    height: 16px;
+    border-radius: 2px;
+    object-fit: cover;
+}
+
+/* Scrollbar for modal content if many matches */
+.match-modal-list {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.match-modal-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.match-modal-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}

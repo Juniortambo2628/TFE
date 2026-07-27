@@ -1,0 +1,71 @@
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: ["Test and Autofix"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP 8.3
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+
+    - name: Install Composer Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --optimize-autoloader --no-dev
+
+    - name: Install NPM dependencies and Build
+      run: |
+        npm install
+        npm run build
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add Server to Known Hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -p 1624 51.89.113.223 >> ~/.ssh/known_hosts
+
+    - name: Sync files to Server (tfe-core)
+      run: |
+        rsync -avz -e "ssh -p 1624" --exclude '.git' --exclude 'node_modules' --exclude 'tests' ./ zhpebukm@51.89.113.223:/home/zhpebukm/tfe-core/
+
+    - name: Run Deployment Script on Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 51.89.113.223
+        username: zhpebukm
+        port: 1624
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/zhpebukm/tfe-core
+          
+          # Ensure storage directories have right permissions
+          chmod -R 775 storage bootstrap/cache
+          
+          # Artisan commands
+          php artisan migrate --force
+          php artisan optimize:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          
+          # Setup symlink for API entry point
+          mkdir -p /home/zhpebukm/tfe.okjtech.co.ke
+          ln -sfn /home/zhpebukm/tfe-core/public /home/zhpebukm/tfe.okjtech.co.ke/api
+          
+          echo "Deployment successful."

@@ -1,0 +1,619 @@
+/* Global variables file - generated from existing styles
+ * All project-wide CSS custom properties live here so themes
+ * and design tokens can be adjusted in one place.
+ */
+
+@import url('https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i,600,600i,700,700i|Nunito+Sans:300,300i,400,400i,600,600i,700,700i&display=swap');
+
+:root {
+  /* Fonts */
+  --font-1: 'Nunito Sans', sans-serif;
+  --font-2: 'Montserrat', sans-serif;
+  --font-mono: Consolas, 'Andale Mono', Courier, 'Courier New', monospace;
+
+  /* Theme mode - default to dark */
+  --theme-mode: 'dark';
+
+  /* Colors (primary theme + shades) */
+  --color-1: rgb(202, 169, 109);
+  --color-2: rgb(119, 94, 47);
+  --color-3: rgb(176, 135, 57);
+
+  --color-1-lighter: rgb(253, 214, 142);
+  --color-1-light: rgb(218, 186, 127);
+  --color-1-dark: rgb(159, 132, 81);
+  --color-1-darker: rgb(106, 87, 50);
+  --color-2-lighter: rgba(158, 126, 65, 0.962);
+  --color-2-light: rgb(121, 95, 45);
+  --color-2-dark: rgb(52, 41, 19);
+  --color-2-darker: rgb(54, 42, 20);
+
+  --color-error: hsla(359, 100%, 91%, 1);
+  --color-success: hsla(76, 69%, 68%, 1);
+  --color-info: hsla(205, 82%, 91%, 1);
+  --color-notice: hsla(51, 100%, 80%, 1);
+  --color-error-content: hsla(359, 50%, 50%, 1);
+  --color-success-content: hsla(76, 29%, 28%, 1);
+  --color-info-content: hsla(205, 32%, 31%, 1);
+  --color-notice-content: hsla(51, 30%, 30%, 1);
+
+  --color-black: #000000;
+  --color-gray-19: #0b0b0c;
+  --color-gray-18: #161719;
+  --color-gray-17: #202225;
+  --color-gray-16: #2b2e32;
+  --color-gray-15: #363a3f;
+  --color-gray-14: #41454b;
+  --color-gray-13: #4c5158;
+  --color-gray-12: #565c64;
+  --color-gray-11: #616871;
+  --color-gray-10: #6c737d;
+  --color-gray-9: #7b818a;
+  --color-gray-8: #898f97;
+  --color-gray-7: #989da4;
+  --color-gray-6: #a7abb1;
+  --color-gray-5: #b6b9be;
+  --color-gray-4: #c4c7cb;
+  --color-gray-3: #d3d5d8;
+  --color-gray-2: #e2e3e5;
+  --color-gray-1: #f0f1f2;
+  --color-white: #ffffff;
+
+  /* text */
+  --color-text: var(--color-gray-7);
+  --color-text-dark: var(--color-white);
+  --color-text-light: var(--color-gray-12);
+  --color-placeholder: var(--color-gray-11);
+
+  /* Theme toggle button specific variables */
+  --theme-toggle-border: var(--color-1);
+  --theme-toggle-text: var(--color-white);
+  --theme-toggle-bg: var(--color-1);
+
+  /* buttons */
+  --color-btn: var(--color-gray-15);
+  --color-btn-text: var(--color-white);
+  --color-btn-hover: var(--color-white);
+  --color-btn-hover-text: var(--color-black);
+  --color-btn-primary: var(--color-1);
+  --color-btn-primary-text: var(--color-white);
+  --color-btn-primary-hover: var(--color-white);
+  --color-btn-primary-hover-text: var(--color-black);
+  --color-btn-stroke: var(--color-white);
+  --color-btn-stroke-text: var(--color-white);
+  --color-btn-stroke-hover: var(--color-white);
+  --color-btn-stroke-hover-text: var(--color-black);
+
+  /* body and background */
+  --color-body: var(--color-gray-19);
+  --color-bg: #0b0b0c;
+  --color-border: var(--color-gray-16);
+
+  /* overlay / vendor-specific dark background (preserve exact existing value) */
+  --color-overlay: #151515;
+
+  /* spacing & type scale */
+  --base-size: 62.5%;
+  --base-font-size: 0.5rem;
+  --space: 2rem;
+
+  --vspace-0_25: calc(0.25 * var(--space));
+  --vspace-0_5: calc(0.5 * var(--space));
+  --vspace-0_75: calc(0.75 * var(--space));
+  --vspace-1: calc(var(--space));
+  --vspace-1_25: calc(1.25 * var(--space));
+  --vspace-1_5: calc(1.5 * var(--space));
+  --vspace-1_75: calc(1.75 * var(--space));
+  --vspace-2: calc(2 * var(--space));
+  --vspace-2_5: calc(2.5 * var(--space));
+  --vspace-3: calc(3 * var(--space));
+  --vspace-3_5: calc(3.5 * var(--space));
+  --vspace-4: calc(4 * var(--space));
+
+  --text-scale-ratio: 1.05;
+  --text-size: var(--base-font-size);
+  --text-xs: calc((var(--text-size) / var(--text-scale-ratio)) / var(--text-scale-ratio));
+  --text-sm: calc(var(--text-xs) * var(--text-scale-ratio));
+  --text-md: calc(var(--text-sm) * var(--text-scale-ratio) * var(--text-scale-ratio));
+  --text-lg: calc(var(--text-md) * var(--text-scale-ratio));
+  --text-xl: calc(var(--text-lg) * var(--text-scale-ratio));
+  --text-xxl: calc(var(--text-xl) * var(--text-scale-ratio));
+  --text-xxxl: calc(var(--text-xxl) * var(--text-scale-ratio));
+  --text-display-1: calc(var(--text-xxxl) * var(--text-scale-ratio));
+  --text-display-2: calc(var(--text-display-1) * var(--text-scale-ratio));
+  --text-display-3: calc(var(--text-display-2) * var(--text-scale-ratio));
+
+  --vspace-btn: var(--vspace-2);
+
+  /* grid */
+  --width-full: 100%;
+  --width-max: 1200px;
+  --width-wide: 1400px;
+  --width-wider: 1600px;
+  --width-widest: 1800px;
+  --width-narrow: 1000px;
+  --width-narrower: 900px;
+  --width-grid-max: var(--width-max);
+
+  --gutter-lg: 2rem;
+  --gutter-md: 1.6rem;
+  --gutter-mob: 1rem;
+
+  /* Border radius tokens */
+  --radius-small: 3px;
+  --radius-medium: 4px;
+  --radius-5: 5px;
+  --radius-large: 35px;
+  --radius-pill: 1000px;
+  --radius-round: 50%;
+  --radius-full: 100%;
+
+  /* Common size tokens (used for spacings and UI elements) */
+  --size-header-height: 8.8rem;
+  --size-menu-toggle: 4.2rem;
+  --size-hero-video: 10rem;
+  --size-hero-video-lg: 20rem;
+  --size-go-top: 6.4rem;
+  --size-go-top-sm: 4.8rem;
+  --size-loader-logo-width: 25px;
+  --size-loader-logo-height: 25px;
+  --size-blur-width: 50px;
+  --size-small-square: 32px;
+  /* Font-size tokens (literal mappings) */
+  --fs-1-9: 1.9rem;
+  --fs-1-4: 1.4rem;
+  --fs-1-3: 1.3rem;
+  --fs-1-6: 1.6rem;
+  --fs-1-2: 1.2rem;
+  --fs-1-0: 1rem;
+  --fs-0-9: 0.9rem;
+  --fs-11-2: 11.2px;
+  --fs-22: 22px;
+  --fs-42: 42px;
+  --fs-45: 45px;
+  --fs-47: 47px;
+  --fs-52: 52px;
+  --fs-23: 23px;
+  --fs-13: 13px;
+  --fs-16: 16px;
+
+  /* utility indents used in markup */
+  --indent-65: 65px;
+
+  /* Spacing tokens (normalized names) - canonical mappings to vspace */
+  --space-xxs: var(--vspace-0_25);
+  --space-xs: var(--vspace-0_5);
+  --space-sm: var(--vspace-1);
+  --space-md: var(--vspace-1_25);
+  --space-lg: var(--vspace-1_5);
+  --space-xl: var(--vspace-2);
+
+  /* Navigation specific variables */
+  --nav-height: 5.1rem;
+  --nav-container-padding: 2px;
+  --nav-item-padding: 14px 18px;
+  --nav-border-radius: 20px;
+  --nav-item-border-radius: 16px;
+  --nav-min-width: 420px;
+  --nav-background: rgba(0, 0, 0, 0.8);
+  --nav-text-color: rgba(255, 255, 255, 0.6);
+  --nav-text-hover: rgba(255, 255, 255, 0.8);
+  --nav-background-hover: rgba(255, 255, 255, 0.05);
+  --nav-border: 1px solid rgba(255, 255, 255, 0.1);
+  --nav-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Floating navigation variables */
+  --floating-nav-background: rgba(0, 0, 0, 0.8);
+  --floating-nav-item-padding: 8px 16px;
+  --floating-nav-item-border-radius: 8px;
+  --floating-nav-text-color: rgba(255, 255, 255, 0.6);
+  --floating-nav-text-hover: rgba(255, 255, 255, 0.8);
+  --floating-nav-background-hover: rgba(255, 255, 255, 0.05);
+
+  /* Modal variables */
+  --modal-background: var(--color-grey-12);
+  --modal-overlay-background: rgba(23, 23, 23, 0.646);
+  --modal-overlay-background-transparent: rgba(227, 225, 225, 0.646);
+  --modal-overlay-background-light: rgba(255, 255, 255, 0.541);
+  --modal-overlay-background-dark: rgba(0, 0, 0, 0.498);
+  --modal-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  --modal-padding: 20px;
+  --modal-border-radius: 30px;
+
+  /* Button shadow variables */
+  --shadow-button-hover: 0 4px 16px rgba(233, 30, 99, 0.4);
+  --shadow-button-hover-light: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-button-active: 0 2px 8px rgba(233, 30, 99, 0.3);
+  --shadow-button-active-light: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  /* Common transition and transform variables */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-default: all var(--duration-default) var(--ease-default);
+  --backdrop-blur: backdrop-filter: blur(6px), -webkit-backdrop-filter: blur(6px);
+  --backdrop-blur-strong: backdrop-filter: blur(8px), -webkit-backdrop-filter: blur(8px);
+  --transform-center: translate(-50%, -50%);
+  --transform-center-y: translateY(-50%);
+  --transform-center-x: translateX(-50%);
+
+  /* Font size variables for consistency */
+  --fs-nav-large: 1.1rem;
+  --fs-nav-medium: 0.9rem;
+  --fs-nav-small: 0.8rem;
+  --fs-nav-xs: 0.75rem;
+  --fs-button-text: 0.9rem;
+  --fs-portfolio-cat: 1.1rem;
+
+  /* Common flexbox patterns */
+  --flex-center: flex;
+  --flex-center-align: center;
+  --flex-center-justify: center;
+  --flex-center-both: flex;
+  --flex-center-both-align: center;
+  --flex-center-both-justify: center;
+
+  /* Common padding patterns */
+  --padding-xs: 2px;
+  --padding-sm: 5px;
+  --padding-md: 10px;
+  --padding-lg: 20px;
+  --padding-xs-sm: 5px 8px;
+  --padding-xxs-xxs: 2px 2px;
+  --padding-xxs-xs: 2px 5px;
+  --padding-xxs-sm: 2px 8px;
+  --padding-xxs-md: 2px 10px;
+  --padding-xxs-lg: 2px 12px;
+  --padding-xxs-xl: 2px 15px;
+  --padding-xs-md: 5px 10px;
+  --padding-xs-lg: 5px 12px;
+  --padding-xs-xl: 5px 15px;
+  --padding-sm-md: 6px 12px;
+  --padding-md-lg: 10px 20px;
+  --padding-sm-sm: 5px 10px;
+  --padding-sm-lg: 5px 20px;
+  --padding-sm-xl: 5px 25px;
+
+  /* Form specific variables */
+  --form-padding-input: 0.75rem 1.25rem; /* Consistent with Bootstrap's form-control padding */
+  --form-line-height-input: 1.5; /* Consistent line height for inputs */
+  --form-border-radius: var(--radius-large);
+  --form-border-radius-large: 35px;
+  --form-border-radius-small: var(--radius-medium);
+  --form-border-width: 1px;
+  --form-border-color: var(--color-gray-16);
+  --form-input-bg: var(--color-gray-17);
+  --form-input-bg-focus: var(--color-gray-16);
+  --form-text-dark: var(--color-white);
+  --form-text-light: var(--color-gray-12);
+  --form-text-muted: var(--color-gray-10);
+  --form-text-secondary: var(--color-gray-13);
+  --form-primary-color: var(--color-1);
+  --form-primary-rgb: 202, 169, 109; /* RGB for --color-1 */
+  --form-secondary-color: var(--color-2);
+  --form-secondary-rgb: 119, 94, 47; /* RGB for --color-2 */
+  --form-accent-color: var(--color-3);
+  --form-success-color: var(--color-success);
+  --form-error-color: var(--color-error-content);
+  --form-valid-border: var(--color-success);
+  --form-invalid-border: var(--color-error-content);
+  --form-transition-all: all 0.3s ease-in-out;
+  --form-transition-slow: 0.5s;
+  --form-transition-normal: 0.3s;
+  --form-transition-fast: 0.15s;
+  --form-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --form-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --form-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --form-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+  --form-shadow-glow: 0 0 15px rgba(var(--form-primary-rgb), 0.5);
+  --form-button-hover-scale: 1.02;
+  --form-font-family: var(--font-1);
+  --form-font-size-xxl: var(--text-xxl);
+  --form-font-size-xl: var(--text-xl);
+  --form-font-size-lg: var(--text-lg);
+  --form-font-size-base: var(--text-size);
+  --form-font-size-sm: var(--text-sm);
+  --form-font-size-xs: var(--text-xs);
+  --form-font-weight-light: 300;
+  --form-font-weight-normal: 400;
+  --form-font-weight-medium: 500;
+  --form-font-weight-semibold: 600;
+  --form-font-weight-bold: 700;
+  --form-letter-spacing: 0.02em;
+  --form-spacing-xxs: 4px;
+  --form-spacing-xs: 8px;
+  --form-spacing-sm: 12px;
+  --form-spacing-md: 16px;
+  --form-spacing-lg: 24px;
+  --form-spacing-xl: 32px;
+  --form-modal-height-max: 90vh;
+  --form-padding-modal: 20px;
+  --form-glass-bg: rgba(255, 255, 255, 0.15);
+  --form-glass-blur: 10px;
+  --form-glass-border: rgba(255, 255, 255, 0.2);
+  --form-z-index-base: 1;
+  --form-z-index-dropdown: 1000;
+  --form-z-index-sticky: 1020;
+  --form-z-index-modal: 1040;
+  --form-z-index-tooltip: 1060;
+  --form-z-index-max: 9999;
+  --form-progress-height: 8px;
+  --form-progress-bg: rgba(0, 0, 0, 0.1);
+  --form-progress-fill: var(--color-1);
+  --form-step-min-width: 150px;
+  --form-step-min-height: 50px;
+  --form-step-padding: 10px 15px;
+  --form-step-active-bg: var(--color-1);
+  --form-step-completed-color: var(--color-white);
+  --form-dropdown-bg: var(--color-gray-17);
+  --form-dropdown-border: var(--color-gray-16);
+  --form-dropdown-max-height: 200px;
+  --form-dropdown-item-height: 40px;
+  --form-dropdown-hover: rgba(var(--form-primary-rgb), 0.2);
+  --form-recent-bg: rgba(var(--form-secondary-rgb), 0.1);
+  --form-recent-border: var(--form-secondary-color);
+  --form-popular-bg: rgba(var(--form-accent-rgb), 0.1);
+  --form-popular-border: var(--form-accent-color);
+
+  /* Responsive breakpoints */
+  --breakpoint-xs: 400px;
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 600px;
+  --breakpoint-lg: 800px;
+  --breakpoint-xl: 900px;
+  --breakpoint-xxl: 1000px;
+  --breakpoint-xxxl: 1200px;
+
+  /* Z-index layers */
+  --z-index-base: 1;
+  --z-index-dropdown: 100;
+  --z-index-sticky: 500;
+  --z-index-modal: 1000;
+  --z-index-tooltip: 1100;
+
+  /* Opacity values */
+  --opacity-hidden: 0;
+  --opacity-visible: 1;
+  --opacity-disabled: 0.2;
+  --opacity-hover: 0.8;
+
+  /* Additional color variables for hardcoded values */
+  --color-text-muted: rgba(255, 255, 255, 0.6);
+  --color-text-muted-dark: rgba(0, 0, 0, 0.8);
+  --color-bg-overlay: rgba(255, 255, 255, 0.9);
+  --color-bg-overlay-dark: rgba(0, 0, 0, 0.8);
+  --color-bg-subtle: rgba(0, 0, 0, 0.05);
+  --color-bg-subtle-light: rgba(255, 255, 255, 0.15);
+  --color-border-subtle: rgba(0, 0, 0, 0.1);
+  --color-border-subtle-light: rgba(255, 255, 255, 0.03);
+  --color-shadow-subtle: 0 8px 32px rgba(0, 0, 0, 0.15);
+  --color-shadow-strong: 0px 4px 6px rgba(0, 0, 0, 0.4);
+  --color-shadow-medium: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  --color-bg-transparent: rgba(255, 255, 255, 0);
+  --color-bg-dark-overlay: rgba(47, 47, 47, 0.65);
+  --color-bg-light-overlay: rgba(60, 60, 60, 0.85);
+
+  /* Additional shadow and border radius variables */
+  --shadow-glow: 0 0 8px var(--color-gray-15);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-card-strong: 0px 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-card-medium: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  --border-radius-none: 0;
+  --border-radius-sm: 12px;
+  --border-radius-md: 16px;
+
+  /* Small dimension variables */
+  --size-xs: 2px;
+  --size-sm: 8px;
+  --size-md: 12px;
+  --size-lg: 16px;
+  --size-xl: 20px;
+
+  /* Common positioning patterns */
+  --pos-absolute: absolute;
+  --pos-relative: relative;
+  --pos-fixed: fixed;
+  --pos-sticky: sticky;
+
+  /* Common transform patterns */
+  --transform-center-xy: translate(-50%, -50%);
+  --transform-center-x: translateX(-50%);
+  --transform-center-y: translateY(-50%);
+
+  /* Common display patterns */
+  --display-flex: flex;
+  --display-block: block;
+  --display-inline: inline;
+  --display-inline-block: inline-block;
+  --display-none: none;
+
+  /* Common grid flex patterns */
+  --flex-0-100: 0 0 100%;
+  --flex-0-50: 0 0 50%;
+  --flex-0-33: 0 0 33.33333%;
+  --flex-0-25: 0 0 25%;
+  --flex-0-16: 0 0 16.66667%;
+  --flex-0-8: 0 0 8.33333%;
+
+  /* Semantic font-size tokens */
+  --fs-heading-1: var(--text-display-1);
+  --fs-heading-2: var(--text-xxxl);
+  --fs-heading-3: var(--text-xxl);
+  --fs-heading-4: var(--text-xl);
+  --fs-heading-5: var(--text-lg);
+  --fs-heading-6: var(--text-md);
+  --fs-body: var(--text-size);
+  --fs-small: var(--text-sm);
+
+  /* Layout / numeric tokens (rem values used across layout) */
+  --nav-padding-xl: 21.6rem;
+  --nav-padding-lg: 19.6rem;
+  --nav-padding-md: 17.6rem;
+  --size-6rem: 6rem;
+  --size-4-8rem: 4.8rem;
+  --size-3-2rem: 3.2rem;
+  --size-2-8rem: 2.8rem;
+  --size-2-4rem: 2.4rem;
+  --size-1-4rem: 1.4rem;
+  --size-1-2rem: 1.2rem;
+  --size-10-4rem: 10.4rem;
+  --size-17-6rem: 17.6rem;
+  --size-28rem: 28rem;
+
+  /* Breakpoints */
+  --bp-1700: 1700px;
+  --bp-1600: 1600px;
+  --bp-1400: 1400px;
+  --bp-1200: 1200px;
+  --bp-1100: 1100px;
+  --bp-1000: 1000px;
+  --bp-900: 900px;
+  --bp-800: 800px;
+  --bp-700: 700px;
+  --bp-600: 600px;
+  --bp-500: 500px;
+  --bp-400: 400px;
+
+  /* Additional color tokens (vendor & design literals consolidated) */
+  --gold: #cfaa59;
+  --glow-1: #cfab5c4a;
+  --glow-2: #cfab5c77;
+  --glow-3: #cfab5c8d;
+  --light-overlay: #fdfdfd8c;
+  --black-222: #222;
+  --muted-border: #bfb39c1c;
+
+  /* Vendor color tokens */
+  --muted-dark: #333333;
+  --accent-red: #dd1144;
+  --muted-2: #999988;
+  --accent-indigo: #445588;
+  --navy: navy;
+  --teal: teal;
+  --dark-red: #990000;
+  --green: #006600;
+  --deep-blue: #000066;
+  --maroon: #660000;
+  --ccc: #cccccc;
+  --pinterest-red: #ce272d;
+  --ddd: #dddddd;
+
+  --white-50: rgba(255, 255, 255, 0.5);
+  --white-25: rgba(255, 255, 255, 0.25);
+  --overlay-50: rgba(0, 0, 0, 0.5);
+  --overlay-30: rgba(0, 0, 0, 0.3);
+
+  /* Vendor numeric tokens (px) */
+  --sz-264: 264px;
+  --sz-88: 88px;
+  --sz-964: 964px;
+  --sz-2500: 2500px;
+  --sz-100: 100px;
+  --sz-44: 44px;
+  --sz-42: 42px;
+  --sz-36: 36px;
+  --sz-32: 32px;
+  --sz-30: 30px;
+  --sz-22: 22px;
+  --sz-20: 20px;
+  --sz-15: 15px;
+  --sz-14: 14px;
+  --sz-13: 13px;
+  --sz-12: 12px;
+  --sz-11: 11px;
+  --sz-10: 10px;
+  --sz-7: 7px;
+  --sz-6: 6px;
+  --sz-2: 2px;
+  /* Additional vendor sizes found in vendor.css */
+  --sz-132: 132px;
+  --sz-138: 138px;
+  --sz-94: 94px;
+  --sz-56: 56px;
+  --sz-16: 16px;
+  --px-100: 100px;
+
+  /* calc tokens */
+  --calc-1-8rem: 1.8rem;
+  --calc-1-6rem: 1.6rem;
+  --calc-1-4rem: 1.4rem;
+  --calc-0-1rem: 0.1rem;
+
+  /* Transition & easing tokens */
+  --duration-fast: 0.3s;
+  --duration-medium: 0.5s;
+  --duration-slow: 0.8s;
+  --ease-default: ease-in-out;
+  --ease-header: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --duration-pulse: 1.5s;
+  --px-200: 200px;
+  --tx-0: 0;
+  --tz-0: 0;
+
+  /* Transform tokens */
+  --tx-center: -50%;
+  --ty-center: -50%;
+  --tx-full-pos: 100%;
+  --tx-full-neg: -100%;
+  --ty-full-pos: 100%;
+  --ty-full-neg: -100%;
+  --ty-0: 0;
+  --ty-2rem: -2rem;
+  --ty-0_1rem: -0.1rem;
+  --tx-4rem: -4rem;
+}
+
+/* ===================================================================
+ * LIGHT MODE THEME VARIABLES
+ * ------------------------------------------------------------------- */
+[data-theme='light'] {
+  /* Theme mode indicator */
+  --theme-mode: 'light';
+
+  /* Light mode color overrides */
+  --color-body: #ffffff;
+  --color-bg: #ffffff;
+  --color-text: var(--color-gray-16);
+  --color-text-dark: var(--color-gray-19);
+  --color-text-light: var(--color-gray-14);
+  --color-placeholder: var(--color-gray-11);
+
+  /* Light mode button colors */
+  --color-btn: var(--color-gray-2);
+  --color-btn-text: var(--color-gray-19);
+  --color-btn-hover: var(--color-gray-3);
+  --color-btn-hover-text: var(--color-gray-19);
+  --color-btn-primary: var(--color-1);
+  --color-btn-primary-text: var(--color-white);
+  --color-btn-primary-hover: var(--color-1-dark);
+  --color-btn-primary-hover-text: var(--color-white);
+  --color-btn-stroke: var(--color-gray-16);
+  --color-btn-stroke-text: var(--color-gray-19);
+  --color-btn-stroke-hover: var(--color-gray-15);
+  --color-btn-stroke-hover-text: var(--color-white);
+
+  /* Light mode borders and overlays */
+  --color-border: var(--color-gray-3);
+  --color-overlay: rgba(255, 255, 255, 0.95);
+  --color-bg-light-overlay: rgba(240, 240, 240, 0.85);
+
+  /* Light mode section backgrounds */
+  --color-section-bg: var(--color-gray-1);
+  --color-card-bg: var(--color-white);
+  --color-card-border: var(--color-gray-3);
+
+  /* Light mode text accents */
+  --color-accent: var(--color-1);
+  --color-accent-light: var(--color-1-light);
+  --color-accent-dark: var(--color-1-dark);
+
+  /* Light mode shadows */
+  --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+
+  /* Theme toggle button specific variables */
+  --theme-toggle-border: var(--color-gray-16);
+  --theme-toggle-text: var(--color-black);
+  --theme-toggle-bg: var(--color-gray-16);
+}

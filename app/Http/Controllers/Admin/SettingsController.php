@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\SiteSetting;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+
+class SettingsController extends Controller
+{
+    public function index()
+    {
+        $settings = SiteSetting::all()->pluck('value', 'key');
+
+        return Inertia::render('Admin/Settings', [
+            'settings' => $settings,
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $data = $request->all();
+
+        foreach ($data as $key => $value) {
+            // Handle file uploads
+            if ($request->hasFile($key)) {
+                $path = $request->file($key)->store('settings', 'public');
+                SiteSetting::set($key, Storage::url($path), 'image');
+            } else if (!is_array($value)) {
+                // Determine type
+                $type = is_bool($value) ? 'boolean' : 'text';
+                SiteSetting::set($key, $value, $type);
+            }
+        }
+
+        return back()->with('success', 'Settings updated successfully');
+    }
+}

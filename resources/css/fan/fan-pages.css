@@ -1,0 +1,1528 @@
+/**
+ * Fan Module Pages Styles
+ * Black/Red theme matching the dashboard design
+ * Primary: #dc143c, Backgrounds: #0a0a0a, #111, #1a1d21
+ */
+
+/* ================================
+   STAT CARDS (Hero Stats)
+   ================================ */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.15) 0%, rgba(0, 0, 0, 0.4) 100%);
+    border: 1px solid rgba(220, 20, 60, 0.3);
+    border-radius: 16px;
+    padding: 16px 24px;
+    min-width: 140px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(220, 20, 60, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(220, 20, 60, 0.25);
+    border-color: #dc143c;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(220, 20, 60, 0.2);
+    border-radius: 12px;
+    color: #dc143c;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(220, 20, 60, 0.3);
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    text-shadow: 0 2px 10px rgba(220, 20, 60, 0.3);
+}
+
+.stat-card .stat-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ================================
+   TABS NAVIGATION
+   ================================ */
+.schedule-tabs,
+.tab-nav {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 16px;
+}
+
+.schedule-tab,
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: #a0a0a0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.schedule-tab:hover,
+.tab-btn:hover {
+    background: rgba(220, 20, 60, 0.1);
+    border-color: #dc143c;
+    color: #fff;
+}
+
+.schedule-tab.active,
+.tab-btn.active {
+    background: #dc143c;
+    color: white;
+    border-color: #dc143c;
+}
+
+/* ================================
+   MATCH CARDS
+   ================================ */
+.match-card {
+    background: #1a1d21;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 4px solid #dc143c;
+}
+
+.match-card:hover {
+    box-shadow: 0 4px 16px rgba(220, 20, 60, 0.2);
+    border-color: rgba(220, 20, 60, 0.3);
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.match-venue {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #a0a0a0;
+    text-transform: uppercase;
+}
+
+.match-time {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #dc143c;
+    background: rgba(220, 20, 60, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.match-teams {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.team {
+    text-align: center;
+    flex: 1;
+    width: 40%;
+}
+
+.team-avatar {
+    width: 48px;
+    height: 48px;
+    background: #1a1d21;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #fff;
+    border: 2px solid #333;
+}
+
+.team-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.vs-badge {
+    color: #dc143c;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    background: rgba(220, 20, 60, 0.1);
+    border-radius: 4px;
+    flex: 0 0 20%;
+    text-align: center;
+}
+
+.group-badge {
+    padding: 4px 12px;
+    background: rgba(220, 20, 60, 0.1);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #dc143c;
+    font-weight: 600;
+}
+
+/* ================================
+   PRIMARY BUTTON
+   ================================ */
+.btn-primary {
+    background: #dc143c;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #b30f32;
+    box-shadow: 0 4px 12px rgba(220, 20, 60, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #a0a0a0;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: bold;
+    border: 1px solid #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ================================
+   LEGEND
+   ================================ */
+.schedule-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 16px;
+    background: #0a0a0a;
+    border-radius: 12px;
+    margin-top: 24px;
+    border: 1px solid #333;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #a0a0a0;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legend-dot.host-usa { background: #3b82f6; }
+.legend-dot.host-mexico { background: #10b981; }
+.legend-dot.host-canada { background: #ef4444; }
+
+/* ================================
+   MESSAGE ITEMS
+   ================================ */
+.message-item {
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #111;
+}
+
+.message-item:hover {
+    background: rgba(220, 20, 60, 0.05);
+}
+
+.message-item.unread {
+    background: rgba(220, 20, 60, 0.05);
+    border-color: rgba(220, 20, 60, 0.3);
+}
+
+.message-avatar {
+    width: 48px;
+    height: 48px;
+    background: #1a1d21;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    color: #a0a0a0;
+}
+
+.unread-indicator {
+    width: 10px;
+    height: 10px;
+    background: #dc143c;
+    border-radius: 50%;
+    margin-top: 8px;
+}
+
+/* ================================
+   NOTIFICATION ITEMS
+   ================================ */
+.notification-item {
+    padding: 1rem;
+    border-radius: 12px;
+    background: #111;
+    border: 1px solid #333;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(220, 20, 60, 0.2);
+    color: #dc143c;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ================================
+   STATUS BADGES
+   ================================ */
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.status-completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pending {
+    background: rgba(220, 20, 60, 0.2);
+    color: #dc143c;
+    border: 1px solid rgba(220, 20, 60, 0.3);
+}
+
+/* ================================
+   EVENT CARDS
+   ================================ */
+.event-card {
+    display: flex;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.event-image {
+    width: 200px;
+    height: 120px;
+    background: #1a1d21;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.event-type-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: rgba(220, 20, 60, 0.8);
+    color: white;
+}
+
+.event-date {
+    color: #dc143c;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ================================
+   CATEGORY ITEMS
+   ================================ */
+.category-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.category-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(220, 20, 60, 0.3);
+}
+
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1a1d21;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc143c;
+}
+
+/* ================================
+   SECURITY TOGGLES
+   ================================ */
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: #333;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggle-switch.active {
+    background: #198754;
+}
+
+.security-active-card {
+    background-image: linear-gradient(45deg, rgba(25, 135, 84, 0.1) 0%, transparent 100%) !important;
+    border-color: rgba(25, 135, 84, 0.3) !important;
+}
+
+.security-active-card .card-icon {
+    background: rgba(25, 135, 84, 0.2) !important;
+    color: #198754 !important;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.toggle-switch.active::after {
+    transform: translateX(24px);
+}
+
+/* ================================
+   LOGIN HISTORY
+   ================================ */
+.login-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.login-item:last-child {
+    border-bottom: none;
+}
+
+/* ================================
+   CONTACT FORM
+   ================================ */
+.contact-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.contact-form label {
+    display: block;
+    color: #ccc;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+
+.contact-form input:focus,
+.contact-form select:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: #dc143c;
+}
+
+.contact-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0a0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* ================================
+   FAQ SECTION
+   ================================ */
+.faq-item {
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #111;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+}
+
+.faq-question:hover {
+    background: rgba(220, 20, 60, 0.05);
+}
+
+.faq-question h4 {
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.faq-question i {
+    color: #dc143c;
+    transition: transform 0.3s;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 1rem;
+    background: #0a0a0a;
+    color: #a0a0a0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border-top: 1px solid #333;
+    display: none;
+}
+
+.faq-item.active .faq-answer {
+    display: block;
+}
+
+/* ================================
+   RESPONSIVE
+   ================================ */
+@media (max-width: 991px) {
+    .stat-card {
+        flex: 1;
+        min-width: 120px;
+        padding: 12px 16px;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 1.4rem;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.7rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .event-card {
+        flex-direction: column;
+    }
+
+    .event-image {
+        width: 100%;
+        height: 160px;
+    }
+}
+
+/* ================================
+   ADDITIONAL UTILITIES
+   ================================ */
+
+/* Header with action button */
+.header-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Tournament Date Badges */
+.tournament-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-badge {
+    background: rgba(220, 20, 60, 0.2);
+    color: #dc143c;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid rgba(220, 20, 60, 0.3);
+}
+
+.date-badge i {
+    margin-right: 6px;
+}
+
+.date-separator {
+    opacity: 0.7;
+    color: #a0a0a0;
+}
+
+/* Matches Grid */
+.matches-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+/* Response Grid for Matches */
+@media (max-width: 1200px) {
+    .matches-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .matches-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.match-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Content Card Title */
+.content-card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+}
+
+.content-card-title i {
+    margin-right: 8px;
+    color: #dc143c;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #333;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #a0a0a0;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #666;
+}
+
+.empty-state-inline {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.empty-state-inline i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.3;
+    display: block;
+}
+
+/* Section Header */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h3 {
+    color: #fff;
+    font-size: 1.125rem;
+    font-weight: bold;
+}
+
+/* Button Link */
+.btn-link {
+    color: #a0a0a0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+}
+
+.btn-link:hover {
+    color: #fff;
+}
+
+/* Small Button */
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+}
+
+/* Messages List */
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+}
+
+.message-header h4 {
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.message-header h4.font-bold {
+    font-weight: 700;
+}
+
+.message-date {
+    font-size: 0.75rem;
+    color: #666;
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+.message-subject {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #ccc;
+    margin-bottom: 4px;
+}
+
+.message-preview {
+    color: #a0a0a0;
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Notifications List */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification-item h4 {
+    color: #fff;
+    font-weight: 500;
+    margin: 0 0 4px 0;
+}
+
+.notification-item p {
+    color: #a0a0a0;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 4px;
+    display: block;
+}
+
+/* List Items (Payments) */
+.list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list-item-title {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.list-item-subtitle {
+    font-size: 0.875rem;
+    color: #a0a0a0;
+}
+
+.list-item-subtitle i {
+    color: #dc143c;
+    margin-right: 6px;
+}
+
+.list-item-right {
+    text-align: right;
+}
+
+.list-item-value {
+    font-weight: bold;
+    color: #fff;
+    font-size: 1.125rem;
+    margin-bottom: 4px;
+}
+
+/* Schedule Item */
+.schedule-item {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.schedule-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0a0a0a;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+.schedule-amount {
+    font-weight: bold;
+    color: #fff;
+    font-size: 1.25rem;
+}
+
+/* Status Badge - Ended */
+.status-ended {
+    background: #333;
+    color: #a0a0a0;
+    border: 1px solid #444;
+}
+
+/* Events Layout */
+.events-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.events-main {
+    min-width: 0;
+}
+
+.events-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.event-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.event-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.event-description {
+    color: #a0a0a0;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.event-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-location {
+    color: #ccc;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.event-location i {
+    color: #dc143c;
+}
+
+.event-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.event-price {
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Categories List */
+.categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.category-title {
+    font-weight: bold;
+    color: #fff;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.category-subtitle {
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    margin: 0;
+}
+
+/* Settings List */
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.setting-item h4 {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 0 4px 0;
+}
+
+.setting-item p {
+    color: #a0a0a0;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Card Footer */
+.card-footer {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 1rem;
+}
+
+.card-footer h4 {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+/* Login History */
+.login-history {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-device {
+    color: #fff;
+    font-weight: 500;
+}
+
+.login-details {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+/* Form Error */
+.form-error {
+    color: #dc143c;
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+/* Margin Bottom Utility */
+.mb-8 {
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 991px) {
+    .events-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-with-action {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .schedule-tabs,
+    .tab-nav {
+        flex-direction: column;
+    }
+    
+    .schedule-legend {
+        flex-wrap: wrap;
+    }
+}
+
+/* ================================
+   GROUP FILTER TABS
+   ================================ */
+.group-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    background: #0a0a0a;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+
+.group-filter-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #a0a0a0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.group-filter-tab:hover {
+    border-color: #dc143c;
+    color: #dc143c;
+}
+
+.group-filter-tab.active {
+    background: #dc143c;
+    border-color: #dc143c;
+    color: white;
+}
+
+/* ================================
+   MATCH DAY SECTION
+   ================================ */
+.matches-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.match-day-section {
+    background: #0a0a0a;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #222;
+}
+
+.match-day-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.match-day-title i {
+    color: #dc143c;
+}
+
+.match-count {
+    margin-left: auto;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #a0a0a0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+/* ================================
+   MATCH CARD ENHANCEMENTS
+   ================================ */
+.match-card {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.match-card.favorited {
+    border-color: rgba(255, 193, 7, 0.5);
+}
+
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px;
+    z-index: 10;
+}
+
+.favorite-btn:hover {
+    color: #ffc107;
+    transform: scale(1.1);
+}
+
+.favorite-btn.active {
+    color: #ffc107;
+}
+
+.stage-badge {
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    font-weight: 500;
+}
+
+.capacity-badge {
+    padding: 4px 10px;
+    background: rgba(220, 20, 60, 0.1);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    color: #dc143c;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.match-footer {
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ================================
+   RESPONSIVE - MATCH SCHEDULE
+   ================================ */
+@media (max-width: 768px) {
+    .group-filter-tabs {
+        gap: 6px;
+        padding: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+    }
+    
+    .group-filter-tab {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    
+    .match-day-title {
+        font-size: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .match-count {
+        margin-left: 0;
+        margin-top: 8px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .matches-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Tabs Navigation */
+    .schedule-tabs,
+    .tab-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding-bottom: 12px;
+    }
+    
+    .schedule-tab,
+    .tab-btn {
+        flex-shrink: 0;
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+    
+    /* Match Cards */
+    .match-card {
+        padding: 12px;
+    }
+    
+    .match-teams {
+        gap: 8px;
+    }
+    
+    .team-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .team-name {
+        font-size: 0.8rem;
+    }
+    
+    /* Setting Items */
+    .setting-item {
+        padding: 12px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .setting-item .toggle-switch {
+        align-self: flex-end;
+    }
+    
+    /* Login History */
+    .login-item {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    /* Contact Form */
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn-primary,
+    .form-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        padding: 2.5rem 1.5rem;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Stat Cards */
+    .stat-card {
+        padding: 10px 12px;
+        gap: 10px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.65rem;
+    }
+    
+    /* Tabs */
+    .schedule-tabs,
+    .tab-nav {
+        gap: 8px;
+    }
+    
+    .schedule-tab,
+    .tab-btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+    
+    /* Match Cards */
+    .team-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    /* Message/Notification Items */
+    .message-item,
+    .notification-item {
+        padding: 10px;
+    }
+    
+    .message-avatar,
+    .notification-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* FAQ */
+    .faq-question {
+        padding: 12px;
+    }
+    
+    .faq-answer {
+        padding: 12px;
+    }
+    
+    /* Legend */
+    .schedule-legend {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+    }
+}
+/* Category item active state */
+.category-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.category-item.active-category {
+    background: rgba(220, 20, 60, 0.1) !important;
+    border-color: rgba(220, 20, 60, 0.3) !important;
+}
+
+.category-item.active-category .category-icon {
+    background: #dc143c !important;
+    color: #fff !important;
+}
+
+.category-item.active-category .category-title {
+    color: #dc143c !important;
+}
+
+/* Event Price Tag */
+.event-price {
+    font-weight: 700;
+    color: #ffd700;
+    font-size: 0.8rem;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* Tooltip for Register */
+.btn-fan-custom.active {
+    background: #dc143c !important;
+    color: white !important;
+    box-shadow: 0 0 15px rgba(220, 20, 60, 0.4);
+}

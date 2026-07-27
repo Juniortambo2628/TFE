@@ -1,0 +1,299 @@
+/* Partner Dashboard Specific Styles */
+
+/* Override sidebar active state for partner - use orange instead of crimson */
+.partner-layout .sidebar-item.active {
+    background: rgba(217, 119, 6, 0.15);
+}
+
+.partner-layout .sidebar-item.active::after {
+    background-color: #d97706;
+    box-shadow: 0 0 8px rgba(217, 119, 6, 0.5);
+}
+
+/* Partner Summary Cards - Modern Rounded Style */
+.partner-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.partner-stat-card {
+    background: linear-gradient(145deg, #1e1e1e 0%, #141414 100%);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.partner-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-accent, #d97706);
+}
+
+.partner-stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    background: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+}
+
+.partner-stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.25rem;
+}
+
+.partner-stat-card .stat-label {
+    font-size: 0.875rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.partner-stat-card .stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 20px;
+    margin-top: 0.5rem;
+}
+
+.partner-stat-card .stat-change.positive {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.partner-stat-card .stat-change.neutral {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
+/* Content Cards */
+.partner-content-card {
+    background: linear-gradient(145deg, #1e1e1e 0%, #141414 100%);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.partner-content-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.partner-content-card .card-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.partner-content-card .card-header h3 i {
+    color: #d97706;
+}
+
+/* Cost Breakdown Table */
+.cost-breakdown-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.cost-breakdown-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: #888;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+.cost-breakdown-table td {
+    padding: 1rem;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.9375rem;
+}
+
+.cost-breakdown-table tr td:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+.cost-breakdown-table tr td:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+.cost-breakdown-table .category-name {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cost-breakdown-table .category-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.cost-breakdown-table .cost-input {
+    width: 140px;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    color: #fff;
+    font-size: 0.9375rem;
+    text-align: right;
+    transition: border-color 0.2s;
+}
+
+.cost-breakdown-table .cost-input:focus {
+    outline: none;
+    border-color: #d97706;
+}
+
+/* Total Row */
+.cost-total-row {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.cost-total-row .total-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #d97706;
+}
+
+.cost-total-row .total-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Notes Section */
+.partner-notes-section textarea {
+    width: 100%;
+    min-height: 120px;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1rem;
+    color: #fff;
+    font-size: 0.9375rem;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.partner-notes-section textarea:focus {
+    outline: none;
+    border-color: #d97706;
+}
+
+/* Document Upload */
+.document-upload-zone {
+    border: 2px dashed #333;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: #0a0a0a;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.document-upload-zone:hover {
+    border-color: #d97706;
+    background: rgba(217, 119, 6, 0.05);
+}
+
+.document-upload-zone i {
+    font-size: 2rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+}
+
+.document-upload-zone p {
+    color: #888;
+    font-size: 0.875rem;
+}
+
+/* Action Buttons */
+.partner-action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.partner-btn {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.partner-btn-approve {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+}
+
+.partner-btn-approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.partner-btn-save {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: #fff;
+}
+
+.partner-btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+.partner-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}

@@ -1,0 +1,344 @@
+/* Dark themed login styles - isolated for the login page only */
+:root {
+  --bg: #070606;
+  --card-bg: #0f0f10;
+  --muted: #bdbdbd;
+  --input-bg: #0f1112; /* darker input background for contrast */
+  --border: #2b2b2b;
+  --accent-1: #b80b1e; /* crimson red accent */
+  --accent-2: #ef4050; /* lighter red for gradient */
+  --radius: 14px;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  background:
+    radial-gradient(closest-side at 50% 50%, rgba(184, 11, 30, 0.06), transparent 30%), var(--bg);
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial;
+  color: #fff;
+}
+
+.login-dark-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+.login-card {
+  width: 520px;
+  max-width: 94%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  border-radius: var(--radius);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(184, 11, 30, 0.14) inset;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; /* Smooth entrance */
+  opacity: 0; /* Start hidden for animation */
+  transform: translateY(20px);
+}
+.login-card-inner {
+  padding: 42px 42px 48px;
+} /* balanced horizontal padding */
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.login-brand img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #000;
+  padding: 8px;
+  object-fit: contain; /* Fix distortion */
+}
+.login-brand h2 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 0.5px;
+  font-weight: 800;
+  color: #fff;
+}
+.login-brand h4 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.login-sub {
+  color: var(--muted);
+  text-align: center;
+  margin: 10px 0 22px;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.form-control {
+  width: 100%;
+  padding: 14px 20px 14px 20px;
+  border-radius: 999px;
+  background: var(--input-bg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #f3f4f6 !important;
+  outline: none;
+  transition: all 180ms ease;
+  box-sizing: border-box;
+}
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.65);
+}
+.form-control:focus {
+  box-shadow: 0 6px 20px rgba(184, 11, 30, 0.12);
+  border-color: var(--accent-1);
+  transform: translateY(-1px);
+}
+
+/* Reserve space for password visibility button */
+.form-control.password-with-toggle {
+  padding-right: 56px;
+}
+
+.password-row {
+  position: relative;
+}
+.show-pass-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: var(--muted);
+}
+
+.btn-signin {
+  display: block;
+  width: 100%;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 0;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 6px 20px rgba(184, 11, 30, 0.28);
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.btn-signin:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(184, 11, 30, 0.36);
+}
+.btn-signin:active {
+  transform: translateY(0);
+}
+
+.alt-links {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.alt-links a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.social-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+.social-btn {
+  padding: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: transparent;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+.social-btn:hover {
+  background: rgba(255, 255, 255, 0.02);
+  transform: translateY(-2px);
+}
+.social-btn:active {
+  transform: translateY(0);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.divider span {
+  padding: 0 10px;
+  font-size: 0.85rem;
+}
+
+/* Make sure small screen looks good */
+@media (max-width: 520px) {
+  .login-dark-wrapper {
+    padding: 20px 16px;
+    align-items: flex-start;
+    padding-top: 60px; /* Account for back button */
+  }
+  
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .login-card-inner {
+    padding: 28px 20px 32px;
+  }
+  
+  .login-brand {
+    margin-bottom: 24px;
+  }
+  
+  .login-brand img {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .login-brand h2 {
+    font-size: 22px;
+  }
+  
+  .form-control {
+    padding: 12px 18px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .btn-signin {
+    padding: 14px 22px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .social-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .social-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+/* Utility to ensure inputs where toggle icon exists get extra right padding */
+.password-row .form-control {
+  padding-right: 56px;
+}
+
+/* Preserve helper utility classes used by JS */
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+
+/* Pill back button used on auth pages */
+.pill-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  transition: all 160ms;
+}
+.pill-back-btn i {
+  font-size: 14px;
+}
+.pill-back-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.02);
+  color: #fff;
+}
+
+/* Fixed header positions for auth pages */
+.pill-fixed-left {
+  position: fixed !important;
+  top: 20px !important;
+  left: 20px !important;
+  z-index: 9999;
+}
+.pill-fixed-right {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 9999;
+}
+
+@media (max-width: 520px) {
+  .pill-fixed-left,
+  .pill-fixed-right {
+    top: 12px;
+    padding: 6px 10px;
+  }
+  .pill-fixed-right {
+    right: 12px;
+  }
+  .pill-fixed-left {
+    left: 12px;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

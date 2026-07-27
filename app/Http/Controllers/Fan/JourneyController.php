@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Http\Controllers\Fan;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+
+class JourneyController extends Controller
+{
+    public function index()
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+
+        // Fetch Data
+        $bookings = \App\Models\Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+        $paymentSchedules = \App\Models\PaymentSchedule::where('user_id', $userId)->orderBy('due_date', 'asc')->get();
+        $payments = \App\Models\Payment::where('user_id', $userId)->get();
+        $activeBudget = \App\Models\Budget::where('user_id', $userId)->where('is_active', true)->first();
+
+        // Calculate Totals using PaymentTransaction as source of truth for consistency
+        $totalPaid = \App\Models\PaymentTransaction::where('user_id', $userId)
+            ->where('status', 'completed')
+            ->sum('amount');
+        
+        $paymentsCount = \App\Models\PaymentTransaction::where('user_id', $userId)
+            ->where('status', 'completed')
+            ->count();
+
+        // Total Due = Pending Installments + Balances on bookings without schedules
+        $scheduledPending = $paymentSchedules->where('status', 'pending')->sum('amount');
+        
+        // Use indexed collection for O(n) lookup instead of O(n*m) contains()
+        $scheduledBookingIds = $paymentSchedules->pluck('booking_id')->filter()->flip();
+        $unscheduledBookingBalance = $bookings->filter(function($booking) use ($scheduledBookingIds) {
+            return !$scheduledBookingIds->has($booking->id);
+        })->sum(function($booking) {
+            return max(0, $booking->total_amount - $booking->amount_paid);
+        });
+
+        $totalDue = $scheduledPending + $unscheduledBookingBalance;
+
+        // Prepare data for view
+        $paymentData = [
+            'totalBookings' => $bookings->count(),
+            'totalPaid' => (float)$totalPaid,
+            'totalDue' => (float)$totalDue,
+            'paymentsCount' => $paymentsCount,
+            'bookings' => $bookings,
+            'paymentSchedules' => $paymentSchedules,
+            'payments' => $payments, 
+        ];
+        
+        // Mock active budget if null, just to be safe during migration/testing, or return null.
+        // Code handles null.
+
+        return Inertia::render('Fan/Journey', [
+            'paymentData' => $paymentData,
+            'activeBudget' => $activeBudget
+        ]);
+    }
+
+    public function show(\App\Models\Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $matches = [];
+        if (!empty($booking->matches)) {
+            $matches = \App\Models\Fixture::whereIn('id', $booking->matches)->get();
+        }
+
+        return Inertia::render('Fan/BookingDetails', [
+            'booking' => $booking,
+            'matches' => $matches
+        ]);
+    }
+}

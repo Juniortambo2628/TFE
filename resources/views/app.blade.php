@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html class="dark" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title inertia>{{ config('app.name', 'The Football Experience') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('assets/img/logo/TFE-logo.png') }}">
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+        <!-- Legacy CSS -->
+        <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/libs/owl.carousel.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/libs/aos.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+        <!-- Scripts -->
+        @routes
+        @viteReactRefresh
+        @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
+        @inertiaHead
+        
+        <!-- Legacy Scripts -->
+        <script src="{{ asset('assets/libs/jquery.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/owl.carousel.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/aos.js') }}"></script>
+        <script src="{{ asset('assets/libs/iconify-icon.min.js') }}"></script>
+        <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    </head>
+    <body class="font-sans antialiased">
+        @inertia
+        
+        <!-- Google Translate Widget Container (Moved to Header) -->
+        <!-- <div id="google_translate_element"></div> -->
+        
+        <script type="text/javascript">
+            function googleTranslateElementInit() {
+                window.googleTranslateLoaded = true;
+                window.dispatchEvent(new Event('google-translate-loaded'));
+            }
+        </script>
+        <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    </body>
+</html>
