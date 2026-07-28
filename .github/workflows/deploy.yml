@@ -13,7 +13,6 @@ env:
   SSH_USER: zhpebukm
   SSH_PORT: 1624
   BACKEND_DIR: /home/zhpebukm/tfe-core
-  FRONTEND_DIR: /home/zhpebukm/tfe.okjtech.co.ke
   PHP_VERSION: '8.3'
 
 jobs:
@@ -81,23 +80,18 @@ jobs:
     - name: Prepare server directories
       run: |
         ssh -p ${{ env.SSH_PORT }} ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
-          # Create backend directory if it doesn't exist
-          mkdir -p ${{ env.BACKEND_DIR }}
-          mkdir -p ${{ env.BACKEND_DIR }}/storage/app/public
-          mkdir -p ${{ env.BACKEND_DIR }}/storage/framework/cache/data
-          mkdir -p ${{ env.BACKEND_DIR }}/storage/framework/sessions
-          mkdir -p ${{ env.BACKEND_DIR }}/storage/framework/views
-          mkdir -p ${{ env.BACKEND_DIR }}/storage/logs
-          mkdir -p ${{ env.BACKEND_DIR }}/bootstrap/cache
-
-          # Create frontend directory if it doesn't exist
-          mkdir -p ${{ env.FRONTEND_DIR }}
-
+          mkdir -p /home/zhpebukm/tfe-core
+          mkdir -p /home/zhpebukm/tfe-core/storage/app/public
+          mkdir -p /home/zhpebukm/tfe-core/storage/framework/cache/data
+          mkdir -p /home/zhpebukm/tfe-core/storage/framework/sessions
+          mkdir -p /home/zhpebukm/tfe-core/storage/framework/views
+          mkdir -p /home/zhpebukm/tfe-core/storage/logs
+          mkdir -p /home/zhpebukm/tfe-core/bootstrap/cache
           echo "✅ Server directories prepared."
         ENDSSH
 
     # ─────────────────────────────────────────────
-    # 4. PREPARE .ENV & COMPRESS (rsync alternative)
+    # 4. PREPARE .ENV & COMPRESS
     # ─────────────────────────────────────────────
     - name: Prepare production .env
       env:
@@ -142,7 +136,7 @@ jobs:
       run: |
         ssh -p ${{ env.SSH_PORT }} ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
           set -e
-          cd ${{ env.BACKEND_DIR }}
+          cd /home/zhpebukm/tfe-core
 
           echo "─── Setting permissions ───"
           chmod -R 775 storage bootstrap/cache
@@ -177,26 +171,6 @@ jobs:
             echo "✅ Manual storage symlink created."
           fi
 
-          echo "─── Setting up API symlink ───"
-          # Symlink: tfe.okjtech.co.ke/api -> tfe-core/public
-          if [ -L "${{ env.FRONTEND_DIR }}/api" ]; then
-            CURRENT_TARGET=$(readlink -f "${{ env.FRONTEND_DIR }}/api")
-            EXPECTED_TARGET=$(readlink -f "${{ env.BACKEND_DIR }}/public")
-            if [ "$CURRENT_TARGET" = "$EXPECTED_TARGET" ]; then
-              echo "✅ API symlink already correct."
-            else
-              echo "🔄 Updating API symlink..."
-              rm -f "${{ env.FRONTEND_DIR }}/api"
-              ln -sfn "${{ env.BACKEND_DIR }}/public" "${{ env.FRONTEND_DIR }}/api"
-              echo "✅ API symlink updated."
-            fi
-          else
-            # Remove directory/file if it exists and isn't a symlink
-            rm -rf "${{ env.FRONTEND_DIR }}/api"
-            ln -sfn "${{ env.BACKEND_DIR }}/public" "${{ env.FRONTEND_DIR }}/api"
-            echo "✅ API symlink created."
-          fi
-
           echo ""
           echo "═══════════════════════════════════════════"
           echo "  POST-DEPLOYMENT VERIFICATION"
@@ -206,9 +180,8 @@ jobs:
           echo "─── Checking expected file structure ───"
           ERRORS=0
 
-          # Backend checks
           for f in artisan composer.json public/index.php bootstrap/app.php config/app.php; do
-            if [ -f "${{ env.BACKEND_DIR }}/$f" ]; then
+            if [ -f "/home/zhpebukm/tfe-core/$f" ]; then
               echo "  ✅ $f"
             else
               echo "  ❌ MISSING: $f"
@@ -216,9 +189,8 @@ jobs:
             fi
           done
 
-          # Directory checks
           for d in app config database public resources routes storage vendor bootstrap; do
-            if [ -d "${{ env.BACKEND_DIR }}/$d" ]; then
+            if [ -d "/home/zhpebukm/tfe-core/$d" ]; then
               echo "  ✅ $d/"
             else
               echo "  ❌ MISSING: $d/"
@@ -226,54 +198,33 @@ jobs:
             fi
           done
 
-          # Built assets check
-          if [ -d "${{ env.BACKEND_DIR }}/public/build" ]; then
-            ASSET_COUNT=$(find "${{ env.BACKEND_DIR }}/public/build" -type f | wc -l)
+          if [ -d "/home/zhpebukm/tfe-core/public/build" ]; then
+            ASSET_COUNT=$(find "/home/zhpebukm/tfe-core/public/build" -type f | wc -l)
             echo "  ✅ public/build/ ($ASSET_COUNT files)"
           else
             echo "  ❌ MISSING: public/build/ (Vite assets not built!)"
             ERRORS=$((ERRORS + 1))
           fi
 
-          # Symlink checks
           echo ""
-          echo "─── Checking symlinks ───"
-          if [ -L "${{ env.FRONTEND_DIR }}/api" ]; then
-            TARGET=$(readlink "${{ env.FRONTEND_DIR }}/api")
-            echo "  ✅ ${{ env.FRONTEND_DIR }}/api -> $TARGET"
-          else
-            echo "  ❌ API symlink missing!"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          if [ -L "${{ env.BACKEND_DIR }}/public/storage" ]; then
-            TARGET=$(readlink "${{ env.BACKEND_DIR }}/public/storage")
+          echo "─── Checking storage symlink ───"
+          if [ -L "/home/zhpebukm/tfe-core/public/storage" ]; then
+            TARGET=$(readlink "/home/zhpebukm/tfe-core/public/storage")
             echo "  ✅ public/storage -> $TARGET"
           else
-            echo "  ⚠️  public/storage symlink missing (run php artisan storage:link)"
+            echo "  ⚠️  public/storage symlink missing"
           fi
 
-          # Entry point check
-          echo ""
-          echo "─── Checking API entry point ───"
-          if [ -f "${{ env.FRONTEND_DIR }}/api/index.php" ]; then
-            echo "  ✅ ${{ env.FRONTEND_DIR }}/api/index.php exists"
-          else
-            echo "  ❌ Entry point not accessible!"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          # Permissions check
           echo ""
           echo "─── Checking write permissions ───"
-          if [ -w "${{ env.BACKEND_DIR }}/storage/logs" ]; then
+          if [ -w "/home/zhpebukm/tfe-core/storage/logs" ]; then
             echo "  ✅ storage/logs is writable"
           else
             echo "  ❌ storage/logs is NOT writable"
             ERRORS=$((ERRORS + 1))
           fi
 
-          if [ -w "${{ env.BACKEND_DIR }}/bootstrap/cache" ]; then
+          if [ -w "/home/zhpebukm/tfe-core/bootstrap/cache" ]; then
             echo "  ✅ bootstrap/cache is writable"
           else
             echo "  ❌ bootstrap/cache is NOT writable"
