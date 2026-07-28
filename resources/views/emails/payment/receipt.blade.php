@@ -2,24 +2,24 @@
 <html>
 <head>
     <style>
-        body { font-family: sans-serif; background-color: #0d0d0d; color: #ffffff; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .amount { font-size: 32px; font-weight: bold; color: #e31b23; margin: 20px 0; text-align: center; }
-        .details { margin-bottom: 30px; background: #222; padding: 20px; border-radius: 8px; }
+        body { font-family: sans-serif; background-color: #000000; color: #ffffff; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #000000; padding: 30px; border-radius: 12px; border: 1px solid #333; }
+        .header { text-align: center; margin-bottom: 30px; background-color: #DC143C; padding: 20px; border-radius: 8px; }
+        .amount { font-size: 32px; font-weight: bold; color: #DC143C; margin: 20px 0; text-align: center; }
+        .details { margin-bottom: 30px; background: #1a1a1a; padding: 20px; border-radius: 8px; }
         .row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .row:last-child { border-bottom: none; }
         .label { color: #888; }
-        .value { font-weight: bold; }
-        .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
-        .btn { display: inline-block; background: #e31b23; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .value { font-weight: bold; color: #ffffff; }
+        .footer { text-align: center; color: #ffffff; font-size: 12px; margin-top: 30px; background-color: #DC143C; padding: 15px; border-radius: 8px; }
+        .btn { display: inline-block; background: #DC143C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 50px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>Payment Receipt</h2>
-            <p>Thank you for your payment!</p>
+            <h2 style="color: #ffffff; margin: 0;">Payment Receipt</h2>
+            <p style="color: #ffffff; margin: 5px 0 0 0;">Thank you for your payment!</p>
         </div>
 
         <div class="amount">

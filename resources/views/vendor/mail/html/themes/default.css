@@ -10,8 +10,8 @@ body *:not(html):not(style):not(br):not(tr):not(code) {
 
 body {
     -webkit-text-size-adjust: none;
-    background-color: #ffffff;
-    color: #52525b;
+    background-color: #000000;
+    color: #ffffff;
     height: 100%;
     line-height: 1.4;
     margin: 0;
@@ -28,7 +28,7 @@ blockquote {
 }
 
 a {
-    color: #18181b;
+    color: #ffffff;
 }
 
 a img {
@@ -38,7 +38,7 @@ a img {
 /* Typography */
 
 h1 {
-    color: #18181b;
+    color: #ffffff;
     font-size: 18px;
     font-weight: bold;
     margin-top: 0;
@@ -46,6 +46,7 @@ h1 {
 }
 
 h2 {
+    color: #ffffff;
     font-size: 16px;
     font-weight: bold;
     margin-top: 0;
@@ -53,6 +54,7 @@ h2 {
 }
 
 h3 {
+    color: #ffffff;
     font-size: 14px;
     font-weight: bold;
     margin-top: 0;
@@ -60,6 +62,7 @@ h3 {
 }
 
 p {
+    color: #ffffff;
     font-size: 16px;
     line-height: 1.5em;
     margin-top: 0;
@@ -80,7 +83,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #fafafa;
+    background-color: #000000;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -98,12 +101,13 @@ img {
 /* Header */
 
 .header {
+    background-color: #DC143C;
     padding: 25px 0;
     text-align: center;
 }
 
 .header a {
-    color: #18181b;
+    color: #ffffff;
     font-size: 19px;
     font-weight: bold;
     text-decoration: none;
@@ -113,10 +117,10 @@ img {
 
 .logo {
     height: 75px;
-    margin-top: 15px;
-    margin-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 0;
     max-height: 75px;
-    width: 75px;
+    width: auto;
 }
 
 /* Body */
@@ -125,9 +129,9 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #fafafa;
-    border-bottom: 1px solid #fafafa;
-    border-top: 1px solid #fafafa;
+    background-color: #000000;
+    border-bottom: 1px solid #000000;
+    border-top: 1px solid #000000;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -137,11 +141,11 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 570px;
-    background-color: #ffffff;
-    border-color: #e4e4e7;
+    background-color: #000000;
+    border-color: #333333;
     border-radius: 4px;
-    border-width: 1px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    border-width: 0;
+    box-shadow: none;
     margin: 0 auto;
     padding: 0;
     width: 570px;
@@ -154,12 +158,13 @@ img {
 /* Subcopy */
 
 .subcopy {
-    border-top: 1px solid #e4e4e7;
+    border-top: 1px solid #333333;
     margin-top: 25px;
     padding-top: 25px;
 }
 
 .subcopy p {
+    color: #ffffff;
     font-size: 14px;
 }
 
@@ -169,20 +174,21 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 570px;
+    background-color: #DC143C;
     margin: 0 auto;
-    padding: 0;
+    padding: 20px 0;
     text-align: center;
     width: 570px;
 }
 
 .footer p {
-    color: #a1a1aa;
+    color: #ffffff;
     font-size: 12px;
     text-align: center;
 }
 
 .footer a {
-    color: #a1a1aa;
+    color: #ffffff;
     text-decoration: underline;
 }
 
@@ -197,13 +203,13 @@ img {
 }
 
 .table th {
-    border-bottom: 1px solid #e4e4e7;
+    border-bottom: 1px solid #333333;
     margin: 0;
     padding-bottom: 8px;
 }
 
 .table td {
-    color: #52525b;
+    color: #ffffff;
     font-size: 15px;
     line-height: 18px;
     margin: 0;
@@ -211,6 +217,7 @@ img {
 }
 
 .content-cell {
+    color: #ffffff;
     max-width: 100vw;
     padding: 32px;
 }
@@ -230,7 +237,7 @@ img {
 
 .button {
     -webkit-text-size-adjust: none;
-    border-radius: 4px;
+    border-radius: 50px;
     color: #fff;
     display: inline-block;
     overflow: hidden;
@@ -267,18 +274,18 @@ img {
 /* Panels */
 
 .panel {
-    border-left: #18181b solid 4px;
+    border-left: #DC143C solid 4px;
     margin: 21px 0;
 }
 
 .panel-content {
-    background-color: #fafafa;
-    color: #52525b;
+    background-color: #1a1a1a;
+    color: #ffffff;
     padding: 16px;
 }
 
 .panel-content p {
-    color: #52525b;
+    color: #ffffff;
 }
 
 .panel-item {
