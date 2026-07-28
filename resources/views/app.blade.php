@@ -15,6 +15,7 @@
 
         <!-- Legacy CSS (landing page layout, grids, component styles) -->
         <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/libs/aos.css') }}">
 
         <!-- Scripts -->
         @routes
@@ -23,6 +24,7 @@
         @inertiaHead
         
         <!-- Legacy Scripts -->
+        <script src="{{ asset('assets/libs/aos.js') }}"></script>
         <script src="{{ asset('assets/libs/iconify-icon.min.js') }}"></script>
         <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     </head>
