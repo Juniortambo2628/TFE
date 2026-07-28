@@ -61,7 +61,7 @@ class PublicRouteTest extends TestCase
             'first_name' => 'Test',
             'last_name' => 'User',
             'terms_agreed' => true,
-            'privacy_policy_agreed' => true,
+            'privacy_consent' => true,
         ]);
 
         $response->assertRedirect(route('fan.dashboard'));

@@ -25,7 +25,7 @@ class RegistrationTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'terms_agreed' => true,
-            'privacy_policy_agreed' => true,
+            'privacy_consent' => true,
         ]);
 
         $this->assertAuthenticated();
