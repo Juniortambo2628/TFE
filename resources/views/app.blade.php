@@ -11,11 +11,6 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Legacy CSS -->
-        <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
-        <link rel="stylesheet" href="{{ asset('assets/libs/owl.carousel.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('assets/libs/aos.css') }}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
         <!-- Scripts -->
@@ -25,9 +20,6 @@
         @inertiaHead
         
         <!-- Legacy Scripts -->
-        <script src="{{ asset('assets/libs/jquery.min.js') }}"></script>
-        <script src="{{ asset('assets/libs/owl.carousel.min.js') }}"></script>
-        <script src="{{ asset('assets/libs/aos.js') }}"></script>
         <script src="{{ asset('assets/libs/iconify-icon.min.js') }}"></script>
         <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     </head>

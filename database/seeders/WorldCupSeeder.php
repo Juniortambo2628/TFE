@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Event;
 use App\Models\Fixture;
-use App\Models\Stadium;
 use Illuminate\Database\Seeder;
 
 class WorldCupSeeder extends Seeder
@@ -30,18 +29,6 @@ class WorldCupSeeder extends Seeder
             'Boston Stadium' => ['officialName' => 'Gillette Stadium', 'city' => 'Foxborough', 'country' => 'USA', 'capacity' => 65878],
             'Kansas City Stadium' => ['officialName' => 'GEHA Field at Arrowhead Stadium', 'city' => 'Kansas City', 'country' => 'USA', 'capacity' => 76000],
         ];
-
-        foreach ($stadiums as $key => $data) {
-            Stadium::firstOrCreate(
-                ['official_name' => $data['officialName']],
-                [
-                    'city' => $data['city'],
-                    'country' => $data['country'],
-                    'capacity' => $data['capacity'],
-                    'image' => null, // Can add later
-                ]
-            );
-        }
 
         // Fixtures (104 Tournament Games)
         $fixtures = [

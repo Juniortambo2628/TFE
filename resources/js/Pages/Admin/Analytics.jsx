@@ -2,10 +2,11 @@ import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import AdminHero from '@/Components/Admin/AdminHero';
 import StatCard from '@/Components/Common/StatCard';
-import { 
+import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
+import { formatMoney } from '@/lib/utils';
 
 export default function Analytics({ 
     calculatorUsage, 
@@ -15,8 +16,6 @@ export default function Analytics({
     totalPriceDifference,
     stats 
 }) {
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
-
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
         { label: 'Analytics' }

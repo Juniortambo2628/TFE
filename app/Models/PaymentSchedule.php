@@ -15,11 +15,12 @@ class PaymentSchedule extends Model
     protected $fillable = [
         'user_id',
         'booking_id',
+        'title',
         'description',
         'payment_number',
         'amount',
         'due_date',
-        'status', // pending, paid
+        'status',
         'paid_date',
     ];
 

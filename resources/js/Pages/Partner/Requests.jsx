@@ -3,10 +3,9 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Link, usePage } from '@inertiajs/react';
 import '../../../css/fan/dashboard.css';
 import '../../../css/partner/dashboard.css';
+import { formatMoney } from '@/lib/utils';
 
 export default function Requests({ requests }) {
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
-
     const getStatusBadgeClass = (status) => {
         switch (status) {
             case 'approved': return 'dash-badge-success';

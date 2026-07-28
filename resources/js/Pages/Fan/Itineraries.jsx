@@ -3,11 +3,11 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import FanHero from '@/Components/Fan/FanHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import { formatMoney } from '@/lib/utils';
 import { useState } from 'react';
 
 export default function Itineraries({ itineraries }) {
     const [itineraryToConfirm, setItineraryToConfirm] = useState(null);
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
 
     const getStatusStyle = (status) => {
         switch (status) {

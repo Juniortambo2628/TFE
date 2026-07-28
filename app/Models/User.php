@@ -36,7 +36,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'banking_partners_consent',
         'marketing_consent',
         'terms_agreed',
-        'privacy_policy_agreed',
         'registration_completed',
         'status',
         'two_factor_enabled',

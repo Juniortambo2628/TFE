@@ -69,9 +69,9 @@ class DashboardController extends Controller
                 'id' => 'book_'.$booking->id,
                 'type' => 'booking',
                 'title' => 'Booking Confirmed',
-                'description' => ($booking->package_type ?? ucfirst($booking->service_type) ?? 'Travel').' Booking',
+                'description' => ($booking->package_type ?? 'Travel').' Booking',
                 'date' => $booking->created_at->format('M d, Y'),
-                'amount' => $booking->total_amount ?? $booking->cost ?? 0,
+                'amount' => $booking->total_amount ?? 0,
                 'timestamp' => $booking->created_at->timestamp,
             ]);
         }

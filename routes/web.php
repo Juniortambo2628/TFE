@@ -139,7 +139,6 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Notifications & Messages
     Route::post('/notifications/read-all', [\App\Http\Controllers\Fan\NotificationController::class, 'markNotificationsRead'])->name('notifications.read-all');
     Route::post('/messages/read-all', [\App\Http\Controllers\Fan\NotificationController::class, 'markMessagesRead'])->name('messages.read-all');
-    Route::get('/notifications/seed', [\App\Http\Controllers\Fan\NotificationController::class, 'seed'])->name('notifications.seed');
 });
 
 // Admin Routes

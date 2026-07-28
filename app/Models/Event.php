@@ -10,13 +10,18 @@ class Event extends Model
         'title',
         'description',
         'date',
+        'time',
         'location',
+        'venue',
+        'category',
         'type',
         'image',
+        'is_featured',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'is_featured' => 'boolean',
     ];
 
     protected $appends = ['image_url'];

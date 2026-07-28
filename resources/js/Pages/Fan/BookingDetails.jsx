@@ -5,10 +5,9 @@ import FanHero from '@/Components/Fan/FanHero';
 import { usePaystackPayment } from 'react-paystack';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { formatMoney } from '@/lib/utils';
 
 export default function BookingDetails({ auth, booking, matches }) {
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
-
     const [paystackConfig, setPaystackConfig] = useState({
         reference: '',
         email: auth.user.email,

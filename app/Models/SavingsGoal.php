@@ -15,14 +15,17 @@ class SavingsGoal extends Model
     protected $fillable = [
         'user_id',
         'budget_id',
+        'name',
         'target_amount',
         'current_amount',
-        'status', // ACTIVE, COMPLETED
+        'target_date',
+        'status',
     ];
 
     protected $casts = [
         'target_amount' => 'decimal:2',
         'current_amount' => 'decimal:2',
+        'target_date' => 'date',
     ];
 
     public function user()

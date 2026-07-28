@@ -4,6 +4,7 @@ import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import Breadcrumbs from '@/Components/Common/Breadcrumbs';
 import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
+import { formatMoney } from '@/lib/utils';
 
 export default function Communication({ threads = [], stats = {} }) {
     const { flash } = usePage().props;
@@ -25,8 +26,6 @@ export default function Communication({ threads = [], stats = {} }) {
             },
         });
     };
-
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
 
     const getStatusBadgeClass = (status) => {
         switch (status) {

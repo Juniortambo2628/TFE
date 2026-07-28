@@ -5,6 +5,6 @@ export function cn(...inputs) {
     return twMerge(clsx(inputs));
 }
 
-export function formatMoney(amount) {
-    return 'KES ' + new Intl.NumberFormat().format(amount || 0);
+export function formatMoney(amount, currency = 'KES') {
+    return new Intl.NumberFormat('en-KE', { style: 'currency', currency }).format(amount || 0);
 }

@@ -3,6 +3,7 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import { useForm, Link, router } from '@inertiajs/react';
 import '../../../css/fan/dashboard.css';
 import '../../../css/partner/dashboard.css';
+import { formatMoney } from '@/lib/utils';
 
 export default function RequestView({ budget }) {
     const fileInputRef = useRef(null);
@@ -24,8 +25,6 @@ export default function RequestView({ budget }) {
     });
 
     const [breakdown, setBreakdown] = useState(breakdownArray);
-
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
 
     // Calculate total from breakdown items
     const calculateTotal = (items) => {

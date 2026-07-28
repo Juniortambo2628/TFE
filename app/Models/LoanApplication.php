@@ -15,7 +15,9 @@ class LoanApplication extends Model
         'user_id',
         'budget_id',
         'amount',
-        'status', // PENDING, APPROVED, REJECTED
+        'purpose',
+        'status',
+        'notes',
         'interest_rate',
     ];
 

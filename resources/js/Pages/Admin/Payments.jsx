@@ -5,6 +5,7 @@ import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import { router } from '@inertiajs/react';
 import DataTable from '@/Components/DataTable';
+import { formatMoney } from '@/lib/utils';
 
 export default function Payments({ auth, transactions = { data: [] }, stats = {}, filters }) {
     const safeFilters = (filters && !Array.isArray(filters)) ? filters : {};
@@ -27,8 +28,6 @@ export default function Payments({ auth, transactions = { data: [] }, stats = {}
     const handleStatusChange = (txnId, newStatus) => {
         router.put(`/admin/payments/${txnId}/status`, { status: newStatus });
     };
-
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
 
     const columns = [
         {

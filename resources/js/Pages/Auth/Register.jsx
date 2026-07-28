@@ -40,7 +40,7 @@ export default function Register() {
         terms_agreed: false,
         marketing_consent: false,
         community_consent: false, // UI only
-        privacy_policy_agreed: false
+        privacy_consent: false
     });
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -190,7 +190,7 @@ export default function Register() {
 
     const submit = (e) => {
         e.preventDefault();
-        if (!data.terms_agreed || !data.privacy_policy_agreed) {
+        if (!data.terms_agreed || !data.privacy_consent) {
             toast.warning('You must agree to the terms and conditions and privacy policy.');
             return;
         }
@@ -537,7 +537,7 @@ export default function Register() {
                                             <input className="form-check-input" type="checkbox" id="terms" 
                                                 checked={data.terms_agreed}
                                                 onChange={e => {
-                                                    setData(prev => ({...prev, terms_agreed: e.target.checked, privacy_policy_agreed: e.target.checked}));
+                                                    setData(prev => ({...prev, terms_agreed: e.target.checked, privacy_consent: e.target.checked}));
                                                 }}
                                             />
                                             <label className="form-check-label ms-2 text-white" htmlFor="terms">
@@ -553,7 +553,7 @@ export default function Register() {
                                             <label className="form-check-label ms-2 text-white" htmlFor="community">I would like to join the WCTFE community</label>
                                         </div>
                                         {errors.terms_agreed && <div className="invalid-feedback d-block mt-2">{errors.terms_agreed}</div>}
-                                        {errors.privacy_policy_agreed && <div className="invalid-feedback d-block mt-2">{errors.privacy_policy_agreed}</div>}
+                                        {errors.privacy_consent && <div className="invalid-feedback d-block mt-2">{errors.privacy_consent}</div>}
                                     </div>
                                 </div>
                             )}

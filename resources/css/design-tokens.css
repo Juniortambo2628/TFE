@@ -7,6 +7,8 @@
     /* ── Brand Colors ── */
     --tfe-red: #e31b23;
     --tfe-crimson: #dc143c;
+    --accent: #dc143c;
+    --accent-hover: #b80b1e;
     --fan-cyan: #00d2ff;
     --fan-pink: #ff2d55;
     --admin-blue: #3b82f6;
@@ -15,6 +17,11 @@
     --danger: #ef4444;
     --warning: #f59e0b;
     --purple: #8b5cf6;
+
+    /* ── Dashboard Surfaces ── */
+    --dash-bg: #070606;
+    --card-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.04);
 
     /* ── Text Colors ── */
     --text-primary: #ffffff;

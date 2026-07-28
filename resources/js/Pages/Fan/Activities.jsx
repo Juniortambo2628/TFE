@@ -3,11 +3,10 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link } from '@inertiajs/react';
 import FanHero from '@/Components/Fan/FanHero';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
+import { formatMoney } from '@/lib/utils';
 import '../../../css/fan/dashboard.css';
 
 export default function Activities({ auth, activities }) {
-    const formatMoney = (amount) => 'KES ' + new Intl.NumberFormat().format(amount || 0);
-
     return (
         <FanLayout title="My Activity">
             <Head title="Activity History" />

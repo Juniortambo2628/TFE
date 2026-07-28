@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
                 'marketing_consent' => 'nullable|boolean',
                 'community_consent' => 'nullable|boolean',
                 'terms_agreed' => 'required|accepted',
-                'privacy_policy_agreed' => 'required|accepted',
+                'privacy_consent' => 'required|accepted',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Illuminate\Support\Facades\Log::error('Registration validation failed', ['errors' => $e->errors()]);
@@ -78,7 +78,8 @@ class RegisteredUserController extends Controller
                 'marketing_consent' => $request->marketing_consent ?? false,
                 'community_consent' => $request->community_consent ?? false,
                 'terms_agreed' => true,
-                'privacy_policy_agreed' => true,
+                'privacy_consent' => true,
+                'privacy_consent_at' => now(),
                 'registration_completed' => true,
                 'status' => 'active',
             ]);

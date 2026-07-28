@@ -13,9 +13,10 @@ class Transaction extends Model
         'user_id',
         'savings_goal_id',
         'amount',
-        'type', // DEPOSIT, WITHDRAWAL
-        'status', // PENDING, COMPLETED, FAILED
+        'type',
+        'status',
         'reference',
+        'description',
     ];
 
     protected $casts = [

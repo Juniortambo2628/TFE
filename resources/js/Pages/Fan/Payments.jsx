@@ -4,6 +4,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { usePaystackPayment } from 'react-paystack';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { formatMoney } from '@/lib/utils';
 import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/fan/wallet.css';
@@ -124,8 +125,6 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
             });
         }
     };
-
-    const formatMoney = (amount, currency = 'KES') => new Intl.NumberFormat('en-KE', { style: 'currency', currency }).format(amount || 0);
 
     const methodTabs = [
         { id: 'card', label: 'Credit / Debit Card', icon: 'fas fa-credit-card' },

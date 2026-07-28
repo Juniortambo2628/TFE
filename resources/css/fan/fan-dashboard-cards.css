@@ -1,13 +1,4 @@
 /* Fan Dashboard Card Layout - Crimson Accent, Glassmorphism */
-:root {
-  --dash-bg: #070606;
-  --card-bg: rgba(20, 20, 20, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.04);
-  --accent: #b80b1e;
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.5);
-}
 
 /* Preloader - Dashboard Mode (takes precedence over styles.css) */
 body.dashboard-mode #preloader {

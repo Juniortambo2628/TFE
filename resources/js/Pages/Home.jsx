@@ -21,12 +21,6 @@ export default function Home({ appName, stadiums }) {
 
     // Global Initializations
     useEffect(() => {
-        // Init AOS
-        if (window.AOS) {
-            window.AOS.init({ once: true, duration: 1000 });
-        }
-
-        // Header Scroll Effect
         const handleScroll = () => {
             const header = document.querySelector('.tfe-header');
             if (header) {

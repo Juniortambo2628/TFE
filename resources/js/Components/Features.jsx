@@ -1,38 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { usePage } from '@inertiajs/react';
 
 export default function Features() {
     const { assetUrl } = usePage().props;
-
-    useEffect(() => {
-        // Init Owl Carousel (Featured Projects)
-        const initOwl = () => {
-            if (window.$ && window.$.fn.owlCarousel && window.$('.featured-projects-slider .owl-carousel').length) {
-                // Destroy previous instance if any to prevent duplication
-                window.$('.featured-projects-slider .owl-carousel').trigger('destroy.owl.carousel');
-                
-                window.$('.featured-projects-slider .owl-carousel').owlCarousel({
-                    center: true,
-                    loop: true,
-                    margin: 30,
-                    nav: false,
-                    dots: true,
-                    autoplay: true,
-                    autoplayTimeout: 5000,
-                    autoplayHoverPause: true,
-                    responsive: {
-                        0: { items: 1 },
-                        600: { items: 2 },
-                        1000: { items: 3 },
-                        1200: { items: 4 }
-                    }
-                });
-            }
-        };
-
-        const timer = setTimeout(initOwl, 500);
-        return () => clearTimeout(timer);
-    }, []);
 
     return (
         <section className="featured-projects py-5 py-lg-11 py-xl-12 bg-dark" id="features">
