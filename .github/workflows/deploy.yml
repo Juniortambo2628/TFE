@@ -150,6 +150,9 @@ jobs:
           find storage -type f -exec chmod 664 {} \;
           find bootstrap/cache -type d -exec chmod 775 {} \;
 
+          echo "─── Clear stale caches before artisan ───"
+          rm -f bootstrap/cache/services.php bootstrap/cache/packages.php
+
           echo "─── Ensure app key is set ───"
           php artisan key:generate --force || true
 
