@@ -17,7 +17,11 @@ return new class extends Migration
         });
 
         Schema::table('tribe_members', function (Blueprint $table) {
-            $table->timestamps();
+            if (!Schema::hasColumn('tribe_members', 'created_at')) {
+                $table->timestamps();
+            } elseif (!Schema::hasColumn('tribe_members', 'updated_at')) {
+                $table->timestamp('updated_at')->nullable()->after('created_at');
+            }
         });
     }
 
