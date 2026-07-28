@@ -17,16 +17,18 @@ return new class extends Migration
             }
         });
 
-        Schema::create('story_replies', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('story_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->text('content');
-            $table->timestamps();
+        if (! Schema::hasTable('story_replies')) {
+            Schema::create('story_replies', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('story_id')->constrained()->onDelete('cascade');
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->text('content');
+                $table->timestamps();
 
-            $table->index('story_id');
-            $table->index('user_id');
-        });
+                $table->index('story_id');
+                $table->index('user_id');
+            });
+        }
     }
 
     /**
