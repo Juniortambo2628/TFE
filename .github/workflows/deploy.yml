@@ -48,7 +48,7 @@ jobs:
       run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 
     - name: Install Node dependencies
-      run: npm ci
+      run: npm ci --legacy-peer-deps
 
     - name: Build production assets
       run: npm run build
