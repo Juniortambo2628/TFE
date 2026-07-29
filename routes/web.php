@@ -21,12 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', function () {
         return redirect()->route('fan.profile');
     })->name('profile.edit');
-    Route::patch('/profile', function () {
-        return redirect()->route('fan.profile');
-    })->name('profile.update');
-    Route::delete('/profile', function () {
-        return redirect()->route('fan.profile');
-    })->name('profile.destroy');
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/privacy', function () {
         return redirect()->route('fan.profile');
     })->name('profile.privacy');

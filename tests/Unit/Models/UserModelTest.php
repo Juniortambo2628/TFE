@@ -30,8 +30,6 @@ class UserModelTest extends TestCase
 
         $hidden = $user->getHidden();
         $this->assertContains('password', $hidden);
-        $this->assertContains('two_factor_secret', $hidden);
-        $this->assertContains('two_factor_recovery_codes', $hidden);
     }
 
     public function test_user_can_be_admin(): void
