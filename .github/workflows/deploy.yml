@@ -101,10 +101,19 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: frontend-archive
+        path: frontend-build.tar.gz
+        retention-days: 1
+
+    - name: Upload frontend entrypoint files
+      run: cp deploy-package/frontend/.htaccess deploy-package/frontend/index.php ./
+
+    - name: Upload frontend entrypoint artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-entrypoint
         path: |
-          frontend-build.tar.gz
-          deploy-package/frontend/.htaccess
-          deploy-package/frontend/index.php
+          .htaccess
+          index.php
         retention-days: 1
 
   deploy:
@@ -125,6 +134,12 @@ jobs:
       with:
         name: frontend-archive
         path: archives
+
+    - name: Download frontend entrypoint files
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-entrypoint
+        path: entrypoint
 
     - name: Configure SSH
       run: |
@@ -148,7 +163,7 @@ jobs:
     - name: Transfer frontend entrypoint files
       run: |
         scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          archives/deploy-package/frontend/.htaccess archives/deploy-package/frontend/index.php \
+          entrypoint/.htaccess entrypoint/index.php \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
 
     - name: Extract, post-deploy, and verify
@@ -167,4 +182,4 @@ jobs:
 
     - name: Clean up
       if: always()
-      run: rm -rf ~/.ssh/deploy_key archives
+      run: rm -rf ~/.ssh/deploy_key archives entrypoint .htaccess index.php
