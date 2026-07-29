@@ -31,9 +31,8 @@ rm -f "$BACKEND_TARBALL"
 echo "─── Replacing frontend build assets ───"
 rm -rf "$FRONTEND_PATH/build"
 mkdir -p "$FRONTEND_PATH/build"
-# Extract build/ contents into build/, entrypoint files into frontend root
-tar -xzf "$FRONTEND_TARBALL" -C "$FRONTEND_PATH/build" --strip-components=1 build/
-tar -xzf "$FRONTEND_TARBALL" -C "$FRONTEND_PATH" .htaccess index.php 2>/dev/null || true
+# Archive contains: build/*, .htaccess, index.php at root
+tar -xzf "$FRONTEND_TARBALL" -C "$FRONTEND_PATH" build/ .htaccess index.php
 rm -f "$FRONTEND_TARBALL"
 
 cd "$BACKEND_PATH"
