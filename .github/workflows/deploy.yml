@@ -88,7 +88,8 @@ jobs:
       run: |
         set -euo pipefail
         tar -czf backend.tar.gz -C deploy-package/backend .
-        tar -czf frontend-build.tar.gz -C deploy-package/frontend/build .
+        # Include .htaccess and index.php in the frontend tar
+        tar -czf frontend-build.tar.gz -C deploy-package/frontend .
 
     - name: Upload backend archive
       uses: actions/upload-artifact@v4
@@ -102,18 +103,6 @@ jobs:
       with:
         name: frontend-archive
         path: frontend-build.tar.gz
-        retention-days: 1
-
-    - name: Upload frontend entrypoint files
-      run: cp deploy-package/frontend/.htaccess deploy-package/frontend/index.php ./
-
-    - name: Upload frontend entrypoint artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-entrypoint
-        path: |
-          .htaccess
-          index.php
         retention-days: 1
 
   deploy:
@@ -135,12 +124,6 @@ jobs:
         name: frontend-archive
         path: archives
 
-    - name: Download frontend entrypoint files
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-entrypoint
-        path: entrypoint
-
     - name: Configure SSH
       run: |
         mkdir -p ~/.ssh
@@ -160,13 +143,7 @@ jobs:
           archives/frontend-build.tar.gz \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/frontend-build-${{ github.sha }}.tar.gz"
 
-    - name: Transfer frontend entrypoint files
-      run: |
-        scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          entrypoint/.htaccess entrypoint/index.php \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
-
-    - name: Extract, post-deploy, and verify
+    - name: Extract and post-deploy
       run: |
         ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
@@ -182,4 +159,4 @@ jobs:
 
     - name: Clean up
       if: always()
-      run: rm -rf ~/.ssh/deploy_key archives entrypoint .htaccess index.php
+      run: rm -rf ~/.ssh/deploy_key archives
