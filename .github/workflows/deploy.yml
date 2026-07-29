@@ -9,11 +9,8 @@ on:
       - main
 
 env:
-  SSH_HOST: 51.89.113.223
-  SSH_USER: zhpebukm
-  SSH_PORT: 1624
-  BACKEND_DIR: /home/zhpebukm/tfe-core
-  PHP_VERSION: '8.3'
+  PHP_VERSION: '8.2'
+  NODE_VERSION: '20'
 
 jobs:
   deploy:
@@ -31,223 +28,129 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ env.PHP_VERSION }}
-        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_mysql, bcmath, soap, intl, gd, exif, iconv, fileinfo
+        extensions: mbstring, bcmath, pdo_mysql, curl, zip, gd, fileinfo, dom, exif, iconv
         coverage: none
 
-    - name: Get Composer cache directory
-      id: composer-cache
-      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+    - name: Setup Node ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: npm
 
-    - name: Cache Composer dependencies
+    - name: Cache Composer packages
       uses: actions/cache@v4
       with:
-        path: ${{ steps.composer-cache.outputs.dir }}
-        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-        restore-keys: ${{ runner.os }}-composer-
+        path: vendor
+        key: composer-${{ hashFiles('composer.lock') }}
+        restore-keys: composer-
 
     - name: Install Composer dependencies (production)
-      run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --optimize-autoloader --no-dev
+      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 
-    - name: Cache Node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: ${{ runner.os }}-node-
-
-    - name: Install NPM dependencies
-      run: npm install --legacy-peer-deps
+    - name: Install Node dependencies
+      run: npm ci
 
     - name: Build production assets
       run: npm run build
 
     # ─────────────────────────────────────────────
-    # 2. SSH SETUP
+    # 2. ASSEMBLE DEPLOYMENT PACKAGE
     # ─────────────────────────────────────────────
-    - name: Setup SSH agent
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    - name: Add server to known hosts
+    - name: Assemble deployment package
       run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -p ${{ env.SSH_PORT }} ${{ env.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+        set -euo pipefail
+        mkdir -p deploy-package/backend deploy-package/frontend
 
-    # ─────────────────────────────────────────────
-    # 3. PRE-DEPLOYMENT: Prepare server directories
-    # ─────────────────────────────────────────────
-    - name: Prepare server directories
-      run: |
-        ssh -p ${{ env.SSH_PORT }} ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
-          mkdir -p /home/zhpebukm/tfe-core
-          mkdir -p /home/zhpebukm/tfe-core/storage/app/public
-          mkdir -p /home/zhpebukm/tfe-core/storage/framework/cache/data
-          mkdir -p /home/zhpebukm/tfe-core/storage/framework/sessions
-          mkdir -p /home/zhpebukm/tfe-core/storage/framework/views
-          mkdir -p /home/zhpebukm/tfe-core/storage/logs
-          mkdir -p /home/zhpebukm/tfe-core/bootstrap/cache
-          echo "✅ Server directories prepared."
-        ENDSSH
-
-    # ─────────────────────────────────────────────
-    # 4. PREPARE .ENV & COMPRESS
-    # ─────────────────────────────────────────────
-    - name: Prepare production .env
-      env:
-        SECRET_ENV: ${{ secrets.PRODUCTION_ENV }}
-      run: |
-        if [ -n "$SECRET_ENV" ]; then
-          echo "$SECRET_ENV" > .env
-          echo "✅ .env created from GitHub Secrets."
-        else
-          echo "⚠️  WARNING: PRODUCTION_ENV secret is empty. Using .env.example.production..."
-          cp .env.example.production .env
-        fi
-
-    - name: Compress deployment files
-      run: |
-        tar -czf ../deploy.tar.gz \
+        # Backend: everything except public/, dev files, storage contents, .env
+        rsync -a \
+          --exclude='.env' \
+          --exclude='.env.example' \
           --exclude='.git' \
           --exclude='node_modules' \
-          --exclude='storage/app/public/*' \
-          --exclude='storage/framework/sessions/*' \
-          --exclude='storage/framework/cache/data/*' \
-          --exclude='storage/framework/views/*' \
-          --exclude='storage/logs/*' \
-          --exclude='github-actions-thefootballexperience*' \
-          --exclude='The-Football-Experience' \
+          --exclude='tests' \
+          --exclude='public' \
+          --exclude='storage/framework' \
+          --exclude='storage/logs' \
+          --exclude='storage/app/public' \
+          --exclude='deploy-package' \
+          --exclude='*.md' \
           --exclude='.phpunit.result.cache' \
-          --exclude='production_env.txt' \
-          .
+          ./ deploy-package/backend/
 
-    - name: Upload and extract deployment files
+        # Frontend: built assets + webroot entry files
+        mkdir -p deploy-package/frontend/build
+        cp -r public/build/. deploy-package/frontend/build/
+        cp public/.htaccess deploy-package/frontend/.htaccess
+        cp public/index.php deploy-package/frontend/index.php
+
+    - name: Upload deployment artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: deploy-package
+        path: deploy-package
+        retention-days: 1
+
+    # ─────────────────────────────────────────────
+    # 3. SSH SETUP
+    # ─────────────────────────────────────────────
+    - name: Setup SSH
       run: |
-        scp -P ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ../deploy.tar.gz ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:/tmp/deploy.tar.gz
-        ssh -p ${{ env.SSH_PORT }} -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
-          tar -xzf /tmp/deploy.tar.gz -C ${{ env.BACKEND_DIR }}
-          rm -f /tmp/deploy.tar.gz
-        ENDSSH
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
     # ─────────────────────────────────────────────
-    # 5. POST-DEPLOY: Run server-side commands
+    # 4. SYNC FILES TO SERVER
     # ─────────────────────────────────────────────
-    - name: Run deployment commands on server
+    - name: Sync backend files
       run: |
-        ssh -p ${{ env.SSH_PORT }} ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'ENDSSH'
-          set -e
-          cd /home/zhpebukm/tfe-core
+        rsync -az --delete \
+          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+          --exclude='.env' \
+          --exclude='storage' \
+          deploy-package/backend/ \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.BACKEND_PATH }}/"
 
-          echo "─── Setting permissions ───"
-          chmod -R 775 storage bootstrap/cache
-          find storage -type d -exec chmod 775 {} \;
-          find storage -type f -exec chmod 664 {} \;
-          find bootstrap/cache -type d -exec chmod 775 {} \;
+    - name: Sync frontend build assets
+      run: |
+        rsync -az --delete \
+          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+          deploy-package/frontend/build/ \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/build/"
 
-          echo "─── Clear stale caches before artisan ───"
-          rm -f bootstrap/cache/services.php bootstrap/cache/packages.php
-
-          echo "─── Ensure app key is set ───"
-          php artisan key:generate --force || true
-
-          echo "─── Running Composer post-install scripts ───"
-          php artisan package:discover --ansi 2>/dev/null || true
-
-          echo "─── Running migrations ───"
-          php artisan migrate --force
-
-          echo "─── Clearing & rebuilding caches ───"
-          php artisan optimize:clear
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          php artisan event:cache 2>/dev/null || true
-
-          echo "─── Setting up storage symlink ───"
-          if ! php artisan storage:link --force 2>/dev/null; then
-            echo "⚠️  php artisan storage:link failed (exec disabled), attempting manual symlink..."
-            rm -rf public/storage
-            ln -sfn ../storage/app/public public/storage
-            echo "✅ Manual storage symlink created."
-          fi
-
-          echo ""
-          echo "═══════════════════════════════════════════"
-          echo "  POST-DEPLOYMENT VERIFICATION"
-          echo "═══════════════════════════════════════════"
-
-          echo ""
-          echo "─── Checking expected file structure ───"
-          ERRORS=0
-
-          for f in artisan composer.json public/index.php bootstrap/app.php config/app.php; do
-            if [ -f "/home/zhpebukm/tfe-core/$f" ]; then
-              echo "  ✅ $f"
-            else
-              echo "  ❌ MISSING: $f"
-              ERRORS=$((ERRORS + 1))
-            fi
-          done
-
-          for d in app config database public resources routes storage vendor bootstrap; do
-            if [ -d "/home/zhpebukm/tfe-core/$d" ]; then
-              echo "  ✅ $d/"
-            else
-              echo "  ❌ MISSING: $d/"
-              ERRORS=$((ERRORS + 1))
-            fi
-          done
-
-          if [ -d "/home/zhpebukm/tfe-core/public/build" ]; then
-            ASSET_COUNT=$(find "/home/zhpebukm/tfe-core/public/build" -type f | wc -l)
-            echo "  ✅ public/build/ ($ASSET_COUNT files)"
-          else
-            echo "  ❌ MISSING: public/build/ (Vite assets not built!)"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          echo ""
-          echo "─── Checking storage symlink ───"
-          if [ -L "/home/zhpebukm/tfe-core/public/storage" ]; then
-            TARGET=$(readlink "/home/zhpebukm/tfe-core/public/storage")
-            echo "  ✅ public/storage -> $TARGET"
-          else
-            echo "  ⚠️  public/storage symlink missing"
-          fi
-
-          echo ""
-          echo "─── Checking write permissions ───"
-          if [ -w "/home/zhpebukm/tfe-core/storage/logs" ]; then
-            echo "  ✅ storage/logs is writable"
-          else
-            echo "  ❌ storage/logs is NOT writable"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          if [ -w "/home/zhpebukm/tfe-core/bootstrap/cache" ]; then
-            echo "  ✅ bootstrap/cache is writable"
-          else
-            echo "  ❌ bootstrap/cache is NOT writable"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          echo ""
-          echo "═══════════════════════════════════════════"
-          if [ $ERRORS -eq 0 ]; then
-            echo "  🎉 DEPLOYMENT SUCCESSFUL — 0 errors"
-          else
-            echo "  ⚠️  DEPLOYMENT COMPLETED WITH $ERRORS ERROR(S)"
-          fi
-          echo "  📅 $(date '+%Y-%m-%d %H:%M:%S %Z')"
-          echo "═══════════════════════════════════════════"
-
-        ENDSSH
+    - name: Sync frontend entrypoint files
+      run: |
+        rsync -az \
+          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+          deploy-package/frontend/.htaccess deploy-package/frontend/index.php \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
 
     # ─────────────────────────────────────────────
-    # 6. CLEANUP: Remove build artifacts from runner
+    # 5. POST-DEPLOY COMMANDS
     # ─────────────────────────────────────────────
-    - name: Post-deployment cleanup
+    - name: Run post-deploy commands
+      run: |
+        ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+          "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
+          < scripts/post-deploy.sh
+
+    # ─────────────────────────────────────────────
+    # 6. VERIFY DEPLOYMENT
+    # ─────────────────────────────────────────────
+    - name: Verify deployed file structure
+      run: |
+        ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+          "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
+          < scripts/verify-deploy.sh
+
+    # ─────────────────────────────────────────────
+    # 7. CLEANUP
+    # ─────────────────────────────────────────────
+    - name: Clean up
       if: always()
       run: |
-        rm -rf node_modules vendor
-        echo "✅ Runner cleanup complete."
+        rm -rf ~/.ssh/deploy_key deploy-package
+        echo "Cleanup complete."
