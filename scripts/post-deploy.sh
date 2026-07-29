@@ -36,7 +36,7 @@ rm -f "$FRONTEND_TARBALL"
 
 # Laravel expects the Vite manifest at BACKEND_PATH/public/build/
 # Copy build assets there so Blade's @vite directive can find them
-rm -rf "$BACKEND_PATH/public/build"
+mkdir -p "$BACKEND_PATH/public"
 cp -r "$FRONTEND_PATH/build" "$BACKEND_PATH/public/build"
 
 cd "$BACKEND_PATH"
