@@ -77,6 +77,7 @@ class RegisteredUserController extends Controller
                 'banking_partners_consent' => $request->banking_partners_consent ?? false,
                 'marketing_consent' => $request->marketing_consent ?? false,
                 'community_consent' => $request->community_consent ?? false,
+                'email_verified_at' => app()->environment('local') ? now() : null,
                 'terms_agreed' => true,
                 'privacy_consent' => true,
                 'privacy_consent_at' => now(),

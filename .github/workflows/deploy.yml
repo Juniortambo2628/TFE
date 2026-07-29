@@ -51,7 +51,6 @@ jobs:
       run: npm run build
 
     - name: Assemble deployment package
-      # rsync is fine here — this runs on ubuntu-latest, not the production server
       run: |
         set -euo pipefail
         mkdir -p deploy-package/backend deploy-package/frontend
@@ -72,9 +71,16 @@ jobs:
           --exclude='production_env.txt' \
           ./ deploy-package/backend/
 
+        # Frontend: start with all static assets from public/
+        rsync -a \
+          --exclude='build/' \
+          --exclude='uploads/' \
+          public/ deploy-package/frontend/
+
+        # Layer Vite build on top (overwrites any build/ from public)
+        rm -rf deploy-package/frontend/build
         mkdir -p deploy-package/frontend/build
         cp -r public/build/. deploy-package/frontend/build/
-        cp public/.htaccess deploy-package/frontend/.htaccess
 
         # Generate frontend index.php with paths pointing to backend
         sed \

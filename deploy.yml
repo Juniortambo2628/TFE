@@ -1,0 +1,165 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+env:
+  # TODO: set this to match your shared host's PHP version exactly
+  PHP_VERSION: '8.2'
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          # TODO: match this list to whatever extensions your host actually has enabled
+          extensions: mbstring, bcmath, pdo_mysql, curl, zip, gd, fileinfo
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Backend autofix (Pint)
+        run: ./vendor/bin/pint
+
+      - name: Frontend autofix (ESLint)
+        run: npx eslint . --fix
+        continue-on-error: false
+
+      - name: Frontend format (Prettier)
+        run: npx prettier --write "resources/**/*.{js,jsx,ts,tsx,css}"
+
+      - name: Prepare test environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run backend tests
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test
+
+      - name: Run frontend tests
+        run: npm test --if-present
+
+      - name: Build production assets
+        run: npm run build
+
+      - name: Assemble deployment package
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-package/backend deploy-package/frontend
+
+          # Backend: everything except public/, dev files, and anything
+          # that must never leave the server (.env, local storage contents)
+          rsync -a \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='public' \
+            --exclude='storage/framework' \
+            --exclude='storage/logs' \
+            --exclude='deploy-package' \
+            ./ deploy-package/backend/
+
+          # Frontend: built assets + the entrypoint files that live in the
+          # public webroot
+          mkdir -p deploy-package/frontend/build
+          cp -r public/build/. deploy-package/frontend/build/
+          cp public/.htaccess deploy-package/frontend/.htaccess
+          cp public/index.php deploy-package/frontend/index.php
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-package
+          path: deploy-package
+          retention-days: 1
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (for post-deploy scripts)
+        uses: actions/checkout@v4
+
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-package
+          path: deploy-package
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync backend files
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            --exclude='.env' \
+            --exclude='storage' \
+            deploy-package/backend/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.BACKEND_PATH }}/"
+
+      - name: Sync frontend build assets
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            deploy-package/frontend/build/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/build/"
+
+      - name: Sync frontend entrypoint files
+        run: |
+          rsync -az \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            deploy-package/frontend/.htaccess deploy-package/frontend/index.php \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
+
+      - name: Run post-deploy commands on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
+            < scripts/post-deploy.sh
+
+      - name: Verify deployed file structure
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
+            < scripts/verify-deploy.sh
+
+      - name: Clean up local SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
