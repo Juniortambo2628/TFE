@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 
 const calculateTimeLeft = () => {
     const difference = +new Date("2026-06-11T00:00:00") - +new Date();

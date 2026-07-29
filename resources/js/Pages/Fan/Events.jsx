@@ -6,7 +6,7 @@ import '../../../css/fan/fan-pages.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import {
     Dialog,
     DialogContent,

@@ -6,7 +6,7 @@ import { countries } from '../../Data/countries';
 import WorldCup2026Data from '../../Data/WorldCup2026Data';
 import SearchableSelect from '../../Components/SearchableSelect';
 import axios from 'axios';
-import DashboardModal from '../../Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
 
 const totalSteps = 4;
@@ -242,7 +242,6 @@ export default function Register() {
     return (
         <div style={{minHeight: '100vh'}}>
             <Head title={`Register - Step ${currentStep}`}>
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
             </Head>
 
             <DashboardModal

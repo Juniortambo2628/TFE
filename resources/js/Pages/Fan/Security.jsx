@@ -53,7 +53,7 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
     const [passkeyToDelete, setPasskeyToDelete] = useState(null);
 
     const toggle2FA = () => {
-        if (auth.user.two_factor_enabled) {
+        if (security_settings.two_factor_enabled) {
             setConfirmDisable2FA(true);
         } else {
             router.post(route('fan.security.two-factor'), {}, { 

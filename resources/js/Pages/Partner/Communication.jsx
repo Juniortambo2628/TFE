@@ -40,10 +40,7 @@ export default function Communication({ threads = [], stats = {} }) {
             <Head title="Messages - Partner" />
 
             {/* Hero Section */}
-            <div className="dash-card dash-card-body" style={{
-                background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-                borderColor: 'var(--partner-amber)',
-            }}>
+            <div className="partner-hero">
                 <Breadcrumbs 
                     title="Messages" 
                     breadcrumbs={[{ label: 'Messages' }]}
@@ -70,24 +67,24 @@ export default function Communication({ threads = [], stats = {} }) {
             {/* Stats Row */}
             <div className="dash-stat-grid dash-mb-lg">
                 <div className="dash-stat-card">
-                    <i className="fas fa-comments accent-partner dash-stat-icon" style={{ fontSize: 'var(--fs-2xl)' }}></i>
+                    <i className="fas fa-comments accent-partner dash-stat-icon partner-stat-icon-lg"></i>
                     <div className="dash-stat-value">{stats.total_threads || 0}</div>
                     <div className="dash-stat-label">Total Threads</div>
                 </div>
                 <div className="dash-stat-card">
-                    <i className="fas fa-envelope-open accent-danger dash-stat-icon" style={{ fontSize: 'var(--fs-2xl)' }}></i>
+                    <i className="fas fa-envelope-open accent-danger dash-stat-icon partner-stat-icon-lg"></i>
                     <div className="dash-stat-value">{stats.unread_messages || 0}</div>
                     <div className="dash-stat-label">Unread Messages</div>
                 </div>
                 <div className="dash-stat-card">
-                    <i className="fas fa-clock accent-admin dash-stat-icon" style={{ fontSize: 'var(--fs-2xl)' }}></i>
+                    <i className="fas fa-clock accent-admin dash-stat-icon partner-stat-icon-lg"></i>
                     <div className="dash-stat-value">{stats.pending_requests || 0}</div>
                     <div className="dash-stat-label">Pending Requests</div>
                 </div>
             </div>
 
             {/* Main Content - Split View */}
-            <div style={{ display: 'grid', gridTemplateColumns: selectedThread ? '350px 1fr' : '1fr', gap: 'var(--space-lg)' }}>
+            <div className={`partner-comm-grid ${selectedThread ? 'has-thread' : ''}`}>
                 {/* Thread List */}
                 <div className="dash-card">
                     <div className="dash-card-header">
@@ -96,16 +93,15 @@ export default function Communication({ threads = [], stats = {} }) {
                             Message Threads
                         </h3>
                     </div>
-                    <div className="dash-scroll" style={{ maxHeight: '500px' }}>
+                    <div className="dash-scroll partner-comm-thread-list">
                         {threads.length > 0 ? (
                             threads.map((thread) => (
                                 <div
                                     key={thread.budget_id}
                                     onClick={() => setSelectedThread(thread)}
-                                    className={`dash-activity-item ${selectedThread?.budget_id === thread.budget_id ? 'bg-accent-partner' : ''}`}
-                                    style={{ cursor: 'pointer' }}
+                                    className={`dash-activity-item partner-comm-thread-item ${selectedThread?.budget_id === thread.budget_id ? 'bg-accent-partner' : ''}`}
                                 >
-                                    <div className="dash-flex-between" style={{ width: '100%', alignItems: 'flex-start' }}>
+                                    <div className="dash-flex-between">
                                         <div>
                                             <span className="accent-partner dash-fw-semibold dash-text-base">
                                                 {thread.reference_id}
@@ -162,28 +158,18 @@ export default function Communication({ threads = [], stats = {} }) {
                         </div>
 
                         {/* Messages */}
-                        <div className="dash-scroll" style={{ flex: 1, padding: 'var(--space-lg)', maxHeight: '350px' }}>
+                        <div className="dash-scroll partner-comm-messages">
                             {selectedThread.messages.length > 0 ? (
                                 selectedThread.messages.map((msg) => (
                                     <div
                                         key={msg.id}
-                                        style={{
-                                            marginBottom: 'var(--space-lg)',
-                                            display: 'flex',
-                                            justifyContent: msg.sender_type === 'partner' ? 'flex-end' : 'flex-start',
-                                        }}
+                                        className={`partner-comm-msg-row ${msg.sender_type === 'partner' ? 'is-partner' : 'is-fan'}`}
                                     >
-                                        <div style={{
-                                            maxWidth: '70%',
-                                            padding: 'var(--space-md) var(--space-lg)',
-                                            borderRadius: 'var(--radius-lg)',
-                                            background: msg.sender_type === 'partner' ? 'var(--tint-amber)' : 'var(--surface-elevated)',
-                                            border: `1px solid ${msg.sender_type === 'partner' ? 'var(--partner-amber)' : 'var(--border-light)'}`,
-                                        }}>
-                                            <p className="dash-text-primary dash-no-margin dash-text-base" style={{ lineHeight: '1.5' }}>
+                                        <div className={`partner-comm-msg-bubble ${msg.sender_type === 'partner' ? 'is-partner' : 'is-fan'}`}>
+                                            <p className="dash-text-primary dash-no-margin dash-text-base partner-comm-msg-body">
                                                 {msg.body}
                                             </p>
-                                            <span className="dash-text-dim dash-text-2xs" style={{ display: 'block', marginTop: 'var(--space-sm)' }}>
+                                            <span className="dash-text-dim dash-text-2xs partner-comm-msg-time">
                                                 {msg.sender_type === 'partner' ? 'You' : 'Fan'} • {msg.created_at}
                                             </span>
                                         </div>
@@ -197,15 +183,14 @@ export default function Communication({ threads = [], stats = {} }) {
                         </div>
 
                         {/* Reply Form */}
-                        <div className="dash-top-divider" style={{ padding: 'var(--space-lg)' }}>
+                        <div className="dash-top-divider partner-comm-reply-area">
                             <form onSubmit={handleSendMessage} className="dash-flex dash-gap-md">
                                 <input
                                     type="text"
                                     value={messageForm.data.body}
                                     onChange={(e) => messageForm.setData('body', e.target.value)}
                                     placeholder="Type your message..."
-                                    className="dash-input"
-                                    style={{ flex: 1 }}
+                                    className="dash-input partner-comm-reply-input"
                                 />
                                 <button
                                     type="submit"

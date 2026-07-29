@@ -36,7 +36,8 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        if ($user->two_factor_enabled) {
+        $securitySetting = UserSecuritySetting::where('user_id', $user->id)->first();
+        if ($securitySetting && $securitySetting->two_factor_enabled) {
             // Log out but keep track of who is logging in
             Auth::logout();
 

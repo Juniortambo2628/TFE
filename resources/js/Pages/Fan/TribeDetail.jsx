@@ -6,7 +6,7 @@ import '../../../css/fan/tribes.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 
 export default function TribeDetail({ auth, tribe, members, posts, stats }) {
     const [showEditModal, setShowEditModal] = useState(false);

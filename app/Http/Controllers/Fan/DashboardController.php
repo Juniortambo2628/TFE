@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Activity;
 use Inertia\Inertia;
 
 class DashboardController extends Controller

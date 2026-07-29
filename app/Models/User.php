@@ -38,10 +38,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'terms_agreed',
         'registration_completed',
         'status',
-        'two_factor_enabled',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-        'two_factor_confirmed_at',
         'is_partner',
         'privacy_consent',
         'privacy_consent_at',
@@ -50,6 +46,8 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'google_id',
         'avatar',
         'is_admin',
+        'company_name',
+        'company_address',
     ];
 
     /**
@@ -60,8 +58,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
     ];
 
     /**
@@ -74,8 +70,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'password' => 'hashed',
         'date_of_birth' => 'date',
         'marketing_consent' => 'boolean',
-        'two_factor_enabled' => 'boolean',
-        'two_factor_confirmed_at' => 'datetime',
         'is_partner' => 'boolean',
         'is_admin' => 'boolean',
         'privacy_consent' => 'boolean',

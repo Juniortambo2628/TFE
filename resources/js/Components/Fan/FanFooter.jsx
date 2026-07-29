@@ -1,5 +1,4 @@
 import React from 'react';
-import '../../../css/fan/fan-dashboard-cards.css';
 
 export default function FanFooter() {
     return (

@@ -7,6 +7,12 @@ import { formatMoney } from '@/lib/utils';
 export default function Dashboard({ requests, stats }) {
     const { auth } = usePage().props;
 
+    const statusClass = (status) =>
+        `partner-status-${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'pending'}`;
+
+    const badgeClass = (status) =>
+        `partner-badge partner-badge-${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'pending'}`;
+
     return (
         <PartnerLayout title="Partner Dashboard">
             <div className="">
@@ -18,7 +24,7 @@ export default function Dashboard({ requests, stats }) {
 
                 {/* Summary Cards */}
                 <div className="partner-summary-cards">
-                    <div className="partner-stat-card" style={{ '--card-accent': '#d97706' }}>
+                    <div className="partner-stat-card" data-accent="amber">
                         <div className="stat-icon">
                             <i className="fas fa-inbox"></i>
                         </div>
@@ -29,8 +35,8 @@ export default function Dashboard({ requests, stats }) {
                         </div>
                     </div>
 
-                    <div className="partner-stat-card" style={{ '--card-accent': '#10b981' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                    <div className="partner-stat-card" data-accent="green">
+                        <div className="stat-icon">
                             <i className="fas fa-check-circle"></i>
                         </div>
                         <div className="stat-value">{stats?.approved || 0}</div>
@@ -40,8 +46,8 @@ export default function Dashboard({ requests, stats }) {
                         </div>
                     </div>
 
-                    <div className="partner-stat-card" style={{ '--card-accent': '#3b82f6' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                    <div className="partner-stat-card" data-accent="blue">
+                        <div className="stat-icon">
                             <i className="fas fa-edit"></i>
                         </div>
                         <div className="stat-value">{stats?.modified || 0}</div>
@@ -51,8 +57,8 @@ export default function Dashboard({ requests, stats }) {
                         </div>
                     </div>
 
-                    <div className="partner-stat-card" style={{ '--card-accent': '#ef4444' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                    <div className="partner-stat-card" data-accent="red">
+                        <div className="stat-icon">
                             <i className="fas fa-times-circle"></i>
                         </div>
                         <div className="stat-value">{stats?.rejected || 0}</div>
@@ -62,8 +68,8 @@ export default function Dashboard({ requests, stats }) {
                         </div>
                     </div>
 
-                    <div className="partner-stat-card" style={{ '--card-accent': '#8b5cf6' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
+                    <div className="partner-stat-card" data-accent="purple">
+                        <div className="stat-icon">
                             <i className="fas fa-coins"></i>
                         </div>
                         <div className="stat-value">{formatMoney(stats?.total_revenue || 0)}</div>
@@ -83,26 +89,26 @@ export default function Dashboard({ requests, stats }) {
                             <h3>Quick Actions</h3>
                         </div>
                         <div className="quick-actions-grid">
-                            <Link href={route('partner.requests')} className="quick-action-btn" style={{ borderColor: '#d97706' }}>
-                                <i className="fas fa-inbox" style={{ color: '#d97706' }}></i>
+                            <Link href={route('partner.requests')} className="quick-action-btn partner-quick-action-amber">
+                                <i className="fas fa-inbox"></i>
                                 <span>All Requests</span>
                             </Link>
-                            <Link href={route('partner.messages')} className="quick-action-btn" style={{ borderColor: '#3b82f6' }}>
-                                <i className="fas fa-envelope" style={{ color: '#3b82f6' }}></i>
+                            <Link href={route('partner.messages')} className="quick-action-btn partner-quick-action-blue">
+                                <i className="fas fa-envelope"></i>
                                 <span>Messages</span>
                             </Link>
-                            <Link href={route('partner.profile')} className="quick-action-btn" style={{ borderColor: '#8b5cf6' }}>
-                                <i className="fas fa-user-edit" style={{ color: '#8b5cf6' }}></i>
+                            <Link href={route('partner.profile')} className="quick-action-btn partner-quick-action-purple">
+                                <i className="fas fa-user-edit"></i>
                                 <span>Edit Profile</span>
                             </Link>
                         </div>
                     </div>
 
                     {/* Recent Requests List */}
-                    <div className="content-card activity-card" style={{ gridColumn: 'span 2' }}>
+                    <div className="content-card activity-card partner-activity-span-2">
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <div className="d-flex align-items-center">
-                                <i className="fas fa-list" style={{ color: '#d97706', marginRight: '10px' }}></i>
+                                <i className="fas fa-list partner-activity-header-icon"></i>
                                 <h3>Recent Travel Requests</h3>
                             </div>
                             <Link href={route('partner.requests')} className="text-yellow-500 text-sm hover:underline">
@@ -112,36 +118,20 @@ export default function Dashboard({ requests, stats }) {
                         <div className="activity-list">
                             {requests && requests.length > 0 ? (
                                 requests.slice(0, 5).map(req => (
-                                    <div key={req.id} className="activity-item">
-                                        <div className="activity-icon" style={{
-                                            background: req.status === 'approved' ? 'rgba(16, 185, 129, 0.2)' :
-                                                       req.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' :
-                                                       'rgba(217, 119, 6, 0.2)'
-                                        }}>
-                                            <i className="fas fa-suitcase" style={{
-                                                color: req.status === 'approved' ? '#10b981' :
-                                                       req.status === 'rejected' ? '#ef4444' :
-                                                       '#d97706'
-                                            }}></i>
+                                    <div key={req.id} className={`activity-item ${statusClass(req.status)}`}>
+                                        <div className="activity-icon">
+                                            <i className="fas fa-suitcase"></i>
                                         </div>
                                         <div className="activity-info">
                                             <div className="activity-title">{req.reference_id}</div>
                                             <div className="activity-label">{req.match_count} Matches • {req.accommodation_level}</div>
                                         </div>
                                         <div className="activity-details text-end">
-                                            <div className="activity-amount" style={{ color: '#fff', fontWeight: '600' }}>
+                                            <div className="partner-activity-amount">
                                                 {req.partner_cost ? formatMoney(req.partner_cost) : formatMoney(req.total_cost)}
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', alignItems: 'center' }}>
-                                                <span className="badge" style={{
-                                                    fontSize: '0.65rem',
-                                                    background: req.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
-                                                               req.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' :
-                                                               'rgba(217, 119, 6, 0.1)',
-                                                    color: req.status === 'approved' ? '#10b981' :
-                                                           req.status === 'rejected' ? '#ef4444' :
-                                                           '#d97706'
-                                                }}>
+                                            <div className="partner-activity-meta">
+                                                <span className={badgeClass(req.status)}>
                                                     {req.status}
                                                 </span>
                                                 <Link href={route('partner.requests.show', req.id)} className="text-yellow-500 text-sm hover:underline">

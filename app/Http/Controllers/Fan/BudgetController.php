@@ -186,4 +186,15 @@ class BudgetController extends Controller
 
         return response()->json(['success' => true, 'data' => $budget]);
     }
+
+    public function destroy(Budget $budget)
+    {
+        if ($budget->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $budget->delete();
+
+        return back()->with('success', 'Itinerary deleted.');
+    }
 }

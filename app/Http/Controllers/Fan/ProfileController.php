@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserSecuritySetting;
 use App\Traits\HasSocialStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -131,6 +132,10 @@ class ProfileController extends Controller
             'userPosts' => $userPosts,
             'followers' => $followers,
             'followingList' => $following,
+            'security_settings' => UserSecuritySetting::where('user_id', $currentUser->id)->first()?->toArray() ?? [
+                'two_factor_enabled' => false,
+                'login_notifications' => true,
+            ],
             'auth' => [
                 'user' => $currentUser,
             ],

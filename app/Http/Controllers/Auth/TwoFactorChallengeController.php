@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserSecuritySetting;
 use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +47,8 @@ class TwoFactorChallengeController extends Controller
         }
 
         $user = User::findOrFail($request->session()->get('login.id'));
-        $secret = Crypt::decryptString($user->two_factor_secret);
+        $securitySetting = UserSecuritySetting::where('user_id', $user->id)->first();
+        $secret = Crypt::decryptString($securitySetting->two_factor_secret);
 
         if ($this->twoFactorService->verifyCode($secret, $request->code)) {
             Auth::login($user, $request->session()->get('login.remember', false));

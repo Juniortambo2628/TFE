@@ -41,38 +41,31 @@ export default function Profile({ profile }) {
         });
     };
 
+    const hasCover = data.cover_image && !(data.cover_image instanceof File);
+
     return (
         <PartnerLayout title="Profile">
             <Head title="Profile - Partner" />
 
             {/* Hero Section with Cover */}
-            <div className="dash-card" style={{
-                background: data.cover_image && !(data.cover_image instanceof File) 
-                    ? `url(${data.cover_image})` 
-                    : 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                borderColor: 'var(--partner-amber)',
-                padding: 'var(--space-xl)',
-                position: 'relative',
-                minHeight: '200px',
-            }}>
-                <div style={{ position: 'relative', zIndex: 1 }}>
+            <div className={`dash-card partner-profile-hero ${hasCover ? '' : ''}`}
+                style={hasCover ? { backgroundImage: `url(${data.cover_image})` } : {}}>
+                {!hasCover && <div className="partner-profile-overlay"></div>}
+                <div className="partner-profile-content">
                     <Breadcrumbs 
                         title="Profile" 
                         breadcrumbs={[{ label: 'Profile' }]}
                         accentColor="#d97706"
                         homeRoute="partner.dashboard"
                     />
-                    <h1 className="dash-section-title" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                    <h1 className="dash-section-title">
                         <i className="fas fa-user accent-partner"></i>
                         My Profile
                     </h1>
-                    <p style={{ color: '#eee', marginBottom: 0, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    <p className="partner-profile-subtitle">
                         Manage your partner account details and company information.
                     </p>
                 </div>
-                {data.cover_image && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', borderRadius: 'var(--radius-xl)' }}></div>}
             </div>
 
             {/* Success Message */}
@@ -87,7 +80,7 @@ export default function Profile({ profile }) {
             <div className="dash-card dash-card-body">
                 <div className="dash-flex-between dash-mb-xl">
                     <div className="dash-flex dash-gap-lg">
-                        <div className="dash-avatar dash-avatar-xl" style={{ background: 'var(--partner-amber)', border: '3px solid var(--border-light)' }}>
+                        <div className="dash-avatar dash-avatar-xl partner-avatar">
                             {profile.avatar ? (
                                 <img src={profile.avatar} alt={profile.name} className="dash-avatar-img" />
                             ) : profile.name.charAt(0)}
@@ -95,7 +88,7 @@ export default function Profile({ profile }) {
                         <div>
                             <h3 className="dash-text-primary dash-no-margin">{profile.name}</h3>
                             <p className="dash-text-muted dash-no-margin dash-text-base">{profile.email}</p>
-                            <span className="dash-badge dash-badge-warning" style={{ marginTop: 'var(--space-xs)' }}>
+                            <span className="dash-badge dash-badge-warning partner-badge-margin">
                                 Travel Partner
                             </span>
                         </div>
@@ -222,12 +215,7 @@ export default function Profile({ profile }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="dash-btn dash-btn-primary"
-                                style={{
-                                    padding: 'var(--space-md) var(--space-2xl)',
-                                    cursor: processing ? 'not-allowed' : 'pointer',
-                                    opacity: processing ? 'var(--opacity-disabled)' : 1,
-                                }}
+                                className="dash-btn dash-btn-primary partner-submit-btn"
                             >
                                 {processing ? (
                                     <><i className="fas fa-spinner fa-spin me-2"></i>Saving...</>

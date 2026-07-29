@@ -5,6 +5,8 @@ import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import { usePage } from '@inertiajs/react';
 import BaseLayout from './BaseLayout';
 import '../../css/fan/dashboard.css';
+import '../../css/fan/fan-dashboard-cards.css';
+import '../../css/fan/fan-dashboard-header.css';
 
 export default function FanLayout({ children, title }) {
     const { assetUrl, auth } = usePage().props;
@@ -20,8 +22,6 @@ export default function FanLayout({ children, title }) {
             showPrivacyConsent={true}
             privacyConsentComponent={PrivacyConsent}
         >
-            <link rel="stylesheet" href={`${assetUrl}assets/css/fan-dashboard-header.css`} />
-            <link rel="stylesheet" href={`${assetUrl}assets/css/fan-dashboard-cards.css`} />
             {children}
         </BaseLayout>
     );

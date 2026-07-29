@@ -10,26 +10,6 @@ class WorldCupSeeder extends Seeder
 {
     public function run(): void
     {
-        // Stadiums Data
-        $stadiums = [
-            'Mexico City Stadium' => ['officialName' => 'Estadio Azteca', 'city' => 'Mexico City', 'country' => 'Mexico', 'capacity' => 87523],
-            'Estadio Guadalajara' => ['officialName' => 'Estadio Akron', 'city' => 'Guadalajara', 'country' => 'Mexico', 'capacity' => 44330],
-            'Estadio Monterrey' => ['officialName' => 'Estadio BBVA', 'city' => 'Monterrey', 'country' => 'Mexico', 'capacity' => 53500],
-            'Toronto Stadium' => ['officialName' => 'BMO Field', 'city' => 'Toronto', 'country' => 'Canada', 'capacity' => 45736],
-            'BC Place Vancouver' => ['officialName' => 'BC Place', 'city' => 'Vancouver', 'country' => 'Canada', 'capacity' => 48821],
-            'Los Angeles Stadium' => ['officialName' => 'SoFi Stadium', 'city' => 'Los Angeles', 'country' => 'USA', 'capacity' => 70000],
-            'New York New Jersey Stadium' => ['officialName' => 'MetLife Stadium', 'city' => 'East Rutherford', 'country' => 'USA', 'capacity' => 78576],
-            'Dallas Stadium' => ['officialName' => 'AT&T Stadium', 'city' => 'Arlington', 'country' => 'USA', 'capacity' => 92000],
-            'Atlanta Stadium' => ['officialName' => 'Mercedes-Benz Stadium', 'city' => 'Atlanta', 'country' => 'USA', 'capacity' => 67382],
-            'Houston Stadium' => ['officialName' => 'NRG Stadium', 'city' => 'Houston', 'country' => 'USA', 'capacity' => 68311],
-            'Philadelphia Stadium' => ['officialName' => 'Lincoln Financial Field', 'city' => 'Philadelphia', 'country' => 'USA', 'capacity' => 69176],
-            'Miami Stadium' => ['officialName' => 'Hard Rock Stadium', 'city' => 'Miami Gardens', 'country' => 'USA', 'capacity' => 65000],
-            'Seattle Stadium' => ['officialName' => 'Lumen Field', 'city' => 'Seattle', 'country' => 'USA', 'capacity' => 69000],
-            'San Francisco Bay Area Stadium' => ['officialName' => "Levi's Stadium", 'city' => 'Santa Clara', 'country' => 'USA', 'capacity' => 70909],
-            'Boston Stadium' => ['officialName' => 'Gillette Stadium', 'city' => 'Foxborough', 'country' => 'USA', 'capacity' => 65878],
-            'Kansas City Stadium' => ['officialName' => 'GEHA Field at Arrowhead Stadium', 'city' => 'Kansas City', 'country' => 'USA', 'capacity' => 76000],
-        ];
-
         // Fixtures (104 Tournament Games)
         $fixtures = [
             // ============ GROUP STAGE - MATCHDAY 1 ============

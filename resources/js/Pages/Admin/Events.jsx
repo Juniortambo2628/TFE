@@ -7,7 +7,7 @@ import AdminCategoryCard from '@/Components/Admin/AdminCategoryCard';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import '../../../css/fan/dashboard-modals.css';
 
 export default function Events({ auth, events = { data: [] }, stats = {}, filters }) {

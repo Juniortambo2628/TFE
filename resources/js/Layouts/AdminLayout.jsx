@@ -4,6 +4,7 @@ import AdminSidebar from '@/Components/Admin/AdminSidebar';
 import DashboardHeader from '@/Components/Common/DashboardHeader';
 import { AdminThemeProvider, useAdminTheme } from '@/Contexts/AdminThemeContext';
 import BaseLayout from './BaseLayout';
+import '../../css/admin-theme.css';
 
 function AdminHeaderWithEditToggle(props) {
     const { editMode, toggleEditMode } = useAdminTheme();
@@ -39,7 +40,6 @@ export default function AdminLayout({ children, title }) {
                 sidebar={AdminSidebar}
                 header={(props) => <AdminHeaderWithEditToggle {...props} />}
             >
-                <link rel="stylesheet" href={`${assetUrl}assets/css/admin-theme.css`} />
                 {children}
             </BaseLayout>
         </AdminThemeProvider>

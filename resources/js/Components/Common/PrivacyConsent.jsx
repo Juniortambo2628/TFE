@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import { PrivacyPolicy, CookiePolicy, TermsOfService } from '@/Components/LegalDocs';
 
 export default function PrivacyConsent() {

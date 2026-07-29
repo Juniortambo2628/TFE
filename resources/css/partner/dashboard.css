@@ -1,6 +1,8 @@
-/* Partner Dashboard Specific Styles */
+/* ==========================================================================
+   Partner Dashboard Styles — Single source of truth for all Partner pages
+   ========================================================================== */
 
-/* Override sidebar active state for partner - use orange instead of crimson */
+/* ── Sidebar Overrides ── */
 .partner-layout .sidebar-item.active {
     background: rgba(217, 119, 6, 0.15);
 }
@@ -10,7 +12,71 @@
     box-shadow: 0 0 8px rgba(217, 119, 6, 0.5);
 }
 
-/* Partner Summary Cards - Modern Rounded Style */
+/* ── Hero Section ── */
+.partner-hero {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    border: 1px solid var(--partner-amber);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.partner-hero-with-shadow {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    border: 1px solid var(--partner-amber);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px rgba(217, 119, 6, 0.15);
+}
+
+/* Dynamic hero — border and shadow set via CSS custom properties */
+.partner-hero-dynamic {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    border: 1px solid var(--hero-border, var(--partner-amber));
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px var(--hero-shadow, rgba(217, 119, 6, 0.15));
+}
+
+/* Profile cover hero */
+.partner-profile-hero {
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--partner-amber);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    position: relative;
+    min-height: 200px;
+}
+
+.partner-profile-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-xl);
+}
+
+.partner-profile-content {
+    position: relative;
+    z-index: 1;
+}
+
+.partner-profile-content .dash-section-title {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.partner-profile-subtitle {
+    color: #eee;
+    margin-bottom: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Summary Cards ── */
 .partner-summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -46,8 +112,8 @@
     justify-content: center;
     font-size: 1.25rem;
     margin-bottom: 1rem;
-    background: rgba(217, 119, 6, 0.15);
-    color: #d97706;
+    background: var(--icon-bg, rgba(217, 119, 6, 0.15));
+    color: var(--icon-color, #d97706);
 }
 
 .partner-stat-card .stat-value {
@@ -84,7 +150,26 @@
     color: #9ca3af;
 }
 
-/* Content Cards */
+/* Stat icon color variants — set via CSS custom properties on parent */
+.partner-stat-card[data-accent="green"] { --card-accent: #10b981; }
+.partner-stat-card[data-accent="green"] .stat-icon { --icon-bg: rgba(16, 185, 129, 0.15); --icon-color: #10b981; }
+
+.partner-stat-card[data-accent="blue"] { --card-accent: #3b82f6; }
+.partner-stat-card[data-accent="blue"] .stat-icon { --icon-bg: rgba(59, 130, 246, 0.15); --icon-color: #3b82f6; }
+
+.partner-stat-card[data-accent="purple"] { --card-accent: #8b5cf6; }
+.partner-stat-card[data-accent="purple"] .stat-icon { --icon-bg: rgba(139, 92, 246, 0.15); --icon-color: #8b5cf6; }
+
+.partner-stat-card[data-accent="red"] { --card-accent: #ef4444; }
+.partner-stat-card[data-accent="red"] .stat-icon { --icon-bg: rgba(239, 68, 68, 0.15); --icon-color: #ef4444; }
+
+.partner-stat-card[data-accent="amber"] { --card-accent: #d97706; }
+.partner-stat-card[data-accent="amber"] .stat-icon { --icon-bg: rgba(217, 119, 6, 0.15); --icon-color: #d97706; }
+
+.partner-stat-card[data-accent="yellow"] { --card-accent: #f59e0b; }
+.partner-stat-card[data-accent="yellow"] .stat-icon { --icon-bg: rgba(245, 158, 11, 0.15); --icon-color: #f59e0b; }
+
+/* ── Content Cards ── */
 .partner-content-card {
     background: linear-gradient(145deg, #1e1e1e 0%, #141414 100%);
     border: 1px solid #2a2a2a;
@@ -115,7 +200,94 @@
     color: #d97706;
 }
 
-/* Cost Breakdown Table */
+/* ── Quick Actions ── */
+.partner-quick-action-amber {
+    border-color: #d97706;
+}
+.partner-quick-action-amber i { color: #d97706; }
+
+.partner-quick-action-blue {
+    border-color: #3b82f6;
+}
+.partner-quick-action-blue i { color: #3b82f6; }
+
+.partner-quick-action-purple {
+    border-color: #8b5cf6;
+}
+.partner-quick-action-purple i { color: #8b5cf6; }
+
+/* ── Activity List ── */
+.partner-activity-span-2 {
+    grid-column: span 2;
+}
+
+.partner-activity-header-icon {
+    color: #d97706;
+    margin-right: 10px;
+}
+
+.partner-activity-amount {
+    color: #fff;
+    font-weight: 600;
+}
+
+.partner-activity-meta {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Status-based colors for activity items */
+.partner-status-approved .activity-icon { background: rgba(16, 185, 129, 0.2); }
+.partner-status-approved .activity-icon i { color: #10b981; }
+.partner-status-rejected .activity-icon { background: rgba(239, 68, 68, 0.2); }
+.partner-status-rejected .activity-icon i { color: #ef4444; }
+.partner-status-pending .activity-icon { background: rgba(217, 119, 6, 0.2); }
+.partner-status-pending .activity-icon i { color: #d97706; }
+
+/* Status badge */
+.partner-badge {
+    font-size: 0.65rem;
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.partner-badge-approved { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.partner-badge-rejected { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.partner-badge-pending { background: rgba(217, 119, 6, 0.1); color: #d97706; }
+
+/* ── Status Pill (RequestView hero) ── */
+.partner-status-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.partner-status-pill-approved { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.partner-status-pill-modified { background: rgba(217, 119, 6, 0.2); color: #d97706; }
+.partner-status-pill-pending { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.partner-status-pill-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+/* ── Back Link ── */
+.partner-back-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ── Request Title ── */
+.partner-request-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+/* ── Cost Breakdown Table ── */
 .cost-breakdown-table {
     width: 100%;
     border-collapse: separate;
@@ -163,6 +335,10 @@
     font-size: 0.875rem;
 }
 
+.cost-breakdown-table .category-label {
+    text-transform: capitalize;
+}
+
 .cost-breakdown-table .cost-input {
     width: 140px;
     background: #0a0a0a;
@@ -180,6 +356,11 @@
     border-color: #d97706;
 }
 
+/* Cost difference colors */
+.cost-diff-positive { color: #ef4444; font-weight: 500; }
+.cost-diff-negative { color: #10b981; font-weight: 500; }
+.cost-diff-zero { color: #888; font-weight: 500; }
+
 /* Total Row */
 .cost-total-row {
     background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
@@ -196,6 +377,12 @@
     font-size: 1rem;
     font-weight: 600;
     color: #d97706;
+    display: flex;
+    align-items: center;
+}
+
+.cost-total-row .total-label i {
+    margin-right: 0.5rem;
 }
 
 .cost-total-row .total-value {
@@ -204,7 +391,7 @@
     color: #fff;
 }
 
-/* Notes Section */
+/* ── Notes Section ── */
 .partner-notes-section textarea {
     width: 100%;
     min-height: 120px;
@@ -223,7 +410,11 @@
     border-color: #d97706;
 }
 
-/* Document Upload */
+/* ── Document Upload ── */
+.hidden-file-input {
+    display: none;
+}
+
 .document-upload-zone {
     border: 2px dashed #333;
     border-radius: 12px;
@@ -250,7 +441,7 @@
     font-size: 0.875rem;
 }
 
-/* Action Buttons */
+/* ── Action Buttons ── */
 .partner-action-buttons {
     display: flex;
     gap: 1rem;
@@ -292,8 +483,348 @@
     box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
 }
 
+.partner-btn-reject {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.partner-btn-reject:hover {
+    background: rgba(239, 68, 68, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
 .partner-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+}
+
+/* ── Communication / Messages ── */
+.partner-comm-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+}
+
+.partner-comm-grid.has-thread {
+    grid-template-columns: 350px 1fr;
+}
+
+.partner-comm-thread-list {
+    max-height: 500px;
+}
+
+.partner-comm-thread-item {
+    cursor: pointer;
+}
+
+.partner-comm-thread-item .dash-flex-between {
+    width: 100%;
+    align-items: flex-start;
+}
+
+.partner-comm-messages {
+    flex: 1;
+    padding: var(--space-lg);
+    max-height: 350px;
+}
+
+.partner-comm-msg-row {
+    margin-bottom: var(--space-lg);
+    display: flex;
+}
+
+.partner-comm-msg-row.is-partner {
+    justify-content: flex-end;
+}
+
+.partner-comm-msg-row.is-fan {
+    justify-content: flex-start;
+}
+
+.partner-comm-msg-bubble {
+    max-width: 70%;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+}
+
+.partner-comm-msg-bubble.is-partner {
+    background: var(--tint-amber);
+    border: 1px solid var(--partner-amber);
+}
+
+.partner-comm-msg-bubble.is-fan {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-light);
+}
+
+.partner-comm-msg-body {
+    line-height: 1.5;
+}
+
+.partner-comm-msg-time {
+    display: block;
+    margin-top: var(--space-sm);
+}
+
+.partner-comm-reply-area {
+    padding: var(--space-lg);
+}
+
+.partner-comm-reply-input {
+    flex: 1;
+}
+
+/* ── Filter Buttons ── */
+.partner-filter-group {
+    flex-wrap: wrap;
+}
+
+.partner-filter-btn {
+    padding: var(--space-sm) var(--space-lg);
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+}
+
+.partner-filter-btn:not(.active) {
+    opacity: 0.6;
+}
+
+.partner-filter-btn.active {
+    opacity: 1;
+}
+
+/* ── Search ── */
+.partner-search-wrapper {
+    position: relative;
+    max-width: 300px;
+    width: 100%;
+}
+
+.partner-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+}
+
+.partner-search-input {
+    padding-left: 35px;
+}
+
+/* ── Profile Avatar ── */
+.partner-avatar {
+    background: var(--partner-amber);
+    border: 3px solid var(--border-light);
+}
+
+.partner-badge-margin {
+    margin-top: var(--space-xs);
+}
+
+/* ── Submit Button ── */
+.partner-submit-btn {
+    padding: var(--space-md) var(--space-2xl);
+}
+
+.partner-submit-btn:disabled {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+}
+
+/* ── Requests Page ── */
+.partner-hero-title {
+    font-size: var(--fs-4xl);
+}
+
+/* Table hover */
+.hover-row:hover {
+    background: rgba(217, 119, 6, 0.05) !important;
+}
+
+.btn-review:hover {
+    background: #b45309 !important;
+    box-shadow: 0 0 12px rgba(217, 119, 6, 0.3);
+}
+
+/* ── Security Stat Icons ── */
+.partner-stat-icon-lg {
+    font-size: var(--fs-2xl);
+}
+
+/* ── Passkey Row ── */
+.partner-passkey-row {
+    padding: var(--space-md) var(--space-lg);
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+}
+
+.partner-passkey-date {
+    margin-left: var(--space-md);
+}
+
+.partner-passkey-delete {
+    padding: var(--space-xs);
+}
+
+.partner-no-passkeys {
+    margin: 0 0 var(--space-lg);
+}
+
+.partner-passkey-register {
+    width: 100%;
+    margin-top: var(--space-md);
+}
+
+/* ── Security Page ── */
+.partner-passkey-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.partner-passkey-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+}
+
+.partner-passkey-item i {
+    font-size: 1rem;
+}
+
+.partner-passkey-name {
+    flex: 1;
+    font-weight: 500;
+    color: #fff;
+}
+
+.partner-passkey-date {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.partner-passkey-btn-delete {
+    padding: var(--space-xs);
+    color: var(--accent-danger);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.partner-passkey-btn-delete:hover {
+    opacity: 0.8;
+}
+
+.partner-passkey-input-name {
+    flex: 1;
+    max-width: 300px;
+}
+
+.partner-passkey-btn-add,
+.partner-passkey-btn-save,
+.partner-passkey-btn-enable,
+.partner-passkey-btn-disable,
+.partner-passkey-btn-regenerate,
+.partner-passkey-btn-danger {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.partner-passkey-btn-add {
+    background: var(--tint-amber);
+    color: var(--partner-amber);
+    border: 1px solid var(--partner-amber);
+}
+
+.partner-passkey-btn-save {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: #fff;
+    width: 100%;
+    margin-top: var(--space-md);
+}
+
+.partner-passkey-btn-enable {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+}
+
+.partner-passkey-btn-disable {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    width: 100%;
+}
+
+.partner-passkey-btn-regenerate {
+    background: var(--tint-amber);
+    color: var(--partner-amber);
+    border: 1px solid var(--partner-amber);
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.partner-passkey-btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.partner-passkey-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.partner-passkey-btn-save:disabled,
+.partner-passkey-btn-enable:disabled,
+.partner-passkey-btn-disable:disabled,
+.partner-passkey-btn-regenerate:disabled,
+.partner-passkey-btn-danger:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+}
+
+/* ── Filter Buttons ── */
+.partner-btn-filter {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid var(--border-default);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.partner-btn-filter.active {
+    background: var(--tint-amber);
+    color: var(--partner-amber);
+    border-color: var(--partner-amber);
+}
+
+/* DataTable wrapper */
+.partner-data-table-wrapper {
+    padding: 0;
+}
+
+.partner-data-table-transparent {
+    background: transparent;
 }

@@ -18,10 +18,18 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post('/profile/privacy', [\App\Http\Controllers\ProfileController::class, 'updatePrivacy'])->name('profile.privacy');
+    Route::get('/profile', function () {
+        return redirect()->route('fan.profile');
+    })->name('profile.edit');
+    Route::patch('/profile', function () {
+        return redirect()->route('fan.profile');
+    })->name('profile.update');
+    Route::delete('/profile', function () {
+        return redirect()->route('fan.profile');
+    })->name('profile.destroy');
+    Route::post('/profile/privacy', function () {
+        return redirect()->route('fan.profile');
+    })->name('profile.privacy');
 });
 
 Route::get('/testimonials', [\App\Http\Controllers\TestimonialController::class, 'index']);
@@ -40,6 +48,20 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/journey', [\App\Http\Controllers\Fan\JourneyController::class, 'index'])->name('journey');
     Route::get('/bookings/{booking}', [\App\Http\Controllers\Fan\JourneyController::class, 'show'])->name('bookings.show');
     Route::get('/wallet', [\App\Http\Controllers\Fan\WalletController::class, 'index'])->name('wallet');
+
+    // Loan Applications (Fan)
+    Route::get('/loan-applications', [\App\Http\Controllers\Fan\LoanApplicationController::class, 'index'])->name('loan-applications');
+    Route::post('/loan-applications', [\App\Http\Controllers\Fan\LoanApplicationController::class, 'store'])->name('loan-applications.store');
+    Route::delete('/loan-applications/{loanApplication}', [\App\Http\Controllers\Fan\LoanApplicationController::class, 'destroy'])->name('loan-applications.destroy');
+
+    // Savings Goals (Fan)
+    Route::get('/savings-goals', [\App\Http\Controllers\Fan\SavingsGoalController::class, 'index'])->name('savings-goals');
+    Route::post('/savings-goals', [\App\Http\Controllers\Fan\SavingsGoalController::class, 'store'])->name('savings-goals.store');
+    Route::put('/savings-goals/{savingsGoal}', [\App\Http\Controllers\Fan\SavingsGoalController::class, 'update'])->name('savings-goals.update');
+    Route::delete('/savings-goals/{savingsGoal}', [\App\Http\Controllers\Fan\SavingsGoalController::class, 'destroy'])->name('savings-goals.destroy');
+
+    // Budget Delete
+    Route::delete('/budgets/{budget}', [\App\Http\Controllers\Fan\BudgetController::class, 'destroy'])->name('budgets.destroy');
 
     // API Routes for Fan Dashboard
     Route::post('/budget/save', [\App\Http\Controllers\Fan\BudgetController::class, 'store'])->name('budget.save');

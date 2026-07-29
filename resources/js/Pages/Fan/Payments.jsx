@@ -9,7 +9,7 @@ import '../../../css/fan/fan-pages.css';
 import '../../../css/fan/wallet.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 
 export default function Payments({ auth, payments, paymentMethods, transactions, stats }) {
     const { data: payData, setData: setPayData, post: payPost, processing: payProcessing, reset: payReset } = useForm({

@@ -17,7 +17,6 @@ export default function TwoFactorChallenge() {
         <>
             <Head>
                 <title>Two-Factor Confirmation</title>
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
             </Head>
 
             {/* Back Button */}

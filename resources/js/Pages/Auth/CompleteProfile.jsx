@@ -59,7 +59,6 @@ export default function CompleteProfile({ auth }) {
     return (
         <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 py-12">
              <Head title="Complete Profile">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
              </Head>
              
              <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl border border-zinc-800 shadow-2xl">

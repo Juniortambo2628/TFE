@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\UserSecuritySetting;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -68,12 +69,14 @@ class TwoFactorService
      */
     public function enable(User $user, string $secret)
     {
-        $user->forceFill([
-            'two_factor_secret' => Crypt::encryptString($secret),
-            'two_factor_recovery_codes' => Crypt::encryptString(json_encode($this->generateRecoveryCodes())),
-            'two_factor_confirmed_at' => now(),
-            'two_factor_enabled' => true,
-        ])->save();
+        UserSecuritySetting::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'two_factor_secret' => Crypt::encryptString($secret),
+                'two_factor_recovery_codes' => Crypt::encryptString(json_encode($this->generateRecoveryCodes())),
+                'two_factor_enabled' => true,
+            ]
+        );
     }
 
     /**
@@ -81,11 +84,10 @@ class TwoFactorService
      */
     public function disable(User $user)
     {
-        $user->forceFill([
+        UserSecuritySetting::where('user_id', $user->id)->update([
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
             'two_factor_enabled' => false,
-        ])->save();
+        ]);
     }
 }

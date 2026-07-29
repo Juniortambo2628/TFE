@@ -13,9 +13,9 @@ import '../../../css/fan/dashboard-modals.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 
-export default function Profile({ auth, socialStats, profile, additionalSettings, isOwnProfile = true, isFollowing = false, userTribes = [], userPosts = [], followers = [], followingList = [] }) {
+export default function Profile({ auth, socialStats, profile, additionalSettings, isOwnProfile = true, isFollowing = false, userTribes = [], userPosts = [], followers = [], followingList = [], security_settings = {} }) {
     const { user } = auth;
     const { flash, assetUrl } = usePage().props;
 
@@ -60,7 +60,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
     });
 
     const toggle2FA = () => {
-        if (auth.user.two_factor_enabled) {
+        if (security_settings.two_factor_enabled) {
             setConfirmDisable2FA(true);
         } else {
             router.post(route('fan.security.two-factor'), {}, { 
@@ -398,7 +398,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                             <input 
                                                 className="form-check-input" 
                                                 type="checkbox" 
-                                                checked={auth.user.two_factor_enabled} 
+                                                checked={security_settings.two_factor_enabled} 
                                                 onChange={toggle2FA}
                                             />
                                         </div>

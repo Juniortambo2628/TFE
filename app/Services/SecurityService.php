@@ -41,7 +41,7 @@ class SecurityService
             ]);
 
         $securityData = [
-            'two_factor_enabled' => $user->two_factor_enabled,
+            'two_factor_enabled' => $settings->two_factor_enabled,
             'login_notifications' => $settings->login_notifications,
             'last_password_change' => $settings->last_password_change?->diffForHumans() ?? 'Never',
         ];
@@ -96,8 +96,9 @@ class SecurityService
     public function toggleTwoFactor(Request $request): \Illuminate\Http\RedirectResponse
     {
         $user = $request->user();
+        $settings = UserSecuritySetting::where('user_id', $user->id)->first();
 
-        if ($user->two_factor_enabled) {
+        if ($settings && $settings->two_factor_enabled) {
             $this->twoFactorService->disable($user);
 
             return back()->with('success', 'Two-factor authentication disabled');

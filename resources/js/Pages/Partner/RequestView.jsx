@@ -80,32 +80,30 @@ export default function RequestView({ budget }) {
         return categoryIcons[cat] || categoryIcons.default;
     };
 
-    const statusColors = {
-        approved: { bg: 'rgba(16, 185, 129, 0.2)', color: '#10b981' },
-        modified: { bg: 'rgba(217, 119, 6, 0.2)', color: '#d97706' },
-        pending: { bg: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' },
-        rejected: { bg: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' },
-    };
+    const statusPillClass = (status) =>
+        `partner-status-pill partner-status-pill-${status || 'pending'}`;
 
-    const sc = statusColors[budget.partner_status] || statusColors.pending;
+    const costDiffClass = (diff) =>
+        diff < 0 ? 'cost-diff-negative' : diff > 0 ? 'cost-diff-positive' : 'cost-diff-zero';
 
     return (
         <PartnerLayout title={`Request ${budget.reference_id}`}>
             <div className="partner-layout">
                 {/* Hero Section */}
-                <div className="dashboard-header-card mb-4" style={{
-                    background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-                    border: `1px solid ${sc.color}`,
-                    padding: '2rem',
-                    borderRadius: '16px',
-                    boxShadow: `0 4px 24px ${sc.bg}`
+                <div className="partner-hero-dynamic mb-4" style={{
+                    '--hero-border': budget.partner_status === 'approved' ? '#10b981' :
+                                     budget.partner_status === 'rejected' ? '#ef4444' :
+                                     budget.partner_status === 'modified' ? '#d97706' : '#3b82f6',
+                    '--hero-shadow': budget.partner_status === 'approved' ? 'rgba(16,185,129,0.15)' :
+                                    budget.partner_status === 'rejected' ? 'rgba(239,68,68,0.15)' :
+                                    budget.partner_status === 'modified' ? 'rgba(217,119,6,0.15)' : 'rgba(59,130,246,0.15)',
                 }}>
                     <div className="dash-flex-between dash-flex-wrap dash-gap-lg">
                         <div>
-                            <Link href={route('partner.dashboard')} className="dash-text-muted dash-text-base" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <Link href={route('partner.dashboard')} className="dash-text-muted dash-text-base partner-back-link">
                                 <i className="fas fa-arrow-left"></i> Back to Dashboard
                             </Link>
-                            <h1 className="dash-text-primary" style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.25rem' }}>
+                            <h1 className="dash-text-primary partner-request-title">
                                 {budget.reference_id}
                             </h1>
                             <p className="dash-text-muted dash-text-base dash-no-margin">
@@ -113,15 +111,7 @@ export default function RequestView({ budget }) {
                             </p>
                         </div>
                         <div className="dash-text-right">
-                            <div style={{
-                                padding: '0.5rem 1rem',
-                                borderRadius: '20px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                textTransform: 'uppercase',
-                                background: sc.bg,
-                                color: sc.color
-                            }}>
+                            <div className={statusPillClass(budget.partner_status)}>
                                 {budget.partner_status === 'pending' ? 'Needs Review' : budget.partner_status}
                             </div>
                         </div>
@@ -130,29 +120,29 @@ export default function RequestView({ budget }) {
 
                 {/* Summary Cards */}
                 <div className="partner-summary-cards">
-                    <div className="partner-stat-card" style={{ '--card-accent': '#3b82f6' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                    <div className="partner-stat-card" data-accent="blue">
+                        <div className="stat-icon">
                             <i className="fas fa-futbol"></i>
                         </div>
                         <div className="stat-value">{budget.match_ids?.length || 0}</div>
                         <div className="stat-label">Matches</div>
                     </div>
-                    <div className="partner-stat-card" style={{ '--card-accent': '#8b5cf6' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
+                    <div className="partner-stat-card" data-accent="purple">
+                        <div className="stat-icon">
                             <i className="fas fa-bed"></i>
                         </div>
                         <div className="stat-value">{budget.nights || 0}</div>
                         <div className="stat-label">Nights</div>
                     </div>
-                    <div className="partner-stat-card" style={{ '--card-accent': '#10b981' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                    <div className="partner-stat-card" data-accent="green">
+                        <div className="stat-icon">
                             <i className="fas fa-star"></i>
                         </div>
                         <div className="stat-value capitalize">{budget.accommodation_level}</div>
                         <div className="stat-label">Accommodation</div>
                     </div>
-                    <div className="partner-stat-card" style={{ '--card-accent': '#f59e0b' }}>
-                        <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
+                    <div className="partner-stat-card" data-accent="yellow">
+                        <div className="stat-icon">
                             <i className="fas fa-plane"></i>
                         </div>
                         <div className="stat-value capitalize">{budget.flight_class}</div>
@@ -191,7 +181,7 @@ export default function RequestView({ budget }) {
                                                 <div className="category-icon" style={{ background: style.bg, color: style.color }}>
                                                     <i className={`fas ${style.icon}`}></i>
                                                 </div>
-                                                <span style={{ textTransform: 'capitalize' }}>{item.category.replace(/_/g, ' ')}</span>
+                                                <span className="category-label">{item.category.replace(/_/g, ' ')}</span>
                                             </div>
                                         </td>
                                         <td className="dash-text-muted">{formatMoney(originalCost)}</td>
@@ -203,10 +193,7 @@ export default function RequestView({ budget }) {
                                                 onChange={(e) => updateBreakdownItem(index, e.target.value)}
                                             />
                                         </td>
-                                        <td style={{
-                                            color: difference < 0 ? '#10b981' : difference > 0 ? '#ef4444' : '#888',
-                                            fontWeight: '500'
-                                        }}>
+                                        <td className={costDiffClass(difference)}>
                                             {difference === 0 ? '—' : (difference > 0 ? '+' : '') + formatMoney(difference)}
                                         </td>
                                     </tr>
@@ -217,7 +204,7 @@ export default function RequestView({ budget }) {
 
                     <div className="cost-total-row">
                         <span className="total-label">
-                            <i className="fas fa-coins" style={{ marginRight: '0.5rem' }}></i>
+                            <i className="fas fa-coins"></i>
                             Total Partner Quote
                         </span>
                         <span className="total-value">{formatMoney(calculateTotal(breakdown))}</span>
@@ -245,7 +232,7 @@ export default function RequestView({ budget }) {
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileChange}
-                            style={{ display: 'none' }}
+                            className="hidden-file-input"
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         />
                         <div
@@ -291,19 +278,6 @@ export default function RequestView({ budget }) {
                         className="partner-btn partner-btn-reject"
                         disabled={processing}
                         onClick={() => handleSubmit('rejected')}
-                        style={{
-                            background: 'rgba(239, 68, 68, 0.15)',
-                            color: '#ef4444',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            padding: '0.75rem 1.5rem',
-                            borderRadius: '12px',
-                            cursor: processing ? 'not-allowed' : 'pointer',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            transition: 'all 0.2s',
-                        }}
                     >
                         <i className="fas fa-times-circle"></i>
                         Reject Request

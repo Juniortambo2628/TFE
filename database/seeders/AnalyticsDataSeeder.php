@@ -81,7 +81,7 @@ class AnalyticsDataSeeder extends Seeder
         }
 
         // 4. Seed some payments
-        $methods = ['MPESA', 'Credit Card', 'Bank Transfer'];
+        $methods = ['mpesa', 'stripe', 'bank'];
         for ($i = 0; $i < 15; $i++) {
             \App\Models\PaymentTransaction::create([
                 'user_id' => $user->id,

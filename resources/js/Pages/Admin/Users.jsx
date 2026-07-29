@@ -6,7 +6,7 @@ import StatCard from '@/Components/Common/StatCard';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DataTable from '@/Components/DataTable';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import { useForm, usePage } from '@inertiajs/react';
 import SearchableSelect from '@/Components/SearchableSelect';
 import AdminInput from '@/Components/Admin/Form/AdminInput';

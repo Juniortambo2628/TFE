@@ -16,7 +16,6 @@ export default function ForgotPassword({ status }) {
         <>
             <Head>
                 <title>Forgot Password</title>
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
             </Head>
 
             {/* Back Button */}

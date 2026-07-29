@@ -4,7 +4,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import DataTable from '@/Components/DataTable';
-import DashboardModal from '@/Components/Fan/DashboardModal';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { useForm, router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
