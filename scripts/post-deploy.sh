@@ -39,6 +39,19 @@ rm -f "$FRONTEND_TARBALL"
 mkdir -p "$BACKEND_PATH/public"
 cp -r "$FRONTEND_PATH/build" "$BACKEND_PATH/public/build"
 
+# ─────────────────────────────────────────────
+# 2b. STATIC ASSETS (asset() resolves to FRONTEND_PATH)
+# ─────────────────────────────────────────────
+echo "─── Linking static assets into frontend path ───"
+# Symlink directories that asset() references into FRONTEND_PATH
+# so the browser can fetch them at the root URL.
+for dir in new-landing-template assets; do
+  if [ -d "$BACKEND_PATH/public/$dir" ] && [ ! -e "$FRONTEND_PATH/$dir" ]; then
+    ln -s "$BACKEND_PATH/public/$dir" "$FRONTEND_PATH/$dir"
+    echo "Linked $FRONTEND_PATH/$dir -> $BACKEND_PATH/public/$dir"
+  fi
+done
+
 cd "$BACKEND_PATH"
 
 # ─────────────────────────────────────────────
