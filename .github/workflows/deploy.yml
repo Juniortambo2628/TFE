@@ -111,26 +111,39 @@ jobs:
     # ─────────────────────────────────────────────
     - name: Sync backend files
       run: |
-        rsync -az --delete \
-          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
-          --exclude='.env' \
-          --exclude='storage' \
-          deploy-package/backend/ \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.BACKEND_PATH }}/"
+        tar -czf /tmp/backend.tar.gz -C deploy-package/backend .
+        scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
+          /tmp/backend.tar.gz \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/backend.tar.gz
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+          set -e
+          # Remove old app files but preserve .env, storage/
+          find ${{ secrets.BACKEND_PATH }} -maxdepth 1 ! -name '.' ! -name '.env' ! -name 'storage' -exec rm -rf {} + 2>/dev/null || true
+          tar -xzf /tmp/backend.tar.gz -C ${{ secrets.BACKEND_PATH }}
+          rm -f /tmp/backend.tar.gz
+        ENDSSH
 
     - name: Sync frontend build assets
       run: |
-        rsync -az --delete \
-          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
-          deploy-package/frontend/build/ \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/build/"
+        tar -czf /tmp/frontend-build.tar.gz -C deploy-package/frontend/build .
+        scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
+          /tmp/frontend-build.tar.gz \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/frontend-build.tar.gz
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+          set -e
+          rm -rf ${{ secrets.FRONTEND_PATH }}/build
+          mkdir -p ${{ secrets.FRONTEND_PATH }}/build
+          tar -xzf /tmp/frontend-build.tar.gz -C ${{ secrets.FRONTEND_PATH }}/build
+          rm -f /tmp/frontend-build.tar.gz
+        ENDSSH
 
     - name: Sync frontend entrypoint files
       run: |
-        rsync -az \
-          -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+        scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
           deploy-package/frontend/.htaccess deploy-package/frontend/index.php \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/
 
     # ─────────────────────────────────────────────
     # 5. POST-DEPLOY COMMANDS
