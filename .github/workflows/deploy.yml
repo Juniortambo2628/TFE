@@ -81,7 +81,13 @@ jobs:
         mkdir -p deploy-package/frontend/build
         cp -r public/build/. deploy-package/frontend/build/
         cp public/.htaccess deploy-package/frontend/.htaccess
-        cp public/index.php deploy-package/frontend/index.php
+
+        # Generate frontend index.php with paths pointing to backend
+        sed \
+          -e "s|__DIR__.'/../storage/|__DIR__.'/../tfe-core/storage/|g" \
+          -e "s|__DIR__.'/../vendor/|__DIR__.'/../tfe-core/vendor/|g" \
+          -e "s|__DIR__.'/../bootstrap/|__DIR__.'/../tfe-core/bootstrap/|g" \
+          public/index.php > deploy-package/frontend/index.php
 
     - name: Upload deployment artifact
       uses: actions/upload-artifact@v4
