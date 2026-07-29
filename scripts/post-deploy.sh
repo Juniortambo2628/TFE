@@ -30,9 +30,8 @@ rm -f "$BACKEND_TARBALL"
 
 echo "─── Replacing frontend build assets ───"
 rm -rf "$FRONTEND_PATH/build"
-mkdir -p "$FRONTEND_PATH/build"
-# Archive contains: build/*, .htaccess, index.php at root
-tar -xzf "$FRONTEND_TARBALL" -C "$FRONTEND_PATH" build/ .htaccess index.php
+# Extract entire archive (contains build/, .htaccess, index.php at root)
+tar -xzf "$FRONTEND_TARBALL" -C "$FRONTEND_PATH"
 rm -f "$FRONTEND_TARBALL"
 
 cd "$BACKEND_PATH"
