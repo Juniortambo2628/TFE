@@ -148,7 +148,7 @@ jobs:
     - name: Transfer frontend entrypoint files
       run: |
         scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          archives/.htaccess archives/index.php \
+          archives/deploy-package/frontend/.htaccess archives/deploy-package/frontend/index.php \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
 
     - name: Extract, post-deploy, and verify
