@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import { router } from '@inertiajs/react';
@@ -95,7 +95,7 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
 
     return (
         <AdminLayout title="Messages">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Messages & Notifications"
                 subtitle="Manage contact messages and system notifications."
                 breadcrumbs={breadcrumbs}

@@ -3,7 +3,7 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 
 export default function FanStore({ auth, products, categories }) {
     const [activeCategory, setActiveCategory] = useState('All');
@@ -33,7 +33,7 @@ export default function FanStore({ auth, products, categories }) {
     return (
         <FanLayout title="Fan Store">
             {/* Hero Section */}
-            <FanHero 
+            <DashboardHero role="fan" 
                 title="Fan Store"
                 subtitle="Official World Cup 2026 merchandise and fan gear"
                 breadcrumbs={[{ label: 'Store' }]}

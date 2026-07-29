@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import { Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { formatMoney } from '@/lib/utils';
@@ -31,7 +31,8 @@ export default function BookingDetail({ auth, booking }) {
     return (
         <AdminLayout title={`Booking #${booking.id}`}>
             <Head title={`Booking #${booking.id}`} />
-            <AdminHero
+            <DashboardHero
+                role="admin"
                 title="Booking Details"
                 subtitle={`Viewing booking for ${booking.user_name}`}
                 breadcrumbs={breadcrumbs}

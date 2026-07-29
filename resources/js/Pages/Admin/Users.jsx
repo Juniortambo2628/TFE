@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import { router } from '@inertiajs/react';
@@ -212,7 +212,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
 
     return (
         <AdminLayout title="Users Management">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="User Management"
                 subtitle="View, search, and manage all registered users."
                 breadcrumbs={breadcrumbs}

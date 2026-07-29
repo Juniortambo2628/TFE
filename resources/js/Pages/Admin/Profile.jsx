@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import { useForm, usePage } from '@inertiajs/react';
 
 export default function Profile({ auth, status }) {
@@ -40,7 +40,7 @@ export default function Profile({ auth, status }) {
 
     return (
         <AdminLayout title="Profile Settings">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Account Settings" 
                 subtitle="Manage your personal information and account security."
                 breadcrumbs={breadcrumbs}

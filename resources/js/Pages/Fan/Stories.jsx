@@ -6,7 +6,7 @@ import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import 'filepond/dist/filepond.min.css';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import ShareModal from '@/Components/ShareModal';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/stories.css';
 export default function Stories({ auth, stories, myStories, storyAds = [] }) {
     const { user } = auth;
@@ -281,7 +281,7 @@ export default function Stories({ auth, stories, myStories, storyAds = [] }) {
         <FanLayout title="Stories">
             <Head title="Stories" />
             
-            <FanHero 
+            <DashboardHero role="fan" 
                 title="Fan Stories"
                 subtitle="Share your favorite moments and follow other fans' journeys."
                 breadcrumbs={[{ label: 'Social' }, { label: 'Stories' }]}

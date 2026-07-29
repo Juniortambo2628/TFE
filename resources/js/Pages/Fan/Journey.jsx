@@ -1,7 +1,7 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
@@ -45,7 +45,7 @@ export default function Journey({ auth, paymentData, activeBudget }) {
         <FanLayout title="My Journey">
             <div className="container-fluid">
                 
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="My World Cup Journey"
                     subtitle="Track your booking progress, payment schedule, and travel itinerary."
                     breadcrumbs={[

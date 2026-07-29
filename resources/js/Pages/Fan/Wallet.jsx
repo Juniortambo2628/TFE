@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import { cn } from '@/lib/utils';
 
 export default function Wallet({ auth, walletData }) {
@@ -14,7 +14,7 @@ export default function Wallet({ auth, walletData }) {
 
             <div className="pb-12">
                 {/* Hero Section */}
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Financial Overview"
                     subtitle="Manage your savings, track your World Cup budget, and view recent transactions."
                     breadcrumbs={[{ label: 'Wallet' }]}

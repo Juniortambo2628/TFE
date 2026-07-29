@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, router } from '@inertiajs/react';
 import { toast } from 'sonner';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Fan/DashboardModal';
 import {
@@ -78,7 +77,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
 
             <div>
                 {/* Hero Section */}
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Events & Activities"
                     subtitle="Discover local World Cup events, watch parties, and fan activities"
                     breadcrumbs={[{ label: 'Social' }, { label: 'Events' }]}

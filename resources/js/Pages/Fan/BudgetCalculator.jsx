@@ -6,7 +6,7 @@ import MatchCard from '@/Components/Fan/MatchCard';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/budget-calculator.css';
 
 export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null }) {
@@ -500,7 +500,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             
             <div className="calculator-container">
                 
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Smart Budget Calculator"
                     subtitle="Plan your World Cup 2026 journey with AI-powered cost estimates"
                     bgImage="/assets/img/fan/backgrounds/finance_hero.png"
@@ -591,7 +591,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             <span className="stat-value">{nights}</span>
                         </div>
                     </div>
-                </FanHero>
+                </DashboardHero>
 
                 {/* Wizard Step 1: Method Selection */}
                 {!showResults && wizardStep === 1 && (

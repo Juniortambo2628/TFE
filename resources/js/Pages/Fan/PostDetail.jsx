@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import ShareModal from '@/Components/ShareModal';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import '../../../css/fan/feed.css';
 import '../../../css/fan/budget-calculator.css';
@@ -67,7 +67,7 @@ export default function PostDetail({ auth, post, comments, likers, threadReplies
             <Head title="Post Details" />
             
             <div className="calculator-container">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Post Details"
                     subtitle="View all comments and likes"
                     breadcrumbs={[

@@ -13,7 +13,6 @@ import Breadcrumbs from '@/Components/Common/Breadcrumbs';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import StatusDialog from '@/Components/Common/StatusDialog';
 import DataTable from '@/Components/DataTable';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
 
 export default function Security({ security_settings = {}, loginHistory = [], passkeys = [], stats = {} }) {

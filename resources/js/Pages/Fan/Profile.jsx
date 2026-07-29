@@ -11,7 +11,7 @@ import '../../../css/register-dark.css';
 import '../../../css/fan/profile.css';
 import '../../../css/fan/dashboard-modals.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Fan/DashboardModal';
 
@@ -187,7 +187,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
         <FanLayout title={isOwnProfile ? "My Profile" : `${fanProfile.name}'s Profile`}>
              <div className="container-fluid profile-page">
                 {/* Profile Header Card */}
-                <FanHero 
+                <DashboardHero role="fan" 
                     title={isOwnProfile ? "My Profile" : fanProfile.name}
                     subtitle={isOwnProfile 
                         ? "Manage your personal information and preferences for your World Cup journey." 

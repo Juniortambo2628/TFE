@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 
 export default function Contact({ auth }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -37,7 +36,7 @@ export default function Contact({ auth }) {
             <Head title="Contact" />
 
             <div className="">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Contact Support"
                     subtitle="Get help with your World Cup 2026 journey. We're here to assist you."
                     breadcrumbs={[{ label: 'Contact Support' }]}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
@@ -166,7 +166,7 @@ export default function Content({ auth, posts = { data: [] }, settings = {}, tri
 
     return (
         <AdminLayout title="Content Management">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Content Management"
                 subtitle="Manage landing page sections, fan dashboard heroes, and community posts."
                 breadcrumbs={breadcrumbs}

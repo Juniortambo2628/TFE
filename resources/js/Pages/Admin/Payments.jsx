@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import { router } from '@inertiajs/react';
@@ -117,7 +117,7 @@ export default function Payments({ auth, transactions = { data: [] }, stats = {}
 
     return (
         <AdminLayout title="Payments Management">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Payments & Transactions"
                 subtitle="Monitor revenue and manage payment statuses."
                 breadcrumbs={breadcrumbs}

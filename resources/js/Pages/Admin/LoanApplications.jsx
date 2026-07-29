@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import { Head, router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -36,7 +36,7 @@ export default function LoanApplications({ loans, stats }) {
         <AdminLayout title="Loan Applications">
             <Head title="Loan Applications" />
 
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Loan Applications"
                 subtitle="Review and manage fan loan requests."
                 breadcrumbs={breadcrumbs}

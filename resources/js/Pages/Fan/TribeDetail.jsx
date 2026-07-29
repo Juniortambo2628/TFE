@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/fan/tribes.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Fan/DashboardModal';
@@ -101,7 +100,7 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
             <Head title={tribe.name} />
 
             <div className="container-fluid p-0">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title={tribe.name}
                     subtitle={`${tribe.privacy.charAt(0).toUpperCase() + tribe.privacy.slice(1)} Group • Created ${tribe.created_at}`}
                     breadcrumbs={[
@@ -115,7 +114,7 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                             <i className="fas fa-cog me-2"></i> Manage Settings
                         </button>
                     )}
-                </FanHero>
+                </DashboardHero>
 
                 <div className="tribes-container pt-0">
                     {/* Summary Cards */}

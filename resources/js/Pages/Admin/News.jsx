@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import DataTable from '@/Components/DataTable';
@@ -103,7 +103,7 @@ export default function News({ auth, news = { data: [] } }) {
 
     return (
         <AdminLayout title="News Management">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="News Management" 
                 subtitle="Manage platform announcements and articles."
                 breadcrumbs={breadcrumbs}

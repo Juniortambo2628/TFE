@@ -5,21 +5,17 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        if (! Auth::user()->is_partner) {
-            abort(403, 'Unauthorized access.');
-        }
-
         $stats = [
             'pending' => Budget::where('is_active', true)->where('partner_status', 'pending')->count(),
             'approved' => Budget::where('is_active', true)->where('partner_status', 'approved')->count(),
             'modified' => Budget::where('is_active', true)->where('partner_status', 'modified')->count(),
+            'rejected' => Budget::where('is_active', true)->where('partner_status', 'rejected')->count(),
             'total_revenue' => Budget::where('is_active', true)->where('partner_status', 'approved')->sum('partner_cost') ?: 0,
         ];
 
@@ -33,10 +29,6 @@ class DashboardController extends Controller
 
     public function show(Budget $budget)
     {
-        if (! Auth::user()->is_partner) {
-            abort(403, 'Unauthorized access.');
-        }
-
         return Inertia::render('Partner/RequestView', [
             'budget' => [
                 'id' => $budget->id,
@@ -58,19 +50,14 @@ class DashboardController extends Controller
 
     public function update(Request $request, Budget $budget)
     {
-        if (! Auth::user()->is_partner) {
-            abort(403, 'Unauthorized access.');
-        }
-
         $validated = $request->validate([
             'partner_cost' => 'required|numeric',
-            'partner_breakdown' => 'required', // Can be array or JSON string depending on frontend
+            'partner_breakdown' => 'required',
             'partner_notes' => 'nullable|string',
-            'status' => 'required|in:approved,modified',
+            'status' => 'required|in:approved,modified,rejected',
             'document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
-        // Process partner_breakdown if it came as a string (rare with new frontend but good to keep)
         $breakdown = $validated['partner_breakdown'];
         if (is_string($breakdown)) {
             $breakdown = json_decode($breakdown, true);
@@ -83,7 +70,6 @@ class DashboardController extends Controller
             'partner_status' => $validated['status'],
         ];
 
-        // Handle document upload
         if ($request->hasFile('document')) {
             $file = $request->file('document');
             $filename = time().'_'.$file->getClientOriginalName();
@@ -98,7 +84,6 @@ class DashboardController extends Controller
 
     public function requests()
     {
-        // Reuse index logic — render different page with same data
         $data = $this->getRequestsData();
 
         return Inertia::render('Partner/Requests', [
@@ -110,7 +95,7 @@ class DashboardController extends Controller
     {
         return Budget::with('user.profile')
             ->where('is_active', true)
-            ->whereIn('partner_status', ['pending', 'modified', 'approved'])
+            ->whereIn('partner_status', ['pending', 'modified', 'approved', 'rejected'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($budget) {

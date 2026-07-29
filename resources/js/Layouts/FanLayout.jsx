@@ -4,6 +4,7 @@ import DashboardHeader from '@/Components/Common/DashboardHeader';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import { usePage } from '@inertiajs/react';
 import BaseLayout from './BaseLayout';
+import '../../css/fan/dashboard.css';
 
 export default function FanLayout({ children, title }) {
     const { assetUrl, auth } = usePage().props;

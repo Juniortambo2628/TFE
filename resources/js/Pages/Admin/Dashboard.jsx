@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import { AreaChart, BarChart, Card, Title, Text } from "@tremor/react";
 import { Link, usePage } from '@inertiajs/react';
@@ -35,7 +35,7 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
 
     return (
         <AdminLayout title="Admin Dashboard">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title={`Welcome back, ${auth.user?.name?.split(' ')[0] || 'Admin'}!`}
                 subtitle="System overview and management console."
                 breadcrumbs={breadcrumbs}

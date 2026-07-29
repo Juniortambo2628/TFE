@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import StatCard from '@/Components/Common/StatCard';
 import AdminCategoryCard from '@/Components/Admin/AdminCategoryCard';
@@ -110,7 +110,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
 
     return (
         <AdminLayout title="Events Management">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Events Management"
                 subtitle="Organize, schedule, and manage platform events."
                 breadcrumbs={breadcrumbs}

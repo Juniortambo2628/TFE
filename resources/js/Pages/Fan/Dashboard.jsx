@@ -1,8 +1,7 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import FanFooter from '@/Components/Fan/FanFooter';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
@@ -157,7 +156,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
             {/* Wrapper for the dashboard content to match legacy structure if needed */}
             <div className=""> 
                 
-            <FanHero 
+            <DashboardHero role="fan" 
                 id="dashboard-hero-section"
                 title={`Welcome back, ${auth.user.name.split(' ')[0]}!`}
                 subtitle="Your World Cup 2026 journey is on track. Here's your current overview."

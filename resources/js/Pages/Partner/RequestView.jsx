@@ -1,15 +1,12 @@
 import React, { useState, useRef } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { useForm, Link, router } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
-import '../../../css/partner/dashboard.css';
 import { formatMoney } from '@/lib/utils';
 
 export default function RequestView({ budget }) {
     const fileInputRef = useRef(null);
     const [attachedFile, setAttachedFile] = useState(null);
-    
-    // Initialize breakdown from budget data
+
     const initialBreakdown = budget.partner_breakdown || budget.original_breakdown || {};
     const breakdownArray = Object.entries(initialBreakdown).map(([category, cost]) => ({
         category,
@@ -26,23 +23,20 @@ export default function RequestView({ budget }) {
 
     const [breakdown, setBreakdown] = useState(breakdownArray);
 
-    // Calculate total from breakdown items
     const calculateTotal = (items) => {
         return items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
     };
 
-    // Update a specific breakdown item
     const updateBreakdownItem = (index, newCost) => {
         const updatedBreakdown = [...breakdown];
         updatedBreakdown[index].cost = parseFloat(newCost) || 0;
         setBreakdown(updatedBreakdown);
-        
-        // Update form data
+
         const breakdownObj = {};
         updatedBreakdown.forEach(item => {
             breakdownObj[item.category] = item.cost;
         });
-        
+
         setData({
             ...data,
             partner_breakdown: breakdownObj,
@@ -59,20 +53,17 @@ export default function RequestView({ budget }) {
     };
 
     const handleSubmit = (status) => {
-        // Update data with current status before submission
         setData('status', status);
 
-        // We use POST with _method spoofing for file uploads with PUT/PATCH in Laravel/Inertia
         router.post(route('partner.requests.update', budget.id), {
             ...data,
-            status: status, // Ensure status is sent
+            status: status,
             _method: 'PUT',
         }, {
             forceFormData: true,
         });
     };
 
-    // Category icons and colors
     const categoryIcons = {
         flights: { icon: 'fa-plane', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)' },
         hotel: { icon: 'fa-hotel', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },
@@ -89,16 +80,25 @@ export default function RequestView({ budget }) {
         return categoryIcons[cat] || categoryIcons.default;
     };
 
+    const statusColors = {
+        approved: { bg: 'rgba(16, 185, 129, 0.2)', color: '#10b981' },
+        modified: { bg: 'rgba(217, 119, 6, 0.2)', color: '#d97706' },
+        pending: { bg: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' },
+        rejected: { bg: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' },
+    };
+
+    const sc = statusColors[budget.partner_status] || statusColors.pending;
+
     return (
         <PartnerLayout title={`Request ${budget.reference_id}`}>
             <div className="partner-layout">
                 {/* Hero Section */}
                 <div className="dashboard-header-card mb-4" style={{
                     background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-                    border: '1px solid #d97706',
+                    border: `1px solid ${sc.color}`,
                     padding: '2rem',
                     borderRadius: '16px',
-                    boxShadow: '0 4px 24px rgba(217, 119, 6, 0.15)'
+                    boxShadow: `0 4px 24px ${sc.bg}`
                 }}>
                     <div className="dash-flex-between dash-flex-wrap dash-gap-lg">
                         <div>
@@ -113,18 +113,14 @@ export default function RequestView({ budget }) {
                             </p>
                         </div>
                         <div className="dash-text-right">
-                            <div style={{ 
-                                padding: '0.5rem 1rem', 
-                                borderRadius: '20px', 
-                                fontSize: '0.75rem', 
+                            <div style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '20px',
+                                fontSize: '0.75rem',
                                 fontWeight: '600',
                                 textTransform: 'uppercase',
-                                background: budget.partner_status === 'approved' ? 'rgba(16, 185, 129, 0.2)' : 
-                                           budget.partner_status === 'modified' ? 'rgba(217, 119, 6, 0.2)' : 
-                                           'rgba(59, 130, 246, 0.2)',
-                                color: budget.partner_status === 'approved' ? '#10b981' : 
-                                       budget.partner_status === 'modified' ? '#d97706' : 
-                                       '#3b82f6'
+                                background: sc.bg,
+                                color: sc.color
                             }}>
                                 {budget.partner_status === 'pending' ? 'Needs Review' : budget.partner_status}
                             </div>
@@ -172,7 +168,7 @@ export default function RequestView({ budget }) {
                             Original Estimate: {formatMoney(budget.original_cost)}
                         </span>
                     </div>
-                    
+
                     <table className="cost-breakdown-table">
                         <thead>
                             <tr>
@@ -187,7 +183,7 @@ export default function RequestView({ budget }) {
                                 const style = getCategoryStyle(item.category);
                                 const originalCost = budget.original_breakdown?.[item.category] || 0;
                                 const difference = item.cost - originalCost;
-                                
+
                                 return (
                                     <tr key={index}>
                                         <td>
@@ -207,7 +203,7 @@ export default function RequestView({ budget }) {
                                                 onChange={(e) => updateBreakdownItem(index, e.target.value)}
                                             />
                                         </td>
-                                        <td style={{ 
+                                        <td style={{
                                             color: difference < 0 ? '#10b981' : difference > 0 ? '#ef4444' : '#888',
                                             fontWeight: '500'
                                         }}>
@@ -219,7 +215,6 @@ export default function RequestView({ budget }) {
                         </tbody>
                     </table>
 
-                    {/* Live Total */}
                     <div className="cost-total-row">
                         <span className="total-label">
                             <i className="fas fa-coins" style={{ marginRight: '0.5rem' }}></i>
@@ -231,7 +226,6 @@ export default function RequestView({ budget }) {
 
                 {/* Notes & Documents */}
                 <div className="dash-form-grid">
-                    {/* Notes */}
                     <div className="partner-content-card partner-notes-section">
                         <div className="card-header">
                             <h3><i className="fas fa-sticky-note"></i> Notes & Comments</h3>
@@ -243,7 +237,6 @@ export default function RequestView({ budget }) {
                         ></textarea>
                     </div>
 
-                    {/* Document Upload */}
                     <div className="partner-content-card">
                         <div className="card-header">
                             <h3><i className="fas fa-paperclip"></i> Attach Document</h3>
@@ -255,7 +248,7 @@ export default function RequestView({ budget }) {
                             style={{ display: 'none' }}
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         />
-                        <div 
+                        <div
                             className="document-upload-zone"
                             onClick={() => fileInputRef.current?.click()}
                         >
@@ -278,7 +271,7 @@ export default function RequestView({ budget }) {
 
                 {/* Action Buttons */}
                 <div className="partner-action-buttons">
-                    <button 
+                    <button
                         className="partner-btn partner-btn-approve"
                         disabled={processing}
                         onClick={() => handleSubmit('approved')}
@@ -286,13 +279,34 @@ export default function RequestView({ budget }) {
                         <i className="fas fa-check-circle"></i>
                         Approve Quote
                     </button>
-                    <button 
+                    <button
                         className="partner-btn partner-btn-save"
                         disabled={processing}
                         onClick={() => handleSubmit('modified')}
                     >
                         <i className="fas fa-save"></i>
                         Save Changes
+                    </button>
+                    <button
+                        className="partner-btn partner-btn-reject"
+                        disabled={processing}
+                        onClick={() => handleSubmit('rejected')}
+                        style={{
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            color: '#ef4444',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            padding: '0.75rem 1.5rem',
+                            borderRadius: '12px',
+                            cursor: processing ? 'not-allowed' : 'pointer',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s',
+                        }}
+                    >
+                        <i className="fas fa-times-circle"></i>
+                        Reject Request
                     </button>
                 </div>
             </div>

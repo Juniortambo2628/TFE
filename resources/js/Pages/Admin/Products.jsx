@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import { Head, router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -145,7 +145,7 @@ export default function Products({ auth, products, stats }) {
     return (
         <AdminLayout title="Product Management">
             <Head title="Products" />
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Product Management"
                 subtitle="Manage your store inventory, jerseys, and accessories."
                 breadcrumbs={breadcrumbs}

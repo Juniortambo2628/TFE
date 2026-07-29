@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, router, usePage } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
 export default function Communication({ auth, announcements, messages }) {
@@ -39,7 +38,7 @@ export default function Communication({ auth, announcements, messages }) {
 
             <div>
                 {/* Hero Section */}
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Messages & Inbox"
                     subtitle="Stay updated with the latest news, announcements, and messages"
                     breadcrumbs={[{ label: 'Messages' }]}

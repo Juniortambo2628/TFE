@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 
 export default function PredictWin({ auth, upcomingMatches, userStats, leaderboard, prizes }) {
     const [selectedMatch, setSelectedMatch] = useState(null);
@@ -26,7 +26,7 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
     return (
         <FanLayout title="Predict & Win">
             {/* Hero Section */}
-            <FanHero 
+            <DashboardHero role="fan" 
                 title="Predict & Win"
                 subtitle="Predict match scores and win amazing prizes!"
                 breadcrumbs={[{ label: 'Predict' }]}

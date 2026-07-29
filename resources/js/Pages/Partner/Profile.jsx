@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import Breadcrumbs from '@/Components/Common/Breadcrumbs';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
 
 export default function Profile({ profile }) {

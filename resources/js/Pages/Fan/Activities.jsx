@@ -1,10 +1,9 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link } from '@inertiajs/react';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import { formatMoney } from '@/lib/utils';
-import '../../../css/fan/dashboard.css';
 
 export default function Activities({ auth, activities }) {
     return (
@@ -12,7 +11,7 @@ export default function Activities({ auth, activities }) {
             <Head title="Activity History" />
             
             <div className="container-fluid p-0">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Activity History"
                     subtitle="Track your recent interactions, bookings, and payments"
                     breadcrumbs={[

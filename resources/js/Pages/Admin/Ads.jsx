@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import DataTable from '@/Components/DataTable';
 import DashboardModal from '@/Components/Fan/DashboardModal';
@@ -95,7 +95,7 @@ export default function Ads({ auth, ads = { data: [] } }) {
 
     return (
         <AdminLayout title="Ads Management">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Advertisements" 
                 subtitle="Manage partners and banner ads across the platform."
                 breadcrumbs={breadcrumbs}

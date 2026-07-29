@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -71,7 +71,7 @@ export default function Prizes({ auth, prizes = [] }) {
 
     return (
         <AdminLayout title="Tournament Prizes">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Tournament Prizes"
                 subtitle="Manage and configure rewards for tournament winners."
                 breadcrumbs={breadcrumbs}

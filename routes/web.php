@@ -242,7 +242,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
 });
 
 // Partner Routes
-Route::middleware(['auth', 'verified'])->prefix('partner')->name('partner.')->group(function () {
+Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('partner.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Partner\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/requests', [\App\Http\Controllers\Partner\DashboardController::class, 'requests'])->name('requests');
     Route::get('/requests/{budget}', [\App\Http\Controllers\Partner\DashboardController::class, 'show'])->name('requests.show');

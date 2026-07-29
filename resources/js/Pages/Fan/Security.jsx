@@ -9,9 +9,8 @@ import {
     DialogFooter,
 } from "@/Components/ui/dialog";
 import { startRegistration } from '@simplewebauthn/browser';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatusDialog from '@/Components/Common/StatusDialog';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { cn } from '@/lib/utils';
@@ -146,7 +145,7 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
             <Head title="Security" />
 
             <div className="pb-5">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Account Security"
                     subtitle="Manage your password, login methods, and account safety."
                     breadcrumbs={[{ label: 'Security' }]}

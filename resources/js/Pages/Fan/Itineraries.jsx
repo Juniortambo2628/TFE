@@ -1,7 +1,7 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { formatMoney } from '@/lib/utils';
 import { useState } from 'react';
@@ -33,7 +33,7 @@ export default function Itineraries({ itineraries }) {
     return (
         <FanLayout title="My Itineraries">
             <div className="container-fluid">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="My Itineraries"
                     subtitle="View and manage your travel plans and partner proposals."
                     breadcrumbs={[

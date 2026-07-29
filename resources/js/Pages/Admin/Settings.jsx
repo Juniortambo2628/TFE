@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
 
@@ -59,7 +59,7 @@ export default function Settings({ auth, settings = {} }) {
 
     return (
         <AdminLayout title="Settings">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Site Settings"
                 subtitle="Configure site identity, social links, SEO, and announcements."
                 breadcrumbs={breadcrumbs}

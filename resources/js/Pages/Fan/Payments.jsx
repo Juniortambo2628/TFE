@@ -5,10 +5,9 @@ import { usePaystackPayment } from 'react-paystack';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatMoney } from '@/lib/utils';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/fan/wallet.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Fan/DashboardModal';
 
@@ -140,7 +139,7 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
             <Head title="Payments" />
 
             <div>
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="My Wallet"
                     subtitle="Manage your payment methods and transaction history"
                     breadcrumbs={[{ label: 'Payments' }]}

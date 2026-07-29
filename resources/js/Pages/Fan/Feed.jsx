@@ -9,7 +9,7 @@ import EmojiPicker from 'emoji-picker-react';
 import ShareModal from '@/Components/ShareModal';
 import AdPostCard from '@/Components/AdPostCard';
 import '../../../css/fan/feed.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
 registerPlugin(FilePondPluginImagePreview);
@@ -196,7 +196,7 @@ export default function Feed({ auth, posts, stats, trendingHashtags, feedAds = [
 
     return (
         <FanLayout title="Social Feed">
-            <FanHero 
+            <DashboardHero role="fan" 
                 title="Social Feed"
                 subtitle="Connect with fellow World Cup fans and share your journey."
                 breadcrumbs={[{ label: 'Feed' }]}

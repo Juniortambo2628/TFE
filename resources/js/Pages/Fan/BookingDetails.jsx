@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import { usePaystackPayment } from 'react-paystack';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -93,7 +93,7 @@ export default function BookingDetails({ auth, booking, matches }) {
             <Head title={`Booking: ${booking.package_name}`} />
             
             <div className="container-fluid">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title={booking.package_name}
                     subtitle={`Reference: ${booking.id.toString().padStart(6, '0')}`}
                     breadcrumbs={[

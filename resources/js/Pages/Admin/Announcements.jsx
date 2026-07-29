@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -73,7 +73,7 @@ export default function Announcements({ auth, announcements = { data: [] } }) {
 
     return (
         <AdminLayout title="Announcements">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="System Announcements"
                 subtitle="Manage global broadcast messages for all users."
                 breadcrumbs={breadcrumbs}

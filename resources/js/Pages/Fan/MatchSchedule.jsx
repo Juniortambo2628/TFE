@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import WorldCup2026Data from '@/Data/WorldCup2026Data';
 import { Head, router } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
 import '../../../css/fan/fan-pages.css';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import MatchCard from '@/Components/Fan/MatchCard';
 
 export default function MatchSchedule({ auth, userFavorites = [] }) {
@@ -80,7 +79,7 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
             <Head title="Match Schedule" />
 
             <div>
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Match Schedule"
                     subtitle="FIFA World Cup 2026 - USA, Mexico & Canada"
                     breadcrumbs={[{ label: 'Schedule' }]}
@@ -91,7 +90,7 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
                         <span className="text-white-50">to</span>
                         <span className="badge bg-danger px-3 py-2"><i className="fas fa-trophy text-white me-2"></i> July 19</span>
                     </div>
-                </FanHero>
+                </DashboardHero>
 
                 {/* Stats Cards */}
                 {/* Summary Cards */}

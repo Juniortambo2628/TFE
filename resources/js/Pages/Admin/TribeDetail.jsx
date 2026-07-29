@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { toast } from 'sonner';
@@ -44,7 +44,8 @@ export default function TribeDetail({ auth, tribe }) {
     return (
         <AdminLayout title={`Tribe: ${tribe.name}`}>
             <Head title={`Tribe - ${tribe.name}`} />
-            <AdminHero
+            <DashboardHero
+                role="admin"
                 title={tribe.name}
                 subtitle="Tribe Details"
                 breadcrumbs={breadcrumbs}

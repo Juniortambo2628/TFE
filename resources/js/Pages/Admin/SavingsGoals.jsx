@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import { Head, router, usePage } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -28,7 +28,7 @@ export default function SavingsGoals({ auth, goals, stats }) {
     return (
         <AdminLayout title="Savings Goals Monitor">
             <Head title="Savings Goals" />
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Savings Goals Monitor"
                 subtitle="Track and analyze user savings progress for upcoming tournaments."
                 breadcrumbs={breadcrumbs}

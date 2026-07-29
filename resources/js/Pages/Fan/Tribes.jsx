@@ -3,7 +3,7 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import '../../../css/fan/tribes.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
-import FanHero from '@/Components/Fan/FanHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
 export default function Tribes({ auth, tribes, stats }) {
@@ -33,7 +33,7 @@ export default function Tribes({ auth, tribes, stats }) {
     return (
         <FanLayout title="Tribes">
             <div className="container-fluid p-0">
-                <FanHero 
+                <DashboardHero role="fan" 
                     title="Tribes"
                     subtitle="Join communities of fans who share your interests and passion for football."
                     breadcrumbs={[{ label: 'Social' }, { label: 'Tribes' }]}

@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -31,7 +31,7 @@ export default function Analytics({
 
     return (
         <AdminLayout title="Advanced Analytics">
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Advanced Analytics"
                 subtitle="Tracking system performance and partner engagement."
                 breadcrumbs={breadcrumbs}

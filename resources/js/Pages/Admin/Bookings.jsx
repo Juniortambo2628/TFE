@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AdminHero from '@/Components/Admin/AdminHero';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
 import { Head, router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -48,7 +48,7 @@ export default function Bookings({ auth, bookings, stats }) {
     return (
         <AdminLayout title="Bookings Management">
             <Head title="Bookings" />
-            <AdminHero 
+            <DashboardHero role="admin" 
                 title="Bookings Management"
                 subtitle="Review and manage tournament travel bookings."
                 breadcrumbs={breadcrumbs}

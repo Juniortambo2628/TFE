@@ -1,8 +1,6 @@
 import React from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Link, usePage } from '@inertiajs/react';
-import '../../../css/fan/dashboard.css';
-import '../../../css/partner/dashboard.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
 
@@ -18,7 +16,7 @@ export default function Dashboard({ requests, stats }) {
                     subtitle="Manage travel requests and help fans plan their World Cup 2026 journey."
                 />
 
-                {/* Summary Cards - Modern Rounded Design */}
+                {/* Summary Cards */}
                 <div className="partner-summary-cards">
                     <div className="partner-stat-card" style={{ '--card-accent': '#d97706' }}>
                         <div className="stat-icon">
@@ -30,7 +28,7 @@ export default function Dashboard({ requests, stats }) {
                             <i className="fas fa-clock"></i> Awaiting Review
                         </div>
                     </div>
-                    
+
                     <div className="partner-stat-card" style={{ '--card-accent': '#10b981' }}>
                         <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
                             <i className="fas fa-check-circle"></i>
@@ -41,7 +39,7 @@ export default function Dashboard({ requests, stats }) {
                             <i className="fas fa-arrow-up"></i> This Month
                         </div>
                     </div>
-                    
+
                     <div className="partner-stat-card" style={{ '--card-accent': '#3b82f6' }}>
                         <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
                             <i className="fas fa-edit"></i>
@@ -52,7 +50,18 @@ export default function Dashboard({ requests, stats }) {
                             <i className="fas fa-sync-alt"></i> Updated Quotes
                         </div>
                     </div>
-                    
+
+                    <div className="partner-stat-card" style={{ '--card-accent': '#ef4444' }}>
+                        <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                            <i className="fas fa-times-circle"></i>
+                        </div>
+                        <div className="stat-value">{stats?.rejected || 0}</div>
+                        <div className="stat-label">Rejected</div>
+                        <div className="stat-change neutral">
+                            <i className="fas fa-ban"></i> Declined
+                        </div>
+                    </div>
+
                     <div className="partner-stat-card" style={{ '--card-accent': '#8b5cf6' }}>
                         <div className="stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
                             <i className="fas fa-coins"></i>
@@ -74,18 +83,18 @@ export default function Dashboard({ requests, stats }) {
                             <h3>Quick Actions</h3>
                         </div>
                         <div className="quick-actions-grid">
-                            <Link href={route('partner.dashboard')} className="quick-action-btn" style={{ borderColor: '#d97706' }}>
+                            <Link href={route('partner.requests')} className="quick-action-btn" style={{ borderColor: '#d97706' }}>
                                 <i className="fas fa-inbox" style={{ color: '#d97706' }}></i>
                                 <span>All Requests</span>
                             </Link>
-                            <button className="quick-action-btn" disabled style={{ opacity: 0.5 }}>
-                                <i className="fas fa-file-invoice"></i>
-                                <span>Export Data</span>
-                            </button>
-                            <button className="quick-action-btn" disabled style={{ opacity: 0.5 }}>
-                                <i className="fas fa-cog"></i>
-                                <span>Settings</span>
-                            </button>
+                            <Link href={route('partner.messages')} className="quick-action-btn" style={{ borderColor: '#3b82f6' }}>
+                                <i className="fas fa-envelope" style={{ color: '#3b82f6' }}></i>
+                                <span>Messages</span>
+                            </Link>
+                            <Link href={route('partner.profile')} className="quick-action-btn" style={{ borderColor: '#8b5cf6' }}>
+                                <i className="fas fa-user-edit" style={{ color: '#8b5cf6' }}></i>
+                                <span>Edit Profile</span>
+                            </Link>
                         </div>
                     </div>
 
@@ -104,8 +113,16 @@ export default function Dashboard({ requests, stats }) {
                             {requests && requests.length > 0 ? (
                                 requests.slice(0, 5).map(req => (
                                     <div key={req.id} className="activity-item">
-                                        <div className="activity-icon" style={{ background: 'rgba(217, 119, 6, 0.2)' }}>
-                                            <i className="fas fa-suitcase" style={{ color: '#d97706' }}></i>
+                                        <div className="activity-icon" style={{
+                                            background: req.status === 'approved' ? 'rgba(16, 185, 129, 0.2)' :
+                                                       req.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' :
+                                                       'rgba(217, 119, 6, 0.2)'
+                                        }}>
+                                            <i className="fas fa-suitcase" style={{
+                                                color: req.status === 'approved' ? '#10b981' :
+                                                       req.status === 'rejected' ? '#ef4444' :
+                                                       '#d97706'
+                                            }}></i>
                                         </div>
                                         <div className="activity-info">
                                             <div className="activity-title">{req.reference_id}</div>
@@ -116,10 +133,14 @@ export default function Dashboard({ requests, stats }) {
                                                 {req.partner_cost ? formatMoney(req.partner_cost) : formatMoney(req.total_cost)}
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', alignItems: 'center' }}>
-                                                <span className="badge" style={{ 
-                                                    fontSize: '0.65rem', 
-                                                    background: req.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(217, 119, 6, 0.1)',
-                                                    color: req.status === 'approved' ? '#10b981' : '#d97706'
+                                                <span className="badge" style={{
+                                                    fontSize: '0.65rem',
+                                                    background: req.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
+                                                               req.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' :
+                                                               'rgba(217, 119, 6, 0.1)',
+                                                    color: req.status === 'approved' ? '#10b981' :
+                                                           req.status === 'rejected' ? '#ef4444' :
+                                                           '#d97706'
                                                 }}>
                                                     {req.status}
                                                 </span>
