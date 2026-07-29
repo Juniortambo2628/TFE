@@ -13,25 +13,22 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  deploy:
+  build-and-package:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-    # ─────────────────────────────────────────────
-    # 1. CHECKOUT & BUILD
-    # ─────────────────────────────────────────────
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup PHP ${{ env.PHP_VERSION }}
+    - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ env.PHP_VERSION }}
         extensions: mbstring, bcmath, pdo_mysql, curl, zip, gd, fileinfo, dom, exif, iconv
         coverage: none
 
-    - name: Setup Node ${{ env.NODE_VERSION }}
+    - name: Setup Node
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -53,15 +50,12 @@ jobs:
     - name: Build production assets
       run: npm run build
 
-    # ─────────────────────────────────────────────
-    # 2. ASSEMBLE DEPLOYMENT PACKAGE
-    # ─────────────────────────────────────────────
     - name: Assemble deployment package
+      # rsync is fine here — this runs on ubuntu-latest, not the production server
       run: |
         set -euo pipefail
         mkdir -p deploy-package/backend deploy-package/frontend
 
-        # Backend: everything except public/, dev files, storage contents, .env
         rsync -a \
           --exclude='.env' \
           --exclude='.env.example' \
@@ -77,7 +71,6 @@ jobs:
           --exclude='.phpunit.result.cache' \
           ./ deploy-package/backend/
 
-        # Frontend: built assets + webroot entry files
         mkdir -p deploy-package/frontend/build
         cp -r public/build/. deploy-package/frontend/build/
         cp public/.htaccess deploy-package/frontend/.htaccess
@@ -89,75 +82,79 @@ jobs:
           -e "s|__DIR__.'/../bootstrap/|__DIR__.'/../tfe-core/bootstrap/|g" \
           public/index.php > deploy-package/frontend/index.php
 
-    - name: Upload deployment artifact
+    - name: Package archives for transfer
+      # tar + scp instead of rsync — production server lacks rsync
+      run: |
+        set -euo pipefail
+        tar -czf backend.tar.gz -C deploy-package/backend .
+        tar -czf frontend-build.tar.gz -C deploy-package/frontend/build .
+
+    - name: Upload backend archive
       uses: actions/upload-artifact@v4
       with:
-        name: deploy-package
-        path: deploy-package
+        name: backend-archive
+        path: backend.tar.gz
         retention-days: 1
 
-    # ─────────────────────────────────────────────
-    # 3. SSH SETUP
-    # ─────────────────────────────────────────────
-    - name: Setup SSH
+    - name: Upload frontend archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-archive
+        path: |
+          frontend-build.tar.gz
+          deploy-package/frontend/.htaccess
+          deploy-package/frontend/index.php
+        retention-days: 1
+
+  deploy:
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout (for post-deploy scripts)
+      uses: actions/checkout@v4
+
+    - name: Download backend archive
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-archive
+
+    - name: Download frontend archive
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-archive
+
+    - name: Configure SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
-    # ─────────────────────────────────────────────
-    # 4. SYNC FILES TO SERVER
-    # ─────────────────────────────────────────────
-    - name: Sync backend files
+    - name: Transfer backend archive
       run: |
-        tar -czf /tmp/backend.tar.gz -C deploy-package/backend .
-        scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
-          /tmp/backend.tar.gz \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/backend.tar.gz
-        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          set -e
-          # Remove old app files but preserve .env, storage/
-          find ${{ secrets.BACKEND_PATH }} -maxdepth 1 ! -name '.' ! -name '.env' ! -name 'storage' -exec rm -rf {} + 2>/dev/null || true
-          tar -xzf /tmp/backend.tar.gz -C ${{ secrets.BACKEND_PATH }}
-          rm -f /tmp/backend.tar.gz
-        ENDSSH
+        scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
+          backend.tar.gz \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/backend-${{ github.sha }}.tar.gz"
 
-    - name: Sync frontend build assets
+    - name: Transfer frontend build archive
       run: |
-        tar -czf /tmp/frontend-build.tar.gz -C deploy-package/frontend/build .
-        scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
-          /tmp/frontend-build.tar.gz \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/frontend-build.tar.gz
-        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          set -e
-          rm -rf ${{ secrets.FRONTEND_PATH }}/build
-          mkdir -p ${{ secrets.FRONTEND_PATH }}/build
-          tar -xzf /tmp/frontend-build.tar.gz -C ${{ secrets.FRONTEND_PATH }}/build
-          rm -f /tmp/frontend-build.tar.gz
-        ENDSSH
+        scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
+          frontend-build.tar.gz \
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/frontend-build-${{ github.sha }}.tar.gz"
 
-    - name: Sync frontend entrypoint files
+    - name: Transfer frontend entrypoint files
       run: |
-        scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
+        scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
           deploy-package/frontend/.htaccess deploy-package/frontend/index.php \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/
+          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
 
-    # ─────────────────────────────────────────────
-    # 5. POST-DEPLOY COMMANDS
-    # ─────────────────────────────────────────────
-    - name: Run post-deploy commands
+    - name: Extract, post-deploy, and verify
       run: |
         ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-          "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
+          "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' RELEASE_SHA='${{ github.sha }}' bash -s" \
           < scripts/post-deploy.sh
 
-    # ─────────────────────────────────────────────
-    # 6. VERIFY DEPLOYMENT
-    # ─────────────────────────────────────────────
     - name: Verify deployed file structure
       run: |
         ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
@@ -165,11 +162,6 @@ jobs:
           "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
           < scripts/verify-deploy.sh
 
-    # ─────────────────────────────────────────────
-    # 7. CLEANUP
-    # ─────────────────────────────────────────────
     - name: Clean up
       if: always()
-      run: |
-        rm -rf ~/.ssh/deploy_key deploy-package
-        echo "Cleanup complete."
+      run: rm -f ~/.ssh/deploy_key backend.tar.gz frontend-build.tar.gz
