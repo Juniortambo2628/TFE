@@ -69,6 +69,7 @@ jobs:
           --exclude='deploy-package' \
           --exclude='*.md' \
           --exclude='.phpunit.result.cache' \
+          --exclude='production_env.txt' \
           ./ deploy-package/backend/
 
         mkdir -p deploy-package/frontend/build
