@@ -118,12 +118,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: backend-archive
+        path: archives
 
     - name: Download frontend archive
       uses: actions/download-artifact@v4
       with:
         name: frontend-archive
-        path: frontend-files
+        path: archives
 
     - name: Configure SSH
       run: |
@@ -135,19 +136,19 @@ jobs:
     - name: Transfer backend archive
       run: |
         scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          backend.tar.gz \
+          archives/backend.tar.gz \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/backend-${{ github.sha }}.tar.gz"
 
     - name: Transfer frontend build archive
       run: |
         scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          frontend-build.tar.gz \
+          archives/frontend-build.tar.gz \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/frontend-build-${{ github.sha }}.tar.gz"
 
     - name: Transfer frontend entrypoint files
       run: |
         scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          frontend-files/.htaccess frontend-files/index.php \
+          archives/.htaccess archives/index.php \
           "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_PATH }}/"
 
     - name: Extract, post-deploy, and verify
@@ -166,4 +167,4 @@ jobs:
 
     - name: Clean up
       if: always()
-      run: rm -f ~/.ssh/deploy_key backend.tar.gz frontend-build.tar.gz
+      run: rm -rf ~/.ssh/deploy_key archives
