@@ -16,11 +16,11 @@ class NewsService
      * Each entry is [label, query].
      */
     public const CATEGORIES = [
-        'general'      => ['General Football', 'football OR soccer'],
-        'european'     => ['European Football', '"Champions League" OR "Europa League" OR "Premier League" OR "La Liga" OR "Serie A" OR "Bundesliga"'],
-        'african'      => ['African Football', 'AFCON OR "African Cup" OR "African football" OR CAF'],
+        'general' => ['General Football', 'football OR soccer'],
+        'european' => ['European Football', '"Champions League" OR "Europa League" OR "Premier League" OR "La Liga" OR "Serie A" OR "Bundesliga"'],
+        'african' => ['African Football', 'AFCON OR "African Cup" OR "African football" OR CAF'],
         'south_american' => ['South American Football', '"Copa Libertadores" OR "Copa America" OR Brasileirão OR Argentina OR Brazil'],
-        'transfers'    => ['Transfer News', 'transfer OR signing OR "transfer window"'],
+        'transfers' => ['Transfer News', 'transfer OR signing OR "transfer window"'],
     ];
 
     public function __construct()
@@ -32,8 +32,8 @@ class NewsService
      * Get the latest football news.
      *
      * @param  string  $category  One of the CATEGORIES keys (e.g. 'general', 'african')
-     * @param  int     $pageSize  Number of articles (max 100)
-     * @return array   List of articles from NewsAPI
+     * @param  int  $pageSize  Number of articles (max 100)
+     * @return array List of articles from NewsAPI
      */
     public function getLatestNews($category = 'general', $pageSize = 6)
     {
