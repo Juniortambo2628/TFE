@@ -25,7 +25,7 @@ class LoanStatusNotification extends Notification
         $amount = number_format($this->loan->amount);
 
         return (new \Illuminate\Notifications\Messages\MailMessage)
-            ->subject('Loan Application ' . ucfirst($status))
+            ->subject('Loan Application '.ucfirst($status))
             ->line("Your loan application for KES {$amount} has been {$status}.")
             ->action('View Application', route('fan.wallet'));
     }
@@ -33,8 +33,8 @@ class LoanStatusNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Loan Application ' . ucfirst($this->loan->status),
-            'message' => 'Your loan application for KES ' . number_format($this->loan->amount) . ' has been ' . strtolower($this->loan->status) . '.',
+            'title' => 'Loan Application '.ucfirst($this->loan->status),
+            'message' => 'Your loan application for KES '.number_format($this->loan->amount).' has been '.strtolower($this->loan->status).'.',
             'action_url' => route('fan.wallet'),
             'type' => 'loan_status_update',
             'loan_id' => $this->loan->id,
