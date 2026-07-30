@@ -13,9 +13,38 @@ import Contact from '@/Components/Contact';
 
 import Testimonials from '@/Components/Landing/Testimonials';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
+import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
+import LandingCard from '@/Components/Common/LandingCard';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import GoogleTranslate from '@/Components/Common/GoogleTranslate';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
+
+const EXPERIENCES = [
+    {
+        image: 'assets/img/backdrops/plane-square.jpg',
+        title: 'Private Yacht Tours',
+        subtitle: 'Coastal match-day cruise experiences',
+        tags: ['VIP', 'Cruise'],
+    },
+    {
+        image: 'assets/img/backdrops/field-spotlight.jpg',
+        title: 'Stadium Pitch Walks',
+        subtitle: 'Walk the turf before kick-off',
+        tags: ['Pitch Walk', 'Exclusive'],
+    },
+    {
+        image: 'assets/img/IMG-15.jpg',
+        title: 'Luxury Stays',
+        subtitle: 'Curated 4-5 star properties',
+        tags: ['4-5 Star', 'Luxury'],
+    },
+    {
+        image: 'assets/img/backdrops/argentina-fans.jpg',
+        title: 'Fan Meetups',
+        subtitle: 'Connect with travelling fans',
+        tags: ['Community', 'Meetups'],
+    },
+];
 
 export default function Home({ appName, stadiums }) {
 
@@ -42,25 +71,44 @@ export default function Home({ appName, stadiums }) {
     return (
         <>
             <Head title="Welcome" />
-            
+
             <Header />
 
             <div className="page-wrapper overflow-hidden bg-black text-white">
                 <Hero stadiums={stadiums} />
-                
+
                 {/* Top Ad Space */}
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
-                </div>
+               </div>
 
                 <About />
                 <Features />
                 <Services />
 
+                {/* Popular Experiences — stacked variant (title row + cards) */}
+                <HorizontalCardSection
+                    id="experiences"
+                    variant="stacked"
+                    theme="light"
+                    title="Popular Experiences"
+                    headerAction={{ label: 'See All Tours', href: '#contact' }}
+                >
+                    {EXPERIENCES.map((card) => (
+                        <LandingCard
+                            key={card.title}
+                            image={card.image}
+                            title={card.title}
+                            subtitle={card.subtitle}
+                            tags={card.tags}
+                        />
+                    ))}
+               </HorizontalCardSection>
+
                 {/* Middle Ad Space */}
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
-                </div>
+               </div>
 
                 <News />
                 <Contact />
@@ -70,11 +118,11 @@ export default function Home({ appName, stadiums }) {
                 {/* Bottom Ad Space */}
                 <div className="container mt-5 mb-0">
                     <AdPlaceholder position="horizontal" />
-                </div>
+               </div>
 
                 <Footer />
                 <GoogleTranslate />
-            </div>
+           </div>
             <PrivacyConsent />
         </>
     );

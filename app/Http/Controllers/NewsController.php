@@ -15,23 +15,30 @@ class NewsController extends Controller
         $this->newsService = $newsService;
     }
 
-    public function index(): JsonResponse
+    public function index(?string $category = null): JsonResponse
     {
-        $articles = $this->newsService->getLatestNews();
-
-        // Transform the data to match frontend expectations if necessary
-        // NewsAPI returns: source, author, title, description, url, urlToImage, publishedAt, content
+        $category = $category ?: request()->query('category', 'general');
+        $articles = $this->newsService->getLatestNews($category, 8);
 
         $formatted = array_map(function ($article) {
             return [
                 'title' => $article['title'],
-                'date' => date('M j, Y', strtotime($article['publishedAt'])),
-                'image' => $article['urlToImage'],
-                'excerpt' => $article['description'],
+                'date' => date('M j, Y', strtotime($article['publishedAt'] ?? 'now')),
+                'image' => $article['urlToImage'] ?? null,
+                'excerpt' => $article['description'] ?? '',
+                'source' => $article['source']['name'] ?? '',
                 'url' => $article['url'],
             ];
         }, $articles);
 
-        return response()->json($formatted);
+        return response()->json([
+            'category' => $category,
+            'articles' => $formatted,
+        ]);
+    }
+
+    public function categories(): JsonResponse
+    {
+        return response()->json($this->newsService->getCategories());
     }
 }

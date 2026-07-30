@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{category}', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.category');
+Route::get('/news-categories', [\App\Http\Controllers\NewsController::class, 'categories'])->name('news.categories');
 
 Route::get('/dashboard', function () {
     if (Auth::user()->is_admin) {
