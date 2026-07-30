@@ -38,6 +38,11 @@ return [
         'redirect' => env('APP_URL').'/auth/google/callback',
     ],
 
+    'paystack' => [
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

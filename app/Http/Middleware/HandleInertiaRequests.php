@@ -56,6 +56,7 @@ class HandleInertiaRequests extends Middleware
                     : $request->user()->receivedMessages()->where('is_read', false)->count()) : 0,
             ],
             'assetUrl' => asset(''),
+            'partners' => config('partners.links', []),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

@@ -445,7 +445,6 @@ export default function Hero({ stadiums }) {
                                 whileHover={{ scale: 1.1, translateY: -5 }}
                                 whileTap={{ scale: 0.9 }}
                                 onTap={() => {
-                                    console.log("Flag tapped:", f);
                                     openModal(f);
                                 }}
                                 style={{ pointerEvents: 'auto', zIndex: 110 }}

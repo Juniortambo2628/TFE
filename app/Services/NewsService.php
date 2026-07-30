@@ -22,43 +22,24 @@ class NewsService
             return [];
         }
 
-        // Cache for 1 hour (3600 seconds) to avoid hitting API limits and improve performance
-        // REMOVE CACHE FOR DEBUGGING
-        // return Cache::remember('news_feed', 3600, function () use ($query, $pageSize) {
-        try {
-            \Illuminate\Support\Facades\Log::info('NewsService: Attempting to fetch news.');
+        return Cache::remember('news_feed', 3600, function () use ($query, $pageSize) {
+            try {
+                $response = Http::withoutVerifying()->timeout(5)->get("{$this->baseUrl}/everything", [
+                    'q' => $query,
+                    'language' => 'en',
+                    'sortBy' => 'relevancy',
+                    'pageSize' => $pageSize,
+                    'apiKey' => $this->apiKey,
+                ]);
 
-            if (empty($this->apiKey)) {
-                \Illuminate\Support\Facades\Log::error('NewsService: API Key is missing.');
+                if ($response->successful()) {
+                    return $response->json()['articles'] ?? [];
+                }
 
                 return [];
+            } catch (\Exception $e) {
+                return [];
             }
-
-            $response = Http::withoutVerifying()->timeout(5)->get("{$this->baseUrl}/everything", [
-                'q' => $query,
-                'language' => 'en',
-                'sortBy' => 'relevancy',
-                'pageSize' => $pageSize,
-                'apiKey' => $this->apiKey,
-            ]);
-
-            \Illuminate\Support\Facades\Log::info('NewsService: Response Status: '.$response->status());
-
-            if ($response->successful()) {
-                $articles = $response->json()['articles'] ?? [];
-                \Illuminate\Support\Facades\Log::info('NewsService: Articles count: '.count($articles));
-
-                return $articles;
-            } else {
-                \Illuminate\Support\Facades\Log::error('NewsService: API Error: '.$response->body());
-            }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('NewsService: Exception: '.$e->getMessage());
-
-            return [];
-        }
-
-        return [];
-        // });
+        });
     }
 }

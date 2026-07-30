@@ -47,26 +47,7 @@ class ProfileController extends Controller
             ->where('following_id', $viewingUser->id)
             ->exists();
 
-        $countryMap = [
-            'argentina' => 'ar',
-            'brazil' => 'br',
-            'england' => 'gb-eng',
-            'france' => 'fr',
-            'germany' => 'de',
-            'italy' => 'it',
-            'netherlands' => 'nl',
-            'portugal' => 'pt',
-            'spain' => 'es',
-            'kenya' => 'ke',
-            'nigeria' => 'ng',
-            'south africa' => 'za',
-            'ghana' => 'gh',
-            'morocco' => 'ma',
-            'egypt' => 'eg',
-            'senegal' => 'sn',
-            'usa' => 'us',
-            'united states' => 'us',
-        ];
+        $countryMap = config('countries.flag_codes');
 
         $teamLower = strtolower(trim($viewingUser->team_support ?? ''));
         $flagCode = $countryMap[$teamLower] ?? null;

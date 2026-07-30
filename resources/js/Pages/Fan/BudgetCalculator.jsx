@@ -9,6 +9,8 @@ import axios from 'axios';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/budget-calculator.css';
 
+const USD_TO_KES = 130;
+
 export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null }) {
     // Wizard State
     const [wizardStep, setWizardStep] = useState(1);
@@ -315,16 +317,16 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
             // 8. Total
             const totalUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost;
-            const totalKES = totalUSD * 130; // Conversion
+            const totalKES = totalUSD * USD_TO_KES;
 
             // Set Breakdown
             setBreakdown({
-                match_tickets: totalTicketCost * 130,
-                flights: flightCost * 130,
-                accommodation: accommodationCost * 130,
-                food_and_drink: foodCost * 130,
-                local_transport: transportCost * 130,
-                miscellaneous: miscCost * 130
+                match_tickets: totalTicketCost * USD_TO_KES,
+                flights: flightCost * USD_TO_KES,
+                accommodation: accommodationCost * USD_TO_KES,
+                food_and_drink: foodCost * USD_TO_KES,
+                local_transport: transportCost * USD_TO_KES,
+                miscellaneous: miscCost * USD_TO_KES
             });
 
             setEstimatedCost(totalKES);

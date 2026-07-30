@@ -147,7 +147,7 @@ class PaymentController extends Controller
 
         $data = [
             'reference' => $reference,
-            'public_key' => config('services.paystack.public_key', env('PAYSTACK_PUBLIC_KEY')),
+            'public_key' => config('services.paystack.public_key'),
             'status' => 'success',
             'message' => 'Payment initiated',
         ];

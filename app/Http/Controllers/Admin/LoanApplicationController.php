@@ -50,7 +50,7 @@ class LoanApplicationController extends Controller
             'status' => $validated['status'],
         ]);
 
-        // TODO: Send notification to user about status change
+        $loanApplication->user->notify(new \App\Notifications\LoanStatusNotification($loanApplication));
 
         return back()->with('success', 'Loan application updated successfully');
     }
