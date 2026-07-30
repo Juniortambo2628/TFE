@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Http;
 class WikipediaService
 {
     protected $summaryBase = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
+
     protected $actionBase = 'https://en.wikipedia.org/w/api.php';
 
     /**
@@ -29,20 +30,21 @@ class WikipediaService
     public function getSummary(string $title, ?int $ttl = null): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:summary:' . md5($title);
+        $key = 'wikipedia:summary:'.md5($title);
 
         return Cache::remember($key, $ttl, function () use ($title) {
             try {
-                $response = Http::timeout(8)->get($this->summaryBase . rawurlencode(str_replace(' ', '_', $title)));
+                $response = Http::timeout(8)->get($this->summaryBase.rawurlencode(str_replace(' ', '_', $title)));
                 if (! $response->successful()) {
                     return $this->emptySummary($title);
                 }
                 $data = $response->json();
+
                 return [
-                    'title'     => $data['title'] ?? $title,
-                    'extract'   => $data['extract'] ?? '',
+                    'title' => $data['title'] ?? $title,
+                    'extract' => $data['extract'] ?? '',
                     'thumbnail' => $data['thumbnail']['source'] ?? null,
-                    'url'       => $data['content_urls']['desktop']['page'] ?? null,
+                    'url' => $data['content_urls']['desktop']['page'] ?? null,
                 ];
             } catch (\Exception $e) {
                 return $this->emptySummary($title);
@@ -56,17 +58,17 @@ class WikipediaService
     public function getExtract(string $title, ?int $ttl = null): string
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:extract:' . md5($title);
+        $key = 'wikipedia:extract:'.md5($title);
 
         return Cache::remember($key, $ttl, function () use ($title) {
             try {
                 $response = Http::timeout(8)->get($this->actionBase, [
-                    'action'      => 'query',
-                    'titles'      => $title,
-                    'prop'        => 'extracts',
-                    'exintro'     => 1,
+                    'action' => 'query',
+                    'titles' => $title,
+                    'prop' => 'extracts',
+                    'exintro' => 1,
                     'explaintext' => 1,
-                    'format'      => 'json',
+                    'format' => 'json',
                 ]);
                 if (! $response->successful()) {
                     return '';
@@ -75,6 +77,7 @@ class WikipediaService
                 foreach ($pages as $page) {
                     return $page['extract'] ?? '';
                 }
+
                 return '';
             } catch (\Exception $e) {
                 return '';
@@ -88,19 +91,20 @@ class WikipediaService
     public function getWikitext(string $title, ?int $ttl = null): string
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:wikitext:' . md5($title);
+        $key = 'wikipedia:wikitext:'.md5($title);
 
         return Cache::remember($key, $ttl, function () use ($title) {
             try {
                 $response = Http::timeout(8)->get($this->actionBase, [
                     'action' => 'parse',
-                    'page'   => $title,
-                    'prop'   => 'wikitext',
+                    'page' => $title,
+                    'prop' => 'wikitext',
                     'format' => 'json',
                 ]);
                 if (! $response->successful()) {
                     return '';
                 }
+
                 return $response->json()['parse']['wikitext']['*'] ?? '';
             } catch (\Exception $e) {
                 return '';
@@ -115,7 +119,7 @@ class WikipediaService
     public function getVenues(string $title, ?int $ttl = null): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:venues:' . md5($title);
+        $key = 'wikipedia:venues:'.md5($title);
 
         return Cache::remember($key, $ttl, function () use ($title) {
             $wikitext = $this->getWikitext($title, $ttl);
@@ -142,6 +146,7 @@ class WikipediaService
                     }
                 }
             }
+
             return $venues;
         });
     }
@@ -153,7 +158,7 @@ class WikipediaService
     public function getTeams(string $title, ?int $ttl = null): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:teams:' . md5($title);
+        $key = 'wikipedia:teams:'.md5($title);
 
         return Cache::remember($key, $ttl, function () use ($title) {
             $wikitext = $this->getWikitext($title, $ttl);
@@ -178,6 +183,7 @@ class WikipediaService
                     }
                 }
             }
+
             return $teams;
         });
     }
@@ -189,15 +195,15 @@ class WikipediaService
     public function getKeyFacts(string $title, ?int $ttl = null): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:facts:' . md5($title);
+        $key = 'wikipedia:facts:'.md5($title);
 
         return Cache::remember($key, $ttl, function () use ($title) {
             $extract = $this->getExtract($title, $ttl);
 
             $facts = [
-                'teams'   => null,
+                'teams' => null,
                 'matches' => null,
-                'venues'  => null,
+                'venues' => null,
             ];
 
             // Parse "X teams" pattern
@@ -220,20 +226,21 @@ class WikipediaService
     public function searchTitle(string $query, ?int $ttl = null): ?string
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
-        $key = 'wikipedia:search:' . md5($query);
+        $key = 'wikipedia:search:'.md5($query);
 
         return Cache::remember($key, $ttl, function () use ($query) {
             try {
                 $response = Http::timeout(8)->get($this->actionBase, [
                     'action' => 'opensearch',
                     'search' => $query,
-                    'limit'  => 1,
+                    'limit' => 1,
                     'format' => 'json',
                 ]);
                 if (! $response->successful()) {
                     return null;
                 }
                 $results = $response->json();
+
                 return $results[1][0] ?? null;
             } catch (\Exception $e) {
                 return null;
@@ -247,22 +254,23 @@ class WikipediaService
     public function getAll(string $title, ?int $ttl = null): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
+
         return [
             'summary' => $this->getSummary($title, $ttl),
             'extract' => $this->getExtract($title, $ttl),
-            'venues'  => $this->getVenues($title, $ttl),
-            'teams'   => $this->getTeams($title, $ttl),
-            'facts'   => $this->getKeyFacts($title, $ttl),
+            'venues' => $this->getVenues($title, $ttl),
+            'teams' => $this->getTeams($title, $ttl),
+            'facts' => $this->getKeyFacts($title, $ttl),
         ];
     }
 
     protected function emptySummary(string $title): array
     {
         return [
-            'title'     => $title,
-            'extract'   => '',
+            'title' => $title,
+            'extract' => '',
             'thumbnail' => null,
-            'url'       => null,
+            'url' => null,
         ];
     }
 }

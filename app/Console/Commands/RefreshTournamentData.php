@@ -36,13 +36,14 @@ class RefreshTournamentData extends Command
             $data = $service->get($t['id']);
 
             $venueCount = count($data['venues'] ?? []);
-            $teamCount  = count($data['teams'] ?? []);
+            $teamCount = count($data['teams'] ?? []);
             $this->line("  - Venues fetched: {$venueCount}");
             $this->line("  - Teams fetched:  {$teamCount}");
             $this->line("  - Status: {$t['status']}");
         }
 
         $this->info('All tournament data refreshed successfully.');
+
         return self::SUCCESS;
     }
 }

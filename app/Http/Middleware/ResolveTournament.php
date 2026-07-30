@@ -17,9 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ResolveTournament
 {
-    public function __construct(protected TournamentService $tournaments)
-    {
-    }
+    public function __construct(protected TournamentService $tournaments) {}
 
     public function handle(Request $request, Closure $next): Response
     {

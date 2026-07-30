@@ -17,9 +17,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class TournamentService
 {
-    public function __construct(protected WikipediaService $wikipedia)
-    {
-    }
+    public function __construct(protected WikipediaService $wikipedia) {}
 
     /**
      * Resolve the active tournament from a request.
@@ -48,6 +46,7 @@ class TournamentService
     public function current(?string $id = null): array
     {
         $id = $id ?? $this->resolveFromRequest(request());
+
         return $this->get($id);
     }
 
@@ -72,11 +71,11 @@ class TournamentService
         );
 
         return array_merge($config, [
-            'wikipedia'  => $wikipedia,
+            'wikipedia' => $wikipedia,
             'wikipedia_summary' => $wikipedia['summary'] ?? [],
-            'venues'     => $wikipedia['venues'] ?? [],
-            'teams'      => $wikipedia['teams'] ?? [],
-            'facts'      => $wikipedia['facts'] ?? [],
+            'venues' => $wikipedia['venues'] ?? [],
+            'teams' => $wikipedia['teams'] ?? [],
+            'facts' => $wikipedia['facts'] ?? [],
             'is_default' => $id === config('tournaments.default'),
         ]);
     }
@@ -89,16 +88,17 @@ class TournamentService
         $tournaments = [];
         foreach (config('tournaments.tournaments', []) as $id => $config) {
             $tournaments[] = [
-                'id'         => $id,
-                'name'       => $config['name'],
+                'id' => $id,
+                'name' => $config['name'],
                 'short_name' => $config['short_name'],
-                'slug'       => $config['slug'],
-                'status'     => $config['status'],
+                'slug' => $config['slug'],
+                'status' => $config['status'],
                 'start_date' => $config['start_date'],
-                'end_date'   => $config['end_date'],
-                'hosts'      => $config['hosts'] ?? [],
+                'end_date' => $config['end_date'],
+                'hosts' => $config['hosts'] ?? [],
             ];
         }
+
         return $tournaments;
     }
 
@@ -123,8 +123,8 @@ class TournamentService
 
         return match ($status) {
             'concluded' => $cacheConfig['historical'] ?? 86400 * 30,
-            'ongoing'   => $cacheConfig['live'] ?? 1800,
-            default     => $cacheConfig['facts'] ?? 86400 * 7,
+            'ongoing' => $cacheConfig['live'] ?? 1800,
+            default => $cacheConfig['facts'] ?? 86400 * 7,
         };
     }
 
