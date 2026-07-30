@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -201,10 +201,29 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
     var targetDate = tournament ? tournament.start_date : '2026-06-11T00:00:00';
-    var venues = (tournament && tournament.venues) || stadiumsProp || [];
-    var stadiums = venues.length > 0 ? venues.map(function (v) {
-        return { name: v.name, matches: [], source: 'wikipedia' };
-    }) : (stadiumsProp || []);
+    var baseUrl = assetUrl || '';
+    var heroImage = (tournament && tournament.hero_image) ? baseUrl + tournament.hero_image : baseUrl + 'assets/img/backdrops/ball-on-field.jpg';
+    var tournamentStatus = tournament ? tournament.status : 'upcoming';
+    var isConcluded = tournamentStatus === 'concluded';
+    var wikipediaVenues = (tournament && tournament.venues) || [];
+
+    var stadiums;
+    if (wikipediaVenues.length > 0) {
+        stadiums = wikipediaVenues.map(function (v) {
+            return {
+                name: v.name,
+                location: 'Wikipedia venue',
+                capacity: 'TBD',
+                history: '',
+                fun_fact: '',
+                image: heroImage,
+                matches: [],
+                attribution: 'Data from Wikipedia',
+            };
+        });
+    } else {
+        stadiums = stadiumsProp || [];
+    }
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
@@ -319,7 +338,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             <div className="d-flex flex-column align-items-center align-items-xl-end gap-4">
                                 {/* Persistent Countdown */}
                                 <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center align-items-xl-end glass-card border border-white/5" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)' }}>
-                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>KICKOFF</div>
+                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>{isConcluded ? (tournament.short_name + ' — ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
                                     <div className="d-flex gap-3 gap-md-4">
                                         {[
                                             { label: 'Days', value: timeLeft.days || 0, max: 1000 },

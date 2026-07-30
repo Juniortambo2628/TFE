@@ -8,14 +8,14 @@ export default function Settings({ auth, settings = {} }) {
     const [activeTab, setActiveTab] = useState('site');
     const [logoFiles, setLogoFiles] = useState([]);
     const [faviconFiles, setFaviconFiles] = useState([]);
-    
+
     // Dynamic background states
     const [bgDashboardFiles, setBgDashboardFiles] = useState([]);
     const [bgUsersFiles, setBgUsersFiles] = useState([]);
     const [bgRevenueFiles, setBgRevenueFiles] = useState([]);
     const [bgAnalyticsFiles, setBgAnalyticsFiles] = useState([]);
     const [bgEventsFiles, setBgEventsFiles] = useState([]);
-    
+
     const { data, setData, post, processing } = useForm({
         // Site Identity
         site_name: settings.site_name || 'The Football Experience',
@@ -32,6 +32,8 @@ export default function Settings({ auth, settings = {} }) {
         google_analytics: settings.google_analytics || '',
         // Maintenance
         maintenance_mode: settings.maintenance_mode || false,
+        // Active Tournament (admin-managed)
+        active_tournament: settings.active_tournament || 'wc_2026',
         // Visual Card Backgrounds
         bg_card_dashboard: null,
         bg_card_users: null,
@@ -45,8 +47,20 @@ export default function Settings({ auth, settings = {} }) {
         { label: 'Settings' }
     ];
 
+    // Tournaments list — mirrors config/tournaments.php on the frontend
+    const TOURNAMENTS = [
+        { id: 'wc_2026', name: 'FIFA World Cup 2026', status: 'upcoming' },
+        { id: 'afcon_2027', name: 'Africa Cup of Nations 2027', status: 'upcoming' },
+        { id: 'ucl_2025_26', name: 'UEFA Champions League 2025-26', status: 'ongoing' },
+        { id: 'euro_2024', name: 'UEFA Euro 2024', status: 'concluded' },
+        { id: 'copa_2024', name: 'CONMEBOL Copa America 2024', status: 'concluded' },
+        { id: 'afcon_2023', name: 'Africa Cup of Nations 2023', status: 'concluded' },
+        { id: 'wc_2022', name: 'FIFA World Cup 2022', status: 'concluded' },
+    ];
+
     const tabs = [
         { key: 'site', label: 'Site Identity', icon: 'fas fa-globe' },
+        { key: 'tournament', label: 'Tournament', icon: 'fas fa-trophy' },
         { key: 'visual', label: 'Visual Cards', icon: 'fas fa-th-large' },
         { key: 'social', label: 'Social Links', icon: 'fas fa-share-alt' },
         { key: 'seo', label: 'SEO', icon: 'fas fa-search' },
@@ -139,6 +153,35 @@ export default function Settings({ auth, settings = {} }) {
                                     />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Active Tournament */}
+            {activeTab === 'tournament' && (
+                <div className="admin-card-dark">
+                    <div className="card-header">
+                        <h3><i className="fas fa-trophy"></i> Active Tournament Settings</h3>
+                        <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Sets the default tournament featured across the site when visitors don't specify one in the URL.</p>
+                    </div>
+                    <div className="card-body">
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Featured Tournament</label>
+                            <select
+                                className="admin-form-input"
+                                value={data.active_tournament}
+                                onChange={e => setData('active_tournament', e.target.value)}
+                            >
+                                {TOURNAMENTS.map(t => (
+                                    <option key={t.id} value={t.id}>
+                                        {t.name} ({t.status.toUpperCase()})
+                                    </option>
+                                ))}
+                            </select>
+                            <small className="text-white d-block mt-2" style={{ opacity: 0.7 }}>
+                                Note: Individual visitors can still override this by passing <code>?tournament=slug</code> in the URL or using the header dropdown.
+                            </small>
                         </div>
                     </div>
                 </div>
