@@ -1,6 +1,7 @@
 import React from 'react';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
+import { useTournament } from '@/Context/TournamentContext';
 
 const ABOUT_CARDS = [
     {
@@ -30,13 +31,20 @@ const ABOUT_CARDS = [
 ];
 
 export default function About() {
+    var tournamentCtx = useTournament();
+    var tournament = tournamentCtx.tournament;
+    var tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
+    var hosts = tournament && tournament.hosts ? tournament.hosts.join(', ') : 'USA, Canada, Mexico';
+
+    var description = 'We create premium travel experiences for African football fans who value comfort, style, and a personal approach. From ' + hosts + ' and beyond — only trusted destinations, exclusive offers, and top-tier service for ' + tournamentName + '.';
+
     return (
         <HorizontalCardSection
             id="about"
             number="01"
             badge="About TFE"
             title="About Us"
-            description="We create premium travel experiences for African football fans who value comfort, style, and a personal approach. Only trusted destinations, exclusive offers, and top-tier service — with us, you'll see the world as it should be — no clichés, no rush, just pure enjoyment."
+            description={description}
             action={{ label: 'Learn More', href: '#features' }}
         >
             {ABOUT_CARDS.map((card) => (
@@ -48,6 +56,6 @@ export default function About() {
                     tags={card.tags}
                 />
             ))}
-       </HorizontalCardSection>
+      </HorizontalCardSection>
     );
 }

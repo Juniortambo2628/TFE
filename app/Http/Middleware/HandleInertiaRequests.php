@@ -29,6 +29,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $tournamentService = app(\App\Services\TournamentService::class);
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -57,6 +59,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'assetUrl' => asset(''),
             'partners' => config('partners.links', []),
+            'tournament' => $tournamentService->current(),
+            'tournament_list' => $tournamentService->all(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

@@ -1,0 +1,180 @@
+/* ==========================================================================
+   Tournament Switcher — Dropdown shown in the header for switching
+   between configured tournaments (WC 2026, AFCON 2027, etc.)
+   ========================================================================== */
+
+.tournament-switcher {
+    position: relative;
+    display: inline-block;
+}
+
+.tournament-switcher-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tournament-switcher-trigger:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.tournament-switcher-icon {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.95rem;
+    color: var(--tfe-red, #e31b23);
+}
+
+.tournament-switcher-label {
+    white-space: nowrap;
+}
+
+.tournament-switcher-status {
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tournament-switcher-status.status-upcoming {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.tournament-switcher-status.status-ongoing {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.tournament-switcher-status.status-concluded {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9ca3af;
+}
+
+.tournament-switcher-chevron {
+    font-size: 0.85rem;
+    transition: transform 0.2s ease;
+}
+
+.tournament-switcher-trigger[aria-expanded="true"] .tournament-switcher-chevron {
+    transform: rotate(180deg);
+}
+
+/* ── Dropdown menu ── */
+.tournament-switcher-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 280px;
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    list-style: none;
+    padding: 0.5rem;
+    margin: 0;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: tournament-menu-fade 0.15s ease;
+}
+
+@keyframes tournament-menu-fade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tournament-switcher-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease;
+}
+
+.tournament-switcher-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tournament-switcher-item.active {
+    background: rgba(227, 27, 35, 0.15);
+    border-left: 3px solid var(--tfe-red, #e31b23);
+}
+
+.tournament-switcher-item-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.tournament-switcher-item-name strong {
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.tournament-switcher-item-name small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+}
+
+.tournament-switcher-item-status {
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tournament-switcher-item-status.status-upcoming {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.tournament-switcher-item-status.status-ongoing {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.tournament-switcher-item-status.status-concluded {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
+@media (max-width: 576px) {
+    .tournament-switcher-trigger {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.7rem;
+    }
+
+    .tournament-switcher-label {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tournament-switcher-menu {
+        min-width: 240px;
+    }
+}

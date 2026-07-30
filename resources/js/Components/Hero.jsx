@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import DashboardModal from '@/Components/Common/DashboardModal';
+import { useTournament } from '@/Context/TournamentContext';
 
-const calculateTimeLeft = () => {
-    const difference = +new Date("2026-06-11T00:00:00") - +new Date();
+const calculateTimeLeft = (targetDate) => {
+    const difference = +new Date(targetDate) - +new Date();
     let timeLeft = {};
 
     if (difference > 0) {
@@ -195,10 +196,18 @@ const DEFAULT_MATCHES = [
     { id: 104, home: 'gb', away: 'jp', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
 ];
 
-export default function Hero({ stadiums }) {
+export default function Hero({ stadiums: stadiumsProp }) {
     const { assetUrl } = usePage().props;
+    var tournamentCtx = useTournament();
+    var tournament = tournamentCtx.tournament;
+    var targetDate = tournament ? tournament.start_date : '2026-06-11T00:00:00';
+    var venues = (tournament && tournament.venues) || stadiumsProp || [];
+    var stadiums = venues.length > 0 ? venues.map(function (v) {
+        return { name: v.name, matches: [], source: 'wikipedia' };
+    }) : (stadiumsProp || []);
+
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
     const [showMatchModal, setShowMatchModal] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [isPaused, setIsPaused] = useState(false);
@@ -219,7 +228,7 @@ export default function Hero({ stadiums }) {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setTimeLeft(calculateTimeLeft());
+            setTimeLeft(calculateTimeLeft(targetDate));
         }, 1000);
         return () => clearTimeout(timer);
     }, [timeLeft]);

@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/react';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
 import LandingModal from '@/Components/Common/LandingModal';
+import { useTournament } from '@/Context/TournamentContext';
 
 const CATEGORY_LABELS = {
     general: 'Football News',
@@ -17,10 +18,13 @@ export default function News() {
     const [loading, setLoading] = useState(true);
     const [modalData, setModalData] = useState(null);
     const { assetUrl } = usePage().props;
-    const baseUrl = assetUrl || '';
+    var tournamentCtx = useTournament();
+    var tournament = tournamentCtx.tournament;
+    var newsCategory = (tournament && tournament.default_news_category) || 'general';
+    var tournamentShortName = tournament ? tournament.short_name : '';
 
     useEffect(function () {
-        fetch(route('news.index') + '?category=general')
+        fetch(route('news.index') + '?category=' + newsCategory)
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 setNews(data.articles || []);
@@ -29,7 +33,7 @@ export default function News() {
             .catch(function () {
                 setLoading(false);
             });
-    }, []);
+    }, [newsCategory]);
 
     var handleCardClick = function (data) {
         setModalData(data);
@@ -39,20 +43,25 @@ export default function News() {
         setModalData(null);
     };
 
+    var newsTitle = tournamentShortName ? tournamentShortName + ' News' : 'Football News';
+    var newsDescription = tournamentShortName
+        ? 'The latest stories for ' + tournamentShortName + ' \u2014 fixtures, teams, and tournament news.'
+        : 'The latest stories from across the football world \u2014 leagues, transfers, AFCON, and more.';
+
     return (
         <>
             <HorizontalCardSection
                 id="news"
                 number="04"
                 badge="News"
-                title="Football News"
-                description="The latest stories from across the football world — leagues, transfers, AFCON, and more."
+                title={newsTitle}
+                description={newsDescription}
                 headerAction={{ label: 'View All', href: 'https://news.google.com/search?q=football' }}
             >
                 {loading ? (
                     <div style={{ color: 'rgba(255,255,255,0.5)', padding: '2rem' }}>
                         Loading live news...
-                   </div>
+                  </div>
                 ) : news.length > 0 ? (
                     news.map(function (item, index) {
                         return React.createElement(LandingCard, {
@@ -72,9 +81,9 @@ export default function News() {
                 ) : (
                     <div style={{ color: 'rgba(255,255,255,0.5)', padding: '2rem' }}>
                         Unable to load live news. Configure NEWSAPI_KEY in your .env to enable the feed.
-                   </div>
+                  </div>
                 )}
-          </HorizontalCardSection>
+         </HorizontalCardSection>
 
             <LandingModal open={modalData !== null} onClose={closeModal} data={modalData} />
         </>

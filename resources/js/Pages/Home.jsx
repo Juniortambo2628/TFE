@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 
 // Components
 import Header from '@/Components/Header';
@@ -18,6 +18,7 @@ import LandingCard from '@/Components/Common/LandingCard';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import GoogleTranslate from '@/Components/Common/GoogleTranslate';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
+import { TournamentProvider } from '@/Context/TournamentContext';
 
 const EXPERIENCES = [
     {
@@ -46,7 +47,7 @@ const EXPERIENCES = [
     },
 ];
 
-export default function Home({ appName, stadiums }) {
+export default function Home({ appName }) {
 
     // Global Initializations
     useEffect(() => {
@@ -69,18 +70,18 @@ export default function Home({ appName, stadiums }) {
     }, []);
 
     return (
-        <>
+        <TournamentProvider>
             <Head title="Welcome" />
 
             <Header />
 
             <div className="page-wrapper overflow-hidden bg-black text-white">
-                <Hero stadiums={stadiums} />
+                <Hero />
 
                 {/* Top Ad Space */}
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
-               </div>
+              </div>
 
                 <About />
                 <Features />
@@ -103,12 +104,12 @@ export default function Home({ appName, stadiums }) {
                             tags={card.tags}
                         />
                     ))}
-               </HorizontalCardSection>
+              </HorizontalCardSection>
 
                 {/* Middle Ad Space */}
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
-               </div>
+              </div>
 
                 <News />
                 <Contact />
@@ -118,12 +119,12 @@ export default function Home({ appName, stadiums }) {
                 {/* Bottom Ad Space */}
                 <div className="container mt-5 mb-0">
                     <AdPlaceholder position="horizontal" />
-               </div>
+              </div>
 
                 <Footer />
                 <GoogleTranslate />
-           </div>
+          </div>
             <PrivacyConsent />
-        </>
+       </TournamentProvider>
     );
 }
