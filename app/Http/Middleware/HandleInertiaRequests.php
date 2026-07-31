@@ -66,6 +66,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
                 'two_factor_setup' => $request->session()->get('two_factor_setup'),
                 'two_factor_code' => $request->session()->get('two_factor_code'),
+                'tournament_refresh_output' => $request->session()->get('tournament_refresh_output'),
             ],
             'adminSettings' => ($request->user() && $request->user()->is_admin)
                 ? \App\Models\SiteSetting::all()->pluck('value', 'key')

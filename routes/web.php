@@ -206,6 +206,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     // Settings
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
+    Route::post('/settings/tournaments/refresh', [\App\Http\Controllers\Admin\SettingsController::class, 'refreshTournaments'])->name('settings.tournaments.refresh');
     // Announcements
     Route::get('/announcements', [\App\Http\Controllers\Admin\AnnouncementsController::class, 'index'])->name('announcements');
     Route::post('/announcements', [\App\Http\Controllers\Admin\AnnouncementsController::class, 'store'])->name('announcements.store');

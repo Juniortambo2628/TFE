@@ -37,4 +37,19 @@ class SettingsController extends Controller
 
         return back()->with('success', 'Settings updated successfully');
     }
+
+    public function refreshTournaments(Request $request)
+    {
+        $id = $request->input('id');
+
+        $params = [];
+        if (! empty($id)) {
+            $params = ['--id' => [$id]];
+        }
+
+        \Illuminate\Support\Facades\Artisan::call('tournaments:refresh', $params);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        return back()->with('success', 'Tournament data refreshed.')->with('tournament_refresh_output', $output);
+    }
 }

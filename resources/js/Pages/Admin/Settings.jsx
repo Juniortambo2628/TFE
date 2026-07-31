@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 
 export default function Settings({ auth, settings = {} }) {
+    const { props: pageProps } = usePage();
+    const flash = pageProps.flash || {};
+
     const [activeTab, setActiveTab] = useState('site');
     const [logoFiles, setLogoFiles] = useState([]);
     const [faviconFiles, setFaviconFiles] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
+    const [refreshOutput, setRefreshOutput] = useState('');
+
+    useEffect(() => {
+        if (flash.tournament_refresh_output) {
+            setRefreshOutput(flash.tournament_refresh_output);
+        }
+    }, [flash.tournament_refresh_output]);
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        setRefreshOutput('');
+        router.post('/admin/settings/tournaments/refresh', {}, {
+            preserveScroll: true,
+            onFinish: () => setRefreshing(false),
+            onError: () => setRefreshing(false),
+        });
+    };
 
     // Dynamic background states
     const [bgDashboardFiles, setBgDashboardFiles] = useState([]);
@@ -163,8 +184,8 @@ export default function Settings({ auth, settings = {} }) {
                 <div className="admin-card-dark">
                     <div className="card-header">
                         <h3><i className="fas fa-trophy"></i> Active Tournament Settings</h3>
-                        <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Sets the default tournament featured across the site when visitors don't specify one in the URL.</p>
-                    </div>
+                        <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Sets the default tournament featured across the site when visitors don't specify one in the URL</p>
+                   </div>
                     <div className="card-body">
                         <div className="admin-form-group">
                             <label className="admin-form-label">Featured Tournament</label>
@@ -176,15 +197,43 @@ export default function Settings({ auth, settings = {} }) {
                                 {TOURNAMENTS.map(t => (
                                     <option key={t.id} value={t.id}>
                                         {t.name} ({t.status.toUpperCase()})
-                                    </option>
+                                   </option>
                                 ))}
-                            </select>
+                           </select>
                             <small className="text-white d-block mt-2" style={{ opacity: 0.7 }}>
                                 Note: Individual visitors can still override this by passing <code>?tournament=slug</code> in the URL or using the header dropdown.
-                            </small>
-                        </div>
-                    </div>
-                </div>
+                           </small>
+                       </div>
+
+                        <div className="admin-form-group mt-4 pt-4 border-top border-white border-opacity-10">
+                            <label className="admin-form-label">Wikipedia Data Refresh</label>
+                            <p className="text-white small mb-3" style={{ opacity: 0.7 }}>
+                                Pull the latest venues, teams, and key facts from Wikipedia. Cached values are cleared so the next page load fetches fresh data.
+                           </p>
+                            <div className="d-flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    className="btn btn-admin-primary"
+                                    disabled={refreshing}
+                                    onClick={handleRefresh}
+                                >
+                                    <i className="fas fa-sync-alt me-2"></i>
+                                    {refreshing ? 'Refreshing...' : 'Refresh All Tournaments'}
+                               </button>
+                                {refreshing && (
+                                    <span className="text-white small align-self-center" style={{ opacity: 0.7 }}>
+                                        This can take 30-60s for Wikipedia's rate limit. Stay on this page.
+                                   </span>
+                                )}
+                           </div>
+                            {refreshOutput && (
+                                <pre className="mt-3 p-3 rounded-2 small text-white" style={{ background: 'rgba(0,0,0,0.4)', opacity: 0.85, whiteSpace: 'pre-wrap' }}>
+                                    {refreshOutput}
+                               </pre>
+                            )}
+                       </div>
+                   </div>
+               </div>
             )}
 
             {/* Visual Cards Backgrounds */}
@@ -453,3 +502,4 @@ export default function Settings({ auth, settings = {} }) {
         </AdminLayout>
     );
 }
+
