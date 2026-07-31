@@ -225,6 +225,21 @@ export default function Hero({ stadiums: stadiumsProp }) {
         stadiums = stadiumsProp || [];
     }
 
+    // Guard against empty stadiums array — keep at least one placeholder so
+    // activeStadium.name and carousel interval don't crash.
+    if (stadiums.length === 0) {
+        stadiums = [{
+            name: tournament ? tournament.short_name : 'Tournament Venue',
+            location: (tournament && tournament.hosts) ? tournament.hosts.join(', ') : '',
+            capacity: 'TBD',
+            history: '',
+            fun_fact: '',
+            image: heroImage,
+            matches: [],
+            attribution: 'Data pending',
+        }];
+    }
+
     const [currentSlide, setCurrentSlide] = useState(0);
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
     const [showMatchModal, setShowMatchModal] = useState(false);
@@ -262,7 +277,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
         return () => clearInterval(interval);
     }, [stadiums.length, isPaused, loaderReady]);
 
-    const activeStadium = stadiums[currentSlide];
+    const activeStadium = stadiums[currentSlide] || {};
     const matches = STADIUM_MATCHES[activeStadium.name] || [];
     
     // Dynamically get unique teams playing in THIS stadium

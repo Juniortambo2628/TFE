@@ -47,7 +47,7 @@ const EXPERIENCES = [
     },
 ];
 
-export default function Home({ appName }) {
+export default function Home({ appName, stadiums = [] }) {
 
     // Global Initializations
     useEffect(() => {
@@ -76,7 +76,7 @@ export default function Home({ appName }) {
             <Header />
 
             <div className="page-wrapper overflow-hidden bg-black text-white">
-                <Hero />
+                <Hero stadiums={stadiums} />
 
                 {/* Top Ad Space */}
                 <div className="container my-5">
