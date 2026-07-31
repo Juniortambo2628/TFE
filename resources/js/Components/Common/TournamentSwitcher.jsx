@@ -47,7 +47,7 @@ export default function TournamentSwitcher() {
                         className: 'tournament-switcher-item' + (isActive(item.id) ? ' active' : ''),
                         onClick: function () {
                             setIsOpen(false);
-                            switchTournament(item.slug);
+                            switchTournament(item.id);
                         },
                         role: 'menuitem',
                         type: 'button',
