@@ -31,9 +31,17 @@ class TournamentService
             }
         }
 
-        $adminSetting = \App\Models\SiteSetting::get('active_tournament');
-        if ($adminSetting && $this->exists($adminSetting)) {
-            return $adminSetting;
+        // Fall back to admin-set active_tournament, but only if the table exists
+        // (avoids breaking tests / fresh installs where migrations haven't run yet).
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
+                $adminSetting = \App\Models\SiteSetting::get('active_tournament');
+                if ($adminSetting && $this->exists($adminSetting)) {
+                    return $adminSetting;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silently fall through to default — SiteSetting is best-effort.
         }
 
         return config('tournaments.default', 'wc_2026');

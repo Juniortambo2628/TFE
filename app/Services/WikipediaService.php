@@ -121,7 +121,7 @@ class WikipediaService
         $ttl = $ttl ?? config('tournaments.cache.facts');
         $key = 'wikipedia:venues:'.md5($title);
 
-        return Cache::remember($key, $ttl, function () use ($title) {
+        return Cache::remember($key, $ttl, function () use ($title, $ttl) {
             $wikitext = $this->getWikitext($title, $ttl);
             if (empty($wikitext)) {
                 return [];
@@ -160,7 +160,7 @@ class WikipediaService
         $ttl = $ttl ?? config('tournaments.cache.facts');
         $key = 'wikipedia:teams:'.md5($title);
 
-        return Cache::remember($key, $ttl, function () use ($title) {
+        return Cache::remember($key, $ttl, function () use ($title, $ttl) {
             $wikitext = $this->getWikitext($title, $ttl);
             if (empty($wikitext)) {
                 return [];
@@ -197,7 +197,7 @@ class WikipediaService
         $ttl = $ttl ?? config('tournaments.cache.facts');
         $key = 'wikipedia:facts:'.md5($title);
 
-        return Cache::remember($key, $ttl, function () use ($title) {
+        return Cache::remember($key, $ttl, function () use ($title, $ttl) {
             $extract = $this->getExtract($title, $ttl);
 
             $facts = [
