@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -27,8 +27,8 @@ const TEAM_CODES = {
     'Japan': 'jp', 'England': 'gb', 'Portugal': 'pt', 'Uruguay': 'uy',
     'Netherlands': 'nl', 'Senegal': 'sn', 'Poland': 'pl', 'Saudi Arabia': 'sa',
     'South Africa': 'za', 'Qatar': 'qa', 'Switzerland': 'ch', 'Haiti': 'ht',
-    'Scotland': 'sc', 'Paraguay': 'py', 'Australia': 'au', 'Côte d\'Ivoire': 'ci',
-    'Ecuador': 'ec', 'Curaçao': 'cw', 'Tunisia': 'tn', 'Egypt': 'eg',
+    'Scotland': 'sc', 'Paraguay': 'py', 'Australia': 'au', 'C�te d\'Ivoire': 'ci',
+    'Ecuador': 'ec', 'Cura�ao': 'cw', 'Tunisia': 'tn', 'Egypt': 'eg',
     'IR Iran': 'ir', 'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no',
     'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz', 'Colombia': 'co',
     'Uzbekistan': 'uz', 'Panama': 'pa', 'TBD': 'TBD', 'TBD (Playoff A)': 'TBD',
@@ -182,8 +182,8 @@ const TEAM_NAMES = {
     'jp': 'Japan', 'gb': 'England', 'pt': 'Portugal', 'uy': 'Uruguay',
     'nl': 'Netherlands', 'sn': 'Senegal', 'pl': 'Poland', 'sa': 'Saudi Arabia',
     'za': 'South Africa', 'qa': 'Qatar', 'ch': 'Switzerland', 'ht': 'Haiti',
-    'sc': 'Scotland', 'py': 'Paraguay', 'au': 'Australia', 'ci': 'Côte d\'Ivoire',
-    'ec': 'Ecuador', 'cw': 'Curaçao', 'tn': 'Tunisia', 'eg': 'Egypt',
+    'sc': 'Scotland', 'py': 'Paraguay', 'au': 'Australia', 'ci': 'C�te d\'Ivoire',
+    'ec': 'Ecuador', 'cw': 'Cura�ao', 'tn': 'Tunisia', 'eg': 'Egypt',
     'ir': 'IR Iran', 'nz': 'New Zealand', 'cv': 'Cabo Verde', 'no': 'Norway',
     'at': 'Austria', 'jo': 'Jordan', 'dz': 'Algeria', 'co': 'Colombia',
     'uz': 'Uzbekistan', 'pa': 'Panama', 'TBD': 'To Be Determined'
@@ -225,7 +225,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
         stadiums = stadiumsProp || [];
     }
 
-    // Guard against empty stadiums array — keep at least one placeholder so
+    // Guard against empty stadiums array � keep at least one placeholder so
     // activeStadium.name and carousel interval don't crash.
     if (stadiums.length === 0) {
         stadiums = [{
@@ -266,6 +266,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
         }, 1000);
         return () => clearTimeout(timer);
     }, [timeLeft]);
+
+    // Reset countdown when tournament switches
+    useEffect(() => {
+        setTimeLeft(calculateTimeLeft(targetDate));
+        setCurrentSlide(0);
+    }, [targetDate]);
 
     // Auto-rotate hero slider ONLY after loader is ready
     useEffect(() => {
@@ -315,7 +321,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.8, ease: "easeInOut" }}
                         style={{ 
-                            backgroundImage: `url(${activeStadium.image})`, 
+                            backgroundImage: `url(${heroImage})`, 
                             backgroundSize: 'cover', 
                             backgroundPosition: 'center' 
                         }}
@@ -331,21 +337,37 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         {/* Left Content */}
                         <div className="col-xl-7 px-3 px-md-0">
                             <motion.div 
-                                key={`left-${currentSlide}`}
+                                key={`left-${tournament ? tournament.id : 'default'}-${currentSlide}`}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
                             >
-                                <h1 className="mb-3 display-4 text-white lh-1 fw-bold">{activeStadium.name}</h1>
-                                <p className="mb-4 text-white fs-5 text-opacity-80">{activeStadium.location}</p>
+                                <div className="mb-3 d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill" style={{ background: 'rgba(220, 20, 60, 0.15)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+                                    <i className="fas fa-trophy" style={{ color: '#DC143C', fontSize: '0.75rem' }}></i>
+                                    <span className="text-uppercase fw-medium" style={{ color: '#DC143C', fontSize: '0.7rem', letterSpacing: '0.15em' }}>{tournament ? tournament.short_name : 'Tournament'}</span>
+                                    {tournament && (
+                                        <span className={'ms-1 px-2 py-1 rounded-pill small fw-bold ' + (tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning'))} style={{ fontSize: '0.6rem', letterSpacing: '0.1em' }}>{tournament.status}</span>
+                                    )}
+                               </div>
+                                <h1 className="mb-3 display-3 text-white lh-1 fw-bold" key={`title-${tournament ? tournament.id : 'default'}`}>{tournament ? tournament.name : 'The Football Experience'}</h1>
+                                <p className="mb-3 text-white fs-5 text-opacity-80" style={{ maxWidth: '640px' }}>{tournament ? tournament.tagline : ''}</p>
+                                {activeStadium.name && activeStadium.name !== (tournament ? tournament.short_name : '') && (
+                                    <p className="mb-4 text-white-50 fs-6">
+                                        <i className={"fas fa-map-marker-alt me-2"}/>
+                                        <span className={"fw-medium"}>{activeStadium.name}</span>
+                                        {activeStadium.location && activeStadium.location !== 'Wikipedia venue' && (
+                                            <span>{' &mdash; '}{activeStadium.location} ></span>
+                                        )}
+                                   </p>
+                                )}
                                 
                                 <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 gap-md-3 mt-4" style={{ maxWidth: 'fit-content' }}>
                                     <button onClick={() => openModal()} className="btn-glass-pill justify-content-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
                                         <span>View Matches</span>
-                                        <i className="fas fa-calendar-alt ms-2"></i>
-                                    </button>
-                                </div>
-                            </motion.div>
+                                        <i className="fas fa-calendar-alt ms-2"/>
+                                   </button>
+                               </div>
+                           </motion.div>
                         </div>
 
                         {/* Right Content: Countdown & Stats */}
@@ -353,7 +375,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             <div className="d-flex flex-column align-items-center align-items-xl-end gap-4">
                                 {/* Persistent Countdown */}
                                 <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center align-items-xl-end glass-card border border-white/5" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)' }}>
-                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>{isConcluded ? (tournament.short_name + ' — ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
+                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>{isConcluded ? (tournament.short_name + ' � ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
                                     <div className="d-flex gap-3 gap-md-4">
                                         {[
                                             { label: 'Days', value: timeLeft.days || 0, max: 1000 },
@@ -525,7 +547,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 >
                     <div className="badge-dot"></div>
                     <span className="text-white fw-bold text-uppercase tracking-wider">{activeStadium.name}</span>
-                    <span className="text-white text-opacity-50">• {activeStadium.location.split(',').pop().trim()}</span>
+                    <span className="text-white text-opacity-50">� {activeStadium.location.split(',').pop().trim()}</span>
                 </motion.div>
             </div>
 
@@ -573,7 +595,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                     <span className={`fw-bold text-uppercase ${match.type.includes('FINAL') ? 'text-warning' : 'text-danger'}`} style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
                                                         {match.type}
                                                     </span>
-                                                    <span className="text-white text-opacity-50" style={{ fontSize: '0.65rem' }}>{match.date} • {match.time}</span>
+                                                    <span className="text-white text-opacity-50" style={{ fontSize: '0.65rem' }}>{match.date} � {match.time}</span>
                                                 </div>
                                                 
                                                 {/* Teams VS Layout */}

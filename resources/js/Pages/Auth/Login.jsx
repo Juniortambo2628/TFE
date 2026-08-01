@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { toast } from 'sonner';
 import '../../../css/login-dark.css';
