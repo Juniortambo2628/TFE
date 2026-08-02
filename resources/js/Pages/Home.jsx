@@ -71,7 +71,7 @@ export default function Home({ appName, stadiums = [] }) {
 
     return (
         <TournamentProvider>
-            <Head title="Welcome" />
+            <Head title="Home" />
 
             <Header />
 
