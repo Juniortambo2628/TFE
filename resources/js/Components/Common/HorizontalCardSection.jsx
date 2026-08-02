@@ -1,5 +1,6 @@
-﻿﻿import React from 'react';
+﻿import React from 'react';
 import { Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import '../../../css/landing-section.css';
 
 /**
@@ -41,8 +42,29 @@ export default function HorizontalCardSection({
         `section-${theme}`,
     ].join(' ');
 
+    const headerVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    };
+
+    const cardsContainerVariants = {
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.12 } },
+    };
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 40 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+    };
+
     const renderHeader = (extraClass = '') => (
-        <div className={'section-header ' + extraClass}>
+        <motion.div
+            className={'section-header ' + extraClass}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={headerVariants}
+        >
             {(number || badge) && (
                 <div className="section-badge">
                     {number && <span className="badge-number">{number}</span>}
@@ -60,13 +82,23 @@ export default function HorizontalCardSection({
                     <iconify-icon icon={action.icon || 'lucide:arrow-up-right'} className="btn-icon" />
                </Link>
             )}
-       </div>
+       </motion.div>
     );
 
     const renderCards = (extraClass = '') => (
-        <div className={'cards-track ' + extraClass}>
-            {children}
-       </div>
+        <motion.div
+            className={'cards-track ' + extraClass}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={cardsContainerVariants}
+        >
+            {React.Children.map(children, (child) => (
+                <motion.div key={child.key} variants={cardVariants}>
+                    {child}
+                </motion.div>
+            ))}
+       </motion.div>
     );
 
     const isSplitReverse = variant === 'split-reverse';
@@ -91,7 +123,13 @@ export default function HorizontalCardSection({
                     </>
                 ) : (
                     <>
-                        <div className="section-header-row">
+                        <motion.div
+                            className="section-header-row"
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.3 }}
+                            variants={headerVariants}
+                        >
                             {(number || badge) && (
                                 <div className="section-badge">
                                     {number && <span className="badge-number">{number}</span>}
@@ -106,7 +144,7 @@ export default function HorizontalCardSection({
                                     <iconify-icon icon={headerAction.icon || 'lucide:arrow-up-right'} className="btn-icon" />
                                </Link>
                             )}
-                       </div>
+                       </motion.div>
                         {description && (
                             <p className="section-description" style={{ maxWidth: '720px', padding: '0 0.5rem' }}>{description}</p>
                         )}

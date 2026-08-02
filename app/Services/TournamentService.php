@@ -80,6 +80,37 @@ class TournamentService
             fn () => $this->wikipedia->getAll($wikiTitle, $ttl)
         );
 
+        // Merge Wikipedia results for concluded tournaments — config values are
+        // the fallback if Wikipedia parsing returns empty.
+        $wikiResults = $wikipedia['results'] ?? [];
+        $finalMatch = $wikipedia['final_match'] ?? [];
+        $winner = $config['winner'] ?? ($wikiResults['champion'] ?? null);
+        $topScorer = $config['top_scorer'] ?? null;
+
+        // Build top scorer from Wikipedia if config doesn't have it
+        if (empty($topScorer) && ! empty($wikiResults['top_scorer'])) {
+            $tsRaw = $wikiResults['top_scorer'];
+            // Parse "Kylian Mbappé (8 goals)" pattern
+            if (preg_match('/^(.+?)\s*\((\d+)\s*goals?\)/i', $tsRaw, $m)) {
+                $topScorer = ['name' => trim($m[1]), 'goals' => (int) $m[2]];
+            } else {
+                $topScorer = ['name' => $tsRaw, 'goals' => null];
+            }
+        }
+
+        $finalScore = $config['final_score'] ?? null;
+        if (empty($finalScore) && ! empty($finalMatch['score'])) {
+            $finalScore = $finalMatch['team1'].' '.$finalMatch['score'].' '.$finalMatch['team2'];
+            if (! empty($finalMatch['details'])) {
+                $finalScore .= ' ('.$finalMatch['details'].')';
+            }
+        }
+
+        $finalVenue = $config['final_venue'] ?? null;
+        if (empty($finalVenue) && ! empty($finalMatch['stadium'])) {
+            $finalVenue = $finalMatch['stadium'].($finalMatch['city'] ? ', '.$finalMatch['city'] : '');
+        }
+
         return array_merge($config, [
             'wikipedia' => $wikipedia,
             'wikipedia_summary' => $wikipedia['summary'] ?? [],
@@ -88,6 +119,26 @@ class TournamentService
             'team_flag_codes' => $config['team_flag_codes'] ?? [],
             'facts' => $wikipedia['facts'] ?? [],
             'is_default' => $id === config('tournaments.default'),
+            // Wikipedia logo (overrides hardcoded hero_image when available)
+            'wikipedia_logo' => $wikipedia['logo'] ?? null,
+            // Merged results (config fallback + Wikipedia)
+            'winner' => $winner,
+            'top_scorer' => $topScorer,
+            'final_score' => $finalScore,
+            'final_venue' => $finalVenue,
+            // Stats from Wikipedia
+            'num_teams' => $wikiResults['num_teams'] ?? null,
+            'matches_played' => $wikiResults['matches_played'] ?? null,
+            'total_goals' => $wikiResults['total_goals'] ?? null,
+            // Detailed results from Wikipedia
+            'wikipedia_results' => $wikiResults,
+            'wikipedia_final_match' => $finalMatch,
+            // Matches from Wikipedia (all groups + knockout)
+            'wikipedia_matches' => $wikipedia['matches'] ?? [],
+            // Awards from Wikipedia
+            'wikipedia_awards' => $wikipedia['awards'] ?? [],
+            // Flag images from Wikipedia (fallback for missing local PNGs)
+            'wikipedia_flags' => $wikipedia['flags'] ?? [],
         ]);
     }
 

@@ -279,17 +279,27 @@
 }
 
 /* ── Variant: reversed layout (cards on left, header on right) ── */
-.landing-section.section-reverse .landing-section-inner {
+.landing-section.section-split-reverse .landing-section-inner {
     grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
 }
 
-.landing-section.section-reverse .section-header {
+.landing-section.section-split-reverse .section-header-reverse {
     padding-right: 0;
     padding-left: 1rem;
 }
 
-.landing-section.section-reverse .cards-track {
-    flex-direction: row-reverse;
+/* Cards scroll right-to-left: first card anchored to the right edge,
+   overflow hidden on the left — mirror of the normal split layout. */
+.landing-section.section-split-reverse .cards-track-reverse {
+    direction: rtl;
+    justify-content: flex-end;
+    padding-left: 0.5rem;
+    padding-right: 1rem;
+}
+
+.landing-section.section-split-reverse .cards-track-reverse .landing-card {
+    direction: ltr;
+    scroll-snap-align: end;
 }
 
 /* ── Variant: stacked header (title spans full width on top) ── */
@@ -314,6 +324,12 @@
 
     .landing-section .section-header {
         padding-right: 0;
+    }
+
+    /* Reset reversed scroll direction on mobile — single column layout */
+    .landing-section.section-split-reverse .cards-track-reverse {
+        direction: ltr;
+        justify-content: flex-start;
     }
 
     .landing-section .cards-track {

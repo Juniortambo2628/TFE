@@ -40,6 +40,17 @@ class RefreshTournamentData extends Command
             $this->line("  - Venues fetched: {$venueCount}");
             $this->line("  - Teams fetched:  {$teamCount}");
             $this->line("  - Status: {$t['status']}");
+
+            if ($t['status'] === 'concluded') {
+                $winner = $data['winner'] ?? 'N/A';
+                $topScorer = is_array($data['top_scorer'] ?? null)
+                    ? ($data['top_scorer']['name'] ?? 'N/A').' ('.($data['top_scorer']['goals'] ?? '?').' goals)'
+                    : ($data['top_scorer'] ?? 'N/A');
+                $finalScore = $data['final_score'] ?? 'N/A';
+                $this->line("  - Winner: {$winner}");
+                $this->line("  - Top Scorer: {$topScorer}");
+                $this->line("  - Final: {$finalScore}");
+            }
         }
 
         $this->info('All tournament data refreshed successfully.');

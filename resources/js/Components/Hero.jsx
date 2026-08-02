@@ -222,8 +222,7 @@ function teamNameToCode(name) {
         'paraguay': 'py', 'panama': 'pa', 'jamaica': 'jm',
         'haiti': 'ht', 'usmnt': 'us', 'socceroos': 'au',
         'black stars': 'gh', 'super eagles': 'ng', 'atlas lions': 'ma',
-        'the netherlands': 'nl', 'iran': 'ir',
-        'new zealand': 'nz', 'new-zealand': 'nz',
+         'new zealand': 'nz', 'new-zealand': 'nz',
     };
     if (variations[n]) return variations[n];
     // Fallback: try lowercase as flag code (works for "mexico" -> "mx"? No, need 2-letter)
@@ -247,6 +246,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var tournamentStatus = tournament ? tournament.status : 'upcoming';
     var isConcluded = tournamentStatus === 'concluded';
     var wikipediaVenues = (tournament && tournament.venues) || [];
+    var wikipediaLogo = (tournament && tournament.wikipedia_logo) || null;
+    var wikipediaMatches = (tournament && tournament.wikipedia_matches) || [];
+    var wikipediaAwards = (tournament && tournament.wikipedia_awards) || {};
+    var topScorer = (tournament && tournament.top_scorer) || null;
+    var wikipediaFlags = (tournament && tournament.wikipedia_flags) || {};
 
     var stadiums;
     if (wikipediaVenues.length > 0) {
@@ -277,7 +281,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
         stadiums = stadiumsProp || [];
     }
 
-    // Guard against empty stadiums array � keep at least one placeholder so
+    // Guard against empty stadiums array - keep at least one placeholder so
     // activeStadium.name and carousel interval don't crash.
     if (stadiums.length === 0) {
         stadiums = [{
@@ -339,7 +343,30 @@ export default function Hero({ stadiums: stadiumsProp }) {
     // Get team flags: config team_flag_codes > Wikipedia teams > host_flag_codes > STADIUM_MATCHES
     var configFlags = (tournament && tournament.team_flag_codes) || [];
     var wikiTeams = (tournament && tournament.teams) || [];
-    var matches = STADIUM_MATCHES[activeStadium.name] || [];
+    // Match data source: STADIUM_MATCHES (WC2026) or Wikipedia matches (all others)
+    var allMatches = [];
+    if (wikipediaMatches.length > 0) {
+        // Convert Wikipedia matches to the format expected by the modal
+        allMatches = wikipediaMatches.map(function(m, idx) {
+            var code1 = teamNameToCode(m.team1) || m.team1;
+            var code2 = teamNameToCode(m.team2) || m.team2;
+            return {
+                id: idx + 1,
+                home: code1,
+                away: code2,
+                score: m.score || null,
+                date: m.date || '',
+                time: m.time || '',
+                type: m.section || 'Match',
+                stadium: m.stadium || '',
+                goals1: m.goals1 || '',
+                goals2: m.goals2 || '',
+            };
+        });
+    } else if (STADIUM_MATCHES[activeStadium.name]) {
+        allMatches = STADIUM_MATCHES[activeStadium.name];
+    }
+    var matches = allMatches;
     var flagCodes;
     if (configFlags.length > 0) {
         flagCodes = configFlags;
@@ -382,7 +409,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.8, ease: "easeInOut" }}
                         style={{ 
-                            backgroundImage: `url(${heroImage})`, 
+                            backgroundImage: `url(${activeStadium.image || heroImage})`, 
                             backgroundSize: 'cover', 
                             backgroundPosition: 'center' 
                         }}
@@ -404,7 +431,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 transition={{ duration: 0.5 }}
                             >
                                 <div className="mb-3 d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill" style={{ background: 'rgba(220, 20, 60, 0.15)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
-                                    <i className="fas fa-trophy" style={{ color: '#DC143C', fontSize: '0.75rem' }}></i>
+                                    {wikipediaLogo ? (
+                                        <img src={wikipediaLogo} alt="" style={{ width: '18px', height: '18px', objectFit: 'contain', borderRadius: '3px' }} />
+                                    ) : (
+                                        <i className="fas fa-trophy" style={{ color: '#DC143C', fontSize: '0.75rem' }}></i>
+                                    )}
                                     <span className="text-uppercase fw-medium" style={{ color: '#DC143C', fontSize: '0.7rem', letterSpacing: '0.15em' }}>{tournament ? tournament.short_name : 'Tournament'}</span>
                                     {tournament && (
                                         <span className={'ms-1 px-2 py-1 rounded-pill small fw-bold ' + (tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning'))} style={{ fontSize: '0.6rem', letterSpacing: '0.1em' }}>{tournament.status}</span>
@@ -436,7 +467,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             <div className="d-flex flex-column align-items-center align-items-xl-end gap-4">
                                 {/* Persistent Countdown */}
                                 <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center align-items-xl-end glass-card border border-white/5" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)' }}>
-                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>{isConcluded ? (tournament.short_name + ' � ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
+                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>{isConcluded ? (tournament.short_name + ' \u2014 ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
                                     <div className="d-flex gap-3 gap-md-4">
                                         {[
                                             { label: 'Days', value: timeLeft.days || 0, max: 1000 },
@@ -470,27 +501,33 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     </div>
                                 </div>
 
-                                {/* Dynamic Stadium Stats Glass Card */}
+                                {/* Tournament Stats Glass Card */}
                                 <motion.div 
-                                    key={`stats-${currentSlide}`}
+                                    key={`stats-${tournament ? tournament.id : 'default'}`}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5, delay: 0.1 }}
                                     className="p-4 rounded-3xl d-inline-flex flex-column align-items-start glass-card border border-white/5 w-100" 
                                     style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)', maxWidth: '420px' }}
                                 >
-                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
-                                        <div className="text-white-50 small"><i className="fas fa-users me-2"></i>Capacity</div>
-                                        <div className="text-white fw-bold">{activeStadium.capacity}</div>
+                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white/10 pb-2">
+                                        <div className="text-white-50 small"><i className="fas fa-futbol me-2"></i>Teams</div>
+                                        <div className="text-white fw-bold">{tournament.num_teams || activeStadium.capacity || 'TBD'}</div>
                                     </div>
-                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
-                                        <div className="text-white-50 small"><i className="fas fa-history me-2"></i>Opened</div>
-                                        <div className="text-white fw-bold">{activeStadium.history}</div>
+                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white/10 pb-2">
+                                        <div className="text-white-50 small"><i className="fas fa-calendar me-2"></i>Matches</div>
+                                        <div className="text-white fw-bold">{tournament.matches_played || 'TBD'}</div>
                                     </div>
-                                    <div className="d-flex flex-column w-100">
-                                        <div className="text-white-50 small mb-1"><i className="fas fa-star me-2 text-warning"></i>Fun Fact</div>
-                                        <div className="text-white small lh-sm">{activeStadium.fun_fact}</div>
+                                    <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white/10 pb-2">
+                                        <div className="text-white-50 small"><i className="fas fa-bullseye me-2"></i>Goals</div>
+                                        <div className="text-white fw-bold">{tournament.total_goals || 'TBD'}</div>
                                     </div>
+                                    {isConcluded && tournament.winner && (
+                                        <div className="d-flex w-100 justify-content-between">
+                                            <div className="text-white-50 small"><i className="fas fa-trophy me-2 text-warning"></i>Winner</div>
+                                            <div className="text-warning fw-bold">{tournament.winner}</div>
+                                        </div>
+                                    )}
                                 </motion.div>
                             </div>
                         </div>
@@ -518,7 +555,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             <div className="container d-block d-xl-none position-relative z-1 mb-4">
                 <div className="d-flex justify-content-center">
                     <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center" style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)' }}>
-                         <div className="text-white-50 text-uppercase mb-2 small text-center w-100" style={{ letterSpacing: '0.2em', marginRight: '-0.2em', fontSize: '10px' }}>KICKOFF</div>
+                         <div className="text-white-50 text-uppercase mb-2 small text-center w-100" style={{ letterSpacing: '0.2em', marginRight: '-0.2em', fontSize: '10px' }}>{isConcluded ? (tournament.short_name + ' - ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
                          <div className="d-flex gap-3">
                             {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
                                 <div key={unit} className="text-center">
@@ -575,7 +612,16 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 }}
                                 style={{ pointerEvents: 'auto', zIndex: 110 }}
                             >
-                                <img src={`${assetUrl}assets/Flags/${f}.png`} alt={f} draggable="false" />
+                                <img 
+                                    src={`${assetUrl}assets/Flags/${f}.png`} 
+                                    alt={f} 
+                                    draggable="false"
+                                    onError={function(e) {
+                                        if (wikipediaFlags[f]) {
+                                            e.target.src = wikipediaFlags[f];
+                                        }
+                                    }}
+                                />
                             </motion.div>
                         ))}
                     </motion.div>
@@ -639,7 +685,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
                           ]
                         : [
                             { id: 'matches', label: 'Schedules', icon: 'fas fa-calendar-alt' },
-                            { id: 'details', label: 'Stadium Details', icon: 'fas fa-map-marker-alt' }
+                            { id: 'details', label: 'Stadium Details', icon: 'fas fa-map-marker-alt' },
+                            { id: 'stats', label: 'Stats & Awards', icon: 'fas fa-trophy' }
                           ]
                 }
             >
@@ -656,7 +703,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                     <span className={`fw-bold text-uppercase ${match.type.includes('FINAL') ? 'text-warning' : 'text-danger'}`} style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
                                                         {match.type}
                                                     </span>
-                                                    <span className="text-white text-opacity-50" style={{ fontSize: '0.65rem' }}>{match.date} � {match.time}</span>
+                                                    <span className="text-white text-opacity-50" style={{ fontSize: '0.65rem' }}>{match.date}{match.time ? ' \u2013 ' + match.time : ''}</span>
                                                 </div>
                                                 
                                                 {/* Teams VS Layout */}
@@ -669,19 +716,19 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                         {match.home === 'TBD' ? (
                                                             <div className="tbd-flag-placeholder"><i className="fas fa-question text-white text-opacity-20" style={{ fontSize: '10px' }}></i></div>
                                                         ) : (
-                                                            <img src={`${assetUrl}assets/Flags/${match.home}.png`} alt={match.home} className="match-list-flag" />
+                                                             <img src={`${assetUrl}assets/Flags/${match.home}.png`} alt={match.home} className="match-list-flag" onError={function(e) { if (wikipediaFlags[match.home]) { e.target.src = wikipediaFlags[match.home]; } }} />
                                                         )}
                                                     </div>
                                                     
-                                                    {/* VS */}
-                                                    <div className="vs-badge">VS</div>
+                                                    {/* VS or Score */}
+                                                    <div className="vs-badge">{match.score || 'VS'}</div>
                                                     
                                                     {/* Away Team */}
                                                     <div className="d-flex align-items-center justify-content-start gap-3" style={{ flex: '1' }}>
                                                         {match.away === 'TBD' ? (
                                                             <div className="tbd-flag-placeholder"><i className="fas fa-question text-white text-opacity-20" style={{ fontSize: '10px' }}></i></div>
                                                         ) : (
-                                                            <img src={`${assetUrl}assets/Flags/${match.away}.png`} alt={match.away} className="match-list-flag" />
+                                                             <img src={`${assetUrl}assets/Flags/${match.away}.png`} alt={match.away} className="match-list-flag" onError={function(e) { if (wikipediaFlags[match.away]) { e.target.src = wikipediaFlags[match.away]; } }} />
                                                         )}
                                                         <span className="text-white fw-bold text-truncate d-none d-md-inline" style={{ fontSize: '0.8rem' }}>
                                                             {TEAM_NAMES[match.away] || (match.away !== 'TBD' ? match.away.toUpperCase() : 'TBD')}
@@ -713,7 +760,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             {selectedTeam ? (
                                 <div className="team-details-content">
                                     <div className="d-flex align-items-center gap-4 mb-4 pb-4 border-b border-white/10">
-                                        <img src={`${assetUrl}assets/Flags/${selectedTeam}.png`} alt={selectedTeam} style={{ width: '64px', height: 'auto', borderRadius: '4px' }} />
+                                         <img src={`${assetUrl}assets/Flags/${selectedTeam}.png`} alt={selectedTeam} style={{ width: '64px', height: 'auto', borderRadius: '4px' }} onError={function(e) { if (wikipediaFlags[selectedTeam]) { e.target.src = wikipediaFlags[selectedTeam]; } }} />
                                         <div>
                                             <h4 className="text-white mb-1">{TEAM_NAMES[selectedTeam]}</h4>
                                             <span className="text-danger fw-bold small text-uppercase tracking-wider">National Team</span>
@@ -771,9 +818,116 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             </div>
                                         </div>
                                     </div>
+                                    {activeStadium.url && (
+                                        <div className="mt-3">
+                                            <a href={activeStadium.url} target="_blank" rel="noopener noreferrer" className="text-danger text-decoration-none small">
+                                                <i className="fas fa-external-link-alt me-1"></i>View on Wikipedia
+                                            </a>
+                                        </div>
+                                    )}
                                     <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/5">
                                         <h5 className="text-white fs-6 mb-2">Heritage & Fact</h5>
                                         <p className="text-white text-opacity-60 small mb-0">{activeStadium.fun_fact}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeModalTab === 'stats' && !selectedTeam && (
+                        <div className="p-4">
+                            <div className="mb-4">
+                                <h5 className="text-white fs-6 mb-3">
+                                    <i className="fas fa-trophy text-warning me-2"></i>Tournament Results
+                                </h5>
+                                {tournament.winner ? (
+                                    <div className="row g-3">
+                                        <div className="col-6">
+                                            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                <div className="text-white text-opacity-40 small mb-1">Champion</div>
+                                                <div className="text-warning fw-bold">{tournament.winner}</div>
+                                            </div>
+                                        </div>
+                                        {tournament.top_scorer && tournament.top_scorer.name && (
+                                            <div className="col-6">
+                                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="text-white text-opacity-40 small mb-1">Top Scorer</div>
+                                                    <div className="text-danger fw-bold">{tournament.top_scorer.name}{tournament.top_scorer.goals ? ' (' + tournament.top_scorer.goals + ')' : ''}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {tournament.final_score && (
+                                            <div className="col-12">
+                                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="text-white text-opacity-40 small mb-1">Final</div>
+                                                    <div className="text-white fw-bold">{tournament.final_score}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="text-white text-opacity-40 small mb-0">Results will be available once the tournament concludes.</p>
+                                )}
+                            </div>
+
+                            {Object.keys(wikipediaAwards).length > 0 && (
+                                <div className="mb-4">
+                                    <h5 className="text-white fs-6 mb-3">
+                                        <i className="fas fa-medal text-info me-2"></i>Awards
+                                    </h5>
+                                    <div className="row g-3">
+                                        {wikipediaAwards.golden_ball && (
+                                            <div className="col-md-6">
+                                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="text-white text-opacity-40 small mb-1">Golden Ball</div>
+                                                    <div className="text-warning fw-bold">{wikipediaAwards.golden_ball}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {wikipediaAwards.golden_boot && (
+                                            <div className="col-md-6">
+                                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="text-white text-opacity-40 small mb-1">Golden Boot</div>
+                                                    <div className="text-danger fw-bold">{wikipediaAwards.golden_boot}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {wikipediaAwards.golden_glove && (
+                                            <div className="col-md-6">
+                                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="text-white text-opacity-40 small mb-1">Golden Glove</div>
+                                                    <div className="text-info fw-bold">{wikipediaAwards.golden_glove}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {wikipediaAwards.best_young && (
+                                            <div className="col-md-6">
+                                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="text-white text-opacity-40 small mb-1">Best Young Player</div>
+                                                    <div className="text-success fw-bold">{wikipediaAwards.best_young}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {allMatches.length > 0 && (
+                                <div>
+                                    <h5 className="text-white fs-6 mb-3">
+                                        <i className="fas fa-list text-danger me-2"></i>All Matches ({allMatches.length})
+                                    </h5>
+                                    <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: '300px' }}>
+                                        {allMatches.map(function(m, idx) {
+                                            return (
+                                                <div key={idx} className="d-flex align-items-center justify-content-between py-2 border-bottom border-white/5" style={{ fontSize: '0.8rem' }}>
+                                                    <span className="text-white text-opacity-40" style={{ minWidth: '80px' }}>{m.date}</span>
+                                                    <span className="text-white fw-bold">{TEAM_NAMES[m.home] || m.home}</span>
+                                                    <span className="text-danger fw-bold px-2">{m.score || 'vs'}</span>
+                                                    <span className="text-white fw-bold">{TEAM_NAMES[m.away] || m.away}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
