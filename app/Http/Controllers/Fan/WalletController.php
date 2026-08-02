@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\LoanApplication;
+use App\Models\SavingsGoal;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -14,16 +17,16 @@ class WalletController extends Controller
         $userId = $user->id;
 
         // Fetch Savings (Escrow)
-        $savingsGoals = \App\Models\SavingsGoal::where('user_id', $userId)->get();
+        $savingsGoals = SavingsGoal::where('user_id', $userId)->get();
         $totalSavings = $savingsGoals->sum('current_amount');
         $totalTarget = $savingsGoals->sum('target_amount');
 
         // Fetch Loan Applications
-        $loans = \App\Models\LoanApplication::where('user_id', $userId)->get();
+        $loans = LoanApplication::where('user_id', $userId)->get();
         $approvedLoans = $loans->where('status', 'APPROVED')->sum('amount');
 
         // Fetch Transactions
-        $transactions = \App\Models\Transaction::where('user_id', $userId)
+        $transactions = Transaction::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->take(20)
             ->get()

@@ -2,9 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Mail\PaymentReceipt;
+use App\Models\PaymentTransaction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Notifications\Notification; // Added this line
+use Illuminate\Notifications\Notification;
+
+ // Added this line
 
 // Added this line
 
@@ -17,7 +21,7 @@ class PaymentSuccessNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(\App\Models\PaymentTransaction $transaction)
+    public function __construct(PaymentTransaction $transaction)
     {
         $this->transaction = $transaction;
     }
@@ -37,7 +41,7 @@ class PaymentSuccessNotification extends Notification
      */
     public function toMail(object $notifiable): Mailable
     {
-        return (new \App\Mail\PaymentReceipt($this->transaction))
+        return (new PaymentReceipt($this->transaction))
             ->to($notifiable->email);
     }
 

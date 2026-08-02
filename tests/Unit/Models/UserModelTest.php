@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use App\Models\User;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -99,6 +100,6 @@ class UserModelTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->assertInstanceOf(\Illuminate\Contracts\Auth\MustVerifyEmail::class, $user);
+        $this->assertInstanceOf(MustVerifyEmail::class, $user);
     }
 }

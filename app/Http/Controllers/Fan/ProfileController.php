@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Follow;
+use App\Models\Post;
+use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserSecuritySetting;
 use App\Traits\HasSocialStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ProfileController extends Controller
@@ -39,11 +43,11 @@ class ProfileController extends Controller
         $socialMetrics = $this->getSocialStats($viewingUser->id);
 
         $stats = array_merge($socialMetrics, [
-            'tribes' => \Illuminate\Support\Facades\DB::table('tribe_members')->where('user_id', $viewingUser->id)->count(),
+            'tribes' => DB::table('tribe_members')->where('user_id', $viewingUser->id)->count(),
         ]);
 
         // Check if current user is following the viewed user
-        $isFollowing = \App\Models\Follow::where('follower_id', $currentUser->id)
+        $isFollowing = Follow::where('follower_id', $currentUser->id)
             ->where('following_id', $viewingUser->id)
             ->exists();
 
@@ -88,7 +92,7 @@ class ProfileController extends Controller
             ->get();
 
         // Get user's recent posts
-        $userPosts = \App\Models\Post::where('user_id', $viewingUser->id)
+        $userPosts = Post::where('user_id', $viewingUser->id)
             ->whereNull('parent_post_id') // Only main posts
             ->latest()
             ->take(5)
@@ -169,7 +173,7 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         // Update or create profile
-        $profile = \App\Models\Profile::firstOrCreate(
+        $profile = Profile::firstOrCreate(
             ['user_id' => $user->id],
             ['settings' => []]
         );

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\LoanApplication;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class LoanStatusNotification extends Notification
@@ -19,12 +20,12 @@ class LoanStatusNotification extends Notification
         return ['mail', 'database'];
     }
 
-    public function toMail(object $notifiable): \Illuminate\Notifications\Messages\MailMessage
+    public function toMail(object $notifiable): MailMessage
     {
         $status = strtolower($this->loan->status);
         $amount = number_format($this->loan->amount);
 
-        return (new \Illuminate\Notifications\Messages\MailMessage)
+        return (new MailMessage)
             ->subject('Loan Application '.ucfirst($status))
             ->line("Your loan application for KES {$amount} has been {$status}.")
             ->action('View Application', route('fan.wallet'));

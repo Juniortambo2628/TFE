@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -47,8 +48,8 @@ class SettingsController extends Controller
             $params = ['--id' => [$id]];
         }
 
-        \Illuminate\Support\Facades\Artisan::call('tournaments:refresh', $params);
-        $output = \Illuminate\Support\Facades\Artisan::output();
+        Artisan::call('tournaments:refresh', $params);
+        $output = Artisan::output();
 
         return back()->with('success', 'Tournament data refreshed.')->with('tournament_refresh_output', $output);
     }

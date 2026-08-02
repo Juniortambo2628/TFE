@@ -2,6 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\AnalyticsEvent;
+use App\Models\Budget;
+use App\Models\Event;
+use App\Models\PaymentTransaction;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class AnalyticsDataSeeder extends Seeder
@@ -11,7 +16,7 @@ class AnalyticsDataSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = \App\Models\User::first();
+        $user = User::first();
         if (! $user) {
             return;
         }
@@ -22,7 +27,7 @@ class AnalyticsDataSeeder extends Seeder
             $count = rand(5, 25);
 
             for ($j = 0; $j < $count; $j++) {
-                \App\Models\AnalyticsEvent::create([
+                AnalyticsEvent::create([
                     'event_name' => 'calculator_use',
                     'metadata' => [
                         'match_count' => rand(1, 5),
@@ -50,7 +55,7 @@ class AnalyticsDataSeeder extends Seeder
                 $partnerCost = $cost + (rand(-5, 15) * 10000);
             }
 
-            \App\Models\Budget::create([
+            Budget::create([
                 'user_id' => $user->id,
                 'name' => 'Trip to '.$locations[array_rand($locations)],
                 'total_cost' => $cost,
@@ -70,7 +75,7 @@ class AnalyticsDataSeeder extends Seeder
         $eventTypes = ['Match Day', 'Watch Party', 'Tournament', 'Community'];
         foreach ($eventTypes as $type) {
             for ($i = 0; $i < rand(2, 6); $i++) {
-                \App\Models\Event::create([
+                Event::create([
                     'title' => $type.' '.rand(1, 100),
                     'description' => 'Experience the thrill of the '.$type,
                     'date' => now()->addDays(rand(1, 60)),
@@ -83,7 +88,7 @@ class AnalyticsDataSeeder extends Seeder
         // 4. Seed some payments
         $methods = ['mpesa', 'stripe', 'bank'];
         for ($i = 0; $i < 15; $i++) {
-            \App\Models\PaymentTransaction::create([
+            PaymentTransaction::create([
                 'user_id' => $user->id,
                 'amount' => rand(500, 5000),
                 'status' => 'completed',

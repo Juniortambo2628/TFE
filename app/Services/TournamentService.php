@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * TournamentService — Resolves the active tournament for the current request.
@@ -34,8 +36,8 @@ class TournamentService
         // Fall back to admin-set active_tournament, but only if the table exists
         // (avoids breaking tests / fresh installs where migrations haven't run yet).
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
-                $adminSetting = \App\Models\SiteSetting::get('active_tournament');
+            if (Schema::hasTable('site_settings')) {
+                $adminSetting = SiteSetting::get('active_tournament');
                 if ($adminSetting && $this->exists($adminSetting)) {
                     return $adminSetting;
                 }

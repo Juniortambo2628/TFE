@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
@@ -15,7 +16,7 @@ class SocialAuthController extends Controller
         $driver = Socialite::driver($provider);
 
         if (app()->environment('local')) {
-            $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+            $driver->setHttpClient(new Client(['verify' => false]));
         }
 
         return $driver->redirect();
@@ -27,7 +28,7 @@ class SocialAuthController extends Controller
             $driver = Socialite::driver($provider);
 
             if (app()->environment('local')) {
-                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+                $driver->setHttpClient(new Client(['verify' => false]));
             }
 
             $socialUser = $driver->user();

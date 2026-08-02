@@ -8,6 +8,7 @@ use App\Models\Follow;
 use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\PostComment;
+use App\Models\User;
 use App\Traits\HasSocialStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -110,7 +111,7 @@ class FeedController extends Controller
             });
 
         // Get suggested users (not following)
-        $suggestedUsers = \App\Models\User::where('id', '!=', $userId)
+        $suggestedUsers = User::where('id', '!=', $userId)
             ->whereDoesntHave('followers', function ($query) use ($userId) {
                 $query->where('follower_id', $userId);
             })

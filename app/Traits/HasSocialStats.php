@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Models\Follow;
 use App\Models\Post;
+use Illuminate\Support\Collection;
 
 trait HasSocialStats
 {
@@ -33,7 +34,7 @@ trait HasSocialStats
      *
      * @param  int  $userId
      * @param  int|null  $limit
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected function getFollowers($userId, $limit = null)
     {
@@ -52,7 +53,7 @@ trait HasSocialStats
      *
      * @param  int  $userId
      * @param  int|null  $limit
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected function getFollowing($userId, $limit = null)
     {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoanApplication;
+use App\Notifications\LoanStatusNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -50,7 +51,7 @@ class LoanApplicationController extends Controller
             'status' => $validated['status'],
         ]);
 
-        $loanApplication->user->notify(new \App\Notifications\LoanStatusNotification($loanApplication));
+        $loanApplication->user->notify(new LoanStatusNotification($loanApplication));
 
         return back()->with('success', 'Loan application updated successfully');
     }

@@ -2,8 +2,10 @@
 
 namespace App\Mail;
 
+use App\Models\PaymentTransaction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -17,7 +19,7 @@ class PaymentReceipt extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(\App\Models\PaymentTransaction $transaction)
+    public function __construct(PaymentTransaction $transaction)
     {
         $this->transaction = $transaction;
     }
@@ -45,7 +47,7 @@ class PaymentReceipt extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

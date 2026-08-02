@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransaction;
+use App\Models\User;
+use App\Notifications\PaymentSuccessNotification;
+use App\Services\PaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PaymentController extends Controller
@@ -162,7 +167,7 @@ class PaymentController extends Controller
             ->with('paystack_public_key', $data['public_key']);
     }
 
-    public function verifyPayment(Request $request, \App\Services\PaystackService $paystack)
+    public function verifyPayment(Request $request, PaystackService $paystack)
     {
         $validated = $request->validate([
             'reference' => 'required|string',
@@ -175,7 +180,7 @@ class PaymentController extends Controller
 
             if ($txn) {
                 if ($txn->status !== 'completed') {
-                    \Illuminate\Support\Facades\DB::transaction(function () use ($txn, $result) {
+                    DB::transaction(function () use ($txn, $result) {
                         $txn->update([
                             'status' => 'completed',
                             'method' => $result['data']['channel'] ?? $txn->method,
@@ -195,7 +200,7 @@ class PaymentController extends Controller
                         // Handle Booking Link
                         $metadata = $txn->metadata; // Already an array due to model casting
                         if (! empty($metadata['booking_id'])) {
-                            $booking = \App\Models\Booking::find($metadata['booking_id']);
+                            $booking = Booking::find($metadata['booking_id']);
                             if ($booking) {
                                 $booking->increment('amount_paid', $txn->amount);
                                 if ($booking->amount_paid >= $booking->total_amount) {
@@ -205,8 +210,8 @@ class PaymentController extends Controller
                         }
 
                         // Send Notification & Email
-                        $user = \App\Models\User::find($txn->user_id);
-                        $user->notify(new \App\Notifications\PaymentSuccessNotification($txn));
+                        $user = User::find($txn->user_id);
+                        $user->notify(new PaymentSuccessNotification($txn));
                     });
 
                     return back()->with('success', 'Payment successful!');

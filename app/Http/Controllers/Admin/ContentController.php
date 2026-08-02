@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\SiteSetting;
 use App\Models\Tribe;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,7 +45,7 @@ class ContentController extends Controller
             'total_tribes' => Tribe::count(),
         ];
 
-        $settings = \App\Models\SiteSetting::all()->groupBy('group');
+        $settings = SiteSetting::all()->groupBy('group');
 
         return Inertia::render('Admin/Content', [
             'posts' => $posts,
@@ -76,7 +77,7 @@ class ContentController extends Controller
             $data['value'] = '/storage/'.$path;
         }
 
-        \App\Models\SiteSetting::set(
+        SiteSetting::set(
             $data['key'],
             $data['value'],
             $data['type'],

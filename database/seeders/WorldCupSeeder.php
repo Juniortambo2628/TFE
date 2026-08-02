@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Event;
 use App\Models\Fixture;
+use App\Models\Message;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class WorldCupSeeder extends Seeder
@@ -161,9 +163,9 @@ class WorldCupSeeder extends Seeder
         ]);
 
         // Seed a system message
-        $admin = \App\Models\User::first();
+        $admin = User::first();
         if ($admin) {
-            \App\Models\Message::create([
+            Message::create([
                 'user_id' => $admin->id,
                 'sender_id' => null, // System
                 'subject' => 'Welcome to TFE!',

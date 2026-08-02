@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\LoginHistory;
 use App\Models\UserSecuritySetting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -69,7 +70,7 @@ class SecurityService
         ];
     }
 
-    public function changePassword(Request $request): \Illuminate\Http\RedirectResponse
+    public function changePassword(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'current_password' => 'required|string',
@@ -93,7 +94,7 @@ class SecurityService
         return back()->with('success', 'Password changed successfully');
     }
 
-    public function toggleTwoFactor(Request $request): \Illuminate\Http\RedirectResponse
+    public function toggleTwoFactor(Request $request): RedirectResponse
     {
         $user = $request->user();
         $settings = UserSecuritySetting::where('user_id', $user->id)->first();
@@ -117,7 +118,7 @@ class SecurityService
         ]);
     }
 
-    public function confirmTwoFactor(Request $request): \Illuminate\Http\RedirectResponse
+    public function confirmTwoFactor(Request $request): RedirectResponse
     {
         $request->validate([
             'code' => 'required|string',
@@ -135,7 +136,7 @@ class SecurityService
         return back()->withErrors(['two_factor_code' => 'Invalid verification code. Please try again.']);
     }
 
-    public function toggleLoginNotifications(Request $request): \Illuminate\Http\RedirectResponse
+    public function toggleLoginNotifications(Request $request): RedirectResponse
     {
         $user = $request->user();
         $settings = UserSecuritySetting::where('user_id', $user->id)->first();

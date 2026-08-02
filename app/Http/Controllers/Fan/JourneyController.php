@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\Budget;
+use App\Models\Fixture;
+use App\Models\Payment;
+use App\Models\PaymentSchedule;
+use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -14,17 +20,17 @@ class JourneyController extends Controller
         $userId = $user->id;
 
         // Fetch Data
-        $bookings = \App\Models\Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
-        $paymentSchedules = \App\Models\PaymentSchedule::where('user_id', $userId)->orderBy('due_date', 'asc')->get();
-        $payments = \App\Models\Payment::where('user_id', $userId)->get();
-        $activeBudget = \App\Models\Budget::where('user_id', $userId)->where('is_active', true)->first();
+        $bookings = Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+        $paymentSchedules = PaymentSchedule::where('user_id', $userId)->orderBy('due_date', 'asc')->get();
+        $payments = Payment::where('user_id', $userId)->get();
+        $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
 
         // Calculate Totals using PaymentTransaction as source of truth for consistency
-        $totalPaid = \App\Models\PaymentTransaction::where('user_id', $userId)
+        $totalPaid = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->sum('amount');
 
-        $paymentsCount = \App\Models\PaymentTransaction::where('user_id', $userId)
+        $paymentsCount = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->count();
 
@@ -61,7 +67,7 @@ class JourneyController extends Controller
         ]);
     }
 
-    public function show(\App\Models\Booking $booking)
+    public function show(Booking $booking)
     {
         if ($booking->user_id !== Auth::id()) {
             abort(403);
@@ -69,7 +75,7 @@ class JourneyController extends Controller
 
         $matches = [];
         if (! empty($booking->matches)) {
-            $matches = \App\Models\Fixture::whereIn('id', $booking->matches)->get();
+            $matches = Fixture::whereIn('id', $booking->matches)->get();
         }
 
         return Inertia::render('Fan/BookingDetails', [

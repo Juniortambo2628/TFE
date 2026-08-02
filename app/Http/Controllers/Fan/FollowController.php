@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Follow;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,7 +48,7 @@ class FollowController extends Controller
 
         $followersCount = Follow::where('following_id', $user->id)->count();
         $followingCount = Follow::where('follower_id', $user->id)->count();
-        $postsCount = \App\Models\Post::where('user_id', $user->id)->count();
+        $postsCount = Post::where('user_id', $user->id)->count();
 
         $isFollowing = Follow::where('follower_id', $currentUser->id)
             ->where('following_id', $user->id)

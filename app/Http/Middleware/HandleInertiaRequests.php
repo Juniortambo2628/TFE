@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ContactMessage;
+use App\Models\SiteSetting;
+use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,7 +32,7 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $tournamentService = app(\App\Services\TournamentService::class);
+        $tournamentService = app(TournamentService::class);
 
         return [
             ...parent::share($request),
@@ -39,7 +42,7 @@ class HandleInertiaRequests extends Middleware
                 'unreadNotificationsCount' => $request->user() ? $request->user()->unreadNotifications()->count() : 0,
                 'messages' => $request->user() ? ($request->user()->is_admin
                     ? collect($request->user()->receivedMessages()->with('sender')->latest()->take(5)->get())
-                        ->merge(\App\Models\ContactMessage::latest()->take(5)->get()->map(function ($m) {
+                        ->merge(ContactMessage::latest()->take(5)->get()->map(function ($m) {
                             return [
                                 'id' => $m->id,
                                 'sender' => ['name' => $m->name],
@@ -54,7 +57,7 @@ class HandleInertiaRequests extends Middleware
                         ->values()
                     : $request->user()->receivedMessages()->with('sender')->latest()->take(5)->get()) : [],
                 'unreadMessagesCount' => $request->user() ? ($request->user()->is_admin
-                    ? $request->user()->receivedMessages()->where('is_read', false)->count() + \App\Models\ContactMessage::where('is_read', false)->count()
+                    ? $request->user()->receivedMessages()->where('is_read', false)->count() + ContactMessage::where('is_read', false)->count()
                     : $request->user()->receivedMessages()->where('is_read', false)->count()) : 0,
             ],
             'assetUrl' => asset(''),
@@ -69,7 +72,7 @@ class HandleInertiaRequests extends Middleware
                 'tournament_refresh_output' => $request->session()->get('tournament_refresh_output'),
             ],
             'adminSettings' => ($request->user() && $request->user()->is_admin)
-                ? \App\Models\SiteSetting::all()->pluck('value', 'key')
+                ? SiteSetting::all()->pluck('value', 'key')
                 : null,
         ];
     }

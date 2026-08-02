@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\CompleteProfileController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\WebAuthn\WebAuthnLoginController;
@@ -50,14 +52,14 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 
     // Social Authentication
-    Route::get('/auth/{provider}', [\App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])->name('social.redirect');
-    Route::get('/auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])->name('social.callback');
+    Route::get('/auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
+    Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 });
 
 Route::middleware('auth')->group(function () {
     // Profile Completion
-    Route::get('register/complete', [\App\Http\Controllers\Auth\CompleteProfileController::class, 'create'])->name('register.complete');
-    Route::post('register/complete', [\App\Http\Controllers\Auth\CompleteProfileController::class, 'store'])->name('register.complete.store');
+    Route::get('register/complete', [CompleteProfileController::class, 'create'])->name('register.complete');
+    Route::post('register/complete', [CompleteProfileController::class, 'store'])->name('register.complete.store');
 
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

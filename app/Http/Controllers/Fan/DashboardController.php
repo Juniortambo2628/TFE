@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\Budget;
+use App\Models\PaymentSchedule;
+use App\Models\PaymentTransaction;
+use App\Models\TribeMember;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -11,7 +17,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        \Illuminate\Support\Facades\Log::info('Fan Dashboard Accessed', ['user_id' => $user->id, 'is_partner' => $user->is_partner]);
+        Log::info('Fan Dashboard Accessed', ['user_id' => $user->id, 'is_partner' => $user->is_partner]);
 
         if ($user->is_partner) {
             return redirect()->route('partner.dashboard');
@@ -20,16 +26,16 @@ class DashboardController extends Controller
         $userId = $user->id;
 
         // Fetch Summary Data (use DB-level aggregation to avoid loading all records)
-        $activeBudget = \App\Models\Budget::where('user_id', $userId)->where('is_active', true)->first();
-        $totalBookings = \App\Models\Booking::where('user_id', $userId)->count();
+        $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
+        $totalBookings = Booking::where('user_id', $userId)->count();
 
-        $totalPaid = \App\Models\PaymentTransaction::where('user_id', $userId)
+        $totalPaid = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')->sum('amount');
-        $totalDue = \App\Models\PaymentSchedule::where('user_id', $userId)
+        $totalDue = PaymentSchedule::where('user_id', $userId)
             ->where('status', 'pending')->sum('amount');
-        $completedPaymentsCount = \App\Models\PaymentTransaction::where('user_id', $userId)
+        $completedPaymentsCount = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')->count();
-        $installmentsCount = \App\Models\PaymentSchedule::where('user_id', $userId)->count();
+        $installmentsCount = PaymentSchedule::where('user_id', $userId)->count();
 
         $stats = [
             'bookings' => $totalBookings,
@@ -37,18 +43,18 @@ class DashboardController extends Controller
             'due' => $totalDue,
             'payments_count' => $completedPaymentsCount,
             'installments_count' => $installmentsCount,
-            'joined_tribes_count' => \App\Models\TribeMember::where('user_id', $userId)->count(),
+            'joined_tribes_count' => TribeMember::where('user_id', $userId)->count(),
         ];
 
         // Fetch recent successful transactions (only the needed records)
-        $recentPayments = \App\Models\PaymentTransaction::where('user_id', $userId)
+        $recentPayments = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->orderByDesc('created_at')
             ->take(5)
             ->get();
 
         // Fetch recent bookings
-        $recentBookings = \App\Models\Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->take(5)->get();
+        $recentBookings = Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->take(5)->get();
 
         // Prepare Activity Feed
         $activities = collect([]);

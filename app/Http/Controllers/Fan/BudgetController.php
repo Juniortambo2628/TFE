@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
 use Illuminate\Http\Request;
@@ -95,7 +96,7 @@ class BudgetController extends Controller
         }
 
         // Create the booking
-        \App\Models\Booking::create([
+        Booking::create([
             'user_id' => $budget->user_id,
             'package_name' => $budget->name,
             'package_type' => 'Custom Itinerary',
@@ -110,7 +111,7 @@ class BudgetController extends Controller
         ]);
 
         // Deactivate all budgets for this user to keep dashboard clean
-        \App\Models\Budget::where('user_id', $budget->user_id)
+        Budget::where('user_id', $budget->user_id)
             ->update(['is_active' => false]);
 
         // Mark THIS specific budget as confirmed
