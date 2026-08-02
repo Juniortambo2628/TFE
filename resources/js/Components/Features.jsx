@@ -1,6 +1,7 @@
 import React from 'react';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
+import { useTournament } from '@/Context/TournamentContext';
 
 const FEATURE_CARDS = [
     {
@@ -29,15 +30,19 @@ const FEATURE_CARDS = [
     },
 ];
 
-export default function Features() {
+export default function Features({ variant = 'split' }) {
+    const { tournament } = useTournament();
+    const tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
+    const description = 'Structured financing solutions, flexible payment plans, community savings groups, and all-inclusive travel packages designed for ' + tournamentName + ' fans.';
     return (
         <HorizontalCardSection
             id="features"
             number="02"
             badge="Features"
             title="Core Features"
-            description="Structured financing solutions, flexible payment plans, community savings groups, and all-inclusive travel packages designed for African football fans."
+            description={description}
             action={{ label: 'Explore Features', href: '#services' }}
+            variant={variant}
         >
             {FEATURE_CARDS.map((card) => (
                 <LandingCard

@@ -186,8 +186,49 @@ const TEAM_NAMES = {
     'ec': 'Ecuador', 'cw': 'Cura�ao', 'tn': 'Tunisia', 'eg': 'Egypt',
     'ir': 'IR Iran', 'nz': 'New Zealand', 'cv': 'Cabo Verde', 'no': 'Norway',
     'at': 'Austria', 'jo': 'Jordan', 'dz': 'Algeria', 'co': 'Colombia',
-    'uz': 'Uzbekistan', 'pa': 'Panama', 'TBD': 'To Be Determined'
+    'uz': 'Uzbekistan', 'pa': 'Panama',     'TBD': 'To Be Determined'
 };
+
+// Map Wikipedia team names to flag codes for non-WC2026 tournaments
+function teamNameToCode(name) {
+    if (!name) return null;
+    var n = name.toLowerCase().trim();
+    // Direct lookup first
+    if (TEAM_CODES[name]) return TEAM_CODES[name];
+    // Common Wikipedia variations
+    var variations = {
+        'united states': 'us', 'usa': 'us', 'united states of america': 'us',
+        'south korea': 'kr', 'korea republic': 'kr', 'republic of korea': 'kr',
+        'iran': 'ir', 'islamic republic of iran': 'ir',
+        'ivory coast': 'ci', "cote d'ivoire": 'ci', "côte d'ivoire": 'ci',
+        'cape verde': 'cv', 'cabo verde': 'cv',
+        'curacao': 'cw', 'curaçao': 'cw',
+        'england': 'gb', 'scotland': 'gb', 'wales': 'gb',
+        'republic of ireland': 'ie', 'ireland': 'ie',
+        'czech republic': 'cz', 'czechia': 'cz',
+        'turkey': 'tr', 'türkiye': 'tr',
+        'netherlands': 'nl', 'holland': 'nl',
+        'germany': 'de', 'france': 'fr', 'spain': 'es', 'italy': 'it',
+        'brazil': 'br', 'argentina': 'ar', 'portugal': 'pt',
+        'belgium': 'be', 'croatia': 'hr', 'morocco': 'ma',
+        'japan': 'jp', 'australia': 'au', 'mexico': 'mx',
+        'canada': 'ca', 'uruguay': 'uy', 'colombia': 'co',
+        'ecuador': 'ec', 'senegal': 'sn', 'ghana': 'gh',
+        'cameroon': 'cm', 'nigeria': 'ng', 'tunisia': 'tn',
+        'egypt': 'eg', 'algeria': 'dz', 'south africa': 'za',
+        'qatar': 'qa', 'saudi arabia': 'sa', 'saudi': 'sa',
+        'poland': 'pl', 'denmark': 'dk', 'sweden': 'se',
+        'switzerland': 'ch', 'austria': 'at', 'norway': 'no',
+        'paraguay': 'py', 'panama': 'pa', 'jamaica': 'jm',
+        'haiti': 'ht', 'usmnt': 'us', 'socceroos': 'au',
+        'black stars': 'gh', 'super eagles': 'ng', 'atlas lions': 'ma',
+        'the netherlands': 'nl', 'iran': 'ir',
+        'new zealand': 'nz', 'new-zealand': 'nz',
+    };
+    if (variations[n]) return variations[n];
+    // Fallback: try lowercase as flag code (works for "mexico" -> "mx"? No, need 2-letter)
+    return null;
+}
 
 const DEFAULT_MATCHES = [
     { id: 101, home: 'br', away: 'fr', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
@@ -284,13 +325,17 @@ export default function Hero({ stadiums: stadiumsProp }) {
     }, [stadiums.length, isPaused, loaderReady]);
 
     const activeStadium = stadiums[currentSlide] || {};
-    const matches = STADIUM_MATCHES[activeStadium.name] || [];
-    
-    // Dynamically get unique teams playing in THIS stadium
-    const uniqueFlags = matches.length > 0 ? [...new Set(matches.flatMap(m => [m.home, m.away]).filter(f => f !== 'TBD'))] : [];
-    
+    // Get team flags: prefer tournament.teams from Wikipedia, fall back to STADIUM_MATCHES
+    var wikiTeams = (tournament && tournament.teams) || [];
+    var flagCodes;
+    if (wikiTeams.length > 0) {
+        flagCodes = [...new Set(wikiTeams.map(function (t) { return teamNameToCode(t.name); }).filter(Boolean))];
+    } else {
+        var matches = STADIUM_MATCHES[activeStadium.name] || [];
+        flagCodes = matches.length > 0 ? [...new Set(matches.flatMap(function (m) { return [m.home, m.away]; }).filter(function (f) { return f !== 'TBD'; }))] : [];
+    }
     // Double the list for seamless -50% loop
-    const flagTrack = [...uniqueFlags, ...uniqueFlags];
+    var flagTrack = flagCodes.concat(flagCodes);
 
     const openModal = (team = null) => {
         setSelectedTeam(team);

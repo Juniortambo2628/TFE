@@ -278,6 +278,20 @@
     background: #0a0a0a;
 }
 
+/* ── Variant: reversed layout (cards on left, header on right) ── */
+.landing-section.section-reverse .landing-section-inner {
+    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+}
+
+.landing-section.section-reverse .section-header {
+    padding-right: 0;
+    padding-left: 1rem;
+}
+
+.landing-section.section-reverse .cards-track {
+    flex-direction: row-reverse;
+}
+
 /* ── Variant: stacked header (title spans full width on top) ── */
 .landing-section.section-stacked .landing-section-inner {
     grid-template-columns: 1fr;

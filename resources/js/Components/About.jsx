@@ -30,7 +30,7 @@ const ABOUT_CARDS = [
     },
 ];
 
-export default function About() {
+export default function About({ variant = 'split' }) {
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
     var tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
@@ -46,6 +46,7 @@ export default function About() {
             title="About Us"
             description={description}
             action={{ label: 'Learn More', href: '#features' }}
+            variant={variant}
         >
             {ABOUT_CARDS.map((card) => (
                 <LandingCard

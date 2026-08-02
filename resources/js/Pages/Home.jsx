@@ -83,9 +83,9 @@ export default function Home({ appName, stadiums = [] }) {
                     <AdPlaceholder position="horizontal" />
               </div>
 
-                <About />
-                <Features />
-                <Services />
+                <About variant="split" />
+                <Features variant="split-reverse" />
+                <Services variant="split" />
 
                 {/* Popular Experiences — stacked variant (title row + cards) */}
                 <HorizontalCardSection
@@ -111,7 +111,7 @@ export default function Home({ appName, stadiums = [] }) {
                     <AdPlaceholder position="horizontal" />
               </div>
 
-                <News />
+                <News variant="split-reverse" />
                 <Contact />
                 <Testimonials />
                 <PartnerCarousel />

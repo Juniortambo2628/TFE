@@ -1,6 +1,7 @@
 import React from 'react';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
+import { useTournament } from '@/Context/TournamentContext';
 
 const SERVICE_CARDS = [
     {
@@ -29,15 +30,19 @@ const SERVICE_CARDS = [
     },
 ];
 
-export default function Services() {
+export default function Services({ variant = 'split' }) {
+    const { tournament } = useTournament();
+    const tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
+    const description = 'Comprehensive solutions to make your ' + tournamentName + ' dream a reality. From flexible financing to complete travel packages.';
     return (
         <HorizontalCardSection
             id="services"
             number="03"
             badge="Services"
             title="What We Offer"
-            description="Comprehensive solutions to make your World Cup 2026 dream a reality. From flexible financing to complete travel packages."
+            description={description}
             action={{ label: 'Get Started', href: route('register') }}
+            variant={variant}
         >
             {SERVICE_CARDS.map((card) => (
                 <LandingCard

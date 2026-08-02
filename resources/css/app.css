@@ -214,3 +214,94 @@ html, body {
     50% { transform: scale(1.05); opacity: 1; }
     100% { transform: scale(0.95); opacity: 0.8; }
 }
+
+
+
+
+/* ============================================================
+   Global Subtle Scrollbar
+   - Reserves space with scrollbar-gutter: stable to avoid
+     layout shift when modals open / scrollbars appear
+   - Webkit (Chrome/Safari/Edge): thin + crimson tint
+   - Firefox: scrollbar-width: thin + crimson tint
+   - Consistent with the TFE dark theme (#DC143C accent)
+   ============================================================ */
+
+html {
+    scrollbar-gutter: stable;
+    scrollbar-color: rgba(220, 20, 60, 0.45) rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
+}
+
+html::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+html::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: rgba(220, 20, 60, 0.4);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 20, 60, 0.7);
+}
+
+/* Body-level scroll container - subtle, overlay behaviour so it never pushes content */
+body {
+    scrollbar-color: rgba(220, 20, 60, 0.4) transparent;
+}
+
+body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: rgba(220, 20, 60, 0.35);
+    border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 20, 60, 0.65);
+}
+
+/* When a modal is open, suppress body scroll to prevent layout jumps */
+body.modal-open {
+    overflow: hidden;
+    padding-right: var(--scrollbar-width, 0px);
+}
+
+/* Generic .tfe-scroll class — applies the same subtle scrollbar to any container */
+.tfe-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(220, 20, 60, 0.4) transparent;
+}
+
+.tfe-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.tfe-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tfe-scroll::-webkit-scrollbar-thumb {
+    background: rgba(220, 20, 60, 0.35);
+    border-radius: 3px;
+}
+
+.tfe-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 20, 60, 0.6);
+}
