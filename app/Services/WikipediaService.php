@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -28,7 +29,7 @@ class WikipediaService
      * Get an HTTP client configured for Wikipedia API access.
      * Uses shorter timeout on local dev (SSL issues = wasted wait time).
      */
-    protected function http(): \Illuminate\Http\Client\PendingRequest
+    protected function http(): PendingRequest
     {
         $timeout = app()->environment('local') ? 3 : 8;
         $http = Http::timeout($timeout)->withHeaders([
@@ -616,6 +617,7 @@ class WikipediaService
                                 'fair play trophy' => 'fair_play',
                             };
                             $currentAward = $awardKey;
+
                             continue;
                         }
 
@@ -635,9 +637,13 @@ class WikipediaService
                         for ($i = 0; $i < count($awardMatches[0]); $i++) {
                             $awardName = $this->cleanWikiValue($awardMatches[2][$i] ?: $awardMatches[1][$i]);
                             $playerName = $this->cleanWikiValue($awardMatches[4][$i] ?: $awardMatches[3][$i]);
-                            if (stripos($awardName, 'Boot') !== false) $awards['golden_boot'] = $playerName;
-                            elseif (stripos($awardName, 'Ball') !== false) $awards['golden_ball'] = $playerName;
-                            elseif (stripos($awardName, 'Glove') !== false) $awards['golden_glove'] = $playerName;
+                            if (stripos($awardName, 'Boot') !== false) {
+                                $awards['golden_boot'] = $playerName;
+                            } elseif (stripos($awardName, 'Ball') !== false) {
+                                $awards['golden_ball'] = $playerName;
+                            } elseif (stripos($awardName, 'Glove') !== false) {
+                                $awards['golden_glove'] = $playerName;
+                            }
                         }
                     }
                 }
@@ -860,6 +866,7 @@ class WikipediaService
         if (preg_match('/\{\{#invoke:flagg\|main\|[^|]+\|avar=fb\|([A-Z]{2,3})\}\}/i', $val, $m)) {
             return strtoupper($m[1]);
         }
+
         // Fallback: clean wiki markup
         return $this->cleanWikiValue($val);
     }
