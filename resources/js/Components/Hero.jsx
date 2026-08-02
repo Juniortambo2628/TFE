@@ -27,8 +27,8 @@ const TEAM_CODES = {
     'Japan': 'jp', 'England': 'gb', 'Portugal': 'pt', 'Uruguay': 'uy',
     'Netherlands': 'nl', 'Senegal': 'sn', 'Poland': 'pl', 'Saudi Arabia': 'sa',
     'South Africa': 'za', 'Qatar': 'qa', 'Switzerland': 'ch', 'Haiti': 'ht',
-    'Scotland': 'sc', 'Paraguay': 'py', 'Australia': 'au', 'C�te d\'Ivoire': 'ci',
-    'Ecuador': 'ec', 'Cura�ao': 'cw', 'Tunisia': 'tn', 'Egypt': 'eg',
+    'Scotland': 'sc', 'Paraguay': 'py', 'Australia': 'au', "Cote d'Ivoire": 'ci',
+    'Ecuador': 'ec', 'Curacao': 'cw', 'Tunisia': 'tn', 'Egypt': 'eg',
     'IR Iran': 'ir', 'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no',
     'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz', 'Colombia': 'co',
     'Uzbekistan': 'uz', 'Panama': 'pa', 'TBD': 'TBD', 'TBD (Playoff A)': 'TBD',
@@ -182,8 +182,8 @@ const TEAM_NAMES = {
     'jp': 'Japan', 'gb': 'England', 'pt': 'Portugal', 'uy': 'Uruguay',
     'nl': 'Netherlands', 'sn': 'Senegal', 'pl': 'Poland', 'sa': 'Saudi Arabia',
     'za': 'South Africa', 'qa': 'Qatar', 'ch': 'Switzerland', 'ht': 'Haiti',
-    'sc': 'Scotland', 'py': 'Paraguay', 'au': 'Australia', 'ci': 'C�te d\'Ivoire',
-    'ec': 'Ecuador', 'cw': 'Cura�ao', 'tn': 'Tunisia', 'eg': 'Egypt',
+    'sc': 'Scotland', 'py': 'Paraguay', 'au': 'Australia', 'ci': "Cote d'Ivoire",
+    'ec': 'Ecuador', 'cw': 'Curacao', 'tn': 'Tunisia', 'eg': 'Egypt',
     'ir': 'IR Iran', 'nz': 'New Zealand', 'cv': 'Cabo Verde', 'no': 'Norway',
     'at': 'Austria', 'jo': 'Jordan', 'dz': 'Algeria', 'co': 'Colombia',
     'uz': 'Uzbekistan', 'pa': 'Panama',     'TBD': 'To Be Determined'
@@ -262,6 +262,17 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 attribution: 'Data from Wikipedia',
             };
         });
+    } else if (tournament && tournament.id !== 'wc_2026') {
+        stadiums = [{
+            name: tournament.short_name + ' Venues',
+            location: (tournament.hosts || []).join(', '),
+            capacity: 'TBD',
+            history: '',
+            fun_fact: '',
+            image: heroImage,
+            matches: [],
+            attribution: '',
+        }];
     } else {
         stadiums = stadiumsProp || [];
     }
@@ -277,7 +288,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             fun_fact: '',
             image: heroImage,
             matches: [],
-            attribution: 'Data pending',
+            attribution: '',
         }];
     }
 
@@ -325,13 +336,18 @@ export default function Hero({ stadiums: stadiumsProp }) {
     }, [stadiums.length, isPaused, loaderReady]);
 
     const activeStadium = stadiums[currentSlide] || {};
-    // Get team flags: prefer tournament.teams from Wikipedia, fall back to STADIUM_MATCHES
+    // Get team flags: config team_flag_codes > Wikipedia teams > host_flag_codes > STADIUM_MATCHES
+    var configFlags = (tournament && tournament.team_flag_codes) || [];
     var wikiTeams = (tournament && tournament.teams) || [];
+    var matches = STADIUM_MATCHES[activeStadium.name] || [];
     var flagCodes;
-    if (wikiTeams.length > 0) {
+    if (configFlags.length > 0) {
+        flagCodes = configFlags;
+    } else if (wikiTeams.length > 0) {
         flagCodes = [...new Set(wikiTeams.map(function (t) { return teamNameToCode(t.name); }).filter(Boolean))];
+    } else if (tournament && tournament.host_flag_codes && tournament.host_flag_codes.length > 0) {
+        flagCodes = tournament.host_flag_codes;
     } else {
-        var matches = STADIUM_MATCHES[activeStadium.name] || [];
         flagCodes = matches.length > 0 ? [...new Set(matches.flatMap(function (m) { return [m.home, m.away]; }).filter(function (f) { return f !== 'TBD'; }))] : [];
     }
     // Double the list for seamless -50% loop
@@ -401,7 +417,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                         <i className={"fas fa-map-marker-alt me-2"}/>
                                         <span className={"fw-medium"}>{activeStadium.name}</span>
                                         {activeStadium.location && activeStadium.location !== 'Wikipedia venue' && (
-                                            <span>{' &mdash; '}{activeStadium.location} ></span>
+                                            <span> — {activeStadium.location}</span>
                                         )}
                                    </p>
                                 )}
@@ -592,7 +608,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 >
                     <div className="badge-dot"></div>
                     <span className="text-white fw-bold text-uppercase tracking-wider">{activeStadium.name}</span>
-                    <span className="text-white text-opacity-50">� {activeStadium.location.split(',').pop().trim()}</span>
+                    <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
                 </motion.div>
             </div>
 

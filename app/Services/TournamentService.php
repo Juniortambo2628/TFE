@@ -83,6 +83,7 @@ class TournamentService
             'wikipedia_summary' => $wikipedia['summary'] ?? [],
             'venues' => $wikipedia['venues'] ?? [],
             'teams' => $wikipedia['teams'] ?? [],
+            'team_flag_codes' => $config['team_flag_codes'] ?? [],
             'facts' => $wikipedia['facts'] ?? [],
             'is_default' => $id === config('tournaments.default'),
         ]);
