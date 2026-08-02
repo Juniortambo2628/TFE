@@ -63,6 +63,8 @@ return [
             'color_accent' => '#dc143c',
             'winner' => null,
             'top_scorer' => null,
+            'num_teams' => 48,
+            'matches_played' => 104,
         ],
 
         'afcon_2027' => [

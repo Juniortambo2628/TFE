@@ -686,10 +686,19 @@ class WikipediaService
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
 
+        $venues = $this->getVenues($title, $ttl);
+
+        // Enrich each venue with stadium data (capacity, opened, location, thumbnail)
+        foreach ($venues as &$venue) {
+            $stadiumData = $this->getStadiumData($venue['wikipedia_title'] ?? $venue['name'], $ttl);
+            $venue = array_merge($venue, $stadiumData);
+        }
+        unset($venue);
+
         return [
             'summary' => $this->getSummary($title, $ttl),
             'extract' => $this->getExtract($title, $ttl),
-            'venues' => $this->getVenues($title, $ttl),
+            'venues' => $venues,
             'teams' => $this->getTeams($title, $ttl),
             'facts' => $this->getKeyFacts($title, $ttl),
             'results' => $this->getTournamentResults($title, $ttl),

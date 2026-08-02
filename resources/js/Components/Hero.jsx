@@ -256,14 +256,15 @@ export default function Hero({ stadiums: stadiumsProp }) {
     if (wikipediaVenues.length > 0) {
         stadiums = wikipediaVenues.map(function (v) {
             return {
-                name: v.name,
-                location: 'Wikipedia venue',
-                capacity: 'TBD',
-                history: '',
-                fun_fact: '',
-                image: heroImage,
+                name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
+                location: v.location || 'Wikipedia venue',
+                capacity: v.capacity || 'TBD',
+                history: v.opened || '',
+                fun_fact: v.extract || '',
+                image: v.thumbnail || v.image || heroImage,
                 matches: [],
                 attribution: 'Data from Wikipedia',
+                url: v.url || '',
             };
         });
     } else if (tournament && tournament.id !== 'wc_2026') {
@@ -345,8 +346,30 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var wikiTeams = (tournament && tournament.teams) || [];
     // Match data source: STADIUM_MATCHES (WC2026) or Wikipedia matches (all others)
     var allMatches = [];
-    if (wikipediaMatches.length > 0) {
-        // Convert Wikipedia matches to the format expected by the modal
+    // Prefer hardcoded STADIUM_MATCHES (has full schedule); merge Wikipedia scores where available
+    var hardcodedMatches = STADIUM_MATCHES[activeStadium.name] || [];
+    if (hardcodedMatches.length > 0) {
+        allMatches = hardcodedMatches.map(function(m) {
+            // Try to find a Wikipedia match with a score for the same teams/date
+            var wikiMatch = wikipediaMatches.find(function(wm) {
+                var wCode1 = teamNameToCode(wm.team1) || wm.team1;
+                var wCode2 = teamNameToCode(wm.team2) || wm.team2;
+                return (wCode1 === m.home && wCode2 === m.away) || (wCode1 === m.away && wCode2 === m.home);
+            });
+            return {
+                id: m.id,
+                home: m.home,
+                away: m.away,
+                score: (wikiMatch && wikiMatch.score) || m.score || null,
+                date: m.date || (wikiMatch && wikiMatch.date) || '',
+                time: m.time || (wikiMatch && wikiMatch.time) || '',
+                type: m.type || 'Match',
+                stadium: m.stadium || (wikiMatch && wikiMatch.stadium) || '',
+                goals1: (wikiMatch && wikiMatch.goals1) || m.goals1 || '',
+                goals2: (wikiMatch && wikiMatch.goals2) || m.goals2 || '',
+            };
+        });
+    } else if (wikipediaMatches.length > 0) {
         allMatches = wikipediaMatches.map(function(m, idx) {
             var code1 = teamNameToCode(m.team1) || m.team1;
             var code2 = teamNameToCode(m.team2) || m.team2;
@@ -363,8 +386,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 goals2: m.goals2 || '',
             };
         });
-    } else if (STADIUM_MATCHES[activeStadium.name]) {
-        allMatches = STADIUM_MATCHES[activeStadium.name];
     }
     var matches = allMatches;
     var flagCodes;
@@ -467,7 +488,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             <div className="d-flex flex-column align-items-center align-items-xl-end gap-4">
                                 {/* Persistent Countdown */}
                                 <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center align-items-xl-end glass-card border border-white/5" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)' }}>
-                                    <div className="text-uppercase text-white text-opacity-50 mb-4 fs-8 fw-light text-center w-100" style={{ letterSpacing: '0.4em', marginRight: '-0.4em' }}>{isConcluded ? (tournament.short_name + ' \u2014 ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
+                                    <div className="text-white text-opacity-50 mb-4 text-center w-100" style={{ fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.02em' }}>{isConcluded ? (tournament.short_name + ' — ' + (tournament.winner || 'Concluded')) : 'Kickoff'}</div>
                                     <div className="d-flex gap-3 gap-md-4">
                                         {[
                                             { label: 'Days', value: timeLeft.days || 0, max: 1000 },
@@ -512,11 +533,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 >
                                     <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white/10 pb-2">
                                         <div className="text-white-50 small"><i className="fas fa-futbol me-2"></i>Teams</div>
-                                        <div className="text-white fw-bold">{tournament.num_teams || activeStadium.capacity || 'TBD'}</div>
+                                        <div className="text-white fw-bold">{tournament.facts?.teams || tournament.num_teams || 'TBD'}</div>
                                     </div>
                                     <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white/10 pb-2">
                                         <div className="text-white-50 small"><i className="fas fa-calendar me-2"></i>Matches</div>
-                                        <div className="text-white fw-bold">{tournament.matches_played || 'TBD'}</div>
+                                        <div className="text-white fw-bold">{tournament.facts?.matches || tournament.matches_played || 'TBD'}</div>
                                     </div>
                                     <div className="d-flex w-100 justify-content-between mb-3 border-bottom border-white/10 pb-2">
                                         <div className="text-white-50 small"><i className="fas fa-bullseye me-2"></i>Goals</div>
@@ -555,7 +576,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             <div className="container d-block d-xl-none position-relative z-1 mb-4">
                 <div className="d-flex justify-content-center">
                     <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center" style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)' }}>
-                         <div className="text-white-50 text-uppercase mb-2 small text-center w-100" style={{ letterSpacing: '0.2em', marginRight: '-0.2em', fontSize: '10px' }}>{isConcluded ? (tournament.short_name + ' - ' + (tournament.winner || 'CONCLUDED')) : 'KICKOFF'}</div>
+                         <div className="text-white-50 mb-2 small text-center w-100" style={{ fontSize: '0.65rem', fontWeight: 500, letterSpacing: '0.02em' }}>{isConcluded ? (tournament.short_name + ' — ' + (tournament.winner || 'Concluded')) : 'Kickoff'}</div>
                          <div className="d-flex gap-3">
                             {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
                                 <div key={unit} className="text-center">

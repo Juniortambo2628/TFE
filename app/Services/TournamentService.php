@@ -126,10 +126,10 @@ class TournamentService
             'top_scorer' => $topScorer,
             'final_score' => $finalScore,
             'final_venue' => $finalVenue,
-            // Stats from Wikipedia
-            'num_teams' => $wikiResults['num_teams'] ?? null,
-            'matches_played' => $wikiResults['matches_played'] ?? null,
-            'total_goals' => $wikiResults['total_goals'] ?? null,
+            // Stats from Wikipedia (with config fallback)
+            'num_teams' => $wikiResults['num_teams'] ?? $config['num_teams'] ?? null,
+            'matches_played' => $wikiResults['matches_played'] ?? $config['matches_played'] ?? null,
+            'total_goals' => $wikiResults['total_goals'] ?? $config['total_goals'] ?? null,
             // Detailed results from Wikipedia
             'wikipedia_results' => $wikiResults,
             'wikipedia_final_match' => $finalMatch,
