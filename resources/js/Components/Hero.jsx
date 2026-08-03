@@ -452,6 +452,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {/* Content Layer - Persistent across slide changes */}
             <div className="container h-100 position-relative z-1">
                 <div className="d-flex flex-column gap-4 pb-8 position-relative min-vh-100 justify-content-center pb-5">
+                    {/* Row 1: Title + Hosting Countries | Countdown/Winners Card */}
                     <div className="row align-items-center gx-0">
                         {/* Left Content */}
                         <div className="col-xl-7 px-3 px-md-0">
@@ -463,14 +464,23 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             >
                                 <h1 className="mb-3 display-3 text-white lh-1 fw-bold" key={`title-${tournament ? tournament.id : 'default'}`}>{tournament ? tournament.name : 'The Football Experience'}</h1>
                                 <p className="mb-3 text-white fs-5 text-opacity-80" style={{ maxWidth: '640px' }}>{tournament ? tournament.tagline : ''}</p>
-                                {activeStadium.name && activeStadium.name !== (tournament ? tournament.short_name : '') && (
-                                    <p className="mb-4 text-white-50 fs-6">
-                                        <i className={"fas fa-map-marker-alt me-2"}/>
-                                        <span className={"fw-medium"}>{activeStadium.name}</span>
-                                        {activeStadium.location && activeStadium.location !== 'Wikipedia venue' && (
-                                            <span> — {activeStadium.location}</span>
-                                        )}
-                                   </p>
+                                {/* Hosting Countries with flags */}
+                                {tournament && tournament.hosts && tournament.hosts.length > 0 && (
+                                    <div className="d-flex align-items-center gap-2 mb-4 flex-wrap">
+                                        <i className="fas fa-map-marker-alt text-danger me-1" style={{ fontSize: '0.85rem' }}></i>
+                                        {tournament.hosts.map(function(host, idx) {
+                                            var code = (tournament.host_flag_codes && tournament.host_flag_codes[idx]) || null;
+                                            if (!code) code = TEAM_CODES[host] || teamNameToCode(host);
+                                            return (
+                                                <span key={idx} className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                                                    {code && code !== 'TBD' && (
+                                                        <img src={`${assetUrl}assets/Flags/${code}.png`} alt="" style={{ width: '18px', height: '13px', objectFit: 'cover', borderRadius: '2px' }} onError={function(e) { if (wikipediaFlags[host]) { e.target.src = wikipediaFlags[host]; } }} />
+                                                    )}
+                                                    <span className="text-white fw-medium" style={{ fontSize: '0.8rem' }}>{host}</span>
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
                                 )}
                                 
                                 <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 gap-md-3 mt-4" style={{ maxWidth: 'fit-content' }}>
@@ -482,97 +492,130 @@ export default function Hero({ stadiums: stadiumsProp }) {
                            </motion.div>
                         </div>
 
-                        {/* Right Content: Countdown & Stats */}
+                        {/* Right Content: Countdown/Winners Card with Trophy BG */}
                         <div className="col-xl-5 d-none d-xl-block">
-                            <div className="d-flex flex-column align-items-center align-items-xl-end gap-4">
-                                {/* Persistent Countdown */}
-                                <div className="hero-countdown p-4 rounded-3xl d-inline-flex flex-column align-items-center glass-card border border-white/5 w-100" style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)', maxWidth: '420px' }}>
-                                    {/* Tournament Badge — full name + logo fills height */}
-                                    <div className="d-flex align-items-center gap-3 mb-3 w-100">
-                                        {wikipediaLogo ? (
-                                            <img src={wikipediaLogo} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', padding: '4px' }} />
-                                        ) : (
-                                            <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', background: 'rgba(220,20,60,0.15)' }}>
-                                                <i className="fas fa-trophy" style={{ color: '#DC143C', fontSize: '1.3rem' }}></i>
-                                            </div>
-                                        )}
-                                        <div className="flex-grow-1">
-                                            <div className="fw-bold text-white" style={{ fontSize: '0.85rem', lineHeight: '1.2' }}>{tournament ? tournament.name : 'Tournament'}</div>
-                                            <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mt-1 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning'))} style={{ fontSize: '0.55rem', letterSpacing: '0.05em' }}>{tournament ? tournament.status : ''}</span>
-                                        </div>
-                                    </div>
-
-                                    {isConcluded ? (
-                                        /* Concluded: show winner, runner-ups & top scorer */
-                                        <div className="w-100">
-                                            {/* Winner */}
-                                            <div className="text-center mb-3">
-                                                <div className="text-white text-opacity-40 mb-1" style={{ fontSize: '0.6rem', letterSpacing: '0.02em' }}>Champion</div>
-                                                <div className="d-flex align-items-center justify-content-center gap-2">
-                                                    {tournament.winner && teamNameToCode(tournament.winner) && (
-                                                        <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" style={{ width: '24px', height: '16px', objectFit: 'cover', borderRadius: '2px' }} onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
-                                                    )}
-                                                    <div className="text-warning fw-bold" style={{ fontSize: '1.1rem' }}>{tournament.winner || 'To Be Determined'}</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Runner-ups */}
-                                            <div className="d-flex gap-2 mb-3 pt-2 border-top border-white/10">
-                                                {tournament.runner_up && (
-                                                    <div className="flex-grow-1 text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                                        <div className="text-white text-opacity-30 mb-1" style={{ fontSize: '0.5rem' }}>Runner-up</div>
-                                                        <div className="d-flex align-items-center justify-content-center gap-1">
-                                                            {teamNameToCode(tournament.runner_up) && (
-                                                                <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" style={{ width: '18px', height: '12px', objectFit: 'cover', borderRadius: '2px' }} onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
-                                                            )}
-                                                            <span className="text-white fw-semibold" style={{ fontSize: '0.7rem' }}>{tournament.runner_up}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {tournament.second_runner_up && (
-                                                    <div className="flex-grow-1 text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                                        <div className="text-white text-opacity-30 mb-1" style={{ fontSize: '0.5rem' }}>3rd Place</div>
-                                                        <div className="d-flex align-items-center justify-content-center gap-1">
-                                                            {teamNameToCode(tournament.second_runner_up) && (
-                                                                <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.second_runner_up)}.png`} alt="" style={{ width: '18px', height: '12px', objectFit: 'cover', borderRadius: '2px' }} onError={function(e) { if (wikipediaFlags[tournament.second_runner_up]) { e.target.src = wikipediaFlags[tournament.second_runner_up]; } }} />
-                                                            )}
-                                                            <span className="text-white fw-semibold" style={{ fontSize: '0.7rem' }}>{tournament.second_runner_up}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Final Score */}
-                                            {tournament.final_score && (
-                                                <div className="text-center mb-3 pt-2 border-top border-white/10">
-                                                    <div className="text-white text-opacity-30 mb-1" style={{ fontSize: '0.5rem' }}>Final Score</div>
-                                                    <div className="text-white fw-bold" style={{ fontSize: '0.85rem', letterSpacing: '0.05em' }}>{tournament.final_score}</div>
-                                                </div>
-                                            )}
-
-                                            {/* Top Scorer */}
-                                            {tournament.top_scorer && tournament.top_scorer.name && (
-                                                <div className="d-flex align-items-center justify-content-center gap-3 pt-2 border-top border-white/10">
-                                                    <div className="text-center">
-                                                        <div className="text-white text-opacity-40" style={{ fontSize: '0.55rem' }}>Top Scorer</div>
-                                                        <div className="text-white fw-bold" style={{ fontSize: '0.8rem' }}>{tournament.top_scorer.name}</div>
-                                                    </div>
-                                                    {tournament.top_scorer.goals && (
-                                                        <div className="text-danger fw-bold" style={{ fontSize: '0.75rem' }}>({tournament.top_scorer.goals} goals)</div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
+                            <div className="d-flex justify-content-end">
+                                <motion.div
+                                    key={`countdown-${tournament ? tournament.id : 'default'}`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                    className="rounded-3xl overflow-hidden position-relative border border-white/10"
+                                    style={{ maxWidth: '420px', width: '100%', minHeight: isConcluded ? '380px' : '280px' }}
+                                >
+                                    {/* Trophy/Logo background image */}
+                                    {wikipediaLogo ? (
+                                        <div style={{
+                                            position: 'absolute', inset: 0,
+                                            backgroundImage: `url(${wikipediaLogo})`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                            filter: 'blur(30px) brightness(0.3)',
+                                            transform: 'scale(1.2)',
+                                        }} />
                                     ) : (
-                                        /* Upcoming/Ongoing: show countdown */
-                                        <div className="d-flex gap-3 gap-md-4">
-                                            {[
-                                                { label: 'Days', value: timeLeft.days || 0, max: 1000 },
-                                                { label: 'Hrs', value: timeLeft.hours || 0, max: 24 },
-                                                { label: 'Mins', value: timeLeft.minutes || 0, max: 60 },
-                                                { label: 'Secs', value: timeLeft.seconds || 0, max: 60 }
-                                            ].map((item, idx) => {
-                                                const size = 64;
+                                        <div style={{
+                                            position: 'absolute', inset: 0,
+                                            backgroundImage: `url(${activeStadium.image || heroImage})`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                            filter: 'blur(30px) brightness(0.2)',
+                                            transform: 'scale(1.2)',
+                                        }} />
+                                    )}
+                                    {/* Dark overlay */}
+                                    <div style={{
+                                        position: 'absolute', inset: 0,
+                                        background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.85) 100%)',
+                                    }} />
+                                    {/* Content */}
+                                    <div className="position-relative p-4">
+                                        {/* Tournament Badge — full name + logo */}
+                                        <div className="d-flex align-items-center gap-3 mb-3">
+                                            {wikipediaLogo ? (
+                                                <img src={wikipediaLogo} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', padding: '4px' }} />
+                                            ) : (
+                                                <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', background: 'rgba(220,20,60,0.2)' }}>
+                                                    <i className="fas fa-trophy" style={{ color: '#DC143C', fontSize: '1.3rem' }}></i>
+                                                </div>
+                                            )}
+                                            <div className="flex-grow-1">
+                                                <div className="fw-bold text-white" style={{ fontSize: '0.85rem', lineHeight: '1.2' }}>{tournament ? tournament.name : 'Tournament'}</div>
+                                                <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mt-1 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning'))} style={{ fontSize: '0.55rem', letterSpacing: '0.05em' }}>{tournament ? tournament.status : ''}</span>
+                                            </div>
+                                        </div>
+
+                                        {isConcluded ? (
+                                            /* Concluded: show winner, runner-ups & top scorer */
+                                            <div>
+                                                {/* Winner */}
+                                                <div className="text-center mb-3">
+                                                    <div className="text-white text-opacity-40 mb-1" style={{ fontSize: '0.6rem', letterSpacing: '0.02em' }}>Champion</div>
+                                                    <div className="d-flex align-items-center justify-content-center gap-2">
+                                                        {tournament.winner && teamNameToCode(tournament.winner) && (
+                                                            <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" style={{ width: '28px', height: '20px', objectFit: 'cover', borderRadius: '3px' }} onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
+                                                        )}
+                                                        <div className="text-warning fw-bold" style={{ fontSize: '1.2rem' }}>{tournament.winner || 'To Be Determined'}</div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Runner-ups */}
+                                                <div className="d-flex gap-2 mb-3 pt-2 border-top border-white/10">
+                                                    {tournament.runner_up && (
+                                                        <div className="flex-grow-1 text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                                                            <div className="text-white text-opacity-30 mb-1" style={{ fontSize: '0.5rem' }}>Runner-up</div>
+                                                            <div className="d-flex align-items-center justify-content-center gap-1">
+                                                                {teamNameToCode(tournament.runner_up) && (
+                                                                    <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" style={{ width: '18px', height: '13px', objectFit: 'cover', borderRadius: '2px' }} onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
+                                                                )}
+                                                                <span className="text-white fw-semibold" style={{ fontSize: '0.7rem' }}>{tournament.runner_up}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {tournament.second_runner_up && (
+                                                        <div className="flex-grow-1 text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                                                            <div className="text-white text-opacity-30 mb-1" style={{ fontSize: '0.5rem' }}>3rd Place</div>
+                                                            <div className="d-flex align-items-center justify-content-center gap-1">
+                                                                {teamNameToCode(tournament.second_runner_up) && (
+                                                                    <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.second_runner_up)}.png`} alt="" style={{ width: '18px', height: '13px', objectFit: 'cover', borderRadius: '2px' }} onError={function(e) { if (wikipediaFlags[tournament.second_runner_up]) { e.target.src = wikipediaFlags[tournament.second_runner_up]; } }} />
+                                                                )}
+                                                                <span className="text-white fw-semibold" style={{ fontSize: '0.7rem' }}>{tournament.second_runner_up}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Final Score */}
+                                                {tournament.final_score && (
+                                                    <div className="text-center mb-3 pt-2 border-top border-white/10">
+                                                        <div className="text-white text-opacity-30 mb-1" style={{ fontSize: '0.5rem' }}>Final Score</div>
+                                                        <div className="text-white fw-bold" style={{ fontSize: '0.9rem', letterSpacing: '0.03em' }}>{tournament.final_score}</div>
+                                                    </div>
+                                                )}
+
+                                                {/* Top Scorer */}
+                                                {tournament.top_scorer && tournament.top_scorer.name && (
+                                                    <div className="d-flex align-items-center justify-content-center gap-3 pt-2 border-top border-white/10">
+                                                        <div className="text-center">
+                                                            <div className="text-white text-opacity-40" style={{ fontSize: '0.55rem' }}>Top Scorer</div>
+                                                            <div className="text-white fw-bold" style={{ fontSize: '0.8rem' }}>{tournament.top_scorer.name}</div>
+                                                        </div>
+                                                        {tournament.top_scorer.goals && (
+                                                            <div className="text-danger fw-bold" style={{ fontSize: '0.75rem' }}>({tournament.top_scorer.goals} goals)</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            /* Upcoming/Ongoing: show countdown */
+                                            <div className="d-flex gap-3 gap-md-4 justify-content-center">
+                                                {[
+                                                    { label: 'Days', value: timeLeft.days || 0, max: 1000 },
+                                                    { label: 'Hrs', value: timeLeft.hours || 0, max: 24 },
+                                                    { label: 'Mins', value: timeLeft.minutes || 0, max: 60 },
+                                                    { label: 'Secs', value: timeLeft.seconds || 0, max: 60 }
+                                                ].map((item, idx) => {
+                                                    const size = 64;
                                                 const radius = 28;
                                                 const center = size / 2;
                                                 const circumference = 2 * Math.PI * radius;
@@ -597,59 +640,69 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             })}
                                         </div>
                                     )}
-                                </div>
-
-                                {/* Tournament Stats — Full background image card */}
-                                <motion.div 
-                                    key={`stats-${tournament ? tournament.id : 'default'}`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: 0.1 }}
-                                    className="rounded-3xl overflow-hidden w-100 position-relative" 
-                                    style={{ maxWidth: '420px', minHeight: '180px' }}
-                                >
-                                    {/* Full background image */}
-                                    <div style={{
-                                        position: 'absolute', inset: 0,
-                                        backgroundImage: `url(${activeStadium.image || heroImage})`,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center',
-                                    }} />
-                                    {/* Dark overlay for readability */}
-                                    <div style={{
-                                        position: 'absolute', inset: 0,
-                                        background: 'linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 100%)',
-                                    }} />
-                                    {/* Content */}
-                                    <div className="position-relative p-4">
-                                        <div className="d-flex align-items-center gap-2 mb-3">
-                                            <i className="fas fa-chart-bar text-danger" style={{ fontSize: '0.7rem' }}></i>
-                                            <span className="text-white fw-bold" style={{ fontSize: '0.7rem', letterSpacing: '0.05em' }}>Tournament Stats</span>
-                                            <span className="text-white text-opacity-30 ms-auto" style={{ fontSize: '0.6rem' }}>{activeStadium.name}</span>
-                                        </div>
-                                        <div className="row g-3">
-                                            <div className="col-4">
-                                                <div className="text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                                                    <div className="text-white-50 mb-1" style={{ fontSize: '0.55rem' }}><i className="fas fa-futbol me-1"></i>Teams</div>
-                                                    <div className="text-white fw-bold" style={{ fontSize: '1.2rem' }}>{tournament.facts?.teams || tournament.num_teams || 'TBD'}</div>
-                                                </div>
-                                            </div>
-                                            <div className="col-4">
-                                                <div className="text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                                                    <div className="text-white-50 mb-1" style={{ fontSize: '0.55rem' }}><i className="fas fa-calendar me-1"></i>Matches</div>
-                                                    <div className="text-white fw-bold" style={{ fontSize: '1.2rem' }}>{tournament.facts?.matches || tournament.matches_played || 'TBD'}</div>
-                                                </div>
-                                            </div>
-                                            <div className="col-4">
-                                                <div className="text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                                                    <div className="text-white-50 mb-1" style={{ fontSize: '0.55rem' }}><i className="fas fa-bullseye me-1"></i>Goals</div>
-                                                    <div className="text-white fw-bold" style={{ fontSize: '1.2rem' }}>{tournament.total_goals || 'TBD'}</div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </motion.div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Row 2: Tournament Stats Card — centered, full width, above flags */}
+                    <div className="row justify-content-center gx-0">
+                        <div className="col-xl-8 col-lg-10 px-3">
+                            <motion.div
+                                key={`stats-${tournament ? tournament.id : 'default'}`}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                                className="rounded-3xl overflow-hidden position-relative border border-white/10"
+                                style={{ minHeight: '140px' }}
+                            >
+                                {/* Stadium slideshow background */}
+                                <AnimatePresence mode='wait'>
+                                    <motion.div
+                                        key={currentSlide}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                                        style={{
+                                            position: 'absolute', inset: 0,
+                                            backgroundImage: `url(${activeStadium.image || heroImage})`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                        }}
+                                    />
+                                </AnimatePresence>
+                                {/* Dark overlay */}
+                                <div style={{
+                                    position: 'absolute', inset: 0,
+                                    background: 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.65) 100%)',
+                                }} />
+                                {/* Content */}
+                                <div className="position-relative p-4 d-flex align-items-center gap-4 flex-wrap flex-md-nowrap">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <i className="fas fa-chart-bar text-danger" style={{ fontSize: '0.75rem' }}></i>
+                                        <span className="text-white fw-bold" style={{ fontSize: '0.7rem', letterSpacing: '0.05em' }}>Tournament Stats</span>
+                                    </div>
+                                    <div className="d-flex gap-4 flex-grow-1 justify-content-center">
+                                        <div className="text-center px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', minWidth: '100px' }}>
+                                            <div className="text-white-50 mb-1" style={{ fontSize: '0.55rem' }}><i className="fas fa-futbol me-1"></i>Teams</div>
+                                            <div className="text-white fw-bold" style={{ fontSize: '1.3rem' }}>{tournament.facts?.teams || tournament.num_teams || 'TBD'}</div>
+                                        </div>
+                                        <div className="text-center px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', minWidth: '100px' }}>
+                                            <div className="text-white-50 mb-1" style={{ fontSize: '0.55rem' }}><i className="fas fa-calendar me-1"></i>Matches</div>
+                                            <div className="text-white fw-bold" style={{ fontSize: '1.3rem' }}>{tournament.matches_played || 'TBD'}</div>
+                                        </div>
+                                        <div className="text-center px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', minWidth: '100px' }}>
+                                            <div className="text-white-50 mb-1" style={{ fontSize: '0.55rem' }}><i className="fas fa-bullseye me-1"></i>Goals</div>
+                                            <div className="text-white fw-bold" style={{ fontSize: '1.3rem' }}>{tournament.total_goals || 'TBD'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-white text-opacity-30 d-none d-md-block" style={{ fontSize: '0.6rem' }}>
+                                        <i className="fas fa-map-pin me-1"></i>{activeStadium.name}
+                                    </div>
+                                </div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>

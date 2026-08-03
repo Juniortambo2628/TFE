@@ -156,6 +156,11 @@ class WikipediaService
                 '/^\d{4}\s+FIFA/i', '/^UEFA Euro \d/i',
                 '/^North Rhine/i', '/^Rhine-Ruhr/i',
                 '/^(\d+)\s+stadium/i',
+                // Cities, metropolitan areas, regions
+                '/metropolitan area/i', '/metropolitan/i',
+                '/Greater\s/i', '/Region of/i', '/Province/i',
+                '/City of/i', '/County of/i', '/District of/i',
+                '/\bCity\b/i', '/\bState\b/i', '/\bCountry\b/i',
             ];
 
             $venues = [];
@@ -1015,16 +1020,28 @@ class WikipediaService
         if ($value === null || $value === '') {
             return null;
         }
+        $val = $value;
+        // First strip templates and links from the value
+        $val = preg_replace('/\[\[[^\]|]+\|([^\]]+)\]\]/', '$1', $val);
+        $val = preg_replace('/\[\[([^\]]+)\]\]/', '$1', $val);
+        $prev = '';
+        while ($val !== $prev) {
+            $prev = $val;
+            $val = preg_replace('/\{\{(?:[^{}]|\{[^{}]*\})*\}\}/', '', $val);
+        }
+        $val = preg_replace('/\{#invoke:[^}]*\}/', '', $val);
+        $val = preg_replace('/<[^>]+>/', '', $val);
+        $val = trim($val);
         // Direct integer
-        if (preg_match('/^\d+$/', trim($value))) {
-            return (int) trim($value);
+        if (preg_match('/^\d+$/', $val)) {
+            return (int) $val;
         }
-        // Number with commas: "51,000" -> 51
-        if (preg_match('/^[\d,]+$/', trim($value))) {
-            return (int) str_replace(',', '', trim($value));
+        // Number with commas: "51,000" -> 51000
+        if (preg_match('/^[\d,]+$/', $val)) {
+            return (int) str_replace(',', '', $val);
         }
-        // Extract first number from template or mixed string
-        if (preg_match('/(\d[\d,]*)/', $value, $m)) {
+        // Extract first number from mixed string
+        if (preg_match('/(\d[\d,]*)/', $val, $m)) {
             return (int) str_replace(',', '', $m[1]);
         }
 
@@ -1045,10 +1062,15 @@ class WikipediaService
         $val = preg_replace('/\[\[([^\]|]+)\|([^\]]+)\]\]/', '$2', $val);
         // [[link]] -> link
         $val = preg_replace('/\[\[([^\]]+)\]\]/', '$1', $val);
-        // {{template}} -> '' (recursively)
-        while (preg_match('/\{\{[^{}]*\}\}/', $val)) {
-            $val = preg_replace('/\{\{[^{}]*\}\}/', '', $val);
+        // {{#invoke:...|...}} or {{template}} -> '' (recursively handle nested braces)
+        $prev = '';
+        while ($val !== $prev) {
+            $prev = $val;
+            // Match {{...}} including nested {{ }} and #invoke templates
+            $val = preg_replace('/\{\{(?:[^{}]|\{[^{}]*\})*\}\}/', '', $val);
         }
+        // Also strip any remaining single-brace {#invoke:...} patterns
+        $val = preg_replace('/\{#invoke:[^}]*\}/', '', $val);
         // <ref>...</ref> -> ''
         $val = preg_replace('/<ref[^>]*>.*?<\/ref>/s', '', $val);
         // <ref .../> -> ''
