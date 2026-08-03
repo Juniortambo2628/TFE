@@ -49,6 +49,7 @@ rm -f bootstrap/cache/services.php bootstrap/cache/packages.php
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+php artisan cache:clear
 
 # ─────────────────────────────────────────────
 # 4. MIGRATIONS

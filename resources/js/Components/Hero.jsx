@@ -535,7 +535,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="text-white-50 text-uppercase mt-2 fw-medium" style={{ fontSize: '10px' }}>{item.label}</div>
+                                                        <div className="text-white-50 mt-2 fw-medium" style={{ fontSize: '10px' }}>{item.label}</div>
                                                     </div>
                                                 );
                                             })}
@@ -717,7 +717,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                     className="hero-stadium-badge"
                 >
                     <div className="badge-dot"></div>
-                    <span className="text-white fw-bold text-uppercase tracking-wider">{activeStadium.name}</span>
+                    <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
                     <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
                 </motion.div>
             </div>
@@ -827,7 +827,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                          <img src={`${assetUrl}assets/Flags/${selectedTeam}.png`} alt={selectedTeam} style={{ width: '64px', height: 'auto', borderRadius: '4px' }} onError={function(e) { if (wikipediaFlags[selectedTeam]) { e.target.src = wikipediaFlags[selectedTeam]; } }} />
                                         <div>
                                             <h4 className="text-white mb-1">{TEAM_NAMES[selectedTeam]}</h4>
-                                            <span className="text-danger fw-bold small text-uppercase tracking-wider">National Team</span>
+                                            <span className="text-danger fw-bold small tracking-wider">National Team</span>
                                         </div>
                                     </div>
                                     <div className="row g-4">

@@ -147,24 +147,56 @@ class WikipediaService
                 return [];
             }
 
+            // Words that indicate non-venue entries (cities, orgs, tournaments)
+            $excludePatterns = [
+                '/^UEFA\b/i', '/^FIFA\b/i', '/^CONMEBOL\b/i', '/^CAF\b/i',
+                '/^European Championship/i', '/^World Cup/i', '/^Copa America/i',
+                '/^Africa Cup/i', '/^COVID/i', '/^Kicker\b/i',
+                '/^German Football/i', '/^Football Association/i',
+                '/^\d{4}\s+FIFA/i', '/^UEFA Euro \d/i',
+                '/^North Rhine/i', '/^Rhine-Ruhr/i',
+                '/^(\d+)\s+stadium/i',
+            ];
+
             $venues = [];
-            if (preg_match('/==\s*Venues?\s*==(.+?)(?===\s*[A-Z]|\z)/s', $wikitext, $matches)) {
-                $section = $matches[1];
-                if (preg_match_all('/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/', $section, $linkMatches)) {
-                    foreach ($linkMatches[1] as $idx => $link) {
-                        if (str_starts_with($link, 'File:') || str_starts_with($link, 'Image:') || str_starts_with($link, 'Category:')) {
-                            continue;
-                        }
-                        $display = $linkMatches[2][$idx] ?: $link;
-                        $venues[] = [
-                            'name' => trim($display),
-                            'wikipedia_title' => trim($link),
-                        ];
+            $seen = [];
+
+            // Primary: parse "Venue (City)" pattern from wikitext tables
+            if (preg_match_all('/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]\s*\((?:[^)]*Stadion|[^)]*Arena|[^)]*Field|[^)]*Park)[^)]*\)/i', $wikitext, $stadiumMatches)) {
+                foreach ($stadiumMatches[1] as $idx => $link) {
+                    if (str_starts_with($link, 'File:') || str_starts_with($link, 'Category:')) continue;
+                    $display = $stadiumMatches[2][$idx] ?: $link;
+                    if (!isset($seen[$link])) {
+                        $seen[$link] = true;
+                        $venues[] = ['name' => trim($display), 'wikipedia_title' => trim($link)];
                     }
                 }
             }
 
-            return $venues;
+            // Secondary: parse "Venues ==" section for known stadium links
+            if (empty($venues) && preg_match('/==\s*Venues?\s*==(.+?)(?===\s*[A-Z]|\z)/s', $wikitext, $matches)) {
+                $section = $matches[1];
+                if (preg_match_all('/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/', $section, $linkMatches)) {
+                    foreach ($linkMatches[1] as $idx => $link) {
+                        if (str_starts_with($link, 'File:') || str_starts_with($link, 'Image:') || str_starts_with($link, 'Category:')) continue;
+                        $display = $linkMatches[2][$idx] ?: $link;
+
+                        // Skip excluded patterns
+                        $skip = false;
+                        foreach ($excludePatterns as $pattern) {
+                            if (preg_match($pattern, $display)) { $skip = true; break; }
+                        }
+                        if ($skip) continue;
+
+                        if (!isset($seen[$link]) && count($venues) < 20) {
+                            $seen[$link] = true;
+                            $venues[] = ['name' => trim($display), 'wikipedia_title' => trim($link)];
+                        }
+                    }
+                }
+            }
+
+            return array_values($venues);
         });
     }
 
@@ -266,9 +298,9 @@ class WikipediaService
                 'best_player' => $this->cleanWikiValue($this->getField($infobox, 'player')),
                 'best_goalkeeper' => $this->cleanWikiValue($this->getField($infobox, 'goalkeeper')),
                 'young_player' => $this->cleanWikiValue($this->getField($infobox, 'young_player')),
-                'num_teams' => $this->getField($infobox, 'num_teams'),
-                'matches_played' => $this->getField($infobox, 'matches'),
-                'total_goals' => $this->getField($infobox, 'goals'),
+                'num_teams' => $this->extractIntFromField($this->getField($infobox, 'num_teams') ?? $this->getField($infobox, 'teams')),
+                'matches_played' => $this->extractIntFromField($this->getField($infobox, 'matches') ?? $this->getField($infobox, 'matches_played')),
+                'total_goals' => $this->extractIntFromField($this->getField($infobox, 'goals') ?? $this->getField($infobox, 'total_goals')),
                 'host_country' => $this->cleanWikiValue($this->getField($infobox, 'country')),
                 'dates' => $this->cleanWikiValue($this->getField($infobox, 'dates')),
                 'tourney_name' => $this->cleanWikiValue($this->getField($infobox, 'tourney_name')),
@@ -963,6 +995,29 @@ class WikipediaService
             return trim($m[1]);
         }
 
+        return null;
+    }
+
+    /**
+     * Extract an integer from a field value — handles raw numbers and template strings.
+     */
+    protected function extractIntFromField(?string $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        // Direct integer
+        if (preg_match('/^\d+$/', trim($value))) {
+            return (int) trim($value);
+        }
+        // Number with commas: "51,000" -> 51
+        if (preg_match('/^[\d,]+$/', trim($value))) {
+            return (int) str_replace(',', '', trim($value));
+        }
+        // Extract first number from template or mixed string
+        if (preg_match('/(\d[\d,]*)/', $value, $m)) {
+            return (int) str_replace(',', '', $m[1]);
+        }
         return null;
     }
 

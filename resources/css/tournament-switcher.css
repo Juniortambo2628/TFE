@@ -21,7 +21,6 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
@@ -34,7 +33,7 @@
     display: inline-flex;
     align-items: center;
     font-size: 0.95rem;
-    color: var(--tfe-red, #e31b23);
+    color: #fff;
 }
 
 .tournament-switcher-label {
@@ -46,7 +45,6 @@
     border-radius: 9999px;
     font-size: 0.6rem;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
@@ -80,7 +78,7 @@
     top: calc(100% + 0.5rem);
     right: 0;
     min-width: 280px;
-    background: #0a0a0a;
+    background: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.75rem;
     list-style: none;
@@ -113,12 +111,24 @@
 }
 
 .tournament-switcher-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: #fff;
+    color: #111;
+}
+
+.tournament-switcher-item:hover .tournament-switcher-item-name strong {
+    color: #111;
+}
+
+.tournament-switcher-item:hover .tournament-switcher-item-name small {
+    color: #555;
+}
+
+.tournament-switcher-item:hover .tournament-switcher-item-status {
+    color: #111;
 }
 
 .tournament-switcher-item.active {
-    background: rgba(227, 27, 35, 0.15);
-    border-left: 3px solid var(--tfe-red, #e31b23);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .tournament-switcher-item-name {
@@ -131,11 +141,13 @@
     color: #fff;
     font-size: 0.85rem;
     font-weight: 700;
+    transition: color 0.15s ease;
 }
 
 .tournament-switcher-item-name small {
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.7rem;
+    transition: color 0.15s ease;
 }
 
 .tournament-switcher-item-status {
@@ -143,8 +155,8 @@
     border-radius: 9999px;
     font-size: 0.6rem;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
+    transition: color 0.15s ease;
 }
 
 .tournament-switcher-item-status.status-upcoming {
