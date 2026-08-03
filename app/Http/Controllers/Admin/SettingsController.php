@@ -15,8 +15,15 @@ class SettingsController extends Controller
     {
         $settings = SiteSetting::all()->pluck('value', 'key');
 
+        // Tournament hero image defaults from config (for preview before admin upload)
+        $tournamentHeroImages = [];
+        foreach (config('tournaments.tournaments', []) as $id => $cfg) {
+            $tournamentHeroImages[$id] = $cfg['hero_image'] ?? null;
+        }
+
         return Inertia::render('Admin/Settings', [
             'settings' => $settings,
+            'tournament_hero_images' => $tournamentHeroImages,
         ]);
     }
 

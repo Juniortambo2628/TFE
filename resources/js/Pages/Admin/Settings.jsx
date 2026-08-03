@@ -4,7 +4,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm, usePage } from '@inertiajs/react';
 
-export default function Settings({ auth, settings = {} }) {
+export default function Settings({ auth, settings = {}, tournament_hero_images = {} }) {
     const { props: pageProps } = usePage();
     const flash = pageProps.flash || {};
 
@@ -36,6 +36,8 @@ export default function Settings({ auth, settings = {} }) {
     const [bgRevenueFiles, setBgRevenueFiles] = useState([]);
     const [bgAnalyticsFiles, setBgAnalyticsFiles] = useState([]);
     const [bgEventsFiles, setBgEventsFiles] = useState([]);
+    // Hero background states (per tournament)
+    const [heroBgFiles, setHeroBgFiles] = useState({});
 
     const { data, setData, post, processing } = useForm({
         // Site Identity
@@ -233,7 +235,43 @@ export default function Settings({ auth, settings = {} }) {
                             )}
                        </div>
                    </div>
-               </div>
+
+                   <div className="admin-card-dark mt-4">
+                       <div className="card-header">
+                           <h3><i className="fas fa-image"></i> Hero Background Images</h3>
+                           <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Override the default hero background per tournament. Recommended: 1920x800px.</p>
+                       </div>
+                       <div className="card-body">
+                           <div className="row g-4">
+                               {TOURNAMENTS.filter(t => ['wc_2026', 'afcon_2027', 'euro_2024'].includes(t.id)).map(tournament => {
+                                   const settingKey = `hero_bg_${tournament.id}`;
+                                   const currentBg = settings[settingKey] || tournament_hero_images[tournament.id];
+                                   const fileState = heroBgFiles[settingKey] || [];
+                                   return (
+                                       <div key={tournament.id} className="col-md-6 col-lg-4">
+                                           <div className="admin-form-group">
+                                               <label className="admin-form-label">{tournament.name}</label>
+                                               <FilePondUploader
+                                                   files={fileState}
+                                                   onUpdateFiles={(fileItems) => {
+                                                       setHeroBgFiles(prev => ({ ...prev, [settingKey]: fileItems }));
+                                                       if (fileItems[0]) setData(settingKey, fileItems[0].file);
+                                                   }}
+                                                   labelIdle={`${tournament.name} hero`}
+                                               />
+                                               {currentBg && (
+                                                   <div className="mt-2 rounded overflow-hidden dash-preview-box">
+                                                       <img src={currentBg} className="w-100 h-100 object-fit-cover" alt="Current hero bg" />
+                                                   </div>
+                                               )}
+                                           </div>
+                                       </div>
+                                   );
+                               })}
+                           </div>
+                       </div>
+                    </div>
+                </div>
             )}
 
             {/* Visual Cards Backgrounds */}

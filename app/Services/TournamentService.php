@@ -111,6 +111,19 @@ class TournamentService
             $finalVenue = $finalMatch['stadium'].($finalMatch['city'] ? ', '.$finalMatch['city'] : '');
         }
 
+        // Admin-uploaded hero background overrides the config default.
+        $heroImage = $config['hero_image'] ?? null;
+        try {
+            if (Schema::hasTable('site_settings')) {
+                $adminHero = SiteSetting::get("hero_bg_{$id}");
+                if ($adminHero) {
+                    $heroImage = $adminHero;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silently fall back to config hero_image.
+        }
+
         return array_merge($config, [
             'wikipedia' => $wikipedia,
             'wikipedia_summary' => $wikipedia['summary'] ?? [],
@@ -119,6 +132,8 @@ class TournamentService
             'team_flag_codes' => $config['team_flag_codes'] ?? [],
             'facts' => $wikipedia['facts'] ?? [],
             'is_default' => $id === config('tournaments.default'),
+            // Hero image: admin upload > config default
+            'hero_image' => $heroImage,
             // Wikipedia logo (overrides hardcoded hero_image when available)
             'wikipedia_logo' => $wikipedia['logo'] ?? null,
             // Merged results (config fallback + Wikipedia)
