@@ -164,9 +164,11 @@ class WikipediaService
             // Primary: parse "Venue (City)" pattern from wikitext tables
             if (preg_match_all('/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]\s*\((?:[^)]*Stadion|[^)]*Arena|[^)]*Field|[^)]*Park)[^)]*\)/i', $wikitext, $stadiumMatches)) {
                 foreach ($stadiumMatches[1] as $idx => $link) {
-                    if (str_starts_with($link, 'File:') || str_starts_with($link, 'Category:')) continue;
+                    if (str_starts_with($link, 'File:') || str_starts_with($link, 'Category:')) {
+                        continue;
+                    }
                     $display = $stadiumMatches[2][$idx] ?: $link;
-                    if (!isset($seen[$link])) {
+                    if (! isset($seen[$link])) {
                         $seen[$link] = true;
                         $venues[] = ['name' => trim($display), 'wikipedia_title' => trim($link)];
                     }
@@ -178,17 +180,24 @@ class WikipediaService
                 $section = $matches[1];
                 if (preg_match_all('/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/', $section, $linkMatches)) {
                     foreach ($linkMatches[1] as $idx => $link) {
-                        if (str_starts_with($link, 'File:') || str_starts_with($link, 'Image:') || str_starts_with($link, 'Category:')) continue;
+                        if (str_starts_with($link, 'File:') || str_starts_with($link, 'Image:') || str_starts_with($link, 'Category:')) {
+                            continue;
+                        }
                         $display = $linkMatches[2][$idx] ?: $link;
 
                         // Skip excluded patterns
                         $skip = false;
                         foreach ($excludePatterns as $pattern) {
-                            if (preg_match($pattern, $display)) { $skip = true; break; }
+                            if (preg_match($pattern, $display)) {
+                                $skip = true;
+                                break;
+                            }
                         }
-                        if ($skip) continue;
+                        if ($skip) {
+                            continue;
+                        }
 
-                        if (!isset($seen[$link]) && count($venues) < 20) {
+                        if (! isset($seen[$link]) && count($venues) < 20) {
                             $seen[$link] = true;
                             $venues[] = ['name' => trim($display), 'wikipedia_title' => trim($link)];
                         }
@@ -1018,6 +1027,7 @@ class WikipediaService
         if (preg_match('/(\d[\d,]*)/', $value, $m)) {
             return (int) str_replace(',', '', $m[1]);
         }
+
         return null;
     }
 
