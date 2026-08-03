@@ -15,7 +15,7 @@
     display: flex;
     align-items: stretch;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
     padding: 4rem 0;
     box-sizing: border-box;
 }
@@ -148,8 +148,8 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    height: 80vh;
-    max-height: 780px;
+    height: 60vh;
+    max-height: 600px;
     align-items: center;
     padding: 1rem 0.5rem;
     -webkit-overflow-scrolling: touch;
@@ -162,7 +162,7 @@
 /* ── Single Card ── */
 .landing-card {
     flex: 0 0 auto;
-    width: 460px;
+    width: 380px;
     height: 100%;
     border-radius: 1.25rem;
     overflow: hidden;
@@ -189,6 +189,7 @@
     object-fit: cover;
     display: block;
     transition: transform 0.4s ease;
+    overflow: hidden;
 }
 
 .landing-card:hover .landing-card-image {
@@ -333,12 +334,12 @@
     }
 
     .landing-section .cards-track {
-        height: 65vh;
-        max-height: 560px;
+        height: 55vh;
+        max-height: 480px;
     }
 
     .landing-card {
-        width: 360px;
+        width: 320px;
     }
 }
 
@@ -348,12 +349,12 @@
     }
 
     .landing-section .cards-track {
-        height: 55vh;
-        max-height: 440px;
+        height: 50vh;
+        max-height: 400px;
     }
 
     .landing-card {
-        width: 300px;
+        width: 280px;
     }
 
     .landing-section .section-title {

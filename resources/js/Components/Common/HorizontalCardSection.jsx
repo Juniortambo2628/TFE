@@ -86,19 +86,13 @@ export default function HorizontalCardSection({
     );
 
     const renderCards = (extraClass = '') => (
-        <motion.div
-            className={'cards-track ' + extraClass}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={cardsContainerVariants}
-        >
+        <div className={'cards-track ' + extraClass}>
             {React.Children.map(children, (child) => (
-                <motion.div key={child.key} variants={cardVariants}>
+                <div key={child.key} style={{ flex: '0 0 auto', height: '100%' }}>
                     {child}
-                </motion.div>
+                </div>
             ))}
-       </motion.div>
+       </div>
     );
 
     const isSplitReverse = variant === 'split-reverse';
