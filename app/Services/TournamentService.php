@@ -123,6 +123,8 @@ class TournamentService
             'wikipedia_logo' => $wikipedia['logo'] ?? null,
             // Merged results (config fallback + Wikipedia)
             'winner' => $winner,
+            'runner_up' => $config['runner_up'] ?? ($wikiResults['runner_up'] ?? null),
+            'second_runner_up' => $config['second_runner_up'] ?? ($wikiResults['second_runner_up'] ?? null),
             'top_scorer' => $topScorer,
             'final_score' => $finalScore,
             'final_venue' => $finalVenue,
