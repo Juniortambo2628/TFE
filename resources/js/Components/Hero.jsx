@@ -920,7 +920,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
                                                 {/* Match Info */}
                                                 <div className="d-flex flex-column gap-1 d-flex flex-column gap-1 hero-match-info">
-                                                    <span className={`fw-bold text-uppercase ${match.type.includes('FINAL') ? 'text-warning' : 'text-danger'}`} className="hero-match-type">
+                                                    <span className={`fw-bold text-uppercase ${match.type.includes('FINAL') ? 'text-warning' : 'text-danger'} hero-match-type`}>
                                                         {match.type}
                                                     </span>
                                                     <span className="text-white text-opacity-50 text-white text-opacity-50 hero-match-date">{match.date}{match.time ? ' \u2013 ' + match.time : ''}</span>
