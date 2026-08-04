@@ -259,3 +259,393 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
+
+
+/* Hero background overlay gradient */
+.hero-overlay-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(220,20,60,0.35) 45%, rgba(0,0,0,0.88) 100%);
+}
+
+/* Hosting countries glass pill */
+.hero-hosts-pill {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Host country flag in pill */
+.hero-host-flag {
+    width: 18px;
+    height: 13px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.3);
+}
+
+/* Host country names text */
+.hero-host-names {
+    font-size: 0.8rem;
+}
+
+/* View Matches button */
+.hero-view-matches-btn {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Countdown/winners card container */
+.hero-countdown-card {
+    max-width: 420px;
+    width: 100%;
+}
+
+/* Countdown card red header bar */
+.hero-countdown-header {
+    background: #DC143C;
+}
+
+.hero-trophy-icon {
+    font-size: 0.75rem;
+}
+
+/* Countdown card header text */
+.hero-countdown-header-text {
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    font-weight: 700;
+    color: white;
+}
+
+/* Tournament logo in countdown header */
+.hero-countdown-header-logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+/* Countdown card body */
+.hero-countdown-body {
+    background: rgba(15,15,20,0.95);
+    min-height: 180px;
+}
+
+/* Countdown card left column (logo) */
+.hero-countdown-logo-col {
+    width: 120px;
+    background: rgba(220,20,60,0.06);
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Tournament logo in countdown left column */
+.hero-countdown-logo-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    padding: 6px;
+}
+
+/* Trophy fallback in countdown */
+.hero-countdown-trophy-fallback {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: rgba(220,20,60,0.12);
+}
+
+.hero-countdown-trophy-color {
+    color: #DC143C;
+    font-size: 1.6rem;
+}
+
+/* Countdown card tournament title */
+.hero-countdown-title {
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+/* Tournament status badge */
+.hero-status-badge {
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+/* Small flag in countdown card */
+.hero-flag-sm {
+    width: 20px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+/* Winner country name */
+.hero-winner-name {
+    font-size: 0.85rem;
+}
+
+/* 2nd/3rd place label */
+.hero-place-label {
+    font-size: 0.55rem;
+    min-width: 55px;
+}
+
+/* Extra small flag (runner-up/3rd) */
+.hero-flag-xs {
+    width: 16px;
+    height: 11px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+/* Final score value */
+.hero-score-value {
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+}
+
+.hero-scorer-name {
+    font-size: 0.6rem;
+}
+
+.hero-scorer-goals {
+    font-size: 0.55rem;
+}
+
+/* Tournament stats card */
+.hero-stats-card {
+    min-height: 200px;
+}
+
+/* Stats card dark overlay */
+.hero-stats-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.65) 100%);
+}
+
+.hero-stats-icon {
+    font-size: 0.75rem;
+}
+
+/* Stats card "Tournament Stats" label */
+.hero-stats-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+/* Individual stat box */
+.hero-stat-box {
+    background: rgba(255,255,255,0.06);
+    min-width: 120px;
+}
+
+/* Stat box sub-label (Teams/Matches/Goals) */
+.hero-stat-sublabel {
+    font-size: 0.6rem;
+}
+
+/* Stat box value */
+.hero-stat-value {
+    font-size: 1.5rem;
+}
+
+/* Stadium slider arrow controls */
+.hero-stadium-controls {
+    z-index: 1200;
+    pointer-events: auto;
+}
+
+/* Mobile countdown container */
+.hero-mobile-countdown {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    max-width: 340px;
+    width: 100%;
+}
+
+/* Mobile tournament logo */
+.hero-mobile-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    padding: 2px;
+}
+
+.hero-mobile-trophy-icon {
+    color: #DC143C;
+    font-size: 0.9rem;
+}
+
+.hero-mobile-title {
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+.hero-mobile-status-badge {
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+.hero-mobile-label {
+    font-size: 0.55rem;
+}
+
+.hero-mobile-winner-name {
+    font-size: 0.9rem;
+}
+
+.hero-mobile-place-label {
+    font-size: 0.45rem;
+}
+
+/* Extra extra small flag (mobile runner-up) */
+.hero-flag-xxs {
+    width: 14px;
+    height: 10px;
+    object-fit: cover;
+    border-radius: 1px;
+}
+
+.hero-mobile-place-name {
+    font-size: 0.6rem;
+}
+
+.hero-mobile-score-label {
+    font-size: 0.45rem;
+}
+
+.hero-mobile-score-value {
+    font-size: 0.75rem;
+}
+
+.hero-mobile-scorer {
+    font-size: 0.55rem;
+}
+
+/* Modal matches list scrollable area */
+.hero-modal-matches {
+    max-height: 60vh;
+}
+
+.hero-match-info {
+    min-width: 140px;
+}
+
+/* Match type label (e.g. "FINAL", "Quarter-Final") */
+.hero-match-type {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+}
+
+.hero-match-date {
+    font-size: 0.65rem;
+}
+
+.hero-match-team {
+    flex: 1;
+}
+
+.hero-match-team-name {
+    font-size: 0.8rem;
+}
+
+.hero-match-tbd-icon {
+    font-size: 10px;
+}
+
+.hero-modal-info-text {
+    font-size: 0.7rem;
+    line-height: 1.5;
+}
+
+.hero-modal-team-flag {
+    width: 64px;
+    height: auto;
+    border-radius: 4px;
+}
+
+.hero-modal-stadium-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.hero-modal-all-matches {
+    max-height: 300px;
+}
+
+.hero-match-date-col {
+    min-width: 80px;
+}
+
+/* Countdown SVG circles */
+.hero-countdown-svg {
+    transform: rotate(-90deg);
+}
+
+/* Countdown circle label (D/H/M/S) */
+.hero-countdown-label {
+    font-size: 8px;
+    letter-spacing: 0.05em;
+}
+
+/* Countdown circle value */
+.hero-countdown-value {
+    font-size: 0.85rem;
+}
+
+/* Custom Stats Card Styles */
+.hero-stats-card-container {
+    background-color: #fdf9f1;
+}
+.hero-stats-badge-dark {
+    background-color: #4a4a4a;
+    color: #fff;
+    font-size: 0.85rem;
+}
+.hero-stats-badge-icon-dark {
+    color: #a0a0a0;
+}
+.hero-stats-badge-orange {
+    background-color: #d66b44;
+    color: #fff;
+    font-size: 0.85rem;
+}
+.hero-stats-badge-icon-light {
+    color: rgba(255, 255, 255, 0.5);
+}
+.hero-stats-title {
+    font-size: 2.4rem;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+}
+.hero-stat-card-gradient {
+    height: 280px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.hero-stat-card-teams {
+    background: linear-gradient(135deg, #df43a9 0%, #c432d8 100%);
+}
+.hero-stat-card-matches {
+    background: linear-gradient(135deg, #e97a38 0%, #d44d27 100%);
+}
+.hero-stat-card-goals {
+    background: linear-gradient(135deg, #7432f8 0%, #5614d0 100%);
+}
+.hero-stat-tags {
+    font-size: 0.7rem;
+}
+.hero-stat-content {
+    min-height: 80px;
+}
+

@@ -1,0 +1,30 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "color-named": "never",
+    "color-named-as-value": null,
+    "declaration-property-unit-disallowed-list": {
+      "font-size": ["px"]
+    },
+    "property-no-vendor-prefix": null,
+    "selector-class-pattern": null,
+    "no-descending-specificity": null,
+    "import-notation": null,
+    "alpha-value-notation": "number",
+    "color-function-notation": "modern",
+    "font-family-name-quotes": "always-where-recommended",
+    "shorthand-property-no-redundant-values": true,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "custom-property-pattern": null
+  },
+  "ignoreFiles": [
+    "node_modules/**",
+    "public/build/**",
+    "resources/css/dashboard-shared.css",
+    "resources/css/fan/**/*.css",
+    "resources/css/partner/**/*.css",
+    "resources/css/admin-theme.css",
+    "resources/css/login-dark.css",
+    "resources/css/register-dark.css"
+  ]
+}

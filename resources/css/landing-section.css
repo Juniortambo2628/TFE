@@ -31,6 +31,11 @@
     max-width: 100vw;
 }
 
+/* ── Normal split: cards bleed to the right viewport edge ── */
+.landing-section.section-split .landing-section-inner {
+    padding-right: 0;
+}
+
 /* ── Section Header (Left Column) ── */
 .landing-section .section-header {
     display: flex;
@@ -150,7 +155,8 @@
     height: 60vh;
     max-height: 600px;
     align-items: center;
-    padding: 1rem 0.5rem;
+    padding: 1rem 0;
+    padding-left: 0.5rem;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -279,27 +285,33 @@
 }
 
 /* ── Variant: reversed layout (cards on left, header on right) ── */
+/* Grid flips: cards column first (left), header column second (right).
+   Cards bleed to the LEFT viewport edge — mirror of how normal split
+   bleeds to the RIGHT edge. */
 .landing-section.section-split-reverse .landing-section-inner {
     grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+    padding-left: 0;  /* cards bleed to left viewport edge */
 }
 
 .landing-section.section-split-reverse .section-header-reverse {
-    padding-right: 0;
+    padding-right: 2rem;
     padding-left: 1rem;
 }
 
-/* Cards scroll right-to-left: first card anchored to the right edge,
-   overflow hidden on the left — mirror of the normal split layout. */
+/* Cards scroll right-to-left via direction:rtl.
+   Initial view shows cards near the header (right side of the track);
+   scrolling reveals more cards extending toward the left edge. */
 .landing-section.section-split-reverse .cards-track-reverse {
     direction: rtl;
-    justify-content: flex-end;
-    padding-left: 0.5rem;
-    padding-right: 1rem;
+    padding-left: 0;
+    padding-right: 0.5rem;
 }
 
+/* Individual cards keep LTR text direction. Snap to the end (left in RTL)
+   so each swipe lands cleanly. */
 .landing-section.section-split-reverse .cards-track-reverse .landing-card {
     direction: ltr;
-    scroll-snap-align: end;
+    scroll-snap-align: start;
 }
 
 /* ── Variant: stacked header (title spans full width on top) ── */
@@ -322,14 +334,25 @@
         padding: 0 1.5rem;
     }
 
+    /* Reset asymmetric padding on mobile (both split variants use same padding) */
+    .landing-section.section-split .landing-section-inner,
+    .landing-section.section-split-reverse .landing-section-inner {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
     .landing-section .section-header {
         padding-right: 0;
+    }
+
+    .landing-section.section-split-reverse .section-header-reverse {
+        padding-right: 0;
+        padding-left: 0;
     }
 
     /* Reset reversed scroll direction on mobile — single column layout */
     .landing-section.section-split-reverse .cards-track-reverse {
         direction: ltr;
-        justify-content: flex-start;
     }
 
     .landing-section .cards-track {

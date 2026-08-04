@@ -446,7 +446,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         }}
                     />
                 </AnimatePresence>
-                <div className="stadium-slide-overlay" className="hero-overlay-gradient"></div>
+                <div className="stadium-slide-overlay hero-overlay-gradient"></div>
             </div>
 
             {/* Content Layer - Persistent across slide changes */}
@@ -463,12 +463,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 transition={{ duration: 0.5 }}
                             >
                                 <h1 className="mb-3 display-3 text-white lh-1 fw-bold" key={`title-${tournament ? tournament.id : 'default'}`}>{tournament ? tournament.name : 'The Football Experience'}</h1>
-                                <p className="mb-3 text-white fs-5 text-opacity-80" className="mb-3 text-white fs-5 text-opacity-80 hero-tagline">{tournament ? tournament.tagline : ''}</p>
+                                <p className="mb-3 text-white fs-5 text-opacity-80 mb-3 text-white fs-5 text-opacity-80 hero-tagline">{tournament ? tournament.tagline : ''}</p>
                                 {/* Hosting Countries - flags grouped in one glass pill */}
                                 {tournament && tournament.hosts && tournament.hosts.length > 0 && (
                                     <div className="d-flex align-items-center gap-2 mb-4 flex-wrap">
                                         <i className="fas fa-map-marker-alt text-danger me-1" style={{ fontSize: '0.85rem' }}></i>
-                                        <span className="d-inline-flex align-items-center px-2 py-1 rounded-lg" className="d-inline-flex align-items-center px-2 py-1 rounded-lg hero-hosts-pill">
+                                        <span className="d-inline-flex align-items-center px-2 py-1 rounded-lg d-inline-flex align-items-center px-2 py-1 rounded-lg hero-hosts-pill">
                                             {tournament.hosts.map(function(host, idx) {
                                                 var code = (tournament.host_flag_codes && tournament.host_flag_codes[idx]) || null;
                                                 if (!code) code = TEAM_CODES[host] || teamNameToCode(host);
@@ -477,12 +477,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                 ) : null;
                                             })}
                                       </span>
-                                        <span className="text-white text-opacity-70" className="text-white text-opacity-70 hero-host-names">{tournament.hosts.join(' · ')}</span>
+                                        <span className="text-white text-opacity-70 text-white text-opacity-70 hero-host-names">{tournament.hosts.join(' · ')}</span>
                                   </div>
                                 )}
                                 
                                 <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 gap-md-3 mt-4" style={{ maxWidth: 'fit-content' }}>
-                                    <button onClick={() => openModal()} className="btn-glass-pill justify-content-center" className="btn-glass-pill justify-content-center hero-view-matches-btn">
+                                    <button onClick={() => openModal()} className="btn-glass-pill justify-content-center btn-glass-pill justify-content-center hero-view-matches-btn">
                                         <span>View Matches</span>
                                         <i className="fas fa-calendar-alt ms-2"/>
                                    </button>
@@ -498,48 +498,43 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5, delay: 0.1 }}
-                                    className="rounded-3xl overflow-hidden border border-white/10"
                                     className="rounded-3xl overflow-hidden border border-white/10 hero-countdown-card"
                                 >
                                     {/* Red header bar — mimics FIFA+ matches card */}
-                                    <div className="d-flex align-items-center justify-content-between px-4 py-2" className="d-flex align-items-center justify-content-between px-4 py-2 hero-countdown-header">
+                                    <div className="d-flex align-items-center justify-content-between px-4 py-2 hero-countdown-header">
                                         <div className="d-flex align-items-center gap-2">
-                                            {wikipediaLogo ? (
-                                                <img src={wikipediaLogo} alt="" className="hero-countdown-header-logo" />
-                                            ) : (
-                                                <i className="fas fa-trophy text-white" className="fas fa-trophy text-white hero-trophy-icon"></i>
-                                            )}
-                                            <span className="text-white fw-bold" className="hero-countdown-header-text">TFE</span>
+                                            <i className="fas fa-trophy text-white hero-trophy-icon"></i>
+                                            <span className="text-white fw-bold hero-countdown-header-text">TFE</span>
                                         </div>
-                                        <span className="text-white fw-bold" className="hero-countdown-header-text">{isConcluded ? 'Results' : 'Countdown'}</span>
+                                        <span className="text-white fw-bold hero-countdown-header-text">{isConcluded ? 'Results' : 'Countdown'}</span>
                                     </div>
                                     {/* Content area with 2-column layout */}
-                                    <div className="d-flex" className="d-flex hero-countdown-body">
+                                    <div className="d-flex hero-countdown-body">
                                         {/* Left column: logo / visual */}
                                         <div className="d-flex align-items-center justify-content-center p-3" style={{ width: '120px', background: 'rgba(220,20,60,0.06)', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
                                             {wikipediaLogo ? (
                                                 <img src={wikipediaLogo} alt="" className="hero-countdown-logo-img" />
                                             ) : (
                                                 <div className="d-flex align-items-center justify-content-center hero-countdown-trophy-fallback">
-                                                    <i className="fas fa-trophy" className="hero-countdown-trophy-color"></i>
+                                                    <i className="fas fa-trophy hero-countdown-trophy-color"></i>
                                                 </div>
                                             )}
                                         </div>
                                         {/* Right column: data */}
                                         <div className="flex-grow-1 p-3">
-                                            <div className="fw-bold text-white mb-1" className="fw-bold text-white hero-countdown-title">{tournament ? tournament.name : 'Tournament'}</div>
-                                            <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mb-2 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning'))} className="hero-status-badge">{tournament ? tournament.status.toUpperCase() : ''}</span>
+                                            <div className="fw-bold text-white mb-1 fw-bold text-white hero-countdown-title">{tournament ? tournament.name : 'Tournament'}</div>
+                                            <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mb-2 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning')) + " hero-status-badge"}>{tournament ? tournament.status.toUpperCase() : ''}</span>
                                             {isConcluded ? (
                                                 <div>
                                                     <div className="d-flex align-items-center gap-2 mb-2">
                                                         {tournament.winner && teamNameToCode(tournament.winner) && (
                                                             <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
                                                         )}
-                                                        <span className="text-warning fw-bold" className="text-warning fw-bold hero-winner-name">{tournament.winner || 'TBD'}</span>
+                                                        <span className="text-warning fw-bold text-warning fw-bold hero-winner-name">{tournament.winner || 'TBD'}</span>
                                                     </div>
                                                     {tournament.runner_up && (
                                                         <div className="d-flex align-items-center gap-2 mb-1">
-                                                            <span className="text-white text-opacity-40" className="text-white text-opacity-40 hero-place-label">2nd</span>
+                                                            <span className="text-white text-opacity-40 text-white text-opacity-40 hero-place-label">2nd</span>
                                                             {teamNameToCode(tournament.runner_up) && (
                                                                 <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
                                                             )}
@@ -548,7 +543,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                     )}
                                                     {tournament.second_runner_up && (
                                                         <div className="d-flex align-items-center gap-2 mb-1">
-                                                            <span className="text-white text-opacity-40" className="text-white text-opacity-40 hero-place-label">3rd</span>
+                                                            <span className="text-white text-opacity-40 text-white text-opacity-40 hero-place-label">3rd</span>
                                                             {teamNameToCode(tournament.second_runner_up) && (
                                                                 <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.second_runner_up)}.png`} alt="" className="hero-flag-xs" onError={function(e) { if (wikipediaFlags[tournament.second_runner_up]) { e.target.src = wikipediaFlags[tournament.second_runner_up]; } }} />
                                                             )}
@@ -558,14 +553,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                     {tournament.final_score && (
                                                         <div className="mt-2 pt-2 border-top border-white/10">
                                                             <span className="text-white text-opacity-40" style={{ fontSize: '0.5rem' }}>Final </span>
-                                                            <span className="text-white fw-bold" className="text-white fw-bold hero-score-value">{tournament.final_score}</span>
+                                                            <span className="text-white fw-bold text-white fw-bold hero-score-value">{tournament.final_score}</span>
                                                         </div>
                                                     )}
                                                     {tournament.top_scorer && tournament.top_scorer.name && (
                                                         <div className="mt-1">
                                                             <span className="text-white text-opacity-40" style={{ fontSize: '0.5rem' }}>Top: </span>
-                                                            <span className="text-white fw-bold" className="text-white fw-bold hero-scorer-name">{tournament.top_scorer.name}</span>
-                                                            {tournament.top_scorer.goals && <span className="text-danger" className="text-danger hero-scorer-goals"> ({tournament.top_scorer.goals})</span>}
+                                                            <span className="text-white fw-bold text-white fw-bold hero-scorer-name">{tournament.top_scorer.name}</span>
+                                                            {tournament.top_scorer.goals && <span className="text-danger text-danger hero-scorer-goals"> ({tournament.top_scorer.goals})</span>}
                                                         </div>
                                                     )}
                                                 </div>
@@ -590,10 +585,10 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                                         <circle cx={center} cy={center} r={radius} fill="transparent" stroke="#DC143C" strokeWidth="2" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
                                                                     </svg>
                                                                     <div className="position-absolute top-50 start-50 translate-middle text-center">
-                                                                        <div className="text-white fw-bold font-monospace" className="text-white fw-bold font-monospace hero-countdown-value">{String(item.value).padStart(2, '0')}</div>
+                                                                        <div className="text-white fw-bold font-monospace text-white fw-bold font-monospace hero-countdown-value">{String(item.value).padStart(2, '0')}</div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-white-50 mt-1" className="text-white-50 mt-1 hero-countdown-label">{item.label}</div>
+                                                                <div className="text-white-50 mt-1 text-white-50 mt-1 hero-countdown-label">{item.label}</div>
                                                             </div>
                                                         );
                                                     })}
@@ -614,24 +609,23 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.2 }}
-                                className="rounded-4 overflow-hidden position-relative shadow-lg p-4 p-md-5 hero-stats-card"
-                                style={{ backgroundColor: '#fdf9f1' }}
+                                className="rounded-4 overflow-hidden position-relative shadow-lg p-4 p-md-5 hero-stats-card hero-stats-card-container"
                             >
                                 <div className="row align-items-end g-4">
                                     {/* Left Content */}
                                     <div className="col-xl-5">
                                         <div className="d-flex flex-wrap gap-2 mb-4">
-                                            <span className="badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center" style={{backgroundColor: '#4a4a4a', color: '#fff', fontSize: '0.85rem'}}>
-                                                <i className="fas fa-rocket me-2" style={{color: '#a0a0a0'}}></i>Tournament data
+                                            <span className="badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center hero-stats-badge-dark">
+                                                <i className="fas fa-rocket me-2 hero-stats-badge-icon-dark"></i>Tournament data
                                             </span>
-                                            <span className="badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center" style={{backgroundColor: '#d66b44', color: '#fff', fontSize: '0.85rem'}}>
-                                                <i className="fas fa-chart-line me-2 text-white-50"></i>Statistics
+                                            <span className="badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center hero-stats-badge-orange">
+                                                <i className="fas fa-chart-line me-2 hero-stats-badge-icon-light"></i>Statistics
                                             </span>
-                                            <span className="badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center" style={{backgroundColor: '#4a4a4a', color: '#fff', fontSize: '0.85rem'}}>
-                                                <i className="fas fa-futbol me-2" style={{color: '#a0a0a0'}}></i>Live metrics
+                                            <span className="badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center hero-stats-badge-dark">
+                                                <i className="fas fa-futbol me-2 hero-stats-badge-icon-dark"></i>Live metrics
                                             </span>
                                         </div>
-                                        <h3 className="text-dark mb-0 lh-sm" style={{fontSize: '2.4rem', fontWeight: '500', letterSpacing: '-0.5px'}}>
+                                        <h3 className="text-dark mb-0 lh-sm hero-stats-title">
                                             <span className="fw-bolder">Discover</span> the <br/>
                                             tournament in numbers
                                         </h3>
@@ -642,12 +636,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                         <div className="row g-3">
                                             {/* Teams Card */}
                                             <div className="col-md-4">
-                                                <div className="rounded-4 p-2 d-flex align-items-end" style={{
-                                                    height: '280px',
-                                                    background: 'linear-gradient(135deg, #df43a9 0%, #c432d8 100%)',
-                                                    boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)'
-                                                }}>
-                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm">
+                                                <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-teams">
+                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm hero-stat-content">
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
                                                             <span className="text-dark fw-bold fs-6">Teams</span>
                                                             <span className="badge rounded-pill bg-light text-dark border fw-bold fs-6">{tournament.facts?.teams || tournament.num_teams || 'TBD'}</span>
@@ -662,12 +652,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
                                             {/* Matches Card */}
                                             <div className="col-md-4">
-                                                <div className="rounded-4 p-2 d-flex align-items-end" style={{
-                                                    height: '280px',
-                                                    background: 'linear-gradient(135deg, #e97a38 0%, #d44d27 100%)',
-                                                    boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)'
-                                                }}>
-                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm">
+                                                <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-matches">
+                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm hero-stat-content">
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
                                                             <span className="text-dark fw-bold fs-6">Matches</span>
                                                             <span className="badge rounded-pill bg-light text-dark border fw-bold fs-6">{tournament.matches_played || 'TBD'}</span>
@@ -682,12 +668,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
                                             {/* Goals Card */}
                                             <div className="col-md-4">
-                                                <div className="rounded-4 p-2 d-flex align-items-end" style={{
-                                                    height: '280px',
-                                                    background: 'linear-gradient(135deg, #7432f8 0%, #5614d0 100%)',
-                                                    boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)'
-                                                }}>
-                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm">
+                                                <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-goals">
+                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm hero-stat-content">
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
                                                             <span className="text-dark fw-bold fs-6">Goals</span>
                                                             <span className="badge rounded-pill bg-light text-dark border fw-bold fs-6">{tournament.total_goals || 'TBD'}</span>
@@ -708,7 +690,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 </div>
 
                 {/* Stadium Slider Controls */}
-                <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex" className="d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex hero-stadium-controls">
+                <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex hero-stadium-controls">
                     <button 
                         className="slider-nav-btn prev" 
                         onClick={() => setCurrentSlide((prev) => (prev - 1 + stadiums.length) % stadiums.length)}
@@ -727,54 +709,54 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {/* Mobile Countdown (visible only on mobile) */}
             <div className="container d-block d-xl-none position-relative z-1 mb-4">
                 <div className="d-flex justify-content-center">
-                    <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5" className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-mobile-countdown">
+                    <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-mobile-countdown">
                          {/* Tournament Badge — full name */}
                          <div className="d-flex align-items-center gap-2 mb-2 w-100 justify-content-center">
                              {wikipediaLogo ? (
                                  <img src={wikipediaLogo} alt="" className="hero-mobile-logo" />
                              ) : (
                                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', background: 'rgba(220,20,60,0.15)' }}>
-                                     <i className="fas fa-trophy" className="hero-mobile-trophy-icon"></i>
+                                     <i className="fas fa-trophy hero-mobile-trophy-icon"></i>
                                  </div>
                              )}
                              <div className="flex-grow-1 text-center">
-                                 <div className="fw-bold text-white" className="fw-bold text-white hero-mobile-title">{tournament ? tournament.name : 'Tournament'}</div>
-                                 <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mt-1 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning'))} className="hero-mobile-status-badge">{tournament ? tournament.status : ''}</span>
+                                 <div className="fw-bold text-white fw-bold text-white hero-mobile-title">{tournament ? tournament.name : 'Tournament'}</div>
+                                 <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mt-1 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning')) + " hero-mobile-status-badge"}>{tournament ? tournament.status : ''}</span>
                              </div>
                          </div>
 
                          {isConcluded ? (
                              <div className="text-center w-100">
                                  {/* Winner */}
-                                 <div className="text-white text-opacity-40 mb-1" className="text-white text-opacity-40 mb-1 hero-mobile-label">Champion</div>
+                                 <div className="text-white text-opacity-40 mb-1 text-white text-opacity-40 mb-1 hero-mobile-label">Champion</div>
                                  <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
                                      {tournament.winner && teamNameToCode(tournament.winner) && (
                                          <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
                                      )}
-                                     <div className="text-warning fw-bold" className="text-warning fw-bold hero-mobile-winner-name">{tournament.winner || 'To Be Determined'}</div>
+                                     <div className="text-warning fw-bold text-warning fw-bold hero-mobile-winner-name">{tournament.winner || 'To Be Determined'}</div>
                                  </div>
 
                                  {/* Runner-ups */}
                                  <div className="d-flex gap-2 mb-2 pt-2 border-top border-white/10">
                                      {tournament.runner_up && (
                                          <div className="flex-grow-1 text-center">
-                                             <div className="text-white text-opacity-30" className="text-white text-opacity-30 hero-mobile-place-label">Runner-up</div>
+                                             <div className="text-white text-opacity-30 text-white text-opacity-30 hero-mobile-place-label">Runner-up</div>
                                              <div className="d-flex align-items-center justify-content-center gap-1">
                                                  {teamNameToCode(tournament.runner_up) && (
                                                      <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xxs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
                                                  )}
-                                                 <span className="text-white fw-semibold" className="text-white fw-semibold hero-mobile-place-name">{tournament.runner_up}</span>
+                                                 <span className="text-white fw-semibold text-white fw-semibold hero-mobile-place-name">{tournament.runner_up}</span>
                                              </div>
                                          </div>
                                      )}
                                      {tournament.second_runner_up && (
                                          <div className="flex-grow-1 text-center">
-                                             <div className="text-white text-opacity-30" className="text-white text-opacity-30 hero-mobile-place-label">3rd Place</div>
+                                             <div className="text-white text-opacity-30 text-white text-opacity-30 hero-mobile-place-label">3rd Place</div>
                                              <div className="d-flex align-items-center justify-content-center gap-1">
                                                  {teamNameToCode(tournament.second_runner_up) && (
                                                      <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.second_runner_up)}.png`} alt="" className="hero-flag-xxs" onError={function(e) { if (wikipediaFlags[tournament.second_runner_up]) { e.target.src = wikipediaFlags[tournament.second_runner_up]; } }} />
                                                  )}
-                                                 <span className="text-white fw-semibold" className="text-white fw-semibold hero-mobile-place-name">{tournament.second_runner_up}</span>
+                                                 <span className="text-white fw-semibold text-white fw-semibold hero-mobile-place-name">{tournament.second_runner_up}</span>
                                              </div>
                                          </div>
                                      )}
@@ -783,13 +765,13 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                  {/* Final Score */}
                                  {tournament.final_score && (
                                      <div className="pt-2 border-top border-white/10 mb-2">
-                                         <div className="text-white text-opacity-30" className="text-white text-opacity-30 hero-mobile-score-label">Final Score</div>
-                                         <div className="text-white fw-bold" className="text-white fw-bold hero-mobile-score-value">{tournament.final_score}</div>
+                                         <div className="text-white text-opacity-30 text-white text-opacity-30 hero-mobile-score-label">Final Score</div>
+                                         <div className="text-white fw-bold text-white fw-bold hero-mobile-score-value">{tournament.final_score}</div>
                                      </div>
                                  )}
 
                                  {tournament.top_scorer && tournament.top_scorer.name && (
-                                     <div className="text-white text-opacity-50 mt-1" className="text-white text-opacity-50 hero-mobile-scorer">Top Scorer: <span className="text-white fw-bold">{tournament.top_scorer.name}</span>{tournament.top_scorer.goals ? ' (' + tournament.top_scorer.goals + ')' : ''}</div>
+                                     <div className="text-white text-opacity-50 mt-1 text-white text-opacity-50 hero-mobile-scorer">Top Scorer: <span className="text-white fw-bold">{tournament.top_scorer.name}</span>{tournament.top_scorer.goals ? ' (' + tournament.top_scorer.goals + ')' : ''}</div>
                                  )}
                              </div>
                          ) : (
@@ -931,28 +913,28 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 <div className="modal-body p-0">
                     {activeModalTab === 'matches' && (
                         <div className="match-modal-card">
-                            <div className="match-modal-list overflow-y-auto custom-scrollbar pr-2" className="match-modal-list overflow-y-auto custom-scrollbar pr-2 hero-modal-matches">
+                            <div className="match-modal-list overflow-y-auto custom-scrollbar pr-2 match-modal-list overflow-y-auto custom-scrollbar pr-2 hero-modal-matches">
                                 {filteredMatches.length > 0 ? (
                                     filteredMatches.map((match) => (
                                         <div key={match.id} className="match-item p-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                                             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
                                                 {/* Match Info */}
-                                                <div className="d-flex flex-column gap-1" className="d-flex flex-column gap-1 hero-match-info">
+                                                <div className="d-flex flex-column gap-1 d-flex flex-column gap-1 hero-match-info">
                                                     <span className={`fw-bold text-uppercase ${match.type.includes('FINAL') ? 'text-warning' : 'text-danger'}`} className="hero-match-type">
                                                         {match.type}
                                                     </span>
-                                                    <span className="text-white text-opacity-50" className="text-white text-opacity-50 hero-match-date">{match.date}{match.time ? ' \u2013 ' + match.time : ''}</span>
+                                                    <span className="text-white text-opacity-50 text-white text-opacity-50 hero-match-date">{match.date}{match.time ? ' \u2013 ' + match.time : ''}</span>
                                                 </div>
                                                 
                                                 {/* Teams VS Layout */}
                                                 <div className="d-flex align-items-center justify-content-center gap-3 flex-grow-1">
                                                     {/* Home Team */}
-                                                    <div className="d-flex align-items-center justify-content-end gap-3" className="hero-match-team">
-                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline" className="text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
+                                                    <div className="d-flex align-items-center justify-content-end gap-3 hero-match-team">
+                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
                                                             {TEAM_NAMES[match.home] || (match.home !== 'TBD' ? match.home.toUpperCase() : 'TBD')}
                                                         </span>
                                                         {match.home === 'TBD' ? (
-                                                            <div className="tbd-flag-placeholder"><i className="fas fa-question text-white text-opacity-20" className="hero-match-tbd-icon"></i></div>
+                                                            <div className="tbd-flag-placeholder"><i className="fas fa-question text-white text-opacity-20 hero-match-tbd-icon"></i></div>
                                                         ) : (
                                                              <img src={`${assetUrl}assets/Flags/${match.home}.png`} alt={match.home} className="match-list-flag" onError={function(e) { if (wikipediaFlags[match.home]) { e.target.src = wikipediaFlags[match.home]; } }} />
                                                         )}
@@ -962,13 +944,13 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                     <div className="vs-badge">{match.score || 'VS'}</div>
                                                     
                                                     {/* Away Team */}
-                                                    <div className="d-flex align-items-center justify-content-start gap-3" className="hero-match-team">
+                                                    <div className="d-flex align-items-center justify-content-start gap-3 hero-match-team">
                                                         {match.away === 'TBD' ? (
-                                                            <div className="tbd-flag-placeholder"><i className="fas fa-question text-white text-opacity-20" className="hero-match-tbd-icon"></i></div>
+                                                            <div className="tbd-flag-placeholder"><i className="fas fa-question text-white text-opacity-20 hero-match-tbd-icon"></i></div>
                                                         ) : (
                                                              <img src={`${assetUrl}assets/Flags/${match.away}.png`} alt={match.away} className="match-list-flag" onError={function(e) { if (wikipediaFlags[match.away]) { e.target.src = wikipediaFlags[match.away]; } }} />
                                                         )}
-                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline" className="text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
+                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
                                                             {TEAM_NAMES[match.away] || (match.away !== 'TBD' ? match.away.toUpperCase() : 'TBD')}
                                                         </span>
                                                     </div>
@@ -985,7 +967,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             </div>
                             
                             <div className="mt-4 p-3 rounded-xl bg-red-600/5 border border-red-600/10">
-                                <p className="text-white text-opacity-50 mb-0" className="text-white text-opacity-50 mb-0 hero-modal-info-text">
+                                <p className="text-white text-opacity-50 mb-0 text-white text-opacity-50 mb-0 hero-modal-info-text">
                                     <i className="fas fa-info-circle me-2 text-danger"></i>
                                     Final match schedules and pairings will be confirmed after the official draw. Tickets not yet available for purchase.
                                 </p>
@@ -1209,11 +1191,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     <h5 className="text-white fs-6 mb-3">
                                         <i className="fas fa-list text-danger me-2"></i>All Matches ({allMatches.length})
                                     </h5>
-                                    <div className="overflow-y-auto custom-scrollbar" className="overflow-y-auto custom-scrollbar hero-modal-all-matches">
+                                    <div className="overflow-y-auto custom-scrollbar overflow-y-auto custom-scrollbar hero-modal-all-matches">
                                         {allMatches.map(function(m, idx) {
                                             return (
                                                 <div key={idx} className="d-flex align-items-center justify-content-between py-2 border-bottom border-white/5" style={{ fontSize: '0.8rem' }}>
-                                                    <span className="text-white text-opacity-40" className="text-white text-opacity-40 hero-match-date-col">{m.date}</span>
+                                                    <span className="text-white text-opacity-40 text-white text-opacity-40 hero-match-date-col">{m.date}</span>
                                                     <span className="text-white fw-bold">{TEAM_NAMES[m.home] || m.home}</span>
                                                     <span className="text-danger fw-bold px-2">{m.score || 'vs'}</span>
                                                     <span className="text-white fw-bold">{TEAM_NAMES[m.away] || m.away}</span>
