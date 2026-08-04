@@ -296,15 +296,10 @@
 }
 
 /* Countdown/winners card container */
-.hero-countdown-card {
-    max-width: 420px;
-    width: 100%;
-}
+.hero-countdown-card { max-width: 420px; width: 100%; background: rgba(15, 15, 20, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 1.5rem !important; }
 
 /* Countdown card red header bar */
-.hero-countdown-header {
-    background: #DC143C;
-}
+.hero-countdown-header { background: rgba(220, 20, 60, 0.15); border-bottom: 1px solid rgba(220, 20, 60, 0.3); }
 
 .hero-trophy-icon {
     font-size: 0.75rem;
@@ -602,9 +597,7 @@
 }
 
 /* Custom Stats Card Styles */
-.hero-stats-card-container {
-    background-color: #fdf9f1;
-}
+.hero-stats-card-container { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
 .hero-stats-badge-dark {
     background-color: #4a4a4a;
     color: #fff;
@@ -625,7 +618,7 @@
     font-size: 2.4rem;
     font-weight: 500;
     letter-spacing: -0.5px;
-}
+ color: #fff !important; }
 .hero-stat-card-gradient {
     height: 280px;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
@@ -633,15 +626,9 @@
     flex-direction: column;
     justify-content: flex-end;
 }
-.hero-stat-card-teams {
-    background: linear-gradient(135deg, #df43a9 0%, #c432d8 100%);
-}
-.hero-stat-card-matches {
-    background: linear-gradient(135deg, #e97a38 0%, #d44d27 100%);
-}
-.hero-stat-card-goals {
-    background: linear-gradient(135deg, #7432f8 0%, #5614d0 100%);
-}
+.hero-stat-card-teams { background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%); }
+.hero-stat-card-matches { background: linear-gradient(135deg, #b22222 0%, #ff4500 100%); }
+.hero-stat-card-goals { background: linear-gradient(135deg, #dc143c 0%, #ff6347 100%); }
 .hero-stat-tags {
     font-size: 0.7rem;
 }
@@ -649,3 +636,5 @@
     min-height: 80px;
 }
 
+
+.hero-glass-badge { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; backdrop-filter: blur(4px); }

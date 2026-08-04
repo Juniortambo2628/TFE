@@ -451,7 +451,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
             {/* Content Layer - Persistent across slide changes */}
             <div className="container h-100 position-relative z-1">
-                <div className="d-flex flex-column gap-4 pb-8 position-relative min-vh-100 justify-content-center pb-5">
+                <div className="d-flex flex-column gap-3 position-relative min-vh-100 justify-content-center pt-5 pb-5 mb-5">
                     {/* Row 1: Title + Hosting Countries | Countdown/Winners Card */}
                     <div className="row align-items-center gx-0">
                         {/* Left Content */}
@@ -602,7 +602,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                     </div>
 
                     {/* Row 2: Tournament Stats Card — full width, aligned with row above */}
-                    <div className="row gx-0 mt-4">
+                    <div className="row gx-0 mt-2">
                         <div className="col-12 px-3">
                             <motion.div
                                 key={`stats-${tournament ? tournament.id : 'default'}`}
@@ -625,7 +625,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                 <i className="fas fa-futbol me-2 hero-stats-badge-icon-dark"></i>Live metrics
                                             </span>
                                         </div>
-                                        <h3 className="text-dark mb-0 lh-sm hero-stats-title">
+                                        <h3 className="mb-0 lh-sm hero-stats-title">
                                             <span className="fw-bolder">Discover</span> the <br/>
                                             tournament in numbers
                                         </h3>
@@ -637,14 +637,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             {/* Teams Card */}
                                             <div className="col-md-4">
                                                 <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-teams">
-                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm hero-stat-content">
+                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                                            <span className="text-dark fw-bold fs-6">Teams</span>
-                                                            <span className="badge rounded-pill bg-light text-dark border fw-bold fs-6">{tournament.facts?.teams || tournament.num_teams || 'TBD'}</span>
+                                                            <span className="text-white fw-bold fs-6">Teams</span>
+                                                            <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.facts?.teams || tournament.num_teams || 'TBD'}</span>
                                                         </div>
                                                         <div className="text-muted mt-2 d-flex gap-1 flex-wrap" style={{fontSize: '0.7rem'}}>
-                                                            <span className="bg-light px-2 py-1 rounded fw-medium">#nations</span>
-                                                            <span className="bg-light px-2 py-1 rounded fw-medium">#qualified</span>
+                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#nations</span>
+                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#qualified</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -653,14 +653,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             {/* Matches Card */}
                                             <div className="col-md-4">
                                                 <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-matches">
-                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm hero-stat-content">
+                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                                            <span className="text-dark fw-bold fs-6">Matches</span>
-                                                            <span className="badge rounded-pill bg-light text-dark border fw-bold fs-6">{tournament.matches_played || 'TBD'}</span>
+                                                            <span className="text-white fw-bold fs-6">Matches</span>
+                                                            <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.matches_played || 'TBD'}</span>
                                                         </div>
                                                         <div className="text-muted mt-2 d-flex gap-1 flex-wrap" style={{fontSize: '0.7rem'}}>
-                                                            <span className="bg-light px-2 py-1 rounded fw-medium">#games</span>
-                                                            <span className="bg-light px-2 py-1 rounded fw-medium">#fixtures</span>
+                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#games</span>
+                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#fixtures</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -669,14 +669,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             {/* Goals Card */}
                                             <div className="col-md-4">
                                                 <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-goals">
-                                                    <div className="bg-white rounded-3 p-3 w-100 shadow-sm hero-stat-content">
+                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                                            <span className="text-dark fw-bold fs-6">Goals</span>
-                                                            <span className="badge rounded-pill bg-light text-dark border fw-bold fs-6">{tournament.total_goals || 'TBD'}</span>
+                                                            <span className="text-white fw-bold fs-6">Goals</span>
+                                                            <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.total_goals || 'TBD'}</span>
                                                         </div>
                                                         <div className="text-muted mt-2 d-flex gap-1 flex-wrap" style={{fontSize: '0.7rem'}}>
-                                                            <span className="bg-light px-2 py-1 rounded fw-medium">#scored</span>
-                                                            <span className="bg-light px-2 py-1 rounded fw-medium">#netted</span>
+                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#scored</span>
+                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#netted</span>
                                                         </div>
                                                     </div>
                                                 </div>
