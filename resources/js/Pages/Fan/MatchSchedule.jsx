@@ -134,7 +134,7 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
                                 <i className="fas fa-map-marker-alt"></i>
                             </div>
                             <h3 className="card-title-gaming">Stadiums</h3>
-                            <div className="card-value-gaming">{venues ? venues.length : 16}</div>
+                            <div className="card-value-gaming">{allFixtures.length > 0 ? [...new Set(allFixtures.map(m => m.venue))].length : 16}</div>
                             <div className="text-white-50 small mt-1">Host Venues</div>
                         </div>
                     </div>
