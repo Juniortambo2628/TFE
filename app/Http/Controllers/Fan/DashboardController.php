@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
-use App\Models\Fixture;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Models\TribeMember;
+use App\Services\FixtureService;
 use App\Services\TournamentService;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -93,17 +93,15 @@ class DashboardController extends Controller
         $tournamentId = $tournament['id'] ?? 'wc_2026';
         $suggestedMatches = [];
         if ($teamSupport) {
-            $suggestedMatches = Fixture::where('tournament_id', $tournamentId)
-                ->where('stage', 'Group Stage')
-                ->where(function ($query) use ($teamSupport) {
-                    $query->whereRaw('LOWER(home_team) = ?', [strtolower($teamSupport)])
-                        ->orWhereRaw('LOWER(away_team) = ?', [strtolower($teamSupport)]);
-                })
-                ->orderBy('date')
-                ->orderBy('time')
-                ->get()
-                ->map(fn ($f) => self::formatFixture($f))
-                ->toArray();
+            $fixtureService = app(FixtureService::class);
+            $allFixtures = $fixtureService->getFixtures($tournamentId);
+            $suggestedMatches = array_values(array_filter($allFixtures, function ($f) use ($teamSupport) {
+                $stage = strtolower($f['stage'] ?? '');
+                $home = strtolower($f['homeTeam'] ?? '');
+                $away = strtolower($f['awayTeam'] ?? '');
+                return str_contains($stage, 'group')
+                    && ($home === strtolower($teamSupport) || $away === strtolower($teamSupport));
+            }));
         }
 
         return Inertia::render('Fan/Dashboard', [
@@ -119,24 +117,4 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Format a Fixture model into the standardized frontend match format.
-     */
-    public static function formatFixture(Fixture $f): array
-    {
-        return [
-            'id' => $f->id,
-            'date' => $f->date->format('Y-m-d'),
-            'time' => $f->time ?? '00:00',
-            'homeTeam' => $f->home_team,
-            'awayTeam' => $f->away_team,
-            'group' => $f->group,
-            'venue' => $f->venue,
-            'stage' => $f->stage,
-            'matchday' => $f->matchday,
-            'homeScore' => $f->home_score,
-            'awayScore' => $f->away_score,
-            'status' => $f->status ?? 'scheduled',
-        ];
-    }
 }

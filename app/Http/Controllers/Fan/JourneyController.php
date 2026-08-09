@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
-use App\Models\Fixture;
 use App\Models\Payment;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
+use App\Services\FixtureService;
+use App\Services\TournamentService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -75,7 +76,14 @@ class JourneyController extends Controller
 
         $matches = [];
         if (! empty($booking->matches)) {
-            $matches = Fixture::whereIn('id', $booking->matches)->get();
+            $tournamentService = app(TournamentService::class);
+            $tournament = $tournamentService->current();
+            $tournamentId = $tournament['id'] ?? 'wc_2026';
+            $fixtureService = app(FixtureService::class);
+            $allFixtures = $fixtureService->getFixtures($tournamentId);
+            $matches = array_values(array_filter($allFixtures, function ($f) use ($booking) {
+                return in_array($f['id'], $booking->matches);
+            }));
         }
 
         return Inertia::render('Fan/BookingDetails', [

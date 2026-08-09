@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
-use App\Models\Fixture;
+use App\Services\FixtureService;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,35 +35,19 @@ class BudgetController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get user's favorite fixtures with match details
-        $favoriteFixtures = FavoriteMatch::where('user_id', $userId)
-            ->with('fixture')
-            ->get()
-            ->map(function ($favorite) {
-                $fixture = $favorite->fixture;
-                if (! $fixture) {
-                    return null;
-                }
+        // Get all fixtures from dynamic source
+        $fixtureService = app(FixtureService::class);
+        $allFixtures = $fixtureService->getFixtures($tournamentId);
 
-                return [
-                    'fixture_id' => $fixture->id,
-                    'home_team' => $fixture->home_team,
-                    'away_team' => $fixture->away_team,
-                    'date' => $fixture->date->format('Y-m-d'),
-                    'venue' => $fixture->venue,
-                ];
-            })
-            ->filter()
-            ->values()
+        // Resolve favorites against live fixtures list
+        $favoriteIds = FavoriteMatch::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
+            ->pluck('fixture_id')
             ->toArray();
 
-        // Get all fixtures for the active tournament in standardized format
-        $allFixtures = Fixture::where('tournament_id', $tournamentId)
-            ->orderBy('date')
-            ->orderBy('time')
-            ->get()
-            ->map(fn ($f) => DashboardController::formatFixture($f))
-            ->toArray();
+        $favoriteFixtures = array_values(array_filter($allFixtures, function ($f) use ($favoriteIds) {
+            return in_array($f['id'], $favoriteIds);
+        }));
 
         // Extract unique venues, stages, groups for filtering
         $venues = collect($allFixtures)->pluck('venue')->filter()->unique()->values()->toArray();
@@ -137,17 +121,15 @@ class BudgetController extends Controller
             'total_amount' => $budget->partner_cost > 0 ? $budget->partner_cost : $budget->total_cost,
             'amount_paid' => 0,
             'booking_date' => now(),
-            'expires_at' => now()->addHours(48), // Valid for 48 hours
+            'expires_at' => now()->addHours(48),
             'flight_info' => $budget->flight_class,
             'accommodation' => $budget->accommodation_level,
             'matches' => $budget->match_ids,
         ]);
 
-        // Deactivate all budgets for this user to keep dashboard clean
         Budget::where('user_id', $budget->user_id)
             ->update(['is_active' => false]);
 
-        // Mark THIS specific budget as confirmed
         $budget->update([
             'partner_status' => 'confirmed',
             'is_active' => false,
@@ -181,10 +163,9 @@ class BudgetController extends Controller
                 'flight_class' => $validated['flight_class'],
                 'breakdown' => $validated['breakdown'],
                 'nights' => $validated['nights'] ?? $budget->nights,
-                'is_active' => true, // Ensure it becomes active when saved/updated
+                'is_active' => true,
             ]);
 
-            // Ensure other budgets are inactive
             Budget::where('user_id', $user->id)
                 ->where('id', '!=', $budget->id)
                 ->update(['is_active' => false]);
@@ -192,11 +173,9 @@ class BudgetController extends Controller
             return back()->with('success', 'Itinerary updated successfully!');
         }
 
-        // Deactivate previous active budgets
         Budget::where('user_id', $user->id)
             ->update(['is_active' => false]);
 
-        // Create new active budget
         $budget = Budget::create([
             'user_id' => $user->id,
             'name' => $validated['name'] ?? 'My World Cup Trip',
