@@ -31,7 +31,7 @@ class FixtureService
 
         $source = $config['data_source'] ?? 'database';
         $ttl = $this->ttlFor($config);
-        $cacheKey = "fixtures:{$tournamentId}:" . md5($source);
+        $cacheKey = "fixtures:{$tournamentId}:".md5($source);
 
         return Cache::remember($cacheKey, $ttl, function () use ($source, $config, $tournamentId) {
             $fixtures = match ($source) {
@@ -163,7 +163,7 @@ class FixtureService
         $group = $f['group'] ?? null;
 
         return [
-            'id' => 'ts_' . ($f['matchNumber'] ?? 0),
+            'id' => 'ts_'.($f['matchNumber'] ?? 0),
             'date' => $f['date'] ?? '',
             'time' => $time,
             'homeTeam' => $f['homeTeam'] ?? '',
@@ -196,7 +196,7 @@ class FixtureService
         }
 
         return [
-            'id' => 'of_' . md5(($f['team1'] ?? '').($f['team2'] ?? '').($f['date'] ?? '')),
+            'id' => 'of_'.md5(($f['team1'] ?? '').($f['team2'] ?? '').($f['date'] ?? '')),
             'date' => $f['date'] ?? '',
             'time' => $f['time'] ?? '',
             'homeTeam' => $f['team1'] ?? '',
@@ -237,7 +237,7 @@ class FixtureService
         }
 
         return [
-            'id' => 'wiki_' . md5(($f['team1'] ?? '').($f['team2'] ?? '').$date),
+            'id' => 'wiki_'.md5(($f['team1'] ?? '').($f['team2'] ?? '').$date),
             'date' => $date,
             'time' => $f['time'] ?? '',
             'homeTeam' => $f['team1'] ?? '',
@@ -258,7 +258,7 @@ class FixtureService
     protected function normalizeDatabase(Fixture $f): array
     {
         return [
-            'id' => 'db_' . $f->id,
+            'id' => 'db_'.$f->id,
             'date' => $f->date->format('Y-m-d'),
             'time' => $f->time ?? '00:00',
             'homeTeam' => $f->home_team,

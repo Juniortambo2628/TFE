@@ -99,6 +99,7 @@ class DashboardController extends Controller
                 $stage = strtolower($f['stage'] ?? '');
                 $home = strtolower($f['homeTeam'] ?? '');
                 $away = strtolower($f['awayTeam'] ?? '');
+
                 return str_contains($stage, 'group')
                     && ($home === strtolower($teamSupport) || $away === strtolower($teamSupport));
             }));
@@ -116,5 +117,4 @@ class DashboardController extends Controller
             ],
         ]);
     }
-
 }
