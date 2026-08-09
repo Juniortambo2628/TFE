@@ -7,14 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentTransaction extends Model
 {
     protected $fillable = [
-        'user_id', 'amount', 'currency', 'type', 'method', 'status',
+        'user_id', 'booking_id', 'amount', 'currency', 'type', 'method', 'status',
         'reference', 'mpesa_receipt', 'stripe_payment_intent',
-        'description', 'metadata',
+        'description', 'metadata', 'paid_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'metadata' => 'array',
+        'paid_at' => 'datetime',
     ];
 
     public function user()

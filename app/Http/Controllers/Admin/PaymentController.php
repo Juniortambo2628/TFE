@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Payment;
 use App\Models\PaymentTransaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -67,19 +66,10 @@ class PaymentController extends Controller
 
         // If newly completed, trigger side effects
         if ($validated['status'] === 'completed' && $oldStatus !== 'completed') {
-            // 1. Create matching Payment record for history/summary
-            Payment::create([
-                'user_id' => $paymentTransaction->user_id,
-                'amount' => $paymentTransaction->amount,
-                'status' => 'completed',
-                'method' => $paymentTransaction->method,
-                'reference' => $paymentTransaction->reference,
-                'description' => $paymentTransaction->description,
-                'booking_id' => $paymentTransaction->metadata['booking_id'] ?? null,
-            ]);
+            $paymentTransaction->update(['paid_at' => now()]);
 
-            // 2. Update Booking if linked
-            $metadata = $paymentTransaction->metadata; // Cast handles decoding
+            // Update Booking if linked
+            $metadata = $paymentTransaction->metadata;
             if (! empty($metadata['booking_id'])) {
                 $booking = Booking::find($metadata['booking_id']);
                 if ($booking) {

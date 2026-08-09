@@ -21,10 +21,11 @@ class MatchScheduleController extends Controller
         $tournament = $tournamentService->current();
         $tournamentId = $tournament['id'] ?? 'wc_2026';
 
-        // Get user's favorite match IDs (scoped to this tournament)
-        $favoriteIds = FavoriteMatch::where('user_id', $user->id)
+        // Get user's favorite external IDs (scoped to this tournament)
+        $favoriteExternalIds = FavoriteMatch::where('user_id', $user->id)
             ->where('tournament_id', $tournamentId)
-            ->pluck('fixture_id')
+            ->whereNotNull('external_id')
+            ->pluck('external_id')
             ->toArray();
 
         // Get all fixtures from dynamic source
@@ -46,7 +47,7 @@ class MatchScheduleController extends Controller
         // Stats
         $stats = [
             'total_matches' => count($allFixtures),
-            'favorites' => count($favoriteIds),
+            'favorites' => count($favoriteExternalIds),
             'completed' => collect($allFixtures)->where('status', 'completed')->count(),
             'upcoming' => collect($allFixtures)->where('status', 'scheduled')->count(),
         ];
@@ -57,7 +58,7 @@ class MatchScheduleController extends Controller
             'stages' => $stages,
             'teams' => $teams,
             'stats' => $stats,
-            'userFavorites' => $favoriteIds,
+            'userFavorites' => $favoriteExternalIds,
         ]);
     }
 
@@ -70,8 +71,16 @@ class MatchScheduleController extends Controller
         $tournament = $tournamentService->current();
         $tournamentId = $tournament['id'] ?? 'wc_2026';
 
+        // Determine source from fixture ID prefix
+        $source = match(true) {
+            str_starts_with($fixtureId, 'ts_') => 'thestatsapi',
+            str_starts_with($fixtureId, 'of_') => 'openfootball',
+            str_starts_with($fixtureId, 'wiki_') => 'wikipedia',
+            default => 'db',
+        };
+
         $existing = FavoriteMatch::where('user_id', $user->id)
-            ->where('fixture_id', $fixtureId)
+            ->where('external_id', $fixtureId)
             ->where('tournament_id', $tournamentId)
             ->first();
 
@@ -83,7 +92,8 @@ class MatchScheduleController extends Controller
 
         FavoriteMatch::create([
             'user_id' => $user->id,
-            'fixture_id' => $fixtureId,
+            'external_id' => $fixtureId,
+            'source' => $source,
             'tournament_id' => $tournamentId,
         ]);
 

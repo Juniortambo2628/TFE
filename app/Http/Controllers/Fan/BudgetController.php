@@ -39,14 +39,15 @@ class BudgetController extends Controller
         $fixtureService = app(FixtureService::class);
         $allFixtures = $fixtureService->getFixtures($tournamentId);
 
-        // Resolve favorites against live fixtures list
-        $favoriteIds = FavoriteMatch::where('user_id', $userId)
+        // Resolve favorites against live fixtures list using external_id
+        $favoriteExternalIds = FavoriteMatch::where('user_id', $userId)
             ->where('tournament_id', $tournamentId)
-            ->pluck('fixture_id')
+            ->whereNotNull('external_id')
+            ->pluck('external_id')
             ->toArray();
 
-        $favoriteFixtures = array_values(array_filter($allFixtures, function ($f) use ($favoriteIds) {
-            return in_array($f['id'], $favoriteIds);
+        $favoriteFixtures = array_values(array_filter($allFixtures, function ($f) use ($favoriteExternalIds) {
+            return in_array($f['id'], $favoriteExternalIds);
         }));
 
         // Extract unique venues, stages, groups for filtering

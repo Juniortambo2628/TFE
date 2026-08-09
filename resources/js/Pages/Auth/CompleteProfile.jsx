@@ -14,7 +14,6 @@ export default function CompleteProfile({ auth }) {
         country: '',
         country_code: '',
         team_support: '',
-        seeking_financing: null,
         terms_agreed: false,
     });
 
@@ -162,22 +161,6 @@ export default function CompleteProfile({ auth }) {
                             ))}
                         </div>
                         {errors.team_support && <p className="text-red-500 text-xs mt-1">{errors.team_support}</p>}
-                    </div>
-
-                    {/* Financing */}
-                    <div>
-                        <label className="block text-sm font-medium text-zinc-300 mb-2">Interested in Financing? <span className="text-red-500">*</span></label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <label className={`cursor-pointer border rounded-lg p-3 text-center transition ${data.seeking_financing === true ? 'bg-red-600 border-red-600 text-white' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'}`}>
-                                <input type="radio" name="financing" className="hidden" onChange={() => setData('seeking_financing', true)} checked={data.seeking_financing === true} />
-                                Yes
-                            </label>
-                            <label className={`cursor-pointer border rounded-lg p-3 text-center transition ${data.seeking_financing === false ? 'bg-red-600 border-red-600 text-white' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'}`}>
-                                <input type="radio" name="financing" className="hidden" onChange={() => setData('seeking_financing', false)} checked={data.seeking_financing === false} />
-                                No
-                            </label>
-                        </div>
-                        {errors.seeking_financing && <p className="text-red-500 text-xs mt-1">{errors.seeking_financing}</p>}
                     </div>
 
                     {/* Terms */}

@@ -15,7 +15,7 @@ class CompleteProfileController extends Controller
         $user = Auth::user();
 
         // If profile is already complete, redirect to dashboard
-        if (! empty($user->phone) && ! empty($user->country) && ! is_null($user->seeking_financing)) {
+        if (! empty($user->phone) && ! empty($user->country)) {
             return redirect()->route('fan.dashboard');
         }
 
@@ -31,7 +31,6 @@ class CompleteProfileController extends Controller
             'country' => 'required|string|max:100',
             'country_code' => 'required|string|max:10',
             'team_support' => 'nullable|string|max:100',
-            'seeking_financing' => 'required|boolean',
             'terms_agreed' => 'required|accepted',
         ]);
 
@@ -41,7 +40,6 @@ class CompleteProfileController extends Controller
             'country' => $request->country,
             'country_code' => $request->country_code,
             'team_support' => $request->team_support,
-            'seeking_financing' => $request->seeking_financing,
         ]);
 
         return redirect()->route('fan.dashboard');

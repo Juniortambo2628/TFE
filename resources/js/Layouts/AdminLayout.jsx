@@ -2,7 +2,7 @@ import React from 'react';
 import { usePage } from '@inertiajs/react';
 import AdminSidebar from '@/Components/Admin/AdminSidebar';
 import DashboardHeader from '@/Components/Common/DashboardHeader';
-import { AdminThemeProvider, useAdminTheme } from '@/Contexts/AdminThemeContext';
+import { AdminThemeProvider, useAdminTheme } from '@/Context/AdminThemeContext';
 import BaseLayout from './BaseLayout';
 import '../../css/admin-theme.css';
 

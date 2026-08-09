@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\LoanApplication;
 use App\Models\SavingsGoal;
-use App\Models\Transaction;
+use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -25,25 +25,25 @@ class WalletController extends Controller
         $loans = LoanApplication::where('user_id', $userId)->get();
         $approvedLoans = $loans->where('status', 'APPROVED')->sum('amount');
 
-        // Fetch Transactions
-        $transactions = Transaction::where('user_id', $userId)
+        // Fetch Transactions from PaymentTransaction (source of truth)
+        $transactions = PaymentTransaction::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->take(20)
             ->get()
             ->map(function ($tx) {
                 return [
                     'id' => $tx->id,
-                    'type' => strtolower($tx->type), // deposit, withdrawal
+                    'type' => strtolower($tx->type),
                     'amount' => $tx->amount,
-                    'description' => $tx->type.' - '.($tx->status === 'PENDING' ? '(Pending)' : 'Completed'),
+                    'description' => ucfirst($tx->type).' - '.($tx->status === 'pending' ? '(Pending)' : 'Completed'),
                     'date' => $tx->created_at->format('Y-m-d'),
                 ];
             });
 
         $walletData = [
-            'balance' => $totalSavings, // Balance usually equals savings in this context
+            'balance' => $totalSavings,
             'savings' => $totalSavings,
-            'goalTarget' => $totalTarget > 0 ? $totalTarget : 500000, // Default target if none
+            'goalTarget' => $totalTarget > 0 ? $totalTarget : 500000,
             'loanBalance' => $approvedLoans,
             'transactions' => $transactions,
         ];
@@ -51,7 +51,7 @@ class WalletController extends Controller
         return Inertia::render('Fan/Wallet', [
             'walletData' => $walletData,
             'auth' => [
-                'user' => $user, // Pass minimal user if needed, but 'auth' prop usually handled globally
+                'user' => $user,
             ],
         ]);
     }

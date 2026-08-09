@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FavoriteMatch extends Model
 {
     protected $fillable = [
-        'user_id', 'fixture_id', 'tournament_id',
+        'user_id', 'fixture_id', 'tournament_id', 'external_id', 'source',
     ];
 
     public function user()
@@ -22,5 +22,14 @@ class FavoriteMatch extends Model
     public function fixture()
     {
         return $this->belongsTo(Fixture::class);
+    }
+
+    /**
+     * Scope to find by external fixture ID.
+     */
+    public function scopeByExternalId($query, $externalId, $tournamentId)
+    {
+        return $query->where('external_id', $externalId)
+            ->where('tournament_id', $tournamentId);
     }
 }

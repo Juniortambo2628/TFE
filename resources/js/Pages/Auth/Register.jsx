@@ -9,7 +9,7 @@ import axios from 'axios';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
 
-const totalSteps = 4;
+const totalSteps = 3;
 
 export default function Register() {
     const { assetUrl } = usePage().props;
@@ -29,12 +29,6 @@ export default function Register() {
         
         // Preferences
         team_support: '',
-        
-        // Financial
-        seeking_financing: null, // boolean or null
-        employment_status: '',
-        loan_return_period: '',
-        banking_partners_consent: false,
         
         // Consents
         terms_agreed: false,
@@ -173,18 +167,6 @@ export default function Register() {
                 return false;
             }
         }
-        if (step === 3) {
-            if (data.seeking_financing === null) {
-                toast.warning('Please select your financing preference.');
-                return false;
-            }
-            if (data.seeking_financing === true) {
-                if (!data.employment_status || !data.loan_return_period) {
-                     toast.warning('Please complete the financing details.');
-                     return false;
-                }
-            }
-        }
         return true;
     };
 
@@ -295,8 +277,7 @@ export default function Register() {
                                     <div className="progress-steps d-flex gap-2 mt-3 text-white-50">
                                         <div className={`step ${currentStep >= 1 ? 'active text-white fw-bold' : ''}`}>Personal Info</div>
                                         <div className={`step ${currentStep >= 2 ? 'active text-white fw-bold' : ''}`}>Team Support</div>
-                                        <div className={`step ${currentStep >= 3 ? 'active text-white fw-bold' : ''}`}>Financing</div>
-                                        <div className={`step ${currentStep >= 4 ? 'active text-white fw-bold' : ''}`}>Consent</div>
+                                        <div className={`step ${currentStep >= 3 ? 'active text-white fw-bold' : ''}`}>Consent</div>
                                     </div>
                                 </div>
                             </div>
@@ -471,56 +452,8 @@ export default function Register() {
                                 </div>
                             )}
 
-                            {/* Step 3: Financing Options */}
+                            {/* Step 3: Consent & Terms */}
                             {currentStep === 3 && (
-                                <div className="form-step active pb-3">
-                                    <h3 className="mb-5 font-standard-section-pill">
-                                        <i className="fas fa-credit-card me-2"></i>Financing Options
-                                    </h3>
-                                    <div className="mb-4">
-                                        <label className="form-label text-white">Are you interested in financing options? <span className="text-danger">*</span></label>
-                                        <div className="financing-options">
-                                            <div className="form-check mb-2">
-                                                <input className="form-check-input" type="radio" name="seeking_financing" id="fin_yes" checked={data.seeking_financing === true} onChange={() => setData('seeking_financing', true)} />
-                                                <label className="form-check-label ms-2 text-white" htmlFor="fin_yes">Yes, I'm interested</label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="radio" name="seeking_financing" id="fin_no" checked={data.seeking_financing === false} onChange={() => setData({ ...data, seeking_financing: false, employment_status: '', loan_return_period: '' })} />
-                                                <label className="form-check-label ms-2 text-white" htmlFor="fin_no">No, I'll pay myself</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {data.seeking_financing === true && (
-                                        <div className="finance-details">
-                                            <div className="mb-4">
-                                                <label className="form-label text-white">Employment Status <span className="text-danger">*</span></label>
-                                                {['fulltime', 'parttime', 'self', 'student', 'unemployed'].map(status => (
-                                                    <div className="form-check mb-2" key={status}>
-                                                        <input className="form-check-input" type="radio" name="employment_status" id={`emp_${status}`} checked={data.employment_status === status} onChange={() => setData('employment_status', status)} />
-                                                        <label className="form-check-label ms-2 text-capitalize text-white" htmlFor={`emp_${status}`}>{status === 'self' ? 'Self-Employed' : status.replace('fulltime', 'Full-Time').replace('parttime', 'Part-Time')}</label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="form-label text-white">Ideal Loan Return Period <span className="text-danger">*</span></label>
-                                                {['12', '18', '24', '36'].map(period => (
-                                                    <div className="form-check mb-2" key={period}>
-                                                        <input className="form-check-input" type="radio" name="loan_return_period" id={`loan_${period}`} checked={data.loan_return_period === period} onChange={() => setData('loan_return_period', period)} />
-                                                        <label className="form-check-label ms-2 text-white" htmlFor={`loan_${period}`}>{period} Months</label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="banking_consent" checked={data.banking_partners_consent} onChange={e => setData('banking_partners_consent', e.target.checked)} />
-                                                <label className="form-check-label ms-2 text-white" htmlFor="banking_consent">I consent to share my banking information for financing assessment.</label>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Step 4: Consent & Terms */}
-                            {currentStep === 4 && (
                                 <div className="form-step active pb-3">
                                     <h3 className="mb-5 font-standard-section-pill">
                                         <i className="fas fa-check-circle me-2"></i>Consent & Terms

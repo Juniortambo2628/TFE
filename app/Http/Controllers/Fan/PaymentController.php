@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransaction;
 use App\Models\User;
@@ -21,19 +20,19 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
 
-        // Payment history
-        $payments = Payment::where('user_id', $user->id)
+        // Payment history from PaymentTransaction (single source of truth)
+        $payments = PaymentTransaction::where('user_id', $user->id)
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($payment) {
+            ->map(function ($txn) {
                 return [
-                    'id' => $payment->id,
-                    'amount' => $payment->amount,
-                    'description' => $payment->description ?? 'Payment',
-                    'status' => $payment->status,
-                    'method' => $payment->method ?? 'wallet',
-                    'reference' => $payment->reference ?? $payment->id,
-                    'created_at' => $payment->created_at->format('M d, Y'),
+                    'id' => $txn->id,
+                    'amount' => $txn->amount,
+                    'description' => $txn->description ?? 'Payment',
+                    'status' => $txn->status,
+                    'method' => $txn->method,
+                    'reference' => $txn->reference,
+                    'created_at' => $txn->created_at->format('M d, Y'),
                 ];
             });
 
@@ -184,21 +183,11 @@ class PaymentController extends Controller
                         $txn->update([
                             'status' => 'completed',
                             'method' => $result['data']['channel'] ?? $txn->method,
-                        ]);
-
-                        // Credit Wallet / Create Payment Record
-                        Payment::create([
-                            'user_id' => $txn->user_id,
-                            'amount' => $txn->amount,
-                            'status' => 'completed',
-                            'payment_method' => $result['data']['channel'] ?? 'paystack',
-                            'transaction_id' => $txn->reference,
-                            'description' => $txn->description,
                             'paid_at' => now(),
                         ]);
 
                         // Handle Booking Link
-                        $metadata = $txn->metadata; // Already an array due to model casting
+                        $metadata = $txn->metadata;
                         if (! empty($metadata['booking_id'])) {
                             $booking = Booking::find($metadata['booking_id']);
                             if ($booking) {

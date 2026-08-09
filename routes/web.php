@@ -34,7 +34,6 @@ use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
@@ -58,8 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', function () {
         return redirect()->route('fan.profile');
     })->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile', [App\Http\Controllers\Fan\ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/privacy', function () {
         return redirect()->route('fan.profile');
     })->name('profile.privacy');

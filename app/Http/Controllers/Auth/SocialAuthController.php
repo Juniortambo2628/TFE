@@ -64,6 +64,6 @@ class SocialAuthController extends Controller
     protected function needsProfileCompletion(User $user)
     {
         // Check for critical recommended fields
-        return empty($user->phone) || empty($user->country) || is_null($user->seeking_financing);
+        return empty($user->phone) || empty($user->country);
     }
 }

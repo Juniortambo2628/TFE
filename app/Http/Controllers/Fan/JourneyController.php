@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
-use App\Models\Payment;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Services\FixtureService;
@@ -23,10 +22,9 @@ class JourneyController extends Controller
         // Fetch Data
         $bookings = Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
         $paymentSchedules = PaymentSchedule::where('user_id', $userId)->orderBy('due_date', 'asc')->get();
-        $payments = Payment::where('user_id', $userId)->get();
         $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
 
-        // Calculate Totals using PaymentTransaction as source of truth for consistency
+        // Calculate Totals using PaymentTransaction as source of truth
         $totalPaid = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->sum('amount');
@@ -34,6 +32,22 @@ class JourneyController extends Controller
         $paymentsCount = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')
             ->count();
+
+        $recentPayments = PaymentTransaction::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get()
+            ->map(function ($txn) {
+                return [
+                    'id' => $txn->id,
+                    'amount' => $txn->amount,
+                    'description' => $txn->description ?? 'Payment',
+                    'status' => $txn->status,
+                    'method' => $txn->method,
+                    'reference' => $txn->reference,
+                    'created_at' => $txn->created_at->format('M d, Y'),
+                ];
+            });
 
         // Total Due = Pending Installments + Balances on bookings without schedules
         $scheduledPending = $paymentSchedules->where('status', 'pending')->sum('amount');
@@ -56,7 +70,7 @@ class JourneyController extends Controller
             'paymentsCount' => $paymentsCount,
             'bookings' => $bookings,
             'paymentSchedules' => $paymentSchedules,
-            'payments' => $payments,
+            'payments' => $recentPayments,
         ];
 
         // Mock active budget if null, just to be safe during migration/testing, or return null.

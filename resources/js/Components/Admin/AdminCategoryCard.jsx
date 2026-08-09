@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePage } from '@inertiajs/react';
-import { useAdminTheme } from '@/Contexts/AdminThemeContext';
+import { useAdminTheme } from '@/Context/AdminThemeContext';
 import AdminCustomizeModal from '@/Components/Admin/AdminCustomizeModal';
 
 export default function AdminCategoryCard({ 

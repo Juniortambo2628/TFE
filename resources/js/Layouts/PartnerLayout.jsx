@@ -3,7 +3,7 @@ import { usePage } from '@inertiajs/react';
 import PartnerSidebar from '@/Components/Partner/Sidebar';
 import DashboardHeader from '@/Components/Common/DashboardHeader';
 import BaseLayout from './BaseLayout';
-import '../../css/fan/dashboard.css';
+import '../../css/fan/dashboard.css'; // Shared grid layout classes (summary-cards-grid, content-cards-grid)
 import '../../css/partner/dashboard.css';
 
 export default function PartnerLayout({ children, title }) {
