@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import WorldCup2026Data from '@/Data/WorldCup2026Data';
 import { CITY_TIERS, FLIGHT_ORIGINS, SURGE_RATES, BASE_COSTS } from '@/Data/BudgetPricingData';
 import MatchCard from '@/Components/Fan/MatchCard';
 import { Head, router, Link } from '@inertiajs/react';
@@ -11,7 +10,7 @@ import '../../../css/fan/budget-calculator.css';
 
 const USD_TO_KES = 130;
 
-export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null }) {
+export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [] }) {
     // Wizard State
     const [wizardStep, setWizardStep] = useState(1);
     
@@ -58,7 +57,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             setNights(budgetToEdit.nights || 7);
             
             // Populate filteredMatches with the selected matches so step 2 isn't empty
-            const selectedMatches = WorldCup2026Data.matches.filter(m => 
+            const selectedMatches = allFixtures.filter(m => 
                 (budgetToEdit.match_ids || []).includes(m.id)
             );
             setFilteredMatches(selectedMatches);
@@ -82,7 +81,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         const matchIdParam = params.get('match');
         if (matchIdParam) {
             const matchId = parseInt(matchIdParam, 10);
-            const match = WorldCup2026Data.matches.find(m => m.id === matchId);
+            const match = allFixtures.find(m => m.id === matchId);
             if (match) {
                 setFilteredMatches([match]);
                 setSelectedMatchIds([matchId]);
@@ -98,10 +97,10 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
 
 
-    // Get unique values from data
-    const allVenues = WorldCup2026Data.getAllVenues();
-    const allStages = WorldCup2026Data.getAllStages();
-    const allGroups = WorldCup2026Data.getAllGroups();
+    // Get unique values from props (passed from controller)
+    const allVenues = venues;
+    const allStages = stages;
+    const allGroups = groups;
 
     // Stadium image mapping - use available images
     const stadiumImages = {
@@ -123,10 +122,8 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         'Kansas City Stadium': 'Arrowhead_Stadium_(October_27,_2019_-_2).webp'
     };
 
-    // Favorite matches based on match characteristics from Match Schedule
-    // Match by home_team, away_team, and date since fixture IDs may not match WorldCup2026Data IDs
     // Favorite matches based on fixture_id
-    const favoriteMatches = WorldCup2026Data.matches.filter(match => {
+    const favoriteMatches = allFixtures.filter(match => {
         if (!Array.isArray(userFavorites) || userFavorites.length === 0) {
             return false;
         }
@@ -179,12 +176,15 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
     // Apply filters and show matches
     const applyFilters = () => {
-        let matches = WorldCup2026Data.matches;
+        let matches = allFixtures;
         
         if (selectedCountries.length > 0) {
             matches = matches.filter(m => {
-                const stadium = WorldCup2026Data.getStadiumInfo(m.venue);
-                return selectedCountries.includes(stadium?.country);
+                // Extract country from venue or use venue name for filtering
+                const venueLower = (m.venue || '').toLowerCase();
+                return selectedCountries.some(country => 
+                    venueLower.includes(country.toLowerCase())
+                );
             });
         }
         if (selectedStadiums.length > 0) {
@@ -213,10 +213,10 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
     // Check for match time/location conflicts
     const getMatchConflict = (matchId) => {
-        const currentMatch = WorldCup2026Data.matches.find(m => m.id === matchId);
+        const currentMatch = allFixtures.find(m => m.id === matchId);
         if (!currentMatch) return null;
 
-        const otherSelected = WorldCup2026Data.matches.filter(m => 
+        const otherSelected = allFixtures.filter(m => 
             selectedMatchIds.includes(m.id) && m.id !== matchId
         );
 
@@ -248,7 +248,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
         setTimeout(() => {
             // 1. Identify Venues and Stages from selection
-            const selectedMatches = WorldCup2026Data.matches.filter(m => selectedMatchIds.includes(m.id));
+            const selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
             const venues = selectedMatches.map(m => m.venue);
             const stages = selectedMatches.map(m => m.stage);
 
@@ -643,11 +643,11 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             <button 
                                 className="btn-calculate"
                                 onClick={() => {
-                                    setFilteredMatches(WorldCup2026Data.matches);
+                                    setFilteredMatches(allFixtures);
                                     setWizardStep(2);
                                 }}
                             >
-                                Show All Matches ({WorldCup2026Data.matches.length})
+                                Show All Matches ({allFixtures.length})
                             </button>
                             
                             <button
@@ -963,7 +963,6 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             {filterTab === 'stadium' && (
                                 <div className="selection-grid stadium-grid">
                                     {allVenues.map(venue => {
-                                        const stadium = WorldCup2026Data.getStadiumInfo(venue);
                                         // Dynamic base path for WAMP compatibility
                                         const basePath = window.location.pathname.includes('/TFE/') 
                                             ? '/TFE/public' 
@@ -980,14 +979,6 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                             >
                                                 <img src={imgSrc} className="card-image" alt={venue} />
                                                 <div className="card-label">{venue}</div>
-                                                <div className="card-sublabel">
-                                                    {getCountryFlag(stadium?.country)} {stadium?.city}
-                                                    {stadium?.capacity && (
-                                                        <span className="stadium-capacity">
-                                                            <i className="fas fa-users"></i> {Math.round(stadium.capacity / 1000)}K
-                                                        </span>
-                                                    )}
-                                                </div>
                                             </div>
                                         );
                                     })}
@@ -1020,32 +1011,26 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             {/* Group/Team Grid */}
                             {filterTab === 'group' && (
                                 <div className="selection-grid group-grid">
-                                    {allGroups.map(groupLetter => {
-                                        const groupInfo = WorldCup2026Data.groups[groupLetter];
-                                        const teams = groupInfo?.teams || [];
-                                        
-                                        return (
-                                            <div key={groupLetter} className="selection-card group-card">
-                                                <div className="group-card-header">
-                                                    <span className="group-letter">Group {groupLetter}</span>
-                                                </div>
-                                                <ul className="group-team-list">
-                                                    {teams.map(team => (
-                                                        <li 
-                                                            key={team}
-                                                            className={`team-item ${selectedTeams.includes(team) ? 'selected' : ''}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleTeam(team);
-                                                            }}
-                                                        >
-                                                            {team}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        );
-                                    })}
+                                    {/* Teams from props - flat list for selection */}
+                                    <div className="selection-card group-card">
+                                        <div className="group-card-header">
+                                            <span className="group-letter">All Teams</span>
+                                        </div>
+                                        <ul className="group-team-list">
+                                            {teams.map(team => (
+                                                <li 
+                                                    key={team}
+                                                    className={`team-item ${selectedTeams.includes(team) ? 'selected' : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleTeam(team);
+                                                    }}
+                                                >
+                                                    {team}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </div>
                             )}
 

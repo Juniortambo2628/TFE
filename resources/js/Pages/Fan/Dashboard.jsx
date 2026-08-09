@@ -6,12 +6,11 @@ import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import FanFooter from '@/Components/Fan/FanFooter';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import FanTutorial from '@/Components/Fan/FanTutorial';
-import WorldCup2026Data from '@/Data/WorldCup2026Data';
 import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
 import { formatMoney } from '@/lib/utils';
 
-export default function Dashboard({ auth, activeBudget, stats, recentPayments, recentBookings, activities }) {
+export default function Dashboard({ auth, activeBudget, stats, recentPayments, recentBookings, activities, suggestedMatches = [] }) {
 
     const tutorialSteps = [
         // 1. Welcome
@@ -201,14 +200,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                 {/* Suggested Matches Section */}
                 {(() => {
                     const teamSupport = auth.user?.team_support;
-                    const suggestedMatches = teamSupport ? WorldCup2026Data.matches.filter(m => 
-                        m.stage === 'Group Stage' && (
-                            m.homeTeam.toLowerCase() === teamSupport.toLowerCase() || 
-                            m.awayTeam.toLowerCase() === teamSupport.toLowerCase()
-                        )
-                    ) : [];
-
-                    if (!teamSupport) return null;
+                    if (!teamSupport || suggestedMatches.length === 0) return null;
 
                     return (
                         <div className="suggested-matches-section">
@@ -217,23 +209,16 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                                 <span className="match-count">{suggestedMatches.length} matches</span>
                             </div>
 
-                            {suggestedMatches.length > 0 ? (
-                                <div className="suggested-matches-grid">
-                                    {suggestedMatches.map((match) => (
-                                        <MatchCard 
-                                            key={match.id}
-                                            match={match}
-                                            mode="suggested"
-                                            showAction={true}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="suggested-matches-empty">
-                                    <i className="fas fa-futbol"></i>
-                                    <p>No group stage matches found for {teamSupport}.</p>
-                                </div>
-                            )}
+                            <div className="suggested-matches-grid">
+                                {suggestedMatches.map((match) => (
+                                    <MatchCard 
+                                        key={match.id}
+                                        match={match}
+                                        mode="suggested"
+                                        showAction={true}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     );
                 })()}

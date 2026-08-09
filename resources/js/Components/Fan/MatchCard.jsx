@@ -1,10 +1,9 @@
 import React from 'react';
-import WorldCup2026Data from '@/Data/WorldCup2026Data';
 import { router } from '@inertiajs/react';
 
 /**
  * Reusable Match Card component
- * @param {Object} match - Match object from WorldCup2026Data.matches or backend
+ * @param {Object} match - Match object with standardized format: { id, date, time, homeTeam, awayTeam, group, venue, stage, matchday }
  * @param {boolean} isFavorite - Whether the match is favorited
  * @param {function} onToggleFavorite - Callback function for toggling favorite
  * @param {boolean} isSelected - Whether the match is selected (for calculator)
@@ -74,8 +73,28 @@ const MatchCard = ({
     };
 
     const getVenueCity = (venue) => {
-        const info = WorldCup2026Data.stadiums[venue];
-        return info ? `${info.city}, ${info.country}` : venue;
+        // Extract city from venue name or return venue as-is
+        if (!venue) return 'Unknown Venue';
+        // Common venue to city mappings for WC2026
+        const venueCityMap = {
+            'Mexico City Stadium': 'Mexico City, Mexico',
+            'Estadio Guadalajara': 'Guadalajara, Mexico',
+            'Estadio Monterrey': 'Monterrey, Mexico',
+            'Toronto Stadium': 'Toronto, Canada',
+            'BC Place Vancouver': 'Vancouver, Canada',
+            'Los Angeles Stadium': 'Los Angeles, USA',
+            'New York New Jersey Stadium': 'East Rutherford, USA',
+            'Dallas Stadium': 'Arlington, USA',
+            'Atlanta Stadium': 'Atlanta, USA',
+            'Houston Stadium': 'Houston, USA',
+            'Philadelphia Stadium': 'Philadelphia, USA',
+            'Miami Stadium': 'Miami Gardens, USA',
+            'Seattle Stadium': 'Seattle, USA',
+            'San Francisco Bay Area Stadium': 'Santa Clara, USA',
+            'Boston Stadium': 'Foxborough, USA',
+            'Kansas City Stadium': 'Kansas City, USA',
+        };
+        return venueCityMap[venue] || venue;
     };
 
     // Card style for 'suggested' mode (Dashboard style)
@@ -126,10 +145,18 @@ const MatchCard = ({
     }
 
     // Default style for 'schedule' and 'calculator' modes
-    const stadium = WorldCup2026Data.getStadiumInfo(match.venue);
     const getCountryFlag = (country) => {
         const flags = { 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦' };
         return flags[country] || '🏟️';
+    };
+
+    // Extract country from venue for flag display
+    const getVenueCountry = (venue) => {
+        if (!venue) return '';
+        const venueLower = venue.toLowerCase();
+        if (venueLower.includes('mexico') || venueLower.includes('estadio')) return 'Mexico';
+        if (venueLower.includes('canada') || venueLower.includes('toronto') || venueLower.includes('vancouver') || venueLower.includes('bmo') || venueLower.includes('bc place')) return 'Canada';
+        return 'USA';
     };
 
     return (
@@ -158,7 +185,7 @@ const MatchCard = ({
 
             <div className="match-header d-flex justify-content-between align-items-center">
                 <span className="match-venue">
-                    {getCountryFlag(stadium?.country)} {match.venue}
+                    {getCountryFlag(getVenueCountry(match.venue))} {match.venue}
                 </span>
                 <span className="match-time">{match.time}</span>
             </div>
@@ -195,9 +222,9 @@ const MatchCard = ({
                     )}
                     <span className="stage-badge">{match.stage}</span>
                 </div>
-                {stadium?.capacity && mode !== 'calculator' && (
+                {mode !== 'calculator' && (
                     <span className="capacity-badge">
-                        <i className="fas fa-users"></i> {Math.round(stadium.capacity / 1000)}K
+                        <i className="fas fa-map-marker-alt"></i> {getVenueCity(match.venue).split(',')[0]}
                     </span>
                 )}
             </div>

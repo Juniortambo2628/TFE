@@ -20,52 +20,35 @@ class MatchScheduleController extends Controller
             ->pluck('fixture_id')
             ->toArray();
 
-        // Get all fixtures
-        $fixtures = Fixture::orderBy('date')
+        // Get all fixtures in standardized format
+        $allFixtures = Fixture::orderBy('date')
             ->orderBy('time')
             ->get()
-            ->map(function ($fixture) use ($favoriteIds) {
-                return [
-                    'id' => $fixture->id,
-                    'home_team' => $fixture->home_team,
-                    'away_team' => $fixture->away_team,
-                    'date' => $fixture->date->format('Y-m-d'),
-                    'date_formatted' => $fixture->date->format('M d, Y'),
-                    'time' => $fixture->time ?? '00:00',
-                    'venue' => $fixture->venue,
-                    'stage' => $fixture->stage,
-                    'group' => $fixture->group,
-                    'home_score' => $fixture->home_score,
-                    'away_score' => $fixture->away_score,
-                    'status' => $fixture->status ?? 'scheduled',
-                    'is_favorite' => in_array($fixture->id, $favoriteIds),
-                ];
-            });
+            ->map(fn ($f) => DashboardController::formatFixture($f))
+            ->toArray();
 
-        // Group by date
-        $fixturesByDate = $fixtures->groupBy('date');
-
-        // Get unique groups, stages, and teams for filtering
-        $groups = Fixture::distinct()->pluck('group')->filter()->values();
-        $stages = Fixture::distinct()->pluck('stage')->filter()->values();
-        $teams = Fixture::distinct()
-            ->pluck('home_team')
-            ->merge(Fixture::distinct()->pluck('away_team'))
+        // Extract unique groups, stages from fixtures
+        $groups = collect($allFixtures)->pluck('group')->filter()->unique()->values()->toArray();
+        $stages = collect($allFixtures)->pluck('stage')->filter()->unique()->values()->toArray();
+        $teams = collect($allFixtures)
+            ->pluck('homeTeam')
+            ->merge(collect($allFixtures)->pluck('awayTeam'))
+            ->filter()
             ->unique()
             ->sort()
-            ->values();
+            ->values()
+            ->toArray();
 
         // Stats
         $stats = [
-            'total_matches' => Fixture::count(),
+            'total_matches' => count($allFixtures),
             'favorites' => count($favoriteIds),
-            'completed' => Fixture::where('status', 'completed')->count(),
-            'upcoming' => Fixture::where('status', 'scheduled')->count(),
+            'completed' => collect($allFixtures)->where('status', 'completed')->count(),
+            'upcoming' => collect($allFixtures)->where('status', 'scheduled')->count(),
         ];
 
         return Inertia::render('Fan/MatchSchedule', [
-            'fixtures' => $fixturesByDate,
-            'allFixtures' => $fixtures,
+            'allFixtures' => $allFixtures,
             'groups' => $groups,
             'stages' => $stages,
             'teams' => $teams,

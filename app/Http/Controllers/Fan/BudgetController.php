@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
+use App\Models\Fixture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -50,10 +51,35 @@ class BudgetController extends Controller
             ->values()
             ->toArray();
 
+        // Get all fixtures in standardized format for match selection
+        $allFixtures = Fixture::orderBy('date')
+            ->orderBy('time')
+            ->get()
+            ->map(fn ($f) => DashboardController::formatFixture($f))
+            ->toArray();
+
+        // Extract unique venues, stages, groups for filtering
+        $venues = collect($allFixtures)->pluck('venue')->filter()->unique()->values()->toArray();
+        $stages = collect($allFixtures)->pluck('stage')->filter()->unique()->values()->toArray();
+        $groups = collect($allFixtures)->pluck('group')->filter()->unique()->values()->toArray();
+        $teams = collect($allFixtures)
+            ->pluck('homeTeam')
+            ->merge(collect($allFixtures)->pluck('awayTeam'))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
         return Inertia::render('Fan/BudgetCalculator', [
             'savedBudgets' => $savedBudgets,
             'userFavorites' => $favoriteFixtures,
             'budgetToEdit' => $budgetToEdit,
+            'allFixtures' => $allFixtures,
+            'venues' => $venues,
+            'stages' => $stages,
+            'groups' => $groups,
+            'teams' => $teams,
         ]);
     }
 

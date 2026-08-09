@@ -1,34 +1,28 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import WorldCup2026Data from '@/Data/WorldCup2026Data';
 import { Head, router } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import MatchCard from '@/Components/Fan/MatchCard';
 
-export default function MatchSchedule({ auth, userFavorites = [] }) {
+export default function MatchSchedule({ auth, allFixtures = [], groups = [], stages = [], teams = [], stats = {}, userFavorites = [] }) {
     const [activeTab, setActiveTab] = useState('groups');
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [favorites, setFavorites] = useState(userFavorites);
 
-    // Get matches from static data
-    const allMatches = WorldCup2026Data.matches;
-    const allGroups = WorldCup2026Data.getAllGroups();
-    const allStages = WorldCup2026Data.getAllStages();
-
     // Filter matches based on tab and selected group
     const getFilteredMatches = () => {
         if (activeTab === 'groups') {
-            let matches = allMatches.filter(m => m.stage === 'Group Stage');
+            let matches = allFixtures.filter(m => m.stage === 'Group Stage');
             if (selectedGroup) {
                 matches = matches.filter(m => m.group === selectedGroup);
             }
             return matches;
         } else {
             // Knockout rounds (exclude Group Stage)
-            return allMatches.filter(m => m.stage !== 'Group Stage');
+            return allFixtures.filter(m => m.stage !== 'Group Stage');
         }
-    };
+    };;
 
     const filteredMatches = getFilteredMatches();
 
@@ -59,9 +53,15 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
 
     // Get country flag
     const getCountryFlag = (venue) => {
-        const stadium = WorldCup2026Data.getStadiumInfo(venue);
+        // Default flags for known countries - will be enhanced with dynamic data
         const flags = { 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦' };
-        return flags[stadium?.country] || '🏟️';
+        // Try to extract country from venue name or use default
+        for (const [country, flag] of Object.entries(flags)) {
+            if (venue && venue.toLowerCase().includes(country.toLowerCase())) {
+                return flag;
+            }
+        }
+        return '🏟️';
     };
 
     // Format date
@@ -101,7 +101,7 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
                                 <i className="fas fa-futbol"></i>
                             </div>
                             <h3 className="card-title-gaming">Matches</h3>
-                            <div className="card-value-gaming">{allMatches.length}</div>
+                            <div className="card-value-gaming">{allFixtures.length}</div>
                             <div className="text-white-50 small mt-1">Full Fixtures</div>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
                                 <i className="fas fa-users"></i>
                             </div>
                             <h3 className="card-title-gaming">Teams</h3>
-                            <div className="card-value-gaming">48</div>
+                            <div className="card-value-gaming">{teams.length || 48}</div>
                             <div className="text-white-50 small mt-1">Qualified Nations</div>
                         </div>
                     </div>
@@ -134,7 +134,7 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
                                 <i className="fas fa-map-marker-alt"></i>
                             </div>
                             <h3 className="card-title-gaming">Stadiums</h3>
-                            <div className="card-value-gaming">16</div>
+                            <div className="card-value-gaming">{venues ? venues.length : 16}</div>
                             <div className="text-white-50 small mt-1">Host Venues</div>
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export default function MatchSchedule({ auth, userFavorites = [] }) {
                         >
                             All Groups
                         </button>
-                        {allGroups.map(group => (
+                        {groups.map(group => (
                             <button
                                 key={group}
                                 onClick={() => setSelectedGroup(group)}
