@@ -9,6 +9,7 @@ use App\Models\Fixture;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Models\TribeMember;
+use App\Services\TournamentService;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
@@ -25,6 +26,10 @@ class DashboardController extends Controller
         }
 
         $userId = $user->id;
+
+        // Resolve active tournament
+        $tournamentService = app(TournamentService::class);
+        $tournament = $tournamentService->current();
 
         // Fetch Summary Data (use DB-level aggregation to avoid loading all records)
         $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
@@ -85,9 +90,11 @@ class DashboardController extends Controller
 
         // Fetch suggested matches based on user's supported team
         $teamSupport = $user->team_support;
+        $tournamentId = $tournament['id'] ?? 'wc_2026';
         $suggestedMatches = [];
         if ($teamSupport) {
-            $suggestedMatches = Fixture::where('stage', 'Group Stage')
+            $suggestedMatches = Fixture::where('tournament_id', $tournamentId)
+                ->where('stage', 'Group Stage')
                 ->where(function ($query) use ($teamSupport) {
                     $query->whereRaw('LOWER(home_team) = ?', [strtolower($teamSupport)])
                         ->orWhereRaw('LOWER(away_team) = ?', [strtolower($teamSupport)]);

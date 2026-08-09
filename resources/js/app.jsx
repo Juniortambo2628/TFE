@@ -1,5 +1,4 @@
 import '../css/app.css';
-import '../css/google-translate.css';
 import '../css/hero-enhancements.css';
 import './bootstrap';
 

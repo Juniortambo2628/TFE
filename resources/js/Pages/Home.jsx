@@ -16,7 +16,6 @@ import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
-import GoogleTranslate from '@/Components/Common/GoogleTranslate';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import { TournamentProvider } from '@/Context/TournamentContext';
 
@@ -122,7 +121,6 @@ export default function Home({ appName, stadiums = [] }) {
               </div>
 
                 <Footer />
-                <GoogleTranslate />
           </div>
             <PrivacyConsent />
        </TournamentProvider>

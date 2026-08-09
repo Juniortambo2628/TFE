@@ -1,6 +1,5 @@
 import React from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import GoogleTranslate from '@/Components/Common/GoogleTranslate';
 import { Toaster } from '@/Components/ui/sonner';
 import CommandMenu from '@/Components/CommandMenu';
 import { SidebarProvider } from '@/Components/ui/sidebar';
@@ -48,7 +47,6 @@ export default function BaseLayout({
             {/* Global Components — zero-size wrapper keeps them out of flex flow */}
             <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'visible', zIndex: 9999, pointerEvents: 'none' }}>
                 <div style={{ pointerEvents: 'auto' }}>
-                    <GoogleTranslate />
                     {showPrivacyConsent && PrivacyConsent && <PrivacyConsent />}
                     <Toaster />
                     <CommandMenu />

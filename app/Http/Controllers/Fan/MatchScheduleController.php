@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\FavoriteMatch;
 use App\Models\Fixture;
+use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -15,13 +16,19 @@ class MatchScheduleController extends Controller
     {
         $user = Auth::user();
 
+        // Resolve active tournament
+        $tournamentService = app(TournamentService::class);
+        $tournament = $tournamentService->current();
+        $tournamentId = $tournament['id'] ?? 'wc_2026';
+
         // Get user's favorite match IDs
         $favoriteIds = FavoriteMatch::where('user_id', $user->id)
             ->pluck('fixture_id')
             ->toArray();
 
-        // Get all fixtures in standardized format
-        $allFixtures = Fixture::orderBy('date')
+        // Get all fixtures for the active tournament in standardized format
+        $allFixtures = Fixture::where('tournament_id', $tournamentId)
+            ->orderBy('date')
             ->orderBy('time')
             ->get()
             ->map(fn ($f) => DashboardController::formatFixture($f))

@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
 use App\Models\Fixture;
+use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -18,6 +19,11 @@ class BudgetController extends Controller
         $userId = Auth::id();
         $editId = $request->query('id');
         $budgetToEdit = null;
+
+        // Resolve active tournament
+        $tournamentService = app(TournamentService::class);
+        $tournament = $tournamentService->current();
+        $tournamentId = $tournament['id'] ?? 'wc_2026';
 
         if ($editId) {
             $budgetToEdit = Budget::where('user_id', $userId)
@@ -51,8 +57,9 @@ class BudgetController extends Controller
             ->values()
             ->toArray();
 
-        // Get all fixtures in standardized format for match selection
-        $allFixtures = Fixture::orderBy('date')
+        // Get all fixtures for the active tournament in standardized format
+        $allFixtures = Fixture::where('tournament_id', $tournamentId)
+            ->orderBy('date')
             ->orderBy('time')
             ->get()
             ->map(fn ($f) => DashboardController::formatFixture($f))
