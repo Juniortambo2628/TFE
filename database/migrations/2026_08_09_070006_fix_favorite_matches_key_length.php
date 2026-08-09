@@ -12,7 +12,9 @@ return new class extends Migration
             $table->string('external_id', 100)->nullable()->change();
             $table->string('source', 50)->nullable()->change();
             $table->string('tournament_id', 50)->nullable()->change();
-            $table->unique(['user_id', 'external_id', 'tournament_id'], 'fav_external_unique');
+            if (! Schema::hasIndex('favorite_matches', 'fav_external_unique')) {
+                $table->unique(['user_id', 'external_id', 'tournament_id'], 'fav_external_unique');
+            }
         });
     }
 
