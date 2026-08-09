@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoanApplication;
-use App\Models\SavingsGoal;
 use App\Models\PaymentTransaction;
+use App\Models\SavingsGoal;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 

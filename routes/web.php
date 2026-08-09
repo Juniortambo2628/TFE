@@ -26,6 +26,7 @@ use App\Http\Controllers\Fan\MatchScheduleController;
 use App\Http\Controllers\Fan\NotificationController;
 use App\Http\Controllers\Fan\PaymentController;
 use App\Http\Controllers\Fan\PredictWinController;
+use App\Http\Controllers\Fan\ProfileController;
 use App\Http\Controllers\Fan\SavingsGoalController;
 use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
@@ -57,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', function () {
         return redirect()->route('fan.profile');
     })->name('profile.edit');
-    Route::delete('/profile', [App\Http\Controllers\Fan\ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/privacy', function () {
         return redirect()->route('fan.profile');
     })->name('profile.privacy');
@@ -74,8 +75,8 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/budget-calculator', [BudgetController::class, 'index'])->name('budget-calculator');
     Route::get('/itineraries', [BudgetController::class, 'itineraries'])->name('itineraries');
     Route::post('/itineraries/{budget}/confirm', [BudgetController::class, 'confirm'])->name('budget.confirm');
-    Route::get('/profile', [App\Http\Controllers\Fan\ProfileController::class, 'index'])->name('profile');
-    Route::get('/profile/user/{user}', [App\Http\Controllers\Fan\ProfileController::class, 'show'])->name('profile.user');
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::get('/profile/user/{user}', [ProfileController::class, 'show'])->name('profile.user');
     Route::get('/journey', [JourneyController::class, 'index'])->name('journey');
     Route::get('/bookings/{booking}', [JourneyController::class, 'show'])->name('bookings.show');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
@@ -109,8 +110,8 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
     // Profile API
-    Route::put('/profile/update', [App\Http\Controllers\Fan\ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/avatar', [App\Http\Controllers\Fan\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
 
     // Social Feed
     Route::get('/feed', [FeedController::class, 'index'])->name('feed');

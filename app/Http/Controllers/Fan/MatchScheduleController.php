@@ -72,7 +72,7 @@ class MatchScheduleController extends Controller
         $tournamentId = $tournament['id'] ?? 'wc_2026';
 
         // Determine source from fixture ID prefix
-        $source = match(true) {
+        $source = match (true) {
             str_starts_with($fixtureId, 'ts_') => 'thestatsapi',
             str_starts_with($fixtureId, 'of_') => 'openfootball',
             str_starts_with($fixtureId, 'wiki_') => 'wikipedia',
