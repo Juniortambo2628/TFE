@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => 'wc_2026',
+    'default' => 'afcon_2027',
 
     /*
      * Cache TTLs (in seconds).

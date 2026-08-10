@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, router } from '@inertiajs/react';
+import { useTournament } from '@/Context/TournamentContext';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import MatchCard from '@/Components/Fan/MatchCard';
 
-export default function MatchSchedule({ auth, allFixtures = [], groups = [], stages = [], teams = [], stats = {}, userFavorites = [] }) {
+export default function MatchSchedule({ auth, allFixtures = [], groups = [], stages = [], teams = [], stats = {}, userFavorites = [], isConcluded = false }) {
+    const { tournament } = useTournament();
     const [activeTab, setActiveTab] = useState('groups');
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [favorites, setFavorites] = useState(userFavorites);
@@ -80,16 +82,27 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
 
             <div>
                 <DashboardHero role="fan" 
-                    title="Match Schedule"
-                    subtitle="FIFA World Cup 2026 - USA, Mexico & Canada"
-                    breadcrumbs={[{ label: 'Schedule' }]}
+                    title={isConcluded ? `${tournament?.short_name || 'Tournament'} — Results` : 'Match Schedule'}
+                    subtitle={isConcluded
+                        ? `${tournament?.name || 'Tournament'} has concluded. View all results below.`
+                        : `${tournament?.name || 'Tournament'} — ${tournament?.hosts?.join(', ') || ''}`
+                    }
+                    breadcrumbs={[{ label: isConcluded ? 'Results' : 'Schedule' }]}
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 >
-                    <div className="tournament-dates d-flex align-items-center gap-3">
-                        <span className="badge bg-secondary px-3 py-2"><i className="fas fa-play text-danger me-2"></i> June 11</span>
-                        <span className="text-white-50">to</span>
-                        <span className="badge bg-danger px-3 py-2"><i className="fas fa-trophy text-white me-2"></i> July 19</span>
-                    </div>
+                    {tournament?.start_date && tournament?.end_date && (
+                        <div className="tournament-dates d-flex align-items-center gap-3">
+                            <span className="badge bg-secondary px-3 py-2">
+                                <i className={`fas ${isConcluded ? 'fa-check' : 'fa-play'} text-danger me-2`}></i>
+                                {new Date(tournament.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                            <span className="text-white-50">to</span>
+                            <span className="badge bg-danger px-3 py-2">
+                                <i className="fas fa-trophy text-white me-2"></i>
+                                {new Date(tournament.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                        </div>
+                    )}
                 </DashboardHero>
 
                 {/* Stats Cards */}
@@ -102,7 +115,7 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
                             </div>
                             <h3 className="card-title-gaming">Matches</h3>
                             <div className="card-value-gaming">{allFixtures.length}</div>
-                            <div className="text-white-50 small mt-1">Full Fixtures</div>
+                            <div className="text-white-50 small mt-1">{isConcluded ? 'Total Played' : 'Full Fixtures'}</div>
                         </div>
                     </div>
                     
@@ -213,15 +226,17 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
 
                 {/* Legend */}
                 <div className="schedule-legend">
-                    <div className="legend-item">
-                        <span className="legend-dot host-usa"></span> USA (11 venues)
-                    </div>
-                    <div className="legend-item">
-                        <span className="legend-dot host-mexico"></span> Mexico (3 venues)
-                    </div>
-                    <div className="legend-item">
-                        <span className="legend-dot host-canada"></span> Canada (2 venues)
-                    </div>
+                    {tournament?.hosts?.map((host, i) => (
+                        <div key={host} className="legend-item">
+                            <span className={`legend-dot host-${host.toLowerCase().replace(/\s+/g, '-')}`}></span> {host}
+                        </div>
+                    )) || (
+                        <>
+                            <div className="legend-item"><span className="legend-dot host-usa"></span> USA</div>
+                            <div className="legend-item"><span className="legend-dot host-mexico"></span> Mexico</div>
+                            <div className="legend-item"><span className="legend-dot host-canada"></span> Canada</div>
+                        </>
+                    )}
                 </div>
             </div>
         </FanLayout>

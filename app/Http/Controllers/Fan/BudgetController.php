@@ -23,7 +23,8 @@ class BudgetController extends Controller
         // Resolve active tournament
         $tournamentService = app(TournamentService::class);
         $tournament = $tournamentService->current();
-        $tournamentId = $tournament['id'] ?? 'wc_2026';
+        $tournamentId = $tournament['id'] ?? 'afcon_2027';
+        $isConcluded = ($tournament['status'] ?? '') === 'concluded';
 
         if ($editId) {
             $budgetToEdit = Budget::where('user_id', $userId)
@@ -72,6 +73,7 @@ class BudgetController extends Controller
             'stages' => $stages,
             'groups' => $groups,
             'teams' => $teams,
+            'isConcluded' => $isConcluded,
         ]);
     }
 

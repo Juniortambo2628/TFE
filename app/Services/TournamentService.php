@@ -125,6 +125,7 @@ class TournamentService
         }
 
         return array_merge($config, [
+            'status' => self::computedStatus($config),
             'wikipedia' => $wikipedia,
             'wikipedia_summary' => $wikipedia['summary'] ?? [],
             'venues' => $wikipedia['venues'] ?? [],
@@ -160,23 +161,81 @@ class TournamentService
     }
 
     /**
-     * List all tournaments with basic info — used by the switcher UI.
+     * Compute tournament status from dates (overrides static config status).
+     */
+    public static function computedStatus(array $config): string
+    {
+        $now = now();
+        $start = isset($config['start_date']) ? \Carbon\Carbon::parse($config['start_date']) : null;
+        $end = isset($config['end_date']) ? \Carbon\Carbon::parse($config['end_date']) : null;
+
+        if ($start && $now->lt($start)) {
+            return 'upcoming';
+        }
+        if ($end && $now->gt($end)) {
+            return 'concluded';
+        }
+        if ($start && $end && $now->gte($start) && $now->lte($end)) {
+            return 'ongoing';
+        }
+
+        return $config['status'] ?? 'upcoming';
+    }
+
+    /**
+     * Find the next active or upcoming tournament (not concluded).
+     */
+    public function nextActive(): ?array
+    {
+        $now = now();
+        $best = null;
+
+        foreach (config('tournaments.tournaments', []) as $id => $config) {
+            $status = self::computedStatus($config);
+            if ($status === 'concluded') {
+                continue;
+            }
+
+            $start = isset($config['start_date']) ? \Carbon\Carbon::parse($config['start_date']) : null;
+
+            if (! $best || ($start && $start->lt($best['_start'] ?? $now->addYears(10)))) {
+                $best = array_merge($config, ['_start' => $start]);
+            }
+        }
+
+        return $best ? collect($best)->except('_start')->toArray() : null;
+    }
+
+    /**
+     * List all tournaments with computed status — used by the switcher UI.
      */
     public function all(): array
     {
         $tournaments = [];
         foreach (config('tournaments.tournaments', []) as $id => $config) {
+            $computedStatus = self::computedStatus($config);
             $tournaments[] = [
                 'id' => $id,
                 'name' => $config['name'],
                 'short_name' => $config['short_name'],
                 'slug' => $config['slug'],
-                'status' => $config['status'],
+                'status' => $computedStatus,
                 'start_date' => $config['start_date'],
                 'end_date' => $config['end_date'],
                 'hosts' => $config['hosts'] ?? [],
             ];
         }
+
+        // Sort: ongoing first, then upcoming (by start_date), then concluded
+        $order = ['ongoing' => 0, 'upcoming' => 1, 'concluded' => 2];
+        usort($tournaments, function ($a, $b) use ($order) {
+            $oa = $order[$a['status']] ?? 3;
+            $ob = $order[$b['status']] ?? 3;
+            if ($oa !== $ob) {
+                return $oa <=> $ob;
+            }
+            return $a['start_date'] <=> $b['start_date'];
+        });
 
         return $tournaments;
     }

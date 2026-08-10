@@ -19,7 +19,8 @@ class MatchScheduleController extends Controller
         // Resolve active tournament
         $tournamentService = app(TournamentService::class);
         $tournament = $tournamentService->current();
-        $tournamentId = $tournament['id'] ?? 'wc_2026';
+        $tournamentId = $tournament['id'] ?? 'afcon_2027';
+        $isConcluded = ($tournament['status'] ?? '') === 'concluded';
 
         // Get user's favorite external IDs (scoped to this tournament)
         $favoriteExternalIds = FavoriteMatch::where('user_id', $user->id)
@@ -59,6 +60,7 @@ class MatchScheduleController extends Controller
             'teams' => $teams,
             'stats' => $stats,
             'userFavorites' => $favoriteExternalIds,
+            'isConcluded' => $isConcluded,
         ]);
     }
 

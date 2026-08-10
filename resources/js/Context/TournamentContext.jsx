@@ -22,8 +22,9 @@ export function TournamentProvider({ children }) {
         return {
             tournament: tournament,
             tournamentList: tournamentList,
-            switchTournament: function (slug) {
-                router.visit('/?tournament=' + slug, { preserveScroll: true, preserveState: false });
+            switchTournament: function (slug, basePath) {
+                const base = basePath || '/';
+                router.visit(base + '?tournament=' + slug, { preserveScroll: true, preserveState: false });
             },
             isActive: function (id) {
                 return tournament && tournament.id === id;

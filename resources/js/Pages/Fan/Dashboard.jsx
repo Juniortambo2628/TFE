@@ -1,6 +1,7 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTournament } from '@/Context/TournamentContext';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import FanFooter from '@/Components/Fan/FanFooter';
@@ -10,7 +11,8 @@ import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
 import { formatMoney } from '@/lib/utils';
 
-export default function Dashboard({ auth, activeBudget, stats, recentPayments, recentBookings, activities, suggestedMatches = [] }) {
+export default function Dashboard({ auth, activeBudget, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
+    const { tournament, switchTournament } = useTournament();
 
     const tutorialSteps = [
         // 1. Welcome
@@ -157,10 +159,61 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                 
             <DashboardHero role="fan" 
                 id="dashboard-hero-section"
-                title={`Welcome back, ${auth.user.name.split(' ')[0]}!`}
-                subtitle="Your World Cup 2026 journey is on track. Here's your current overview."
+                title={isConcluded 
+                    ? `${tournament?.name || 'Tournament'} — Results`
+                    : `Welcome back, ${auth.user.name.split(' ')[0]}!`
+                }
+                subtitle={isConcluded
+                    ? `This tournament has concluded. Here's your overview.`
+                    : `Your ${tournament?.short_name || 'tournament'} journey is on track. Here's your current overview.`
+                }
                 bgImage="/assets/img/fan/backgrounds/stadium_hero.png"
             />
+
+            {/* Concluded Tournament Banner */}
+            {isConcluded && nextActiveTournament && (
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(59,130,246,0.15))',
+                    border: '1px solid rgba(34,197,94,0.3)',
+                    borderRadius: '12px',
+                    padding: '16px 20px',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <i className="fas fa-calendar-check" style={{ color: '#4ade80', fontSize: '1.2rem' }}></i>
+                        <div>
+                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>
+                                Ready for the next tournament?
+                            </div>
+                            <div style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+                                {nextActiveTournament.name} is {nextActiveTournament.start_date ? `coming up` : 'next'} — start planning now.
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => switchTournament(nextActiveTournament.slug, '/fan/dashboard')}
+                        style={{
+                            background: '#22c55e',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '8px 16px',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        <i className="fas fa-arrow-right me-1"></i>
+                        Switch to {nextActiveTournament.name}
+                    </button>
+                </div>
+            )}
 
             {/* Summary Cards */}
             <div className="summary-cards-grid">
@@ -250,6 +303,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                                     <span className="card-title-gaming">Fan Store</span>
                                 </div>
                             </Link>
+                            {!isConcluded && (<>
                              <Link id="qa-predict" href={route('fan.predict-win')} className="fan-card-premium glow-blue dash-quick-action-card">
                                 <div className="card-content-gaming">
                                     <div className="card-icon-gaming" style={{ color: 'var(--fan-cyan)' }}><i className="fas fa-futbol"></i></div>
@@ -268,6 +322,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                                     <span className="card-title-gaming">Budget Calc</span>
                                 </div>
                             </Link>
+                            </>)}
                         </div>
                         
                         {/* Vertical Ad Placeholder in Sidebar/Quick Actions Column */}

@@ -30,6 +30,9 @@ class DashboardController extends Controller
         // Resolve active tournament
         $tournamentService = app(TournamentService::class);
         $tournament = $tournamentService->current();
+        $tournamentId = $tournament['id'] ?? 'afcon_2027';
+        $isConcluded = ($tournament['status'] ?? '') === 'concluded';
+        $nextActive = $tournamentService->nextActive();
 
         // Fetch Summary Data (use DB-level aggregation to avoid loading all records)
         $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
@@ -111,7 +114,9 @@ class DashboardController extends Controller
             'recentPayments' => $recentPayments,
             'recentBookings' => $recentBookings,
             'activities' => $activities,
-            'suggestedMatches' => $suggestedMatches,
+            'suggestedMatches' => $isConcluded ? [] : $suggestedMatches,
+            'isConcluded' => $isConcluded,
+            'nextActiveTournament' => $nextActive ? ['id' => $nextActive['id'], 'name' => $nextActive['name'], 'slug' => $nextActive['slug']] : null,
             'auth' => [
                 'user' => $user,
             ],
