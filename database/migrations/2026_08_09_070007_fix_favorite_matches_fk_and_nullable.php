@@ -19,7 +19,8 @@ return new class extends Migration
                 $result = DB::select("PRAGMA foreign_key_list('favorite_matches')");
                 $hasFk = collect($result)->contains('from', 'fixture_id');
             }
-        } catch (\Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         Schema::table('favorite_matches', function (Blueprint $table) use ($hasFk) {
             if ($hasFk) {
