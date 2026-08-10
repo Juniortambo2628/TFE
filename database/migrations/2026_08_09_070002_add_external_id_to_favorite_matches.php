@@ -8,18 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('favorite_matches', function (Blueprint $table) {
-            if (! Schema::hasColumn('favorite_matches', 'external_id')) {
-                $table->string('external_id', 100)->nullable()->after('user_id');
-            }
-            if (! Schema::hasColumn('favorite_matches', 'source')) {
-                $table->string('source', 50)->nullable()->after('external_id');
-            }
-        });
+        // Add columns if missing
+        if (! Schema::hasColumn('favorite_matches', 'external_id')) {
+            Schema::table('favorite_matches', function ($table) {
+                $table->string('external_id', 100)->nullable();
+            });
+        }
+        if (! Schema::hasColumn('favorite_matches', 'source')) {
+            Schema::table('favorite_matches', function ($table) {
+                $table->string('source', 50)->nullable();
+            });
+        }
 
-        // Handle fixture_id nullable + FK — driver-specific to avoid MySQL/SQLite incompatibilities
+        // Handle fixture_id nullable + FK on MySQL only
         if (DB::getDriverName() === 'mysql') {
-            // MySQL: use raw SQL to drop FK, alter column, re-add FK
             $hasFk = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
             $fkExists = ($hasFk[0]->cnt ?? 0) > 0;
 
@@ -29,18 +31,18 @@ return new class extends Migration
             DB::statement('ALTER TABLE favorite_matches MODIFY COLUMN fixture_id BIGINT NULL');
             DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
         }
-        // SQLite: skip — FKs not enforced, column types are dynamic
 
-        Schema::table('favorite_matches', function (Blueprint $table) {
-            if (! Schema::hasIndex('favorite_matches', 'fav_external_unique')) {
+        // Add unique index if missing
+        if (! Schema::hasIndex('favorite_matches', 'fav_external_unique')) {
+            Schema::table('favorite_matches', function ($table) {
                 $table->unique(['user_id', 'external_id', 'tournament_id'], 'fav_external_unique');
-            }
-        });
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('favorite_matches', function (Blueprint $table) {
+        Schema::table('favorite_matches', function ($table) {
             $table->dropIndex('fav_external_unique');
             $table->dropColumn(['external_id', 'source']);
         });
