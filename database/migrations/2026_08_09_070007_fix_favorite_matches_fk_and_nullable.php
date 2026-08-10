@@ -27,12 +27,12 @@ return new class extends Migration
                 $table->dropForeign(['fixture_id']);
             }
 
-            $columns = Schema::getColumns('favorite_matches');
-            $fixtureCol = collect($columns)->firstWhere('name', 'fixture_id');
-            if ($fixtureCol && $fixtureCol['nullable'] === false) {
-                $table->bigInteger('fixture_id')->nullable()->change();
-            }
+            // Drop and re-create fixture_id as nullable
+            $table->dropColumn('fixture_id');
+        });
 
+        Schema::table('favorite_matches', function (Blueprint $table) {
+            $table->bigInteger('fixture_id')->nullable()->after('source');
             $table->foreign('fixture_id')->references('id')->on('fixtures')->nullOnDelete();
 
             if (! Schema::hasIndex('favorite_matches', 'fav_external_unique')) {

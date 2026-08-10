@@ -33,16 +33,17 @@ return new class extends Migration
         }
 
         Schema::table('favorite_matches', function (Blueprint $table) use ($hasFk) {
+            // Drop FK first
             if ($hasFk) {
                 $table->dropForeign(['fixture_id']);
             }
 
-            $columns = Schema::getColumns('favorite_matches');
-            $fixtureCol = collect($columns)->firstWhere('name', 'fixture_id');
-            if ($fixtureCol && $fixtureCol['nullable'] === false) {
-                $table->bigInteger('fixture_id')->nullable()->change();
-            }
+            // Drop and re-create fixture_id as nullable (change() alone doesn't work on MySQL with FK)
+            $table->dropColumn('fixture_id');
+        });
 
+        Schema::table('favorite_matches', function (Blueprint $table) {
+            $table->bigInteger('fixture_id')->nullable()->after('source');
             $table->foreign('fixture_id')->references('id')->on('fixtures')->nullOnDelete();
         });
 
