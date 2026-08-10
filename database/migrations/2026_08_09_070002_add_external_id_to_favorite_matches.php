@@ -23,32 +23,33 @@ return new class extends Migration
         // Handle fixture_id nullable + FK on MySQL only
         // Must drop everything, recreate column as nullable, then re-add constraints
         if (DB::getDriverName() === 'mysql') {
-            // 1. Drop FK if exists
+            // Drop FK if exists (MyISAM doesn't support FKs, but clean up any stale InnoDB FK)
             $hasFk = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
             if (($hasFk[0]->cnt ?? 0) > 0) {
                 DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
             }
 
-            // 2. Drop old unique index if exists
+            // Drop old unique index if exists
             $hasIdx = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_user_id_fixture_id_unique'");
             if (! empty($hasIdx)) {
                 DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_user_id_fixture_id_unique');
             }
 
-            // 3. Check current nullability
+            // Check current nullability
             $colInfo = DB::select("SHOW COLUMNS FROM favorite_matches WHERE Field = 'fixture_id'");
             $isNullable = ! empty($colInfo) && ($colInfo[0]->Null === 'YES');
+            $colType = $colInfo[0]->Type ?? '';
 
-            if (! $isNullable) {
-                // 4. Drop and re-create fixture_id as nullable
+            // Drop and re-create fixture_id as BIGINT UNSIGNED NULL if needed
+            if (! $isNullable || ! str_contains($colType, 'unsigned')) {
                 DB::statement('ALTER TABLE favorite_matches DROP COLUMN fixture_id');
-                DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT NULL AFTER source');
+                DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT UNSIGNED NULL AFTER source');
             }
 
-            // 5. Re-add FK (now safe since fixture_id is nullable)
-            $hasFkAfter = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
-            if (($hasFkAfter[0]->cnt ?? 0) === 0) {
-                DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
+            // Add plain index (NOT FK — fixtures table is MyISAM which doesn't support FKs)
+            $hasFkIdx = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_fixture_id_foreign'");
+            if (empty($hasFkIdx)) {
+                DB::statement('ALTER TABLE favorite_matches ADD INDEX favorite_matches_fixture_id_foreign (fixture_id)');
             }
         }
 
@@ -68,9 +69,9 @@ return new class extends Migration
         });
 
         if (DB::getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
-            DB::statement('ALTER TABLE favorite_matches MODIFY COLUMN fixture_id BIGINT NOT NULL');
-            DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE CASCADE');
+            DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_fixture_id_foreign');
+            DB::statement('ALTER TABLE favorite_matches DROP COLUMN fixture_id');
+            DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT UNSIGNED NOT NULL AFTER tournament_id');
             DB::statement('ALTER TABLE favorite_matches ADD UNIQUE INDEX favorite_matches_user_id_fixture_id_unique (user_id, fixture_id)');
         }
     }

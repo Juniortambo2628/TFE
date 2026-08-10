@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Safety net: ensure fixture_id is nullable and FK exists
+        // Safety net: ensure fixture_id is nullable index (not FK — fixtures is MyISAM)
         if (DB::getDriverName() === 'mysql') {
-            // Drop FK if exists
+            // Drop FK if exists (stale from previous attempts)
             $hasFk = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
             if (($hasFk[0]->cnt ?? 0) > 0) {
                 DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
@@ -25,16 +25,17 @@ return new class extends Migration
             // Check nullability
             $colInfo = DB::select("SHOW COLUMNS FROM favorite_matches WHERE Field = 'fixture_id'");
             $isNullable = ! empty($colInfo) && ($colInfo[0]->Null === 'YES');
+            $colType = $colInfo[0]->Type ?? '';
 
-            if (! $isNullable) {
+            if (! $isNullable || ! str_contains($colType, 'unsigned')) {
                 DB::statement('ALTER TABLE favorite_matches DROP COLUMN fixture_id');
-                DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT NULL AFTER source');
+                DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT UNSIGNED NULL AFTER source');
             }
 
-            // Re-add FK if missing
-            $hasFkAfter = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
-            if (($hasFkAfter[0]->cnt ?? 0) === 0) {
-                DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
+            // Add plain index (not FK — MyISAM)
+            $hasFkIdx = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_fixture_id_foreign'");
+            if (empty($hasFkIdx)) {
+                DB::statement('ALTER TABLE favorite_matches ADD INDEX favorite_matches_fixture_id_foreign (fixture_id)');
             }
         }
 
@@ -48,10 +49,7 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
-            DB::statement('ALTER TABLE favorite_matches DROP COLUMN fixture_id');
-            DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT NOT NULL AFTER tournament_id');
-            DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE CASCADE');
+            DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_fixture_id_foreign');
         }
 
         Schema::table('favorite_matches', function ($table) {
