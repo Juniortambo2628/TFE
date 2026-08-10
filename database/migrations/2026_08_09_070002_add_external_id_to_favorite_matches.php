@@ -22,13 +22,24 @@ return new class extends Migration
 
         // Handle fixture_id nullable + FK on MySQL only
         if (DB::getDriverName() === 'mysql') {
+            // Drop old unique index on (user_id, fixture_id) — being replaced by fav_external_unique
+            $hasOldUnique = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_user_id_fixture_id_unique'");
+            if (! empty($hasOldUnique)) {
+                DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_user_id_fixture_id_unique');
+            }
+
+            // Drop FK if exists
             $hasFk = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
             $fkExists = ($hasFk[0]->cnt ?? 0) > 0;
 
             if ($fkExists) {
                 DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
             }
+
+            // Now safe to modify column
             DB::statement('ALTER TABLE favorite_matches MODIFY COLUMN fixture_id BIGINT NULL');
+
+            // Re-add FK with nullable support
             DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
         }
 
@@ -51,6 +62,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
             DB::statement('ALTER TABLE favorite_matches MODIFY COLUMN fixture_id BIGINT NOT NULL');
             DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE CASCADE');
+            DB::statement('ALTER TABLE favorite_matches ADD UNIQUE INDEX favorite_matches_user_id_fixture_id_unique (user_id, fixture_id)');
         }
     }
 };

@@ -10,6 +10,12 @@ return new class extends Migration
     {
         // Safety net: ensure FK and nullable are correct even if 070002 partially failed
         if (DB::getDriverName() === 'mysql') {
+            // Drop old unique index on (user_id, fixture_id)
+            $hasOldUnique = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_user_id_fixture_id_unique'");
+            if (! empty($hasOldUnique)) {
+                DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_user_id_fixture_id_unique');
+            }
+
             $hasFk = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
             $fkExists = ($hasFk[0]->cnt ?? 0) > 0;
 
