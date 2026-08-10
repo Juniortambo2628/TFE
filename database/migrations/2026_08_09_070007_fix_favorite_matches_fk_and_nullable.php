@@ -20,11 +20,11 @@ return new class extends Migration
             DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
         }
 
-        Schema::table('favorite_matches', function (Blueprint $table) {
-            if (! Schema::hasIndex('favorite_matches', 'fav_external_unique')) {
+        if (! Schema::hasIndex('favorite_matches', 'fav_external_unique')) {
+            Schema::table('favorite_matches', function ($table) {
                 $table->unique(['user_id', 'external_id', 'tournament_id'], 'fav_external_unique');
-            }
-        });
+            });
+        }
     }
 
     public function down(): void
@@ -35,7 +35,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE CASCADE');
         }
 
-        Schema::table('favorite_matches', function (Blueprint $table) {
+        Schema::table('favorite_matches', function ($table) {
             $table->dropIndex('fav_external_unique');
         });
     }
