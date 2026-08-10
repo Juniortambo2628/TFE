@@ -4,8 +4,10 @@ import { Head, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Journey({ auth, paymentData, activeBudget }) {
+    const { tournament } = useTournament();
     const { totalBookings, totalPaid, totalDue, bookings, paymentSchedules } = paymentData;
     const progress = totalPaid + totalDue > 0 ? Math.round((totalPaid / (totalPaid + totalDue)) * 100) : 0;
 
@@ -46,7 +48,7 @@ export default function Journey({ auth, paymentData, activeBudget }) {
             <div className="container-fluid">
                 
                 <DashboardHero role="fan" 
-                    title="My World Cup Journey"
+                    title={`My ${tournament?.short_name || 'Tournament'} Journey`}
                     subtitle="Track your booking progress, payment schedule, and travel itinerary."
                     breadcrumbs={[
                         { label: 'My Journey' }
@@ -164,7 +166,7 @@ export default function Journey({ auth, paymentData, activeBudget }) {
                             <div className="text-center py-5">
                                 <i className="fas fa-ticket-alt fa-3x text-white-50 mb-3"></i>
                                 <h4>No Active Bookings</h4>
-                                <p className="text-white-50">You don't have any active World Cup bookings yet.</p>
+                                <p className="text-white-50">{`You don't have any active ${tournament?.short_name || 'tournament'} bookings yet.`}</p>
                                 <Link href={route('fan.budget-calculator')} className="btn-fan-custom mt-3">
                                     <i className="fas fa-plus me-2"></i> Create New Plan
                                 </Link>

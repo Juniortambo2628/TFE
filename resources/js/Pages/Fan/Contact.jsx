@@ -3,8 +3,10 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Contact({ auth }) {
+    const { tournament } = useTournament();
     const { data, setData, post, processing, errors, reset } = useForm({
         subject: '',
         priority: 'medium',
@@ -38,7 +40,7 @@ export default function Contact({ auth }) {
             <div className="">
                 <DashboardHero role="fan" 
                     title="Contact Support"
-                    subtitle="Get help with your World Cup 2026 journey. We're here to assist you."
+                    subtitle={`Get help with your ${tournament?.short_name || 'tournament'} journey. We're here to assist you.`}
                     breadcrumbs={[{ label: 'Contact Support' }]}
                     bgImage="/assets/img/fan/backgrounds/social_hero.png"
                 />

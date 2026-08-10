@@ -4,8 +4,10 @@ import { Head, Link } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import { formatMoney } from '@/lib/utils';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Activities({ auth, activities }) {
+    const { tournament } = useTournament();
     return (
         <FanLayout title="My Activity">
             <Head title="Activity History" />
@@ -81,7 +83,7 @@ export default function Activities({ auth, activities }) {
                                 <div className="text-center py-5">
                                     <i className="fas fa-history fa-4x text-white-50 mb-3 opacity-20"></i>
                                     <h4 className="text-white">No activity yet</h4>
-                                    <p className="text-white-50">Your personal activity history will appear here once you start exploring the World Cup journey.</p>
+                                    <p className="text-white-50">{`Your personal activity history will appear here once you start exploring the ${tournament?.short_name || 'tournament'} journey.`}</p>
                                     <Link href={route('fan.dashboard')} className="btn-fan-custom mt-3">Back to Dashboard</Link>
                                 </div>
                             )}

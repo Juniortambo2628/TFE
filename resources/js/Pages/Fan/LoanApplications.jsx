@@ -3,8 +3,10 @@ import { Head, router, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function LoanApplications({ auth, loans }) {
+    const { tournament } = useTournament();
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ amount: '', purpose: '', notes: '' });
     const [processing, setProcessing] = useState(false);
@@ -44,7 +46,7 @@ export default function LoanApplications({ auth, loans }) {
             <div className="pb-12">
                 <DashboardHero role="fan"
                     title="Loan Applications"
-                    subtitle="Apply for funding for your World Cup trip."
+                    subtitle={`Apply for funding for your ${tournament?.short_name || 'tournament'} trip.`}
                     breadcrumbs={[{ label: 'Wallet', href: route('fan.wallet') }, { label: 'Loans' }]}
                     bgImage="/assets/img/fan/backgrounds/payments_hero.png"
                 />
@@ -72,7 +74,7 @@ export default function LoanApplications({ auth, loans }) {
                                     <label className="block text-white/60 text-sm mb-1">Purpose</label>
                                     <input type="text" value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        placeholder="e.g. World Cup 2026 travel funding" required />
+                                        placeholder={`e.g. ${tournament?.short_name || 'Tournament'} travel funding`} required />
                                 </div>
                                 <div>
                                     <label className="block text-white/60 text-sm mb-1">Additional Notes (optional)</label>

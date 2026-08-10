@@ -11,10 +11,12 @@ import AdPostCard from '@/Components/AdPostCard';
 import '../../../css/fan/feed.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import { useTournament } from '@/Context/TournamentContext';
 
 registerPlugin(FilePondPluginImagePreview);
 
 export default function Feed({ auth, posts, stats, trendingHashtags, feedAds = [], suggestedUsers = [] }) {
+    const { tournament } = useTournament();
     const { user } = auth;
     const { assetUrl } = usePage().props;
     const [activeFilter, setActiveFilter] = useState('latest');
@@ -198,7 +200,7 @@ export default function Feed({ auth, posts, stats, trendingHashtags, feedAds = [
         <FanLayout title="Social Feed">
             <DashboardHero role="fan" 
                 title="Social Feed"
-                subtitle="Connect with fellow World Cup fans and share your journey."
+                subtitle={`Connect with fellow ${tournament?.short_name || 'tournament'} fans and share your journey.`}
                 breadcrumbs={[{ label: 'Feed' }]}
             />
 

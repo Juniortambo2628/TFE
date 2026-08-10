@@ -37,6 +37,20 @@ class ResolveTournament
             $id = config('tournaments.default', 'afcon_2027');
         }
 
+        // If the stored tournament is concluded and user didn't explicitly select it,
+        // redirect to the next active tournament
+        $config = config("tournaments.tournaments.{$id}");
+        if ($config) {
+            $status = \App\Services\TournamentService::computedStatus($config);
+            if ($status === 'concluded' && ! $requested) {
+                $nextActive = $this->tournaments->nextActive();
+                if ($nextActive) {
+                    $id = $nextActive['id'];
+                    $request->session()->put('active_tournament', $id);
+                }
+            }
+        }
+
         $request->attributes->set('tournament_id', $id);
 
         return $next($request);

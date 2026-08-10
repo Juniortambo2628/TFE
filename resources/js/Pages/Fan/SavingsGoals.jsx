@@ -3,8 +3,10 @@ import { Head, router } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function SavingsGoals({ auth, goals }) {
+    const { tournament } = useTournament();
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ name: '', target_amount: '', target_date: '' });
     const [processing, setProcessing] = useState(false);
@@ -37,7 +39,7 @@ export default function SavingsGoals({ auth, goals }) {
             <div className="pb-12">
                 <DashboardHero role="fan"
                     title="Savings Goals"
-                    subtitle="Set targets and track your World Cup savings progress."
+                    subtitle={`Set targets and track your ${tournament?.short_name || 'tournament'} savings progress.`}
                     breadcrumbs={[{ label: 'Wallet', href: route('fan.wallet') }, { label: 'Savings' }]}
                     bgImage="/assets/img/fan/backgrounds/payments_hero.png"
                 />
@@ -75,7 +77,7 @@ export default function SavingsGoals({ auth, goals }) {
                                     <label className="block text-white/60 text-sm mb-1">Goal Name</label>
                                     <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        placeholder="e.g. World Cup Tickets Fund" required />
+                                        placeholder={`e.g. ${tournament?.short_name || 'Tournament'} Tickets Fund`} required />
                                 </div>
                                 <div>
                                     <label className="block text-white/60 text-sm mb-1">Target Amount (₦)</label>

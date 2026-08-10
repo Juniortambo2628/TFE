@@ -7,10 +7,12 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/budget-calculator.css';
+import { useTournament } from '@/Context/TournamentContext';
 
 const USD_TO_KES = 130;
 
 export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [] }) {
+    const { tournament } = useTournament();
     // Wizard State
     const [wizardStep, setWizardStep] = useState(1);
     
@@ -351,7 +353,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             setItineraryName(budgetToEdit.name);
             submitSave(budgetToEdit.name);
         } else {
-            setItineraryName('My World Cup Trip');
+            setItineraryName(`My ${tournament?.short_name || 'Tournament'} Trip`);
             setShowNamingModal(true);
         }
     };
@@ -504,7 +506,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                 
                 <DashboardHero role="fan" 
                     title="Smart Budget Calculator"
-                    subtitle="Plan your World Cup 2026 journey with AI-powered cost estimates"
+                    subtitle={`Plan your ${tournament?.short_name || 'tournament'} journey with AI-powered cost estimates`}
                     bgImage="/assets/img/fan/backgrounds/finance_hero.png"
                     actions={
                         savedBudgets.length > 0 && (
@@ -1100,7 +1102,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                 style={{ borderRadius: '12px', fontSize: '1rem' }}
                                 value={itineraryName}
                                 onChange={(e) => setItineraryName(e.target.value)}
-                                placeholder="e.g., My World Cup Finals Trip"
+                                placeholder={`e.g., My ${tournament?.short_name || 'Tournament'} Trip`}
                                 autoFocus
                                 onKeyDown={(e) => e.key === 'Enter' && itineraryName.trim() && submitSave(itineraryName)}
                             />

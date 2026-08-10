@@ -7,6 +7,7 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
+import { useTournament } from '@/Context/TournamentContext';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +17,7 @@ import {
 } from "@/Components/ui/dialog";
 
 export default function Events({ auth, events, userRsvps = [] }) {
+    const { tournament } = useTournament();
     const [activeTab, setActiveTab] = useState('details');
     const [activeFilter, setActiveFilter] = useState('all');
     const [activeCategory, setActiveCategory] = useState('All');
@@ -79,7 +81,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
                 {/* Hero Section */}
                 <DashboardHero role="fan" 
                     title="Events & Activities"
-                    subtitle="Discover local World Cup events, watch parties, and fan activities"
+                    subtitle={`Discover local ${tournament?.short_name || 'tournament'} events, watch parties, and fan activities`}
                     breadcrumbs={[{ label: 'Social' }, { label: 'Events' }]}
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 />

@@ -5,8 +5,10 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { formatMoney } from '@/lib/utils';
 import { useState } from 'react';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Itineraries({ itineraries }) {
+    const { tournament } = useTournament();
     const [itineraryToConfirm, setItineraryToConfirm] = useState(null);
 
     const getStatusStyle = (status) => {
@@ -60,7 +62,7 @@ export default function Itineraries({ itineraries }) {
                                 <div className="p-5 bg-dark rounded border border-secondary">
                                     <i className="fas fa-route fa-4x text-white-50 mb-3"></i>
                                     <h3>No Travel Plans Yet</h3>
-                                    <p className="text-white-50">Use our budget calculator to start planning your 2026 World Cup journey.</p>
+                                    <p className="text-white-50">{`Use our budget calculator to start planning your ${tournament?.short_name || 'tournament'} journey.`}</p>
                                     <Link href={route('fan.budget-calculator')} className="btn-fan-custom mt-3">
                                         Open Budget Calculator
                                     </Link>

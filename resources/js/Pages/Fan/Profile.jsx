@@ -14,8 +14,10 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Profile({ auth, socialStats, profile, additionalSettings, isOwnProfile = true, isFollowing = false, userTribes = [], userPosts = [], followers = [], followingList = [], security_settings = {} }) {
+    const { tournament } = useTournament();
     const { user } = auth;
     const { flash, assetUrl } = usePage().props;
 
@@ -190,7 +192,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                 <DashboardHero role="fan" 
                     title={isOwnProfile ? "My Profile" : fanProfile.name}
                     subtitle={isOwnProfile 
-                        ? "Manage your personal information and preferences for your World Cup journey." 
+                        ? `Manage your personal information and preferences for your ${tournament?.short_name || 'tournament'} journey.` 
                         : `Viewing the profile of ${fanProfile.name}. Supports ${fanProfile.team_support || 'the beautiful game'}.`
                     }
                     breadcrumbs={[{ label: isOwnProfile ? 'Profile' : fanProfile.name }]}
@@ -704,7 +706,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                             <div className="d-flex gap-3">
                                                 <i className="fas fa-info-circle text-info mt-1"></i>
                                                 <p className="small text-white-50 mb-0">
-                                                    By keeping these enabled, you ensure you don't miss out on match tickets, exclusive tribes, and World Cup prizes. You can change these at any time.
+                                                    {`By keeping these enabled, you ensure you don't miss out on match tickets, exclusive tribes, and ${tournament?.short_name || 'tournament'} prizes. You can change these at any time.`}
                                                 </p>
                                             </div>
                                         </div>

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function FanFooter() {
+    const { tournament } = useTournament();
     return (
         <div className="content-card footer-card mt-4 mb-5">
             <div className="footer-content">
@@ -37,7 +39,7 @@ export default function FanFooter() {
                         <span>Get Support</span>
                     </a>
                     <div className="copyright">
-                        <span>WCTFE Dashboard - My World Cup Journey</span>
+                        <span>{`WCTFE Dashboard - My ${tournament?.short_name || 'Journey'} Journey`}</span>
                     </div>
                 </div>
             </div>

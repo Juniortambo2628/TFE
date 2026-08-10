@@ -4,8 +4,10 @@ import { Head, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function FanStore({ auth, products, categories }) {
+    const { tournament } = useTournament();
     const [activeCategory, setActiveCategory] = useState('All');
     const [cart, setCart] = useState([]);
 
@@ -35,7 +37,7 @@ export default function FanStore({ auth, products, categories }) {
             {/* Hero Section */}
             <DashboardHero role="fan" 
                 title="Fan Store"
-                subtitle="Official World Cup 2026 merchandise and fan gear"
+                subtitle={`Official ${tournament?.name || 'tournament'} merchandise and fan gear`}
                 breadcrumbs={[{ label: 'Store' }]}
                 bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
             />

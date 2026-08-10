@@ -3,8 +3,10 @@ import { Head, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { cn } from '@/lib/utils';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Wallet({ auth, walletData }) {
+    const { tournament } = useTournament();
     const { balance, savings, goalTarget, loanBalance, transactions } = walletData;
     const progress = goalTarget > 0 ? (savings / goalTarget) * 100 : 0;
 
@@ -16,7 +18,7 @@ export default function Wallet({ auth, walletData }) {
                 {/* Hero Section */}
                 <DashboardHero role="fan" 
                     title="Financial Overview"
-                    subtitle="Manage your savings, track your World Cup budget, and view recent transactions."
+                    subtitle={`Manage your savings, track your ${tournament?.short_name || 'tournament'} budget, and view recent transactions.`}
                     breadcrumbs={[{ label: 'Wallet' }]}
                     bgImage="/assets/img/fan/backgrounds/payments_hero.png"
                 />
