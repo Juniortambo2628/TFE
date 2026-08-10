@@ -41,7 +41,7 @@ class ResolveTournament
         // redirect to the next active tournament
         $config = config("tournaments.tournaments.{$id}");
         if ($config) {
-            $status = \App\Services\TournamentService::computedStatus($config);
+            $status = TournamentService::computedStatus($config);
             if ($status === 'concluded' && ! $requested) {
                 $nextActive = $this->tournaments->nextActive();
                 if ($nextActive) {
