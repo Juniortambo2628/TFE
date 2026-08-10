@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\SiteSetting;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -166,8 +167,8 @@ class TournamentService
     public static function computedStatus(array $config): string
     {
         $now = now();
-        $start = isset($config['start_date']) ? \Carbon\Carbon::parse($config['start_date']) : null;
-        $end = isset($config['end_date']) ? \Carbon\Carbon::parse($config['end_date']) : null;
+        $start = isset($config['start_date']) ? Carbon::parse($config['start_date']) : null;
+        $end = isset($config['end_date']) ? Carbon::parse($config['end_date']) : null;
 
         if ($start && $now->lt($start)) {
             return 'upcoming';
@@ -196,7 +197,7 @@ class TournamentService
                 continue;
             }
 
-            $start = isset($config['start_date']) ? \Carbon\Carbon::parse($config['start_date']) : null;
+            $start = isset($config['start_date']) ? Carbon::parse($config['start_date']) : null;
 
             if (! $best || ($start && $start->lt($best['_start'] ?? $now->addYears(10)))) {
                 $best = array_merge($config, ['_start' => $start]);
@@ -234,6 +235,7 @@ class TournamentService
             if ($oa !== $ob) {
                 return $oa <=> $ob;
             }
+
             return $a['start_date'] <=> $b['start_date'];
         });
 
