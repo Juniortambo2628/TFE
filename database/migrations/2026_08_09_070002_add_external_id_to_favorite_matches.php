@@ -21,26 +21,35 @@ return new class extends Migration
         }
 
         // Handle fixture_id nullable + FK on MySQL only
+        // Must drop everything, recreate column as nullable, then re-add constraints
         if (DB::getDriverName() === 'mysql') {
-            // Drop old unique index on (user_id, fixture_id) — being replaced by fav_external_unique
-            $hasOldUnique = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_user_id_fixture_id_unique'");
-            if (! empty($hasOldUnique)) {
-                DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_user_id_fixture_id_unique');
-            }
-
-            // Drop FK if exists
+            // 1. Drop FK if exists
             $hasFk = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
-            $fkExists = ($hasFk[0]->cnt ?? 0) > 0;
-
-            if ($fkExists) {
+            if (($hasFk[0]->cnt ?? 0) > 0) {
                 DB::statement('ALTER TABLE favorite_matches DROP FOREIGN KEY favorite_matches_fixture_id_foreign');
             }
 
-            // Now safe to modify column
-            DB::statement('ALTER TABLE favorite_matches MODIFY COLUMN fixture_id BIGINT NULL');
+            // 2. Drop old unique index if exists
+            $hasIdx = DB::select("SHOW INDEX FROM favorite_matches WHERE Key_name = 'favorite_matches_user_id_fixture_id_unique'");
+            if (! empty($hasIdx)) {
+                DB::statement('ALTER TABLE favorite_matches DROP INDEX favorite_matches_user_id_fixture_id_unique');
+            }
 
-            // Re-add FK with nullable support
-            DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
+            // 3. Check current nullability
+            $colInfo = DB::select("SHOW COLUMNS FROM favorite_matches WHERE Field = 'fixture_id'");
+            $isNullable = ! empty($colInfo) && ($colInfo[0]->Null === 'YES');
+
+            if (! $isNullable) {
+                // 4. Drop and re-create fixture_id as nullable
+                DB::statement('ALTER TABLE favorite_matches DROP COLUMN fixture_id');
+                DB::statement('ALTER TABLE favorite_matches ADD COLUMN fixture_id BIGINT NULL AFTER source');
+            }
+
+            // 5. Re-add FK (now safe since fixture_id is nullable)
+            $hasFkAfter = DB::select("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'favorite_matches' AND CONSTRAINT_NAME = 'favorite_matches_fixture_id_foreign' AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
+            if (($hasFkAfter[0]->cnt ?? 0) === 0) {
+                DB::statement('ALTER TABLE favorite_matches ADD CONSTRAINT favorite_matches_fixture_id_foreign FOREIGN KEY (fixture_id) REFERENCES fixtures(id) ON DELETE SET NULL');
+            }
         }
 
         // Add unique index if missing
