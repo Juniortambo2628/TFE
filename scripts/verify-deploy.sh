@@ -23,6 +23,18 @@ echo "  POST-DEPLOYMENT VERIFICATION"
 echo "═══════════════════════════════════════════"
 
 echo ""
+echo "─── PHP version ───"
+PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
+PHP_MAJOR=$(php -r 'echo PHP_MAJOR_VERSION;')
+PHP_MINOR=$(php -r 'echo PHP_MINOR_VERSION;')
+if [ "$PHP_MAJOR" -gt 8 ] || ([ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -ge 2 ]); then
+  echo "OK: PHP $PHP_VERSION (>= 8.2 required)"
+else
+  echo "FAIL: PHP $PHP_VERSION detected, but 8.2+ is required"
+  FAIL=1
+fi
+
+echo ""
 echo "─── Backend file structure ───"
 check "$BACKEND_PATH/vendor/autoload.php"
 check "$BACKEND_PATH/artisan"
