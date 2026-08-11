@@ -581,9 +581,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                 </div>
                                             </div>
                                         )}
-                                        <a href="/fan/match-schedule" className="btn-glass-pill hero-view-matches-btn">
-                                            <i className="fas fa-calendar-alt me-2"></i>View Matches
-                                        </a>
+                                        <div className="d-flex align-items-center gap-3 mt-1">
+                                            <button onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
+                                                <i className="fas fa-calendar-alt me-2"></i>View Matches
+                                            </button>
+                                            <a href="/register" className="btn-glass-pill hero-view-matches-btn">
+                                                <i className="fas fa-plane me-2"></i>Plan My Trip
+                                            </a>
+                                        </div>
                                     </div>
 
                                     {/* Right Content - 3 Vertical Cards */}

@@ -412,7 +412,7 @@
 
 /* Tournament stats card */
 .hero-stats-card {
-    min-height: 200px;
+    min-height: 320px;
 }
 
 /* Stats card dark overlay */
@@ -597,7 +597,7 @@
 }
 
 /* Custom Stats Card Styles */
-.hero-stats-card-container { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+.hero-stats-card-container { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 1.25rem !important; }
 
 /* Glass pill badges — reuse tournament switcher style */
 .hero-stats-badge-dark,
@@ -656,11 +656,11 @@
     inset: 0;
     background-size: cover;
     background-position: center;
-    opacity: 0.15;
+    opacity: 0.20;
     transition: opacity 0.3s;
 }
 .hero-stat-card-gradient:hover::before {
-    opacity: 0.3;
+    opacity: 0.35;
 }
 .hero-stat-card-gradient::after {
     content: '';
