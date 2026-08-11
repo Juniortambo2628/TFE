@@ -656,11 +656,11 @@
     inset: 0;
     background-size: cover;
     background-position: center;
-    opacity: 0.35;
+    opacity: 0.25;
     transition: opacity 0.3s;
 }
 .hero-stat-card-gradient:hover::before {
-    opacity: 0.5;
+    opacity: 0.4;
 }
 .hero-stat-card-gradient::after {
     content: '';
@@ -674,25 +674,19 @@
     background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
 }
 .hero-stat-card-teams::before {
-    background-image: url('/assets/img/backdrops/football-players.jpg');
-    background-size: cover;
-    background-position: center;
+    background-image: url('/assets/img/backdrops/stadium-fans.jpg');
 }
 .hero-stat-card-matches {
     background: linear-gradient(135deg, #b22222 0%, #ff4500 100%);
 }
 .hero-stat-card-matches::before {
-    background-image: url('/assets/img/backdrops/stadium-crowd.jpg');
-    background-size: cover;
-    background-position: center;
+    background-image: url('/assets/img/backdrops/field-night.jpg');
 }
 .hero-stat-card-goals {
     background: linear-gradient(135deg, #dc143c 0%, #ff6347 100%);
 }
 .hero-stat-card-goals::before {
     background-image: url('/assets/img/backdrops/ball-on-field.jpg');
-    background-size: cover;
-    background-position: center;
 }
 
 .hero-stat-tags {
@@ -734,4 +728,28 @@
 @media (max-width: 575px) {
     .hero-stat-card-gradient { height: 160px; }
     .hero-stats-title { font-size: 1.1rem; }
+}
+
+/* Floating countdown — no card, no background, no shadows */
+.hero-countdown-floating {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+}
+
+/* Red pill labels for countdown and results */
+.hero-pill-red {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background: rgba(220, 20, 60, 0.2);
+    border: 1px solid rgba(220, 20, 60, 0.4);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: lowercase;
+    white-space: nowrap;
 }

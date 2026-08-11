@@ -293,10 +293,9 @@
 /* ── Variant: reversed layout (cards on left, header on right) ── */
 /* Grid flips: cards column first (left), header column second (right).
    Cards bleed to the LEFT viewport edge — mirror of how normal split
-   bleeds to the RIGHT edge. Info column is narrower so cards overflow
-   and show a scroll/fade hint. */
+   bleeds to the RIGHT edge. Info column needs enough width for text. */
 .landing-section.section-split-reverse .landing-section-inner {
-    grid-template-columns: minmax(0, 2.2fr) minmax(280px, 1fr);
+    grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr);
     padding-left: 0;  /* cards bleed to left viewport edge */
 }
 
