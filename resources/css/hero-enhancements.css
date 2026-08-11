@@ -656,11 +656,11 @@
     inset: 0;
     background-size: cover;
     background-position: center;
-    opacity: 0.25;
+    opacity: 0.15;
     transition: opacity 0.3s;
 }
 .hero-stat-card-gradient:hover::before {
-    opacity: 0.4;
+    opacity: 0.3;
 }
 .hero-stat-card-gradient::after {
     content: '';
@@ -734,8 +734,30 @@
 .hero-countdown-floating {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
     padding: 0.75rem 0;
+}
+
+/* Trophy / logo wrap in floating countdown */
+.hero-countdown-trophy-wrap {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(220, 20, 60, 0.12);
+    border: 1px solid rgba(220, 20, 60, 0.25);
+    flex-shrink: 0;
+}
+.hero-countdown-trophy-icon {
+    font-size: 1.5rem;
+    color: #DC143C;
+}
+.hero-countdown-logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
 
 /* Red pill labels for countdown and results */

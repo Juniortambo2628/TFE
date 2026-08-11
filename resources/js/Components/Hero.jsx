@@ -452,45 +452,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {/* Content Layer - Persistent across slide changes */}
             <div className="container h-100 position-relative z-1">
                 <div className="d-flex flex-column gap-3 position-relative min-vh-100 justify-content-center pt-5 pb-5 mb-5">
-                    {/* Row 1: Title + Hosting Countries | Countdown/Winners Card */}
+                    {/* Row 1: Countdown only — tournament info moved to stats card below */}
                     <div className="row align-items-center gx-0">
-                        {/* Left Content */}
-                        <div className="col-xl-7 px-3 px-md-0">
-                            <motion.div 
-                                key={`left-${tournament ? tournament.id : 'default'}-${currentSlide}`}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                <h1 className="mb-3 display-3 text-white lh-1 fw-bold" key={`title-${tournament ? tournament.id : 'default'}`}>{tournament ? tournament.name : 'The Football Experience'}</h1>
-                                <p className="mb-3 text-white fs-5 text-opacity-80 mb-3 text-white fs-5 text-opacity-80 hero-tagline">{tournament ? tournament.tagline : ''}</p>
-                                {/* Hosting Countries - flags grouped in one glass pill */}
-                                {tournament && tournament.hosts && tournament.hosts.length > 0 && (
-                                    <div className="d-flex align-items-center gap-2 mb-4 flex-wrap">
-                                        <i className="fas fa-map-marker-alt text-danger me-1" style={{ fontSize: '0.85rem' }}></i>
-                                        <span className="d-inline-flex align-items-center px-2 py-1 rounded-lg d-inline-flex align-items-center px-2 py-1 rounded-lg hero-hosts-pill">
-                                            {tournament.hosts.map(function(host, idx) {
-                                                var code = (tournament.host_flag_codes && tournament.host_flag_codes[idx]) || null;
-                                                if (!code) code = TEAM_CODES[host] || teamNameToCode(host);
-                                                return code && code !== 'TBD' ? (
-                                                    <img key={idx} src={`${assetUrl}assets/Flags/${code}.png`} alt={host} title={host} style={{ width: '18px', height: '13px', objectFit: 'cover', borderRadius: '2px', marginLeft: idx > 0 ? '-4px' : 0, border: '1px solid rgba(0,0,0,0.3)' }} onError={function(e) { if (wikipediaFlags[host]) { e.target.src = wikipediaFlags[host]; } }} />
-                                                ) : null;
-                                            })}
-                                      </span>
-                                        <span className="text-white text-opacity-70 text-white text-opacity-70 hero-host-names">{tournament.hosts.join(' · ')}</span>
-                                  </div>
-                                )}
-                                
-                                <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3 gap-md-3 mt-4" style={{ maxWidth: 'fit-content' }}>
-                                    <button onClick={() => openModal()} className="btn-glass-pill justify-content-center btn-glass-pill justify-content-center hero-view-matches-btn">
-                                        <span>View Matches</span>
-                                        <i className="fas fa-calendar-alt ms-2"/>
-                                   </button>
-                               </div>
-                           </motion.div>
-                        </div>
+                        {/* Left spacer — empty, stats card below handles tournament info */}
+                        <div className="col-xl-7 d-none d-xl-block"></div>
 
-                        {/* Right Content: Countdown/Results — floating, no card */}
+                        {/* Right Content: Trophy + Countdown — floating, no card */}
                         <div className="col-xl-5 d-none d-xl-block">
                             <div className="d-flex justify-content-end">
                                 <motion.div
@@ -500,6 +467,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     transition={{ duration: 0.5, delay: 0.1 }}
                                     className="hero-countdown-floating"
                                 >
+                                    {/* Trophy / Logo */}
+                                    <div className="hero-countdown-trophy-wrap">
+                                        {wikipediaLogo ? (
+                                            <img src={wikipediaLogo} alt="" className="hero-countdown-logo-img" />
+                                        ) : (
+                                            <i className="fas fa-trophy hero-countdown-trophy-icon"></i>
+                                        )}
+                                    </div>
                                     {isConcluded ? (
                                         <div className="d-flex flex-column gap-3">
                                             {tournament.winner && (
@@ -606,7 +581,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                 </div>
                                             </div>
                                         )}
-                                        <a href={route('fan.match-schedule')} className="hero-view-matches-btn">
+                                        <a href="/fan/match-schedule" className="btn-glass-pill hero-view-matches-btn">
                                             <i className="fas fa-calendar-alt me-2"></i>View Matches
                                         </a>
                                     </div>
