@@ -637,12 +637,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             {/* Teams Card */}
                                             <div className="col-md-4">
                                                 <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-teams">
-                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content">
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
                                                             <span className="text-white fw-bold fs-6">Teams</span>
                                                             <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.facts?.teams || tournament.num_teams || 'TBD'}</span>
                                                         </div>
-                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap" style={{fontSize: '0.7rem'}}>
+                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap hero-stat-tags">
                                                             <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#nations</span>
                                                             <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#qualified</span>
                                                         </div>
@@ -653,12 +653,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             {/* Matches Card */}
                                             <div className="col-md-4">
                                                 <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-matches">
-                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content">
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
                                                             <span className="text-white fw-bold fs-6">Matches</span>
                                                             <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.matches_played || 'TBD'}</span>
                                                         </div>
-                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap" style={{fontSize: '0.7rem'}}>
+                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap hero-stat-tags">
                                                             <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#games</span>
                                                             <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#fixtures</span>
                                                         </div>
@@ -669,12 +669,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             {/* Goals Card */}
                                             <div className="col-md-4">
                                                 <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-goals">
-                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content">
                                                         <div className="d-flex justify-content-between align-items-center mb-1">
                                                             <span className="text-white fw-bold fs-6">Goals</span>
                                                             <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.total_goals || 'TBD'}</span>
                                                         </div>
-                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap" style={{fontSize: '0.7rem'}}>
+                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap hero-stat-tags">
                                                             <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#scored</span>
                                                             <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#netted</span>
                                                         </div>

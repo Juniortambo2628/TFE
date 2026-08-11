@@ -598,43 +598,140 @@
 
 /* Custom Stats Card Styles */
 .hero-stats-card-container { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-.hero-stats-badge-dark {
-    background-color: #4a4a4a;
-    color: #fff;
-    font-size: 0.85rem;
+
+/* Glass pill badges — reuse tournament switcher style */
+.hero-stats-badge-dark,
+.hero-stats-badge-orange {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.2s, border-color 0.2s;
 }
-.hero-stats-badge-icon-dark {
-    color: #a0a0a0;
+.hero-stats-badge-dark:hover,
+.hero-stats-badge-orange:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 .hero-stats-badge-orange {
-    background-color: #d66b44;
-    color: #fff;
-    font-size: 0.85rem;
+    border-color: rgba(220, 38, 38, 0.4) !important;
+    background: rgba(220, 38, 38, 0.15) !important;
 }
+.hero-stats-badge-orange:hover {
+    background: rgba(220, 38, 38, 0.25) !important;
+    border-color: rgba(220, 38, 38, 0.6) !important;
+}
+.hero-stats-badge-icon-dark,
 .hero-stats-badge-icon-light {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
 }
+
 .hero-stats-title {
     font-size: 2.4rem;
     font-weight: 500;
     letter-spacing: -0.5px;
- color: #fff !important; }
+    color: #fff !important;
+}
+
+/* Stat card gradient wrappers — with background images */
 .hero-stat-card-gradient {
     height: 280px;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
 }
-.hero-stat-card-teams { background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%); }
-.hero-stat-card-matches { background: linear-gradient(135deg, #b22222 0%, #ff4500 100%); }
-.hero-stat-card-goals { background: linear-gradient(135deg, #dc143c 0%, #ff6347 100%); }
+.hero-stat-card-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.35;
+    transition: opacity 0.3s;
+}
+.hero-stat-card-gradient:hover::before {
+    opacity: 0.5;
+}
+.hero-stat-card-gradient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+}
+.hero-stat-card-gradient > * { position: relative; z-index: 1; }
+
+.hero-stat-card-teams {
+    background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+}
+.hero-stat-card-teams::before {
+    background-image: url('/assets/img/backdrops/football-players.jpg');
+    background-size: cover;
+    background-position: center;
+}
+.hero-stat-card-matches {
+    background: linear-gradient(135deg, #b22222 0%, #ff4500 100%);
+}
+.hero-stat-card-matches::before {
+    background-image: url('/assets/img/backdrops/stadium-crowd.jpg');
+    background-size: cover;
+    background-position: center;
+}
+.hero-stat-card-goals {
+    background: linear-gradient(135deg, #dc143c 0%, #ff6347 100%);
+}
+.hero-stat-card-goals::before {
+    background-image: url('/assets/img/backdrops/ball-on-field.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
 .hero-stat-tags {
     font-size: 0.7rem;
 }
 .hero-stat-content {
     min-height: 80px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0.75rem;
 }
 
+.hero-glass-badge {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
 
-.hero-glass-badge { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; backdrop-filter: blur(4px); }
+/* ── Hero Responsive ── */
+@media (max-width: 1199px) {
+    .hero-stats-title { font-size: 1.8rem; }
+    .hero-stat-card-gradient { height: 220px; }
+}
+@media (max-width: 991px) {
+    .hero-stats-title { font-size: 1.5rem; }
+    .hero-stat-card-gradient { height: 200px; }
+    .hero-stats-badge-dark,
+    .hero-stats-badge-orange { font-size: 0.7rem; padding: 4px 10px; }
+}
+@media (max-width: 767px) {
+    .hero-stats-title { font-size: 1.3rem; }
+    .hero-stat-card-gradient { height: 180px; }
+    .hero-stats-card-container { padding: 1rem !important; }
+}
+@media (max-width: 575px) {
+    .hero-stat-card-gradient { height: 160px; }
+    .hero-stats-title { font-size: 1.1rem; }
+}

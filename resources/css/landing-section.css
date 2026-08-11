@@ -36,6 +36,12 @@
     padding-right: 0;
 }
 
+/* Fade gradient on the right edge signals more cards to scroll */
+.landing-section.section-split .cards-track {
+    mask-image: linear-gradient(to left, transparent 0%, black 8%, black 85%, black 100%);
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, black 8%, black 85%, black 100%);
+}
+
 /* ── Section Header (Left Column) ── */
 .landing-section .section-header {
     display: flex;
@@ -287,9 +293,10 @@
 /* ── Variant: reversed layout (cards on left, header on right) ── */
 /* Grid flips: cards column first (left), header column second (right).
    Cards bleed to the LEFT viewport edge — mirror of how normal split
-   bleeds to the RIGHT edge. */
+   bleeds to the RIGHT edge. Info column is narrower so cards overflow
+   and show a scroll/fade hint. */
 .landing-section.section-split-reverse .landing-section-inner {
-    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+    grid-template-columns: minmax(0, 2.2fr) minmax(280px, 1fr);
     padding-left: 0;  /* cards bleed to left viewport edge */
 }
 
@@ -300,11 +307,15 @@
 
 /* Cards scroll right-to-left via direction:rtl.
    Initial view shows cards near the header (right side of the track);
-   scrolling reveals more cards extending toward the left edge. */
+   scrolling reveals more cards extending toward the left edge.
+   Fade gradient on the left signals more content. */
 .landing-section.section-split-reverse .cards-track-reverse {
     direction: rtl;
     padding-left: 0;
     padding-right: 0.5rem;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 85%, black 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 85%, black 100%);
 }
 
 /* Individual cards keep LTR text direction. Snap to the end (left in RTL)
