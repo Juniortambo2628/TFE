@@ -34,6 +34,10 @@ class HandleInertiaRequests extends Middleware
     {
         $tournamentService = app(TournamentService::class);
 
+        // Use the tournament ID resolved by ResolveTournament middleware
+        // (stored in request attributes, respects session + ?tournament= param)
+        $tournamentId = $request->attributes->get('tournament_id');
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -62,7 +66,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'assetUrl' => asset(''),
             'partners' => config('partners.links', []),
-            'tournament' => $tournamentService->current(),
+            'tournament' => $tournamentId ? $tournamentService->get($tournamentId) : $tournamentService->current(),
             'tournament_list' => $tournamentService->all(),
             'flash' => [
                 'success' => $request->session()->get('success'),
