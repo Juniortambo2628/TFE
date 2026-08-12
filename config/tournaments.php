@@ -42,8 +42,8 @@ return [
             'end_date' => '2026-07-19',
             'hosts' => ['USA', 'Canada', 'Mexico'],
             'host_flag_codes' => ['us', 'ca', 'mx'],
-            'data_source' => 'thestatsapi',
-            'data_source_url' => 'https://www.thestatsapi.com/world-cup/data/fixtures.json',
+            'data_source' => 'database',
+            'data_source_url' => null,
             'team_flag_codes' => [
                 'ar', 'au', 'at', 'be', 'br', 'cm', 'ca', 'hr',
                 'ci', 'cu', 'cz', 'dk', 'ec', 'eg', 'gb', 'fr',

@@ -46,8 +46,101 @@ class FixtureService
                 return $this->fetchFromDatabase($tournamentId);
             }
 
+            // For concluded tournaments: enrich with Wikipedia scores if primary source has none
+            $status = \App\Services\TournamentService::computedStatus($config);
+            if ($status === 'concluded') {
+                $hasScores = collect($fixtures)->contains(fn ($f) => $f['homeScore'] !== null);
+                if (! $hasScores) {
+                    $fixtures = $this->enrichWithWikipediaScores($config, $fixtures);
+                }
+            }
+
             return $fixtures;
         });
+    }
+
+    /**
+     * Enrich fixtures with scores from Wikipedia for concluded tournaments.
+     */
+    protected function enrichWithWikipediaScores(array $config, array $fixtures): array
+    {
+        try {
+            $wikiTitle = $config['wikipedia_title'] ?? $config['name'] ?? '';
+            if (empty($wikiTitle)) {
+                return $fixtures;
+            }
+
+            $wikiMatches = $this->wikipedia->getMatches($wikiTitle);
+            if (empty($wikiMatches)) {
+                return $fixtures;
+            }
+
+            // Build lookup by normalized team names + date
+            $wikiLookup = [];
+            foreach ($wikiMatches as $wm) {
+                $key = $this->normalizeForLookup($wm['team1'] ?? '', $wm['team2'] ?? '', $wm['date'] ?? '');
+                $wikiLookup[$key] = $wm;
+            }
+
+            // Enrich each fixture with Wikipedia scores
+            foreach ($fixtures as &$fixture) {
+                $key = $this->normalizeForLookup($fixture['homeTeam'], $fixture['awayTeam'], $fixture['date']);
+                if (isset($wikiLookup[$key])) {
+                    $wm = $wikiLookup[$key];
+                    $score = $wm['score'] ?? null;
+                    if ($score && str_contains($score, '-')) {
+                        $parts = explode('-', $score);
+                        $fixture['homeScore'] = (int) trim($parts[0]);
+                        $fixture['awayScore'] = (int) trim($parts[1]);
+                        $fixture['status'] = 'completed';
+                    }
+                    // Use Wikipedia venue if fixture has none
+                    if (empty($fixture['venue']) && ! empty($wm['stadium'])) {
+                        $fixture['venue'] = $wm['stadium'];
+                    }
+                }
+            }
+            unset($fixture);
+
+            return $fixtures;
+        } catch (\Throwable $e) {
+            return $fixtures;
+        }
+    }
+
+    /**
+     * Normalize team names + date for fuzzy lookup matching.
+     */
+    protected function normalizeForLookup(string $home, string $away, string $date): string
+    {
+        $home = strtolower(trim($home));
+        $away = strtolower(trim($away));
+
+        // Normalize common name variations
+        $normalizations = [
+            'usa' => 'united states',
+            'us' => 'united states',
+            'korea republic' => 'south korea',
+            'korea' => 'south korea',
+            'ir iran' => 'iran',
+            'cote d\'ivoire' => 'ivory coast',
+            'czech republic' => 'czechia',
+            'congo dr' => 'dr congo',
+            'congo democratic republic' => 'dr congo',
+            'cabo verde' => 'cape verde',
+            'turkiye' => 'turkey',
+            'brasil' => 'brazil',
+        ];
+
+        $home = $normalizations[$home] ?? $home;
+        $away = $normalizations[$away] ?? $away;
+
+        // Normalize date to YYYY-MM-DD
+        if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{4})/', $date, $dm)) {
+            $date = $dm[3].'-'.str_pad($dm[1], 2, '0', STR_PAD_LEFT).'-'.str_pad($dm[2], 2, '0', STR_PAD_LEFT);
+        }
+
+        return "{$home}|{$away}|{$date}";
     }
 
     /**
