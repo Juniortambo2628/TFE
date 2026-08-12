@@ -158,6 +158,6 @@ class WorldCup2026ResultsSeeder extends Seeder
                 ]);
         }
 
-        $this->command->info('WC 2026 results seeded: ' . count($results) . ' matches updated.');
+        $this->command->info('WC 2026 results seeded: '.count($results).' matches updated.');
     }
 }

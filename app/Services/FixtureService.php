@@ -47,7 +47,7 @@ class FixtureService
             }
 
             // For concluded tournaments: enrich with Wikipedia scores if primary source has none
-            $status = \App\Services\TournamentService::computedStatus($config);
+            $status = TournamentService::computedStatus($config);
             if ($status === 'concluded') {
                 $hasScores = collect($fixtures)->contains(fn ($f) => $f['homeScore'] !== null);
                 if (! $hasScores) {

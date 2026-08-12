@@ -153,6 +153,6 @@ class FixKnockoutPlaceholdersSeeder extends Seeder
                 ]);
         }
 
-        $this->command->info("Placeholders fixed: {$updated} name updates, " . count($knockoutScores) . " knockout scores added.");
+        $this->command->info("Placeholders fixed: {$updated} name updates, ".count($knockoutScores).' knockout scores added.');
     }
 }
