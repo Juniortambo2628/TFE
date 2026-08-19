@@ -410,6 +410,63 @@
     font-size: 0.55rem;
 }
 
+/* Countdown champion/runner-up label text */
+.hero-concluded-label {
+    font-size: 0.75rem;
+}
+
+.hero-concluded-runner-label {
+    font-size: 0.7rem;
+}
+
+/* Top scorer shoe icon */
+.hero-scorer-shoe-icon {
+    font-size: 0.7rem;
+}
+
+/* Top scorer name */
+.hero-scorer-name-inline {
+    font-size: 0.8rem;
+}
+
+/* Tournament tagline paragraph */
+.hero-tagline {
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* Host country names span */
+.hero-host-names-span {
+    font-size: 0.85rem;
+}
+
+/* Match list item font size */
+.hero-match-list-item {
+    font-size: 0.8rem;
+}
+
+/* Pointer events helpers for carousel elements */
+.hero-pointer-auto {
+    pointer-events: auto;
+}
+
+/* Flag carousel pointer events */
+.hero-flag-carousel-pointer {
+    pointer-events: auto;
+    z-index: 100;
+}
+
+/* Flag track pointer events */
+.hero-flag-track-pointer {
+    pointer-events: auto;
+}
+
+/* Flag item pointer events */
+.hero-flag-item-pointer {
+    pointer-events: auto;
+    z-index: 110;
+}
+
 /* Tournament stats card */
 .hero-stats-card {
     min-height: 320px;
@@ -731,10 +788,103 @@
     .hero-stats-title { font-size: 1.3rem; }
     .hero-stat-card-gradient { height: 180px; }
     .hero-stats-card-container { padding: 1rem !important; }
+    .hero-view-matches-btn { width: 100%; justify-content: center; }
+    .hero-countdown-floating { display: none !important; }
 }
 @media (max-width: 575px) {
     .hero-stat-card-gradient { height: 160px; }
     .hero-stats-title { font-size: 1.1rem; }
+}
+
+/* Hero section overflow prevention */
+.tfe-hero-slider {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+/* CTA buttons container — flex-wrap on mobile */
+.hero-cta-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 575px) {
+    .hero-cta-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .hero-cta-buttons .btn-glass-pill {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Stats card row responsive stacking */
+@media (max-width: 991px) {
+    .hero-stats-row {
+        flex-direction: column;
+    }
+}
+
+/* Host flags line responsive */
+@media (max-width: 575px) {
+    .hero-host-names {
+        font-size: 0.7rem;
+        word-break: break-word;
+    }
+}
+
+/* Mobile countdown text unit label */
+.hero-countdown-unit-label {
+    font-size: 8px;
+}
+
+/* Mobile countdown trophy wrapper */
+.hero-mobile-trophy-wrap {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: rgba(220, 20, 60, 0.15);
+}
+
+/* Mobile stats card gradient wrappers */
+@media (max-width: 575px) {
+    .hero-stat-card-gradient {
+        height: 140px;
+    }
+}
+
+/* Header "Begin Journey" button overflow fix */
+.tfe-header .btn-glass-pill {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 991px) {
+    .tfe-header .btn-glass-pill-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .tfe-header .btn-glass-pill-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        gap: 0.35rem;
+    }
+    .tfe-header .btn-glass-pill-sm .btn-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
 }
 
 /* Floating countdown — no card, no background, no shadows */

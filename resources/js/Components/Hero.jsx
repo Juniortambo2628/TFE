@@ -483,7 +483,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                         <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
                                                     )}
                                                     <span className="hero-pill-red">{tournament.winner}</span>
-                                                    <span className="text-white-50" style={{ fontSize: '0.75rem' }}>champion</span>
+                                                    <span className="text-white-50 hero-concluded-label">champion</span>
                                                 </div>
                                             )}
                                             {tournament.runner_up && (
@@ -492,7 +492,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                         <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
                                                     )}
                                                     <span className="hero-pill-red">{tournament.runner_up}</span>
-                                                    <span className="text-white-50" style={{ fontSize: '0.7rem' }}>runner-up</span>
+                                                    <span className="text-white-50 hero-concluded-runner-label">runner-up</span>
                                                 </div>
                                             )}
                                             {tournament.final_score && (
@@ -502,8 +502,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             )}
                                             {tournament.top_scorer && tournament.top_scorer.name && (
                                                 <div className="d-flex align-items-center gap-2">
-                                                    <i className="fas fa-shoe-prints text-danger" style={{ fontSize: '0.7rem' }}></i>
-                                                    <span className="text-white" style={{ fontSize: '0.8rem' }}>{tournament.top_scorer.name}</span>
+                                                    <i className="fas fa-shoe-prints text-danger hero-scorer-shoe-icon"></i>
+                                                    <span className="text-white hero-scorer-name-inline">{tournament.top_scorer.name}</span>
                                                     {tournament.top_scorer.goals && <span className="hero-pill-red">{tournament.top_scorer.goals} goals</span>}
                                                 </div>
                                             )}
@@ -559,7 +559,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                         <h3 className="mb-2 lh-sm hero-stats-title fw-bolder">
                                             {tournament?.name || 'Tournament'}
                                         </h3>
-                                        <p className="text-white-50 mb-3" style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                        <p className="text-white-50 mb-3 hero-tagline">
                                             {tournament?.tagline || tournament?.wikipedia_extract?.substring(0, 120) || ''}
                                         </p>
                                         {tournament?.hosts && tournament.hosts.length > 0 && (
@@ -575,13 +575,13 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                             onError={(e) => { e.target.style.display = 'none'; }}
                                                         />
                                                     ))}
-                                                    <span className="text-white-50" style={{ fontSize: '0.85rem' }}>
+                                                    <span className="text-white-50 hero-host-names-span">
                                                         {tournament.hosts.join(' · ')}
                                                     </span>
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="d-flex align-items-center gap-3 mt-1">
+                                        <div className="hero-cta-buttons mt-1">
                                             <button onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
                                                 <i className="fas fa-calendar-alt me-2"></i>View Matches
                                             </button>
@@ -650,7 +650,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 </div>
 
                 {/* Stadium Slider Controls */}
-                <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex hero-stadium-controls">
+                <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex hero-stadium-controls">
                     <button 
                         className="slider-nav-btn prev" 
                         onClick={() => setCurrentSlide((prev) => (prev - 1 + stadiums.length) % stadiums.length)}
@@ -669,18 +669,18 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {/* Mobile Countdown (visible only on mobile) */}
             <div className="container d-block d-xl-none position-relative z-1 mb-4">
                 <div className="d-flex justify-content-center">
-                    <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-mobile-countdown">
+                    <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-mobile-countdown">
                          {/* Tournament Badge — full name */}
                          <div className="d-flex align-items-center gap-2 mb-2 w-100 justify-content-center">
                              {wikipediaLogo ? (
                                  <img src={wikipediaLogo} alt="" className="hero-mobile-logo" />
                              ) : (
-                                 <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', background: 'rgba(220,20,60,0.15)' }}>
+                                 <div className="hero-mobile-trophy-wrap">
                                      <i className="fas fa-trophy hero-mobile-trophy-icon"></i>
                                  </div>
                              )}
                              <div className="flex-grow-1 text-center">
-                                 <div className="fw-bold text-white fw-bold text-white hero-mobile-title">{tournament ? tournament.name : 'Tournament'}</div>
+                                 <div className="fw-bold text-white hero-mobile-title">{tournament ? tournament.name : 'Tournament'}</div>
                                  <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mt-1 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning')) + " hero-mobile-status-badge"}>{tournament ? tournament.status : ''}</span>
                              </div>
                          </div>
@@ -688,35 +688,35 @@ export default function Hero({ stadiums: stadiumsProp }) {
                          {isConcluded ? (
                              <div className="text-center w-100">
                                  {/* Winner */}
-                                 <div className="text-white text-opacity-40 mb-1 text-white text-opacity-40 mb-1 hero-mobile-label">Champion</div>
+                                  <div className="text-white text-opacity-40 mb-1 hero-mobile-label">Champion</div>
                                  <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
                                      {tournament.winner && teamNameToCode(tournament.winner) && (
                                          <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
                                      )}
-                                     <div className="text-warning fw-bold text-warning fw-bold hero-mobile-winner-name">{tournament.winner || 'To Be Determined'}</div>
+                                      <div className="text-warning fw-bold hero-mobile-winner-name">{tournament.winner || 'To Be Determined'}</div>
                                  </div>
 
                                  {/* Runner-ups */}
                                  <div className="d-flex gap-2 mb-2 pt-2 border-top border-white/10">
                                      {tournament.runner_up && (
                                          <div className="flex-grow-1 text-center">
-                                             <div className="text-white text-opacity-30 text-white text-opacity-30 hero-mobile-place-label">Runner-up</div>
+                                              <div className="text-white text-opacity-30 hero-mobile-place-label">Runner-up</div>
                                              <div className="d-flex align-items-center justify-content-center gap-1">
                                                  {teamNameToCode(tournament.runner_up) && (
                                                      <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xxs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
                                                  )}
-                                                 <span className="text-white fw-semibold text-white fw-semibold hero-mobile-place-name">{tournament.runner_up}</span>
+                                                  <span className="text-white fw-semibold hero-mobile-place-name">{tournament.runner_up}</span>
                                              </div>
                                          </div>
                                      )}
                                      {tournament.second_runner_up && (
                                          <div className="flex-grow-1 text-center">
-                                             <div className="text-white text-opacity-30 text-white text-opacity-30 hero-mobile-place-label">3rd Place</div>
+                                              <div className="text-white text-opacity-30 hero-mobile-place-label">3rd Place</div>
                                              <div className="d-flex align-items-center justify-content-center gap-1">
                                                  {teamNameToCode(tournament.second_runner_up) && (
                                                      <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.second_runner_up)}.png`} alt="" className="hero-flag-xxs" onError={function(e) { if (wikipediaFlags[tournament.second_runner_up]) { e.target.src = wikipediaFlags[tournament.second_runner_up]; } }} />
                                                  )}
-                                                 <span className="text-white fw-semibold text-white fw-semibold hero-mobile-place-name">{tournament.second_runner_up}</span>
+                                                  <span className="text-white fw-semibold hero-mobile-place-name">{tournament.second_runner_up}</span>
                                              </div>
                                          </div>
                                      )}
@@ -725,13 +725,13 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                  {/* Final Score */}
                                  {tournament.final_score && (
                                      <div className="pt-2 border-top border-white/10 mb-2">
-                                         <div className="text-white text-opacity-30 text-white text-opacity-30 hero-mobile-score-label">Final Score</div>
-                                         <div className="text-white fw-bold text-white fw-bold hero-mobile-score-value">{tournament.final_score}</div>
+                                          <div className="text-white text-opacity-30 hero-mobile-score-label">Final Score</div>
+                                          <div className="text-white fw-bold hero-mobile-score-value">{tournament.final_score}</div>
                                      </div>
                                  )}
 
                                  {tournament.top_scorer && tournament.top_scorer.name && (
-                                     <div className="text-white text-opacity-50 mt-1 text-white text-opacity-50 hero-mobile-scorer">Top Scorer: <span className="text-white fw-bold">{tournament.top_scorer.name}</span>{tournament.top_scorer.goals ? ' (' + tournament.top_scorer.goals + ')' : ''}</div>
+                                      <div className="text-white text-opacity-50 mt-1 hero-mobile-scorer">Top Scorer: <span className="text-white fw-bold">{tournament.top_scorer.name}</span>{tournament.top_scorer.goals ? ' (' + tournament.top_scorer.goals + ')' : ''}</div>
                                  )}
                              </div>
                          ) : (
@@ -739,7 +739,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
                                     <div key={unit} className="text-center">
                                         <div className="text-white fw-bold fs-5 font-monospace">{String(timeLeft[unit] || 0).padStart(2, '0')}</div>
-                                        <div className="text-white-50 text-uppercase small" style={{ fontSize: '8px' }}>{unit.charAt(0)}</div>
+                                        <div className="text-white-50 text-uppercase small hero-countdown-unit-label">{unit.charAt(0)}</div>
                                     </div>
                                 ))}
                              </div>
@@ -753,7 +753,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                  {/* Flag Carousel Container - Only show if we have flags */}
                 {flagTrack.length > 0 && (
                     <motion.div 
-                        className="flag-carousel-container mb-3" 
+                        className="flag-carousel-container mb-3 hero-flag-carousel-pointer" 
                         ref={carouselRef}
                         onMouseEnter={() => setIsPaused(true)}
                         onMouseLeave={() => {
@@ -763,10 +763,9 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
-                        style={{ pointerEvents: 'auto', zIndex: 100 }}
                     >
                         <motion.div 
-                            className="flag-track"
+                            className="flag-track hero-flag-track-pointer"
                         drag="x"
                         dragConstraints={carouselRef}
                         initial={{ x: 0 }}
@@ -779,18 +778,16 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 ease: "linear",
                             },
                         }}
-                        style={{ pointerEvents: 'auto' }}
                     >
                         {flagTrack.map((f, i) => (
                             <motion.div 
                                 key={`${f}-${i}`} 
-                                className="flag-item"
+                                className="flag-item hero-flag-item-pointer"
                                 whileHover={{ scale: 1.1, translateY: -5 }}
                                 whileTap={{ scale: 0.9 }}
                                 onTap={() => {
                                     openModal(f);
                                 }}
-                                style={{ pointerEvents: 'auto', zIndex: 110 }}
                             >
                                 <img 
                                     src={`${assetUrl}assets/Flags/${f}.png`} 
@@ -873,24 +870,24 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 <div className="modal-body p-0">
                     {activeModalTab === 'matches' && (
                         <div className="match-modal-card">
-                            <div className="match-modal-list overflow-y-auto custom-scrollbar pr-2 match-modal-list overflow-y-auto custom-scrollbar pr-2 hero-modal-matches">
+                            <div className="match-modal-list overflow-y-auto custom-scrollbar pr-2 hero-modal-matches">
                                 {filteredMatches.length > 0 ? (
                                     filteredMatches.map((match) => (
                                         <div key={match.id} className="match-item p-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                                             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
                                                 {/* Match Info */}
-                                                <div className="d-flex flex-column gap-1 d-flex flex-column gap-1 hero-match-info">
+                                                <div className="d-flex flex-column gap-1 hero-match-info">
                                                     <span className={`fw-bold text-uppercase ${match.type.includes('FINAL') ? 'text-warning' : 'text-danger'} hero-match-type`}>
                                                         {match.type}
                                                     </span>
-                                                    <span className="text-white text-opacity-50 text-white text-opacity-50 hero-match-date">{match.date}{match.time ? ' \u2013 ' + match.time : ''}</span>
+                                                    <span className="text-white text-opacity-50 hero-match-date">{match.date}{match.time ? ' \u2013 ' + match.time : ''}</span>
                                                 </div>
                                                 
                                                 {/* Teams VS Layout */}
                                                 <div className="d-flex align-items-center justify-content-center gap-3 flex-grow-1">
                                                     {/* Home Team */}
                                                     <div className="d-flex align-items-center justify-content-end gap-3 hero-match-team">
-                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
+                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
                                                             {TEAM_NAMES[match.home] || (match.home !== 'TBD' ? match.home.toUpperCase() : 'TBD')}
                                                         </span>
                                                         {match.home === 'TBD' ? (
@@ -910,7 +907,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                         ) : (
                                                              <img src={`${assetUrl}assets/Flags/${match.away}.png`} alt={match.away} className="match-list-flag" onError={function(e) { if (wikipediaFlags[match.away]) { e.target.src = wikipediaFlags[match.away]; } }} />
                                                         )}
-                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
+                                                        <span className="text-white fw-bold text-truncate d-none d-md-inline hero-match-team-name">
                                                             {TEAM_NAMES[match.away] || (match.away !== 'TBD' ? match.away.toUpperCase() : 'TBD')}
                                                         </span>
                                                     </div>
@@ -927,7 +924,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             </div>
                             
                             <div className="mt-4 p-3 rounded-xl bg-red-600/5 border border-red-600/10">
-                                <p className="text-white text-opacity-50 mb-0 text-white text-opacity-50 mb-0 hero-modal-info-text">
+                                <p className="text-white text-opacity-50 mb-0 hero-modal-info-text">
                                     <i className="fas fa-info-circle me-2 text-danger"></i>
                                     Final match schedules and pairings will be confirmed after the official draw. Tickets not yet available for purchase.
                                 </p>
@@ -1151,11 +1148,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     <h5 className="text-white fs-6 mb-3">
                                         <i className="fas fa-list text-danger me-2"></i>All Matches ({allMatches.length})
                                     </h5>
-                                    <div className="overflow-y-auto custom-scrollbar overflow-y-auto custom-scrollbar hero-modal-all-matches">
+                                    <div className="overflow-y-auto custom-scrollbar hero-modal-all-matches">
                                         {allMatches.map(function(m, idx) {
                                             return (
-                                                <div key={idx} className="d-flex align-items-center justify-content-between py-2 border-bottom border-white/5" style={{ fontSize: '0.8rem' }}>
-                                                    <span className="text-white text-opacity-40 text-white text-opacity-40 hero-match-date-col">{m.date}</span>
+                                                <div key={idx} className="d-flex align-items-center justify-content-between py-2 border-bottom border-white/5 hero-match-list-item">
+                                                    <span className="text-white text-opacity-40 hero-match-date-col">{m.date}</span>
                                                     <span className="text-white fw-bold">{TEAM_NAMES[m.home] || m.home}</span>
                                                     <span className="text-danger fw-bold px-2">{m.score || 'vs'}</span>
                                                     <span className="text-white fw-bold">{TEAM_NAMES[m.away] || m.away}</span>
