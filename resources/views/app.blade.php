@@ -13,6 +13,9 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+        <!-- Landing page layout, grids, component styles -->
+        <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
+
         <!-- Scripts -->
         @routes
         @viteReactRefresh
