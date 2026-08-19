@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { CITY_TIERS, FLIGHT_ORIGINS, SURGE_RATES, BASE_COSTS } from '@/Data/BudgetPricingData';
+import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getExchangeRate } from '@/Data/BudgetPricingData';
 import MatchCard from '@/Components/Fan/MatchCard';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -12,8 +12,10 @@ import { TEAM_FLAGS } from '@/Data/countryFlags';
 
 const USD_TO_KES = 130;
 
-export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [] }) {
+export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [], tournamentPricing: rawPricing = {}, tournamentId: initialTournamentId = '' }) {
     const { tournament } = useTournament();
+    const tournamentPricing = rawPricing;
+    const [usdToKes, setUsdToKes] = useState(getExchangeRate(tournamentPricing));
     // Wizard State
     const [wizardStep, setWizardStep] = useState(1);
     
@@ -250,6 +252,14 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         setLoading(true);
 
         setTimeout(() => {
+            const CITY_TIERS = getCityTiers(tournamentPricing);
+            const SURGE_RATES = getSurgeRates(tournamentPricing);
+            const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
+            const BASE_COSTS = getDailyCosts(tournamentPricing);
+            const TICKET_PRICES = getTicketPrices(tournamentPricing);
+            const ACCOMMODATION_FACTORS = getAccommodationFactors(tournamentPricing);
+            const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
+
             // 1. Identify Venues and Stages from selection
             const selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
             const venues = selectedMatches.map(m => m.venue);
@@ -257,10 +267,10 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
             // 2. Average City Multiplier (Cost of Living)
             let totalCityMultiplier = 0;
-            let avgHotelBaseCost = 0; // Average 3-star cost across selected cities
+            let avgHotelBaseCost = 0;
             
             venues.forEach(venue => {
-                const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 }; // Default
+                const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 };
                 totalCityMultiplier += cityData.multiplier;
                 avgHotelBaseCost += cityData.avg_hotel_3star;
             });
@@ -278,41 +288,22 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             // 4. Calculate Flight Cost (Origin based)
             const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
             const baseFlightCost = originData[flightClass] || 1000;
-            // Flight cost is mostly static per origin, but maybe slight bump for peak dates
-            const flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5)); // Apply 50% of surge to flights
+            const flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
 
             // 5. Calculate Accommodation Cost
-            // Factor based on accommodation type selected vs 3-star base
-            const accommodationFactors = { 
-                hostel: 0.4, 
-                airbnb: 0.8, 
-                '3_star': 1.0, 
-                '4_star': 1.6, 
-                '5_star': 2.5, 
-                'resort': 3.5 
-            };
-            const accFactor = accommodationFactors[accommodation] || 1.0;
-            // Base * Factor * Surge * Nights
+            const accFactor = ACCOMMODATION_FACTORS[accommodation] || 1.0;
             const accommodationCost = avgBaseHotel * accFactor * maxSurge * nights;
 
-            // 6. Tickets (Approximate based on stage)
-            // Group: 150, R32/16: 250, QF: 350, SF: 600, Final: 1500
+            // 6. Tickets (based on stage from pricing config)
             let totalTicketCost = 0;
             selectedMatches.forEach(m => {
-                let ticketPrice = 150; // Group default
-                if (m.stage === 'Round of 32' || m.stage === 'Round of 16') ticketPrice = 250;
-                if (m.stage === 'Quarter-finals') ticketPrice = 350;
-                if (m.stage === 'Semi-finals') ticketPrice = 600;
-                if (m.stage === 'Third Place') ticketPrice = 300;
-                if (m.stage === 'Final') ticketPrice = 1500;
-                totalTicketCost += ticketPrice;
+                totalTicketCost += TICKET_PRICES[m.stage] || TICKET_PRICES['Group Stage'] || 150;
             });
 
-            // 7. Daily Expenses (Food, Transport, Misc)
-            // Adjusted by City Multiplier (Cost of Living in that city)
-            const dailyFood = BASE_COSTS.food_drink_daily * avgMultiplier * maxSurge;
-            const dailyTransport = BASE_COSTS.transport_daily * avgMultiplier; // Transport less affected by surge? Maybe.
-            const dailyMisc = BASE_COSTS.misc_daily * avgMultiplier;
+            // 7. Daily Expenses
+            const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge;
+            const dailyTransport = BASE_COSTS.transport * avgMultiplier;
+            const dailyMisc = BASE_COSTS.misc * avgMultiplier;
 
             const foodCost = dailyFood * nights;
             const transportCost = dailyTransport * nights;
@@ -320,16 +311,18 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
             // 8. Total
             const totalUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost;
-            const totalKES = totalUSD * USD_TO_KES;
+            const totalKES = totalUSD * EXCHANGE_RATE;
+
+            setUsdToKes(EXCHANGE_RATE);
 
             // Set Breakdown
             setBreakdown({
-                match_tickets: totalTicketCost * USD_TO_KES,
-                flights: flightCost * USD_TO_KES,
-                accommodation: accommodationCost * USD_TO_KES,
-                food_and_drink: foodCost * USD_TO_KES,
-                local_transport: transportCost * USD_TO_KES,
-                miscellaneous: miscCost * USD_TO_KES
+                match_tickets: totalTicketCost * EXCHANGE_RATE,
+                flights: flightCost * EXCHANGE_RATE,
+                accommodation: accommodationCost * EXCHANGE_RATE,
+                food_and_drink: foodCost * EXCHANGE_RATE,
+                local_transport: transportCost * EXCHANGE_RATE,
+                miscellaneous: miscCost * EXCHANGE_RATE
             });
 
             setEstimatedCost(totalKES);
@@ -370,7 +363,8 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             accommodation_level: accommodation,
             flight_class: flightClass,
             breakdown: breakdown,
-            nights: nights
+            nights: nights,
+            tournament_id: initialTournamentId || tournament?.id || null,
         };
 
         router.post(route('fan.budget.save'), data, {
@@ -394,19 +388,23 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
     // Get breakdown details
     const getBreakdownDetails = (key) => {
-        const originLabel = FLIGHT_ORIGINS.find(o => o.id === flightOrigin)?.label || 'North America';
+        const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
+        const originLabel = FLIGHT_ORIGINS.find(o => o.id === flightOrigin)?.label || 'Origin';
+        const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
+        const TICKET_PRICES = getTicketPrices(tournamentPricing);
+        const ticketStages = Object.entries(TICKET_PRICES).map(([s, p]) => `${s}: $${p}`).join(', ');
         
         switch (key) {
             case 'match_tickets':
-                return `Estimated for ${selectedMatchIds.length} match(es). Prices vary by stage (Group: $150, Final: $1500).`;
+                return `Estimated for ${selectedMatchIds.length} match(es). Prices by stage — ${ticketStages}.`;
             case 'flights':
                 return `Round-trip ${flightClass.replace('_', ' ')} class flight from ${originLabel}. Includes event-time demand adjustments.`;
             case 'accommodation':
                 return `${nights} nights of ${accommodation.replace('_', '-')} accommodation. Adjusted for city cost tiers and demand surge.`;
             case 'food_and_drink':
-                return `Daily food and drink allowance (approx $60-90/day depending on city).`;
+                return `Daily food and drink allowance adjusted for local cost of living.`;
             case 'local_transport':
-                return `Local transportation (rideshare, metro) estimated at $30/day base.`;
+                return `Local transportation (rideshare, metro) estimated per day.`;
             case 'miscellaneous':
                 return `Entertainment, souvenirs, and other expenses.`;
             default:
@@ -720,7 +718,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             <div className="preference-group full-width">
                                 <label><i className="fas fa-globe-americas"></i> Traveling From</label>
                                 <div className="origin-selector d-flex gap-2 flex-wrap">
-                                    {FLIGHT_ORIGINS.map(origin => (
+                                    {getFlightOrigins(tournamentPricing).map(origin => (
                                         <button
                                             key={origin.id}
                                             className={`btn-fan-filter ${flightOrigin === origin.id ? 'active' : ''}`}

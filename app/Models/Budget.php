@@ -11,6 +11,7 @@ class Budget extends Model
 
     protected $fillable = [
         'user_id',
+        'tournament_id',
         'name',
         'total_cost',
         'match_ids',
@@ -38,6 +39,11 @@ class Budget extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function tournament()
+    {
+        return $this->belongsTo(Tournament::class, 'tournament_id');
     }
 
     public function getMatchCountAttribute()

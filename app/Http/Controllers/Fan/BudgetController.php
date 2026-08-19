@@ -74,6 +74,8 @@ class BudgetController extends Controller
             'groups' => $groups,
             'teams' => $teams,
             'isConcluded' => $isConcluded,
+            'tournamentId' => $tournamentId,
+            'tournamentPricing' => $tournament['pricing'] ?? [],
         ]);
     }
 
@@ -152,9 +154,11 @@ class BudgetController extends Controller
             'flight_class' => 'required|string',
             'breakdown' => 'required|array',
             'nights' => 'nullable|integer',
+            'tournament_id' => 'nullable|string',
         ]);
 
         $user = Auth::user();
+        $tournamentId = $validated['tournament_id'] ?? config('tournaments.default', 'afcon_2027');
 
         if (isset($validated['id'])) {
             $budget = Budget::where('user_id', $user->id)->findOrFail($validated['id']);
@@ -166,6 +170,7 @@ class BudgetController extends Controller
                 'flight_class' => $validated['flight_class'],
                 'breakdown' => $validated['breakdown'],
                 'nights' => $validated['nights'] ?? $budget->nights,
+                'tournament_id' => $tournamentId,
                 'is_active' => true,
             ]);
 
@@ -181,7 +186,8 @@ class BudgetController extends Controller
 
         $budget = Budget::create([
             'user_id' => $user->id,
-            'name' => $validated['name'] ?? 'My World Cup Trip',
+            'tournament_id' => $tournamentId,
+            'name' => $validated['name'] ?? 'My Tournament Trip',
             'total_cost' => $validated['total_cost'],
             'match_ids' => $validated['match_ids'],
             'accommodation_level' => $validated['accommodation_level'],
