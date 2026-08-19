@@ -196,7 +196,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                         </div>
                     </div>
                     <button
-                        onClick={() => switchTournament(nextActiveTournament.slug, '/fan/dashboard')}
+                        onClick={() => switchTournament(nextActiveTournament.id, '/fan/dashboard')}
                         style={{
                             background: '#22c55e',
                             color: '#fff',

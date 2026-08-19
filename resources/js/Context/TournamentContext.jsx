@@ -37,16 +37,24 @@ export function TournamentProvider({ children }) {
 
 export function useTournament() {
     const ctx = useContext(TournamentContext);
-    if (!ctx) {
-        // Fallback when provider is missing (e.g. on error pages) — return defaults
-        return {
-            tournament: { id: 'wc_2026', name: 'FIFA World Cup 2026', short_name: 'WC 2026', status: 'upcoming' },
-            tournamentList: [],
-            switchTournament: function () {},
-            isActive: function () { return false; },
-        };
-    }
-    return ctx;
+    if (ctx) return ctx;
+
+    // Fallback when provider is missing — read directly from page props
+    const pageProps = usePage().props;
+    const tournament = pageProps.tournament;
+    const tournamentList = pageProps.tournament_list || [];
+
+    return {
+        tournament,
+        tournamentList,
+        switchTournament: function (slug, basePath) {
+            const base = basePath || '/';
+            router.visit(base + '?tournament=' + slug, { preserveScroll: true, preserveState: false });
+        },
+        isActive: function (id) {
+            return tournament && tournament.id === id;
+        },
+    };
 }
 
 export default TournamentContext;
