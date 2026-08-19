@@ -12,7 +12,7 @@ import { TEAM_FLAGS } from '@/Data/countryFlags';
 
 const USD_TO_KES = 130;
 
-export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [], tournamentPricing: rawPricing = {}, tournamentId: initialTournamentId = '' }) {
+export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [], tournamentPricing: rawPricing = {}, tournamentId: initialTournamentId = '', venueCountries = {} }) {
     const { tournament } = useTournament();
     const tournamentPricing = rawPricing;
     const [usdToKes, setUsdToKes] = useState(getExchangeRate(tournamentPricing));
@@ -185,11 +185,8 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         
         if (selectedCountries.length > 0) {
             matches = matches.filter(m => {
-                // Extract country from venue or use venue name for filtering
-                const venueLower = (m.venue || '').toLowerCase();
-                return selectedCountries.some(country => 
-                    venueLower.includes(country.toLowerCase())
-                );
+                const venueCountry = venueCountries[m.venue];
+                return venueCountry && selectedCountries.includes(venueCountry);
             });
         }
         if (selectedStadiums.length > 0) {
@@ -945,7 +942,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             {/* Country Grid */}
                             {filterTab === 'country' && (
                                 <div className="selection-grid country-grid">
-                                    {['USA', 'Mexico', 'Canada'].map(country => (
+                                    {(tournament?.hosts || ['USA', 'Mexico', 'Canada']).map(country => (
                                         <div 
                                             key={country}
                                             className={`selection-card country-card ${selectedCountries.includes(country) ? 'selected' : ''}`}

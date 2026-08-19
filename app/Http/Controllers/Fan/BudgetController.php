@@ -64,6 +64,15 @@ class BudgetController extends Controller
             ->values()
             ->toArray();
 
+        // Build venue-to-country map from pricing config for country filter
+        $pricing = $tournament['pricing'] ?? [];
+        $venueCountries = [];
+        foreach ($pricing['venue_tiers'] ?? [] as $venue => $data) {
+            if (! empty($data['country'])) {
+                $venueCountries[$venue] = $data['country'];
+            }
+        }
+
         return Inertia::render('Fan/BudgetCalculator', [
             'savedBudgets' => $savedBudgets,
             'userFavorites' => $favoriteFixtures,
@@ -75,7 +84,8 @@ class BudgetController extends Controller
             'teams' => $teams,
             'isConcluded' => $isConcluded,
             'tournamentId' => $tournamentId,
-            'tournamentPricing' => $tournament['pricing'] ?? [],
+            'tournamentPricing' => $pricing,
+            'venueCountries' => $venueCountries,
         ]);
     }
 
