@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Fan;
 
-use App\Http\Controllers\Controller;
 use App\Helpers\DashboardHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;

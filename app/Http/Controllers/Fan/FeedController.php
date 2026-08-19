@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
-use App\Models\Follow;
 use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\PostComment;

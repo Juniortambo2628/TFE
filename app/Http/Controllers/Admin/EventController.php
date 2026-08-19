@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use Illuminate\Http\Request;
 use App\Traits\Uploadable;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class EventController extends Controller

@@ -47,6 +47,6 @@ class Budget extends Model
 
     public function getReferenceIdAttribute(): string
     {
-        return 'REQ-' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+        return 'REQ-'.str_pad($this->id, 6, '0', STR_PAD_LEFT);
     }
 }

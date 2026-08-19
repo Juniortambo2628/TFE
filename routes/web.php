@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\DashboardHelper;
 use App\Http\Controllers\Admin\AnnouncementsController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\ContentController;
@@ -44,7 +45,7 @@ Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.cat
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
 
 Route::get('/dashboard', function () {
-    return \App\Helpers\DashboardHelper::redirectByRole();
+    return DashboardHelper::redirectByRole();
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
