@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\News;
+use App\Traits\Uploadable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class NewsController extends Controller
 {
+    use Uploadable;
+
     public function index()
     {
         $news = News::latest()->paginate(20);
@@ -29,7 +31,7 @@ class NewsController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('news', 'public');
+            $validated['image'] = $this->uploadFile($request->file('image'), 'news');
         }
 
         News::create($validated);
@@ -47,10 +49,7 @@ class NewsController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($news->image) {
-                Storage::disk('public')->delete($news->image);
-            }
-            $validated['image'] = $request->file('image')->store('news', 'public');
+            $validated['image'] = $this->uploadFile($request->file('image'), 'news', $news->image);
         }
 
         $news->update($validated);
@@ -60,9 +59,7 @@ class NewsController extends Controller
 
     public function destroy(News $news)
     {
-        if ($news->image) {
-            Storage::disk('public')->delete($news->image);
-        }
+        $this->deleteFile($news->image);
         $news->delete();
 
         return back()->with('success', 'News article deleted');

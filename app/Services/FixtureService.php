@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Http;
  */
 class FixtureService
 {
-    public function __construct(protected WikipediaService $wikipedia) {}
+    public function __construct(
+        protected WikipediaService $wikipedia,
+        protected TournamentService $tournamentService,
+    ) {}
 
     /**
      * Get all fixtures for a tournament in standardized format.
@@ -30,7 +33,7 @@ class FixtureService
         }
 
         $source = $config['data_source'] ?? 'database';
-        $ttl = $this->ttlFor($config);
+        $ttl = $this->tournamentService->ttlFor($config);
         $cacheKey = "fixtures:{$tournamentId}:".md5($source);
 
         return Cache::remember($cacheKey, $ttl, function () use ($source, $config, $tournamentId) {
@@ -414,20 +417,5 @@ class FixtureService
         }
 
         return null;
-    }
-
-    /**
-     * Determine cache TTL based on tournament status.
-     */
-    protected function ttlFor(array $config): int
-    {
-        $status = $config['status'] ?? 'upcoming';
-        $cacheConfig = config('tournaments.cache', []);
-
-        return match ($status) {
-            'concluded' => $cacheConfig['historical'] ?? 86400 * 30,
-            'ongoing' => $cacheConfig['live'] ?? 1800,
-            default => $cacheConfig['facts'] ?? 86400 * 7,
-        };
     }
 }

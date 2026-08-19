@@ -13,6 +13,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { useTournament } from '@/Context/TournamentContext';
+import { SPECIAL_MAPPINGS } from '@/Data/countryFlags';
 
 export default function Profile({ auth, socialStats, profile, additionalSettings, isOwnProfile = true, isFollowing = false, userTribes = [], userPosts = [], followers = [], followingList = [], security_settings = {} }) {
     const { tournament } = useTournament();
@@ -162,11 +163,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
 
     const teams = [
         ...WorldCup2026Data.qualifiedTeams.map(teamName => {
-            const specialMappings = {
-                'England': 'gb-eng', 'Scotland': 'gb-sct', 'Wales': 'gb-wls',
-                'Curaçao': 'cw', 'Curacao': 'cw', 'Cabo Verde': 'cv', 'Cape Verde': 'cv',
-            };
-            let iso = specialMappings[teamName];
+            let iso = SPECIAL_MAPPINGS[teamName];
             let flag = null;
             if (iso) {
                  flag = `${assetUrl}assets/Flags/${iso.toLowerCase()}.png`;

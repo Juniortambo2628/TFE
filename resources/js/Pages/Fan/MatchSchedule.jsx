@@ -5,6 +5,7 @@ import { useTournament } from '@/Context/TournamentContext';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import MatchCard from '@/Components/Fan/MatchCard';
+import { TEAM_FLAGS } from '@/Data/countryFlags';
 
 export default function MatchSchedule({ auth, allFixtures = [], groups = [], stages = [], teams = [], stats = {}, userFavorites = [], isConcluded = false }) {
     const { tournament } = useTournament();
@@ -55,10 +56,8 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
 
     // Get country flag
     const getCountryFlag = (venue) => {
-        // Default flags for known countries - will be enhanced with dynamic data
-        const flags = { 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦' };
         // Try to extract country from venue name or use default
-        for (const [country, flag] of Object.entries(flags)) {
+        for (const [country, flag] of Object.entries(TEAM_FLAGS)) {
             if (venue && venue.toLowerCase().includes(country.toLowerCase())) {
                 return flag;
             }

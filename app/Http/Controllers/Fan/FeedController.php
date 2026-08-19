@@ -74,17 +74,7 @@ class FeedController extends Controller
             });
 
         // Get social stats
-        $followersCount = Follow::where('following_id', $userId)->count();
-        $followingCount = Follow::where('follower_id', $userId)->count();
-        $postsCount = Post::where('user_id', $userId)->count();
-        $likesReceived = Post::where('user_id', $userId)->sum('likes_count');
-
-        $stats = [
-            'followers' => $followersCount,
-            'following' => $followingCount,
-            'posts' => $postsCount,
-            'likes_received' => $likesReceived,
-        ];
+        $stats = $this->getSocialStats($userId);
 
         // Get trending hashtags
         $trendingHashtags = Hashtag::orderByDesc('post_count')

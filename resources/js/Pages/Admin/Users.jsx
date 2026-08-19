@@ -12,6 +12,7 @@ import SearchableSelect from '@/Components/SearchableSelect';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
 import { countries } from '../../Data/countries';
 import WorldCup2026Data from '../../Data/WorldCup2026Data';
+import { SPECIAL_MAPPINGS } from '@/Data/countryFlags';
 
 export default function Users({ auth, users = { data: [] }, stats = {}, filters }) {
     const { assetUrl } = usePage().props;
@@ -54,11 +55,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
 
     const teams = [
         ...WorldCup2026Data.qualifiedTeams.map(teamName => {
-            const specialMappings = {
-                'England': 'gb-eng', 'Scotland': 'gb-sct', 'Wales': 'gb-wls',
-                'Curaçao': 'cw', 'Curacao': 'cw', 'Cabo Verde': 'cv', 'Cape Verde': 'cv',
-            };
-            let iso = specialMappings[teamName];
+            let iso = SPECIAL_MAPPINGS[teamName];
             let flag = null;
             if (iso) {
                  flag = `${assetUrl}assets/Flags/${iso.toLowerCase()}.png`;

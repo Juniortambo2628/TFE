@@ -1,5 +1,6 @@
 import React from 'react';
 import { router } from '@inertiajs/react';
+import { countryFlagMap, TEAM_FLAGS } from '@/Data/countryFlags';
 
 /**
  * Reusable Match Card component
@@ -23,20 +24,6 @@ const MatchCard = ({
     conflictLabel = null 
 }) => {
     const teamSupport = match.homeTeam; // Can be used for specific styling if needed
-
-    const countryFlagMap = {
-        'argentina': 'ar', 'brazil': 'br', 'england': 'gb-eng', 'france': 'fr',
-        'germany': 'de', 'italy': 'it', 'netherlands': 'nl', 'portugal': 'pt',
-        'spain': 'es', 'kenya': 'ke', 'usa': 'us', 'mexico': 'mx', 'canada': 'ca',
-        'south africa': 'za', 'korea republic': 'kr', 'qatar': 'qa', 'switzerland': 'ch',
-        'haiti': 'ht', 'scotland': 'gb-sct', 'morocco': 'ma', 'australia': 'au',
-        'paraguay': 'py', "côte d'ivoire": 'ci', 'ecuador': 'ec', 'curaçao': 'cw',
-        'japan': 'jp', 'tunisia': 'tn', 'belgium': 'be', 'egypt': 'eg',
-        'ir iran': 'ir', 'new zealand': 'nz', 'saudi arabia': 'sa', 'uruguay': 'uy',
-        'cabo verde': 'cv', 'senegal': 'sn', 'norway': 'no', 'austria': 'at',
-        'jordan': 'jo', 'algeria': 'dz', 'ghana': 'gh', 'panama': 'pa',
-        'croatia': 'hr', 'colombia': 'co', 'uzbekistan': 'uz'
-    };
 
     const getFlagUrl = (team) => {
         const code = countryFlagMap[team.toLowerCase()];
@@ -146,8 +133,7 @@ const MatchCard = ({
 
     // Default style for 'schedule' and 'calculator' modes
     const getCountryFlag = (country) => {
-        const flags = { 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦' };
-        return flags[country] || '🏟️';
+        return TEAM_FLAGS[country] || '🏟️';
     };
 
     // Extract country from venue for flag display

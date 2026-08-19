@@ -33,7 +33,7 @@ class Budget extends Model
         'partner_breakdown' => 'array',
     ];
 
-    protected $appends = ['match_count'];
+    protected $appends = ['match_count', 'reference_id'];
 
     public function user()
     {
@@ -43,5 +43,10 @@ class Budget extends Model
     public function getMatchCountAttribute()
     {
         return is_array($this->match_ids) ? count($this->match_ids) : 0;
+    }
+
+    public function getReferenceIdAttribute(): string
+    {
+        return 'REQ-' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
     }
 }

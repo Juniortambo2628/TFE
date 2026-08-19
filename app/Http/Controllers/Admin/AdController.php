@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use App\Traits\Uploadable;
 use Inertia\Inertia;
 
 class AdController extends Controller
 {
+    use Uploadable;
+
     public function index()
     {
         $ads = Ad::latest()->get();
@@ -31,7 +33,7 @@ class AdController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image_url'] = $request->file('image')->store('ads', 'public');
+            $validated['image_url'] = $this->uploadFile($request->file('image'), 'ads');
             unset($validated['image']);
         }
 
@@ -53,10 +55,7 @@ class AdController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($ad->image_url) {
-                Storage::disk('public')->delete($ad->image_url);
-            }
-            $validated['image_url'] = $request->file('image')->store('ads', 'public');
+            $validated['image_url'] = $this->uploadFile($request->file('image'), 'ads', $ad->image_url);
             unset($validated['image']);
         }
 
@@ -67,9 +66,7 @@ class AdController extends Controller
 
     public function destroy(Ad $ad)
     {
-        if ($ad->image_url) {
-            Storage::disk('public')->delete($ad->image_url);
-        }
+        $this->deleteFile($ad->image_url);
         $ad->delete();
 
         return back()->with('success', 'Ad deleted');

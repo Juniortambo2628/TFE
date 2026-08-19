@@ -43,7 +43,7 @@ class CommunicationController extends Controller
 
             return [
                 'budget_id' => $budget->id,
-                'reference_id' => $budget->reference_id ?? 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                'reference_id' => $budget->reference_id,
                 'status' => $budget->partner_status,
                 'total_cost' => $budget->partner_cost ?? $budget->total_cost,
                 'match_count' => $budget->match_count,
@@ -87,7 +87,7 @@ class CommunicationController extends Controller
             'sender_id' => Auth::id(),
             'budget_id' => $budget->id,
             'sender_type' => 'partner',
-            'subject' => 'RE: '.($budget->reference_id ?? 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT)),
+            'subject' => 'RE: '.$budget->reference_id,
             'body' => $validated['body'],
             'is_read' => false,
         ]);

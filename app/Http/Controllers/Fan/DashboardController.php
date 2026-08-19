@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\DashboardHelper;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;
@@ -21,8 +22,8 @@ class DashboardController extends Controller
 
         Log::info('Fan Dashboard Accessed', ['user_id' => $user->id, 'is_partner' => $user->is_partner]);
 
-        if ($user->is_partner) {
-            return redirect()->route('partner.dashboard');
+        if ($user->is_admin || $user->is_partner) {
+            return DashboardHelper::redirectByRole();
         }
 
         $userId = $user->id;

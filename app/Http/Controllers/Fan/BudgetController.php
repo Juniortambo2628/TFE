@@ -88,7 +88,7 @@ class BudgetController extends Controller
                 return [
                     'id' => $budget->id,
                     'name' => $budget->name,
-                    'reference_id' => 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                    'reference_id' => $budget->reference_id,
                     'created_at' => $budget->created_at->format('M d, Y'),
                     'total_cost' => $budget->total_cost,
                     'partner_cost' => $budget->partner_cost,

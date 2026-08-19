@@ -8,6 +8,7 @@ import axios from 'axios';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
+import { TEAM_FLAGS } from '@/Data/countryFlags';
 
 const USD_TO_KES = 130;
 
@@ -428,8 +429,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
     // Get country flag
     const getCountryFlag = (country) => {
-        const flags = { 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦' };
-        return flags[country] || '🏟️';
+        return TEAM_FLAGS[country] || '🏟️';
     };
 
     // Load saved budget

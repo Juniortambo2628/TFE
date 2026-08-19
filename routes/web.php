@@ -44,14 +44,7 @@ Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.cat
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
 
 Route::get('/dashboard', function () {
-    if (Auth::user()->is_admin) {
-        return redirect()->route('admin.dashboard');
-    }
-    if (Auth::user()->is_partner) {
-        return redirect()->route('partner.dashboard');
-    }
-
-    return redirect()->route('fan.dashboard');
+    return \App\Helpers\DashboardHelper::redirectByRole();
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

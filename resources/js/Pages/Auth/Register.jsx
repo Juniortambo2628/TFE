@@ -8,6 +8,7 @@ import SearchableSelect from '../../Components/SearchableSelect';
 import axios from 'axios';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
+import { SPECIAL_MAPPINGS } from '@/Data/countryFlags';
 
 const totalSteps = 3;
 
@@ -188,11 +189,7 @@ export default function Register() {
     
     const teams = [
         ...WorldCup2026Data.qualifiedTeams.map(teamName => {
-            const specialMappings = {
-                'England': 'gb-eng', 'Scotland': 'gb-sct', 'Wales': 'gb-wls',
-                'Curaçao': 'cw', 'Curacao': 'cw', 'Cabo Verde': 'cv', 'Cape Verde': 'cv',
-            };
-            let iso = specialMappings[teamName];
+            let iso = SPECIAL_MAPPINGS[teamName];
             let flag = null;
             if (iso) {
                  flag = `${assetUrl}assets/Flags/${iso.toLowerCase()}.png`;

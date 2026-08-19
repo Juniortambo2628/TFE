@@ -3,7 +3,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 import useHeaderLogic from '@/Hooks/useHeaderLogic';
 import HeaderDropdown from './HeaderDropdown';
 import { useSidebar } from '@/Components/ui/sidebar';
-import FanTournamentSwitcher from '@/Components/Fan/FanTournamentSwitcher';
+import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 
 const ROLE_CONFIG = {
     fan: {
@@ -168,7 +168,7 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
 
             <div className="dashboard-header-actions d-flex align-items-center gap-3">
                 {/* Tournament Switcher (fan role only) */}
-                {role === 'fan' && <FanTournamentSwitcher />}
+                {role === 'fan' && <FanTournamentSwitcher variant="dashboard" />}
 
                 {/* Notifications */}
                 <div style={{ position: 'relative' }}>

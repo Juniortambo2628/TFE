@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use App\Traits\Uploadable;
 use Inertia\Inertia;
 
 class EventController extends Controller
 {
+    use Uploadable;
+
     public function index()
     {
         $events = Event::withCount('rsvps')
@@ -54,7 +56,7 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('events', 'public');
+            $validated['image'] = $this->uploadFile($request->file('image'), 'events');
         }
 
         Event::create($validated);
@@ -74,10 +76,7 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($event->image) {
-                Storage::disk('public')->delete($event->image);
-            }
-            $validated['image'] = $request->file('image')->store('events', 'public');
+            $validated['image'] = $this->uploadFile($request->file('image'), 'events', $event->image);
         }
 
         $event->update($validated);
@@ -87,6 +86,7 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
+        $this->deleteFile($event->image);
         $event->delete();
 
         return back()->with('success', 'Event deleted');

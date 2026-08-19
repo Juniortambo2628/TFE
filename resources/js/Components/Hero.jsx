@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { useTournament } from '@/Context/TournamentContext';
+import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -19,22 +20,7 @@ const calculateTimeLeft = (targetDate) => {
     return timeLeft;
 };
 
-const TEAM_CODES = {
-    'Mexico': 'mx', 'Argentina': 'ar', 'Germany': 'de', 'Cameroon': 'cm',
-    'USA': 'us', 'Italy': 'it', 'Spain': 'es', 'Morocco': 'ma',
-    'Brazil': 'br', 'France': 'fr', 'Nigeria': 'ng', 'Korea Republic': 'kr',
-    'Canada': 'ca', 'Belgium': 'be', 'Croatia': 'hr', 'Ghana': 'gh',
-    'Japan': 'jp', 'England': 'gb', 'Portugal': 'pt', 'Uruguay': 'uy',
-    'Netherlands': 'nl', 'Senegal': 'sn', 'Poland': 'pl', 'Saudi Arabia': 'sa',
-    'South Africa': 'za', 'Qatar': 'qa', 'Switzerland': 'ch', 'Haiti': 'ht',
-    'Scotland': 'sc', 'Paraguay': 'py', 'Australia': 'au', "Cote d'Ivoire": 'ci',
-    'Ecuador': 'ec', 'Curacao': 'cw', 'Tunisia': 'tn', 'Egypt': 'eg',
-    'IR Iran': 'ir', 'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no',
-    'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz', 'Colombia': 'co',
-    'Uzbekistan': 'uz', 'Panama': 'pa', 'TBD': 'TBD', 'TBD (Playoff A)': 'TBD',
-    'TBD (Playoff B)': 'TBD', 'TBD (Playoff D)': 'TBD', 'TBD (Playoff F)': 'TBD',
-    'TBD (Playoff I)': 'TBD', 'TBD (Playoff K)': 'TBD'
-};
+
 
 const STADIUM_MATCHES = {
     'Estadio Azteca': [ // Mexico City Stadium
@@ -87,14 +73,14 @@ const STADIUM_MATCHES = {
         { id: 17, home: 'fr', away: 'sn', date: '16 June 2026', time: '10:00', type: 'Match 17 (Group I)' },
         { id: 41, home: 'no', away: 'sn', date: '22 June 2026', time: '10:00', type: 'Match 41 (Group I)' },
         { id: 56, home: 'ec', away: 'de', date: '25 June 2026', time: '10:00', type: 'Match 56 (Group E)' },
-        { id: 67, home: 'pa', away: 'gb', date: '27 June 2026', time: '10:00', type: 'Match 67 (Group L)' },
+        { id: 67, home: 'pa', away: 'gb-eng', date: '27 June 2026', time: '10:00', type: 'Match 67 (Group L)' },
         { id: 77, home: 'TBD', away: 'TBD', date: '30 June 2026', time: '10:00', type: 'Round of 32' },
         { id: 91, home: 'TBD', away: 'TBD', date: '5 July 2026', time: '13:00', type: 'Round of 16' },
         { id: 104, home: 'TBD', away: 'TBD', date: '19 July 2026', time: '16:00', type: 'WORLD CUP FINAL' },
     ],
     'AT&T Stadium': [ // Dallas Stadium
         { id: 11, home: 'nl', away: 'jp', date: '14 June 2026', time: '16:00', type: 'Match 11 (Group F)' },
-        { id: 22, home: 'gb', away: 'hr', date: '17 June 2026', time: '13:00', type: 'Match 22 (Group L)' },
+        { id: 22, home: 'gb-eng', away: 'hr', date: '17 June 2026', time: '13:00', type: 'Match 22 (Group L)' },
         { id: 43, home: 'ar', away: 'at', date: '22 June 2026', time: '16:00', type: 'Match 43 (Group J)' },
         { id: 57, home: 'jp', away: 'TBD', date: '25 June 2026', time: '16:00', type: 'Match 57 (Group F)' },
         { id: 70, home: 'jo', away: 'ar', date: '27 June 2026', time: '16:00', type: 'Match 70 (Group J)' },
@@ -133,7 +119,7 @@ const STADIUM_MATCHES = {
     'Hard Rock Stadium': [ // Miami Stadium
         { id: 13, home: 'sa', away: 'uy', date: '15 June 2026', time: '10:00', type: 'Match 13 (Group H)' },
         { id: 37, home: 'uy', away: 'cv', date: '21 June 2026', time: '10:00', type: 'Match 37 (Group H)' },
-        { id: 49, home: 'sc', away: 'br', date: '24 June 2026', time: '10:00', type: 'Match 49 (Group C)' },
+        { id: 49, home: 'gb-sct', away: 'br', date: '24 June 2026', time: '10:00', type: 'Match 49 (Group C)' },
         { id: 71, home: 'co', away: 'pt', date: '27 June 2026', time: '19:00', type: 'Match 71 (Group K)' },
         { id: 86, home: 'TBD', away: 'TBD', date: '3 July 2026', time: '10:00', type: 'Round of 32' },
         { id: 99, home: 'TBD', away: 'TBD', date: '11 July 2026', time: '13:00', type: 'Quarter-Final' },
@@ -156,10 +142,10 @@ const STADIUM_MATCHES = {
         { id: 81, home: 'TBD', away: 'TBD', date: '1 July 2026', time: '13:00', type: 'Round of 32' },
     ],
     'Gillette Stadium': [ // Boston Stadium
-        { id: 5, home: 'ht', away: 'sc', date: '13 June 2026', time: '10:00', type: 'Match 5 (Group C)' },
+        { id: 5, home: 'ht', away: 'gb-sct', date: '13 June 2026', time: '10:00', type: 'Match 5 (Group C)' },
         { id: 18, home: 'TBD', away: 'no', date: '16 June 2026', time: '13:00', type: 'Match 18 (Group I)' },
-        { id: 30, home: 'sc', away: 'ma', date: '19 June 2026', time: '13:00', type: 'Match 30 (Group C)' },
-        { id: 45, home: 'gb', away: 'gh', date: '23 June 2026', time: '10:00', type: 'Match 45 (Group L)' },
+        { id: 30, home: 'gb-sct', away: 'ma', date: '19 June 2026', time: '13:00', type: 'Match 30 (Group C)' },
+        { id: 45, home: 'gb-eng', away: 'gh', date: '23 June 2026', time: '10:00', type: 'Match 45 (Group L)' },
         { id: 61, home: 'no', away: 'fr', date: '26 June 2026', time: '10:00', type: 'Match 61 (Group I)' },
         { id: 74, home: 'TBD', away: 'TBD', date: '29 June 2026', time: '10:00', type: 'Round of 32' },
         { id: 97, home: 'TBD', away: 'TBD', date: '9 July 2026', time: '16:00', type: 'Quarter-Final' },
@@ -174,21 +160,6 @@ const STADIUM_MATCHES = {
     ],
 };
 
-const TEAM_NAMES = {
-    'mx': 'Mexico', 'ar': 'Argentina', 'de': 'Germany', 'cm': 'Cameroon',
-    'us': 'USA', 'it': 'Italy', 'es': 'Spain', 'ma': 'Morocco',
-    'br': 'Brazil', 'fr': 'France', 'ng': 'Nigeria', 'kr': 'South Korea',
-    'ca': 'Canada', 'be': 'Belgium', 'hr': 'Croatia', 'gh': 'Ghana',
-    'jp': 'Japan', 'gb': 'England', 'pt': 'Portugal', 'uy': 'Uruguay',
-    'nl': 'Netherlands', 'sn': 'Senegal', 'pl': 'Poland', 'sa': 'Saudi Arabia',
-    'za': 'South Africa', 'qa': 'Qatar', 'ch': 'Switzerland', 'ht': 'Haiti',
-    'sc': 'Scotland', 'py': 'Paraguay', 'au': 'Australia', 'ci': "Cote d'Ivoire",
-    'ec': 'Ecuador', 'cw': 'Curacao', 'tn': 'Tunisia', 'eg': 'Egypt',
-    'ir': 'IR Iran', 'nz': 'New Zealand', 'cv': 'Cabo Verde', 'no': 'Norway',
-    'at': 'Austria', 'jo': 'Jordan', 'dz': 'Algeria', 'co': 'Colombia',
-    'uz': 'Uzbekistan', 'pa': 'Panama',     'TBD': 'To Be Determined'
-};
-
 // Map Wikipedia team names to flag codes for non-WC2026 tournaments
 function teamNameToCode(name) {
     if (!name) return null;
@@ -196,35 +167,7 @@ function teamNameToCode(name) {
     // Direct lookup first
     if (TEAM_CODES[name]) return TEAM_CODES[name];
     // Common Wikipedia variations
-    var variations = {
-        'united states': 'us', 'usa': 'us', 'united states of america': 'us',
-        'south korea': 'kr', 'korea republic': 'kr', 'republic of korea': 'kr',
-        'iran': 'ir', 'islamic republic of iran': 'ir',
-        'ivory coast': 'ci', "cote d'ivoire": 'ci', "côte d'ivoire": 'ci',
-        'cape verde': 'cv', 'cabo verde': 'cv',
-        'curacao': 'cw', 'curaçao': 'cw',
-        'england': 'gb', 'scotland': 'gb', 'wales': 'gb',
-        'republic of ireland': 'ie', 'ireland': 'ie',
-        'czech republic': 'cz', 'czechia': 'cz',
-        'turkey': 'tr', 'türkiye': 'tr',
-        'netherlands': 'nl', 'holland': 'nl',
-        'germany': 'de', 'france': 'fr', 'spain': 'es', 'italy': 'it',
-        'brazil': 'br', 'argentina': 'ar', 'portugal': 'pt',
-        'belgium': 'be', 'croatia': 'hr', 'morocco': 'ma',
-        'japan': 'jp', 'australia': 'au', 'mexico': 'mx',
-        'canada': 'ca', 'uruguay': 'uy', 'colombia': 'co',
-        'ecuador': 'ec', 'senegal': 'sn', 'ghana': 'gh',
-        'cameroon': 'cm', 'nigeria': 'ng', 'tunisia': 'tn',
-        'egypt': 'eg', 'algeria': 'dz', 'south africa': 'za',
-        'qatar': 'qa', 'saudi arabia': 'sa', 'saudi': 'sa',
-        'poland': 'pl', 'denmark': 'dk', 'sweden': 'se',
-        'switzerland': 'ch', 'austria': 'at', 'norway': 'no',
-        'paraguay': 'py', 'panama': 'pa', 'jamaica': 'jm',
-        'haiti': 'ht', 'usmnt': 'us', 'socceroos': 'au',
-        'black stars': 'gh', 'super eagles': 'ng', 'atlas lions': 'ma',
-         'new zealand': 'nz', 'new-zealand': 'nz',
-    };
-    if (variations[n]) return variations[n];
+    if (TEAM_NAME_VARIATIONS[n]) return TEAM_NAME_VARIATIONS[n];
     // Fallback: try lowercase as flag code (works for "mexico" -> "mx"? No, need 2-letter)
     return null;
 }
@@ -233,7 +176,7 @@ const DEFAULT_MATCHES = [
     { id: 101, home: 'br', away: 'fr', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
     { id: 102, home: 'ng', away: 'kr', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
     { id: 103, home: 'mx', away: 'de', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
-    { id: 104, home: 'gb', away: 'jp', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
+    { id: 104, home: 'gb-eng', away: 'jp', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
 ];
 
 export default function Hero({ stadiums: stadiumsProp }) {

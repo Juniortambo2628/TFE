@@ -101,7 +101,7 @@ class DashboardController extends Controller
             ->map(function ($budget) {
                 return [
                     'id' => $budget->id,
-                    'reference_id' => 'REQ-'.str_pad($budget->id, 6, '0', STR_PAD_LEFT),
+                    'reference_id' => $budget->reference_id,
                     'created_at' => $budget->created_at->format('Y-m-d H:i'),
                     'total_cost' => $budget->total_cost,
                     'status' => $budget->partner_status,

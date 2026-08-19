@@ -256,7 +256,7 @@ class TournamentService
      * - ongoing: short cache (results change frequently)
      * - upcoming: medium cache (facts stable but news changes)
      */
-    protected function ttlFor(array $config): int
+    public function ttlFor(array $config): int
     {
         $status = $config['status'] ?? 'upcoming';
         $cacheConfig = config('tournaments.cache', []);

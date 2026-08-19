@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use App\Traits\Uploadable;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    use Uploadable;
+
     public function index()
     {
         $products = Product::orderByDesc('created_at')
@@ -51,7 +53,7 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $validated['image'] = $this->uploadFile($request->file('image'), 'products');
         }
 
         Product::create($validated);
@@ -72,10 +74,7 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $validated['image'] = $this->uploadFile($request->file('image'), 'products', $product->image);
         }
 
         $product->update($validated);
@@ -85,9 +84,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+        $this->deleteFile($product->image);
         $product->delete();
 
         return back()->with('success', 'Product deleted successfully');

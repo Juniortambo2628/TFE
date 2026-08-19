@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Follow;
-use App\Models\Post;
 use App\Models\User;
+use App\Traits\HasSocialStats;
 use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
 {
+    use HasSocialStats;
+
     /**
      * Toggle follow/unfollow a user
      */
@@ -46,9 +48,7 @@ class FollowController extends Controller
     {
         $currentUser = Auth::user();
 
-        $followersCount = Follow::where('following_id', $user->id)->count();
-        $followingCount = Follow::where('follower_id', $user->id)->count();
-        $postsCount = Post::where('user_id', $user->id)->count();
+        $stats = $this->getSocialStats($user->id);
 
         $isFollowing = Follow::where('follower_id', $currentUser->id)
             ->where('following_id', $user->id)
@@ -61,9 +61,9 @@ class FollowController extends Controller
             'avatar' => $user->avatar ?? asset('assets/img/avatars/default-avatar.png'),
             'country' => $user->country ?? 'Not set',
             'team_support' => $user->team_support ?? 'Not set',
-            'followers' => $followersCount,
-            'following' => $followingCount,
-            'posts' => $postsCount,
+            'followers' => $stats['followers'],
+            'following' => $stats['following'],
+            'posts' => $stats['posts'],
             'is_following' => $isFollowing,
             'is_self' => $currentUser->id === $user->id,
         ]);
