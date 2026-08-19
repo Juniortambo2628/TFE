@@ -46,39 +46,6 @@ export default function FilePondUploader({
                 credits={false}
                 {...props}
             />
-            <style>{`
-                .filepond-dark-wrapper .filepond--root {
-                    font-family: inherit;
-                }
-                .filepond-dark-wrapper .filepond--panel-root {
-                    background-color: #1a1a1a;
-                    border: 1px dashed #3b82f6;
-                    border-radius: 12px;
-                }
-                .filepond-dark-wrapper .filepond--drop-label {
-                    color: #888;
-                }
-                .filepond-dark-wrapper .filepond--drop-label label {
-                    color: #888;
-                }
-                .filepond-dark-wrapper .filepond--label-action {
-                    color: #3b82f6;
-                    text-decoration: none;
-                }
-                .filepond-dark-wrapper .filepond--item-panel {
-                    background-color: #2a2a2a;
-                }
-                .filepond-dark-wrapper .filepond--file-action-button {
-                    cursor: pointer;
-                }
-                .filepond-dark-wrapper [data-filepond-item-state*='error'] .filepond--item-panel,
-                .filepond-dark-wrapper [data-filepond-item-state*='invalid'] .filepond--item-panel {
-                    background-color: #ef4444;
-                }
-                .filepond-dark-wrapper [data-filepond-item-state='processing-complete'] .filepond--item-panel {
-                    background-color: #10b981;
-                }
-            `}</style>
         </div>
     );
 }

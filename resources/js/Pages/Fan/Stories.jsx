@@ -3,8 +3,6 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { FilePond, registerPlugin } from 'react-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
-import 'filepond/dist/filepond.min.css';
-import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import ShareModal from '@/Components/ShareModal';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/stories.css';

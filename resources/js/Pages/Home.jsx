@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
+import '../../css/hero-enhancements.css';
 
 // Components
 import Header from '@/Components/Header';
@@ -50,7 +51,22 @@ export default function Home({ appName, stadiums = [] }) {
 
     // Global Initializations
     useEffect(() => {
-        if (window.AOS) {
+        // Dynamically load AOS (Animate On Scroll) for landing page
+        if (!window.AOS) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/assets/libs/aos.css';
+            document.head.appendChild(link);
+
+            const script = document.createElement('script');
+            script.src = '/assets/libs/aos.js';
+            script.onload = () => {
+                if (window.AOS) {
+                    window.AOS.init({ once: true, duration: 1000 });
+                }
+            };
+            document.head.appendChild(script);
+        } else {
             window.AOS.init({ once: true, duration: 1000 });
         }
 

@@ -9,7 +9,6 @@ import FilePondUploader from '@/Components/Common/FilePondUploader';
 import DataTable from '@/Components/DataTable';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
 import { toast } from 'sonner';
-import '../../../css/fan/dashboard-modals.css';
 
 export default function Products({ auth, products, stats }) {
     const [showForm, setShowForm] = useState(false);

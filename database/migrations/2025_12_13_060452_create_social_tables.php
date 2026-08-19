@@ -42,6 +42,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('social_tables');
+        Schema::dropIfExists('posts');
+        Schema::dropIfExists('tribe_members');
+        Schema::dropIfExists('tribes');
     }
 };

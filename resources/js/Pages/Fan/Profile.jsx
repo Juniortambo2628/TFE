@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, usePage, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -7,9 +7,7 @@ import FilePondUploader from '@/Components/Common/FilePondUploader';
 import SearchableSelect from '@/Components/SearchableSelect';
 import { countries } from '../../Data/countries';
 import WorldCup2026Data from '../../Data/WorldCup2026Data';
-import '../../../css/register-dark.css';
 import '../../../css/fan/profile.css';
-import '../../../css/fan/dashboard-modals.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -20,6 +18,16 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
     const { tournament } = useTournament();
     const { user } = auth;
     const { flash, assetUrl } = usePage().props;
+
+    // Dynamically load model-viewer for 3D avatar rendering
+    useEffect(() => {
+        if (!document.querySelector('script[src*="model-viewer"]')) {
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+            document.head.appendChild(script);
+        }
+    }, []);
 
     // Use profile data from props or fallback to auth user
     const fanProfile = profile || {

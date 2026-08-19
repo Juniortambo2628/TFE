@@ -777,3 +777,72 @@
         flex-shrink: 0;
     }
 }
+
+/* Tremor chart white text overrides */
+.tremor-chart-white text,
+.tremor-chart-white .recharts-cartesian-axis-tick-value,
+.tremor-chart-white .recharts-legend-item-text,
+.tremor-chart-white .recharts-text {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+.tremor-chart-white .recharts-cartesian-grid line {
+    stroke: rgba(255,255,255,0.08) !important;
+}
+.tremor-chart-white .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background: #1a1a2e !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 10px !important;
+}
+.tremor-chart-white .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
+    color: #ffffff !important;
+}
+.tremor-chart-white .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
+    color: #e0e0e0 !important;
+}
+.tremor-chart-white [class*="tremor-AreaChart"],
+.tremor-chart-white [class*="tremor-BarChart"] {
+    --tremor-content-DEFAULT: #ffffff;
+    --tremor-content-subtle: rgba(255,255,255,0.7);
+    --tremor-content-emphasis: #ffffff;
+}
+
+/* FilePond dark theme overrides */
+.filepond-dark-wrapper .filepond--root {
+    font-family: inherit;
+}
+.filepond-dark-wrapper .filepond--panel-root {
+    background-color: #1a1a1a;
+    border: 1px dashed #3b82f6;
+    border-radius: 12px;
+}
+.filepond-dark-wrapper .filepond--drop-label {
+    color: #888;
+}
+.filepond-dark-wrapper .filepond--drop-label label {
+    color: #888;
+}
+.filepond-dark-wrapper .filepond--label-action {
+    color: #3b82f6;
+    text-decoration: none;
+}
+.filepond-dark-wrapper .filepond--item-panel {
+    background-color: #2a2a2a;
+}
+.filepond-dark-wrapper .filepond--file-action-button {
+    cursor: pointer;
+}
+.filepond-dark-wrapper [data-filepond-item-state*='error'] .filepond--item-panel,
+.filepond-dark-wrapper [data-filepond-item-state*='invalid'] .filepond--item-panel {
+    background-color: #ef4444;
+}
+.filepond-dark-wrapper [data-filepond-item-state='processing-complete'] .filepond--item-panel {
+    background-color: #10b981;
+}
+
+/* IntroLoader pulse animation */
+@keyframes pulse-loader {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}

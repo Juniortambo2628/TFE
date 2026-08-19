@@ -1,5 +1,4 @@
 import '../css/app.css';
-import '../css/hero-enhancements.css';
 import './bootstrap';
 
 import { createInertiaApp } from '@inertiajs/react';

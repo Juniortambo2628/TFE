@@ -78,6 +78,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fan_module_tables');
+        Schema::dropIfExists('contact_submissions');
+        Schema::dropIfExists('messages');
+        Schema::dropIfExists('events');
+        Schema::dropIfExists('fixtures');
+        Schema::dropIfExists('stadiums');
     }
 };

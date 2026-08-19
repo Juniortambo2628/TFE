@@ -12,7 +12,6 @@ import SearchableSelect from '@/Components/SearchableSelect';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
 import { countries } from '../../Data/countries';
 import WorldCup2026Data from '../../Data/WorldCup2026Data';
-import '../../../css/fan/dashboard-modals.css';
 
 export default function Users({ auth, users = { data: [] }, stats = {}, filters }) {
     const { assetUrl } = usePage().props;

@@ -13,20 +13,14 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        <!-- Legacy CSS (landing page layout, grids, component styles) -->
-        <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
-        <link rel="stylesheet" href="{{ asset('assets/libs/aos.css') }}">
-
         <!-- Scripts -->
         @routes
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
         
-        <!-- Legacy Scripts -->
-        <script src="{{ asset('assets/libs/aos.js') }}"></script>
+        <!-- Iconify icons (used by landing page Header) -->
         <script src="{{ asset('assets/libs/iconify-icon.min.js') }}"></script>
-        <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     </head>
     <body class="font-sans antialiased">
         @inertia

@@ -3,8 +3,6 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import { FilePond, registerPlugin } from 'react-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
-import 'filepond/dist/filepond.min.css';
-import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import EmojiPicker from 'emoji-picker-react';
 import ShareModal from '@/Components/ShareModal';
 import AdPostCard from '@/Components/AdPostCard';

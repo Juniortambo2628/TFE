@@ -41,38 +41,6 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Tremor chart white label overrides */}
-            <style>{`
-                .tremor-chart-white text,
-                .tremor-chart-white .recharts-cartesian-axis-tick-value,
-                .tremor-chart-white .recharts-legend-item-text,
-                .tremor-chart-white .recharts-text {
-                    fill: #ffffff !important;
-                    color: #ffffff !important;
-                }
-                .tremor-chart-white .recharts-cartesian-grid line {
-                    stroke: rgba(255,255,255,0.08) !important;
-                }
-                .tremor-chart-white .recharts-tooltip-wrapper .recharts-default-tooltip {
-                    background: #1a1a2e !important;
-                    border: 1px solid rgba(255,255,255,0.1) !important;
-                    border-radius: 10px !important;
-                }
-                .tremor-chart-white .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
-                    color: #ffffff !important;
-                }
-                .tremor-chart-white .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
-                    color: #e0e0e0 !important;
-                }
-                /* Tremor specific overrides */
-                .tremor-chart-white [class*="tremor-AreaChart"],
-                .tremor-chart-white [class*="tremor-BarChart"] {
-                    --tremor-content-DEFAULT: #ffffff;
-                    --tremor-content-subtle: rgba(255,255,255,0.7);
-                    --tremor-content-emphasis: #ffffff;
-                }
-            `}</style>
-
             {/* Quick Stats Row */}
             <div className="admin-visual-cards mb-4" style={{ overflow: 'visible', flexWrap: 'wrap' }}>
                 <StatCard 

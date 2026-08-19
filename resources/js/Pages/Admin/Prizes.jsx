@@ -5,7 +5,6 @@ import StatCard from '@/Components/Common/StatCard';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
-import '../../../css/fan/dashboard-modals.css';
 
 export default function Prizes({ auth, prizes = [] }) {
     const [showForm, setShowForm] = useState(false);

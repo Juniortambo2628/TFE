@@ -713,19 +713,6 @@ class WikipediaService
     }
 
     /**
-     * Extract player name from a wikitable award cell like "{{#invoke:flagg|main|...|ARG}} [[Lionel Messi]]"
-     */
-    protected function cleanTeamNameFromAward(string $cell): ?string
-    {
-        // Extract [[Player Name]] or [[Link|Display]]
-        if (preg_match('/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/', $cell, $m)) {
-            return $this->cleanWikiValue($m[2] ?: $m[1]);
-        }
-
-        return $this->cleanWikiValue($cell);
-    }
-
-    /**
      * Get all Wikipedia data for a tournament in one call — convenient for sharing.
      */
     public function getAll(string $title, ?int $ttl = null): array
