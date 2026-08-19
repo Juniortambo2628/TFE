@@ -59,7 +59,7 @@ class MiddlewareTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get(route('fan.dashboard'));
-        $response->assertStatus(200);
+        $response->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_fan_routes_block_partner_redirect(): void

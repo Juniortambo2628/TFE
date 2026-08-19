@@ -20,15 +20,15 @@ class PasswordUpdateTest extends TestCase
             ->from('/fan/profile')
             ->put('/password', [
                 'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'New-Pass1',
+                'password_confirmation' => 'New-Pass1',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect('/fan/profile');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertTrue(Hash::check('New-Pass1', $user->refresh()->password));
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
@@ -40,8 +40,8 @@ class PasswordUpdateTest extends TestCase
             ->from('/fan/profile')
             ->put('/password', [
                 'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'New-Pass1',
+                'password_confirmation' => 'New-Pass1',
             ]);
 
         $response
