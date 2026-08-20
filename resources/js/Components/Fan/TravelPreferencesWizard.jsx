@@ -298,7 +298,7 @@ function RegionSlide({ selectedRegion, onSelect }) {
             <p className="pref-instruction">Select the region you&apos;re traveling from</p>
             <div className="pref-map-container">
                 <WorldMap
-                    size="lg"
+                    size="responsive"
                     data={worldMapData}
                     styleFunction={styleFunction}
                     onClickFunction={handleMapClick}

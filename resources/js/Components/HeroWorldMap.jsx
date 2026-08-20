@@ -231,6 +231,7 @@ export default function HeroWorldMap({ tournament, stadiums, currentSlide, class
                         tooltipBgColor="#1a1a2e"
                         tooltipTextColor="#e5e7eb"
                         strokeOpacity={0.15}
+                        backgroundColor="transparent"
                     />
                 </motion.div>
             </div>
