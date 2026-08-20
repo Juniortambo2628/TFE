@@ -33,7 +33,7 @@ class SerpApiService
      * Search Google Flights for options between two airports.
      *
      * @param  array  $params  departure_id, arrival_id, outbound_date, return_date, adults, travel_class, stops, etc.
-     * @return array  Normalized flight results with price_insights
+     * @return array Normalized flight results with price_insights
      */
     public function searchFlights(array $params): array
     {
@@ -41,7 +41,7 @@ class SerpApiService
             return ['error' => 'SerpAPI key not configured', 'flights' => [], 'source' => 'unavailable'];
         }
 
-        $cacheKey = 'serpapi_flights_' . md5(json_encode($params));
+        $cacheKey = 'serpapi_flights_'.md5(json_encode($params));
 
         return Cache::remember($cacheKey, self::SEARCH_CACHE_TTL, function () use ($params) {
             try {
@@ -100,7 +100,7 @@ class SerpApiService
      * Search Google Hotels for options near a destination.
      *
      * @param  array  $params  q, check_in_date, check_out_date, adults, sort_by, etc.
-     * @return array  Normalized hotel results
+     * @return array Normalized hotel results
      */
     public function searchHotels(array $params): array
     {
@@ -108,7 +108,7 @@ class SerpApiService
             return ['error' => 'SerpAPI key not configured', 'hotels' => [], 'source' => 'unavailable'];
         }
 
-        $cacheKey = 'serpapi_hotels_' . md5(json_encode($params));
+        $cacheKey = 'serpapi_hotels_'.md5(json_encode($params));
 
         return Cache::remember($cacheKey, self::SEARCH_CACHE_TTL, function () use ($params) {
             try {
@@ -221,7 +221,7 @@ class SerpApiService
         }
 
         return [
-            'id' => md5(json_encode($segments) . ($flight['price'] ?? 0)),
+            'id' => md5(json_encode($segments).($flight['price'] ?? 0)),
             'price_usd' => $flight['price'] ?? 0,
             'total_duration_minutes' => $flight['total_duration'] ?? 0,
             'segments' => $segments,

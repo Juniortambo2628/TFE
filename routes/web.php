@@ -12,7 +12,6 @@ use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
-use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BudgetController;
@@ -38,6 +37,7 @@ use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
