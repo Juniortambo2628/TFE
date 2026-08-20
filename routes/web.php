@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
+use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BudgetController;
@@ -99,6 +100,10 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::post('/api/budget/cost-of-living', [BudgetApiController::class, 'costOfLiving'])->name('api.budget.col');
     Route::post('/api/budget/exchange-rate', [BudgetApiController::class, 'exchangeRate'])->name('api.budget.exchange');
     Route::post('/api/budget/visa-info', [BudgetApiController::class, 'visaInfo'])->name('api.budget.visa');
+
+    // SerpAPI (Google Flights + Hotels)
+    Route::post('/api/search/flights', [SerpApiController::class, 'searchFlights'])->name('api.search.flights');
+    Route::post('/api/search/hotels', [SerpApiController::class, 'searchHotels'])->name('api.search.hotels');
 
     // Feature Pages
     Route::get('/match-schedule', [MatchScheduleController::class, 'index'])->name('match-schedule');

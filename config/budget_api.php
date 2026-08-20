@@ -23,6 +23,10 @@ return [
         'base_url' => env('ORIZN_BASE_URL', 'https://visa.orizn.app/api/v1'),
     ],
 
+    'serpapi' => [
+        'api_key' => env('SERPAPI_KEY', ''),
+    ],
+
     // Fallback exchange rates when HexaRate API is unavailable
     'fallback_rates' => [
         'USD_KES' => 130,

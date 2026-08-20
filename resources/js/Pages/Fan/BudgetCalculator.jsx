@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getExchangeRate, getSpendingTiers, getVisaCosts, getInsuranceDaily, getMerchandisePerMatch } from '@/Data/BudgetPricingData';
 import MatchCard from '@/Components/Fan/MatchCard';
+import FlightSelector from '@/Components/Fan/FlightSelector';
+import HotelSelector from '@/Components/Fan/HotelSelector';
+import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -65,6 +68,13 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     // Custom UI States
     const [showNamingModal, setShowNamingModal] = useState(false);
     const [itineraryName, setItineraryName] = useState('');
+    const [showItinerary, setShowItinerary] = useState(false);
+
+    // Real flight/hotel selections from SerpAPI
+    const [selectedFlight, setSelectedFlight] = useState(null);
+    const [selectedHotel, setSelectedHotel] = useState(null);
+    const [realFlightPrice, setRealFlightPrice] = useState(null);
+    const [realHotelPrice, setRealHotelPrice] = useState(null);
 
     // Initialize from budgetToEdit
     useEffect(() => {
@@ -377,10 +387,18 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
         const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
         const baseFlightCost = originData[flightClass] || 1000;
-        const flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
+        let flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
         const accFactor = ACCOMMODATION_FACTORS[accommodation] || 1.0;
         const sharedAccommodation = Math.max(1, Math.ceil(travelGroupSize / 2));
-        const accommodationCost = (avgBaseHotel * accFactor * maxSurge * nights) / sharedAccommodation;
+        let accommodationCost = (avgBaseHotel * accFactor * maxSurge * nights) / sharedAccommodation;
+
+        // Override with real prices from SerpAPI selections if available
+        if (realFlightPrice !== null) {
+            flightCost = realFlightPrice;
+        }
+        if (realHotelPrice !== null) {
+            accommodationCost = (realHotelPrice * nights) / sharedAccommodation;
+        }
         const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge * tierMultiplier;
         const dailyTransport = BASE_COSTS.transport * avgMultiplier * tierMultiplier;
         const dailyMisc = BASE_COSTS.misc * avgMultiplier * tierMultiplier;
@@ -486,8 +504,14 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             case 'match_tickets':
                 return `Estimated for ${matchCount} match(es). Prices by stage — ${ticketStages}.`;
             case 'flights':
+                if (selectedFlight) {
+                    return `Real price from Google Flights: ${selectedFlight.segments?.[0]?.airline || 'Airline'} (${selectedFlight.segments?.[0]?.flight_number || ''}), ${selectedFlight.stops === 0 ? 'Non-stop' : selectedFlight.stops + ' stop(s)'}, ${selectedFlight.total_duration_minutes} min flight time.`;
+                }
                 return `Round-trip ${flightClass.replace('_', ' ')} class flight from ${originLabel}. Includes event-time demand adjustments.`;
             case 'accommodation':
+                if (selectedHotel) {
+                    return `${selectedHotel.name} (${selectedHotel.rating?.toFixed(1)}★, ${selectedHotel.reviews?.toLocaleString()} reviews) — $${realHotelPrice}/night × ${nights} nights${travelGroupSize > 1 ? ` shared by ${travelGroupSize} travelers` : ''}.`;
+                }
                 return `${nights} nights of ${accommodation.replace('_', '-')} accommodation for ${travelGroupSize > 1 ? `${travelGroupSize} travelers (shared)` : '1 traveler'}. Adjusted for city cost tiers and demand surge.`;
             case 'food_and_drink':
                 return `Daily food and drink allowance adjusted for local cost of living and spending tier.`;
@@ -518,6 +542,10 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         setShowResults(false);
         setBreakdown({});
         setQuickEstimate(false);
+        setSelectedFlight(null);
+        setSelectedHotel(null);
+        setRealFlightPrice(null);
+        setRealHotelPrice(null);
     };
 
     // Get country flag code for image path
@@ -1020,13 +1048,116 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                         </div>
 
                         <div className="text-center mt-4">
-                            <button className="btn-calculate" onClick={calculateBudget} disabled={loading}>
-                                {loading ? (
-                                    <><i className="fas fa-spinner fa-spin me-2"></i>Calculating...</>
-                                ) : (
-                                    <><i className="fas fa-calculator me-2"></i>Calculate Budget</>
-                                )}
+                            <button className="btn-calculate" onClick={() => setWizardStep(4)} disabled={loading}>
+                                <i className="fas fa-plane me-2"></i>Choose Flights & Hotels
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Wizard Step 4: Real Flight & Hotel Selection */}
+                {!showResults && wizardStep === 4 && (
+                    <div className="section-card">
+                        <div className="section-header">
+                            <button className="btn-back" onClick={() => setWizardStep(3)}>
+                                <i className="fas fa-arrow-left me-1"></i> Back
+                            </button>
+                            <div>
+                                <h3>Real Flights & Hotels</h3>
+                                <p className="section-subtitle">Search live prices from Google Flights & Hotels</p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            {/* Flight Selection */}
+                            <div>
+                                <FlightSelector
+                                    departureId={(() => {
+                                        const origins = getFlightOrigins(tournamentPricing);
+                                        const originData = origins.find(o => o.id === flightOrigin) || origins[0];
+                                        return originData?.code || 'NBO';
+                                    })()}
+                                    arrivalId={(() => {
+                                        const hosts = tournament?.hosts || [];
+                                        return 'JFK'; // Default — will be refined by venue
+                                    })()}
+                                    outboundDate={(() => {
+                                        const d = new Date();
+                                        d.setMonth(d.getMonth() + 3);
+                                        return d.toISOString().split('T')[0];
+                                    })()}
+                                    returnDate={(() => {
+                                        const d = new Date();
+                                        d.setMonth(d.getMonth() + 3);
+                                        d.setDate(d.getDate() + nights);
+                                        return d.toISOString().split('T')[0];
+                                    })()}
+                                    adults={travelGroupSize}
+                                    onFlightSelected={(flight) => {
+                                        setSelectedFlight(flight);
+                                        setRealFlightPrice(flight.price_usd);
+                                    }}
+                                    selectedFlight={selectedFlight}
+                                />
+                            </div>
+
+                            {/* Hotel Selection */}
+                            <div>
+                                <HotelSelector
+                                    city={tournament?.hosts?.[0] || 'Nairobi'}
+                                    checkIn={(() => {
+                                        const d = new Date();
+                                        d.setMonth(d.getMonth() + 3);
+                                        return d.toISOString().split('T')[0];
+                                    })()}
+                                    checkOut={(() => {
+                                        const d = new Date();
+                                        d.setMonth(d.getMonth() + 3);
+                                        d.setDate(d.getDate() + nights);
+                                        return d.toISOString().split('T')[0];
+                                    })()}
+                                    adults={travelGroupSize}
+                                    onHotelSelected={(hotel) => {
+                                        setSelectedHotel(hotel);
+                                        setRealHotelPrice(hotel.price_per_night_usd);
+                                    }}
+                                    selectedHotel={selectedHotel}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid #2d3748' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                                <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
+                                    {selectedFlight && (
+                                        <span style={{ marginRight: '16px' }}>
+                                            <i className="fas fa-plane me-1 text-success"></i>
+                                            Flight: <strong style={{ color: '#e5e7eb' }}>${realFlightPrice}</strong>/person
+                                        </span>
+                                    )}
+                                    {selectedHotel && (
+                                        <span>
+                                            <i className="fas fa-hotel me-1 text-success"></i>
+                                            Hotel: <strong style={{ color: '#e5e7eb' }}>${realHotelPrice}</strong>/night
+                                        </span>
+                                    )}
+                                    {!selectedFlight && !selectedHotel && (
+                                        <span style={{ color: '#6b7280' }}>
+                                            <i className="fas fa-info-circle me-1"></i>
+                                            Search and select options above, or skip to use estimates
+                                        </span>
+                                    )}
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button className="btn-calculate" onClick={calculateBudget} disabled={loading}>
+                                        {loading ? (
+                                            <><i className="fas fa-spinner fa-spin me-2"></i>Calculating...</>
+                                        ) : (
+                                            <><i className="fas fa-calculator me-2"></i>Calculate with Selections</>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -1045,6 +1176,20 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                         </div>
                         
                         <div className="result-total">
+                            {(selectedFlight || selectedHotel) && (
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                    {selectedFlight && (
+                                        <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '4px 10px', borderRadius: '12px' }}>
+                                            <i className="fas fa-plane me-1"></i>Real flight: ${realFlightPrice}/person
+                                        </span>
+                                    )}
+                                    {selectedHotel && (
+                                        <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '4px 10px', borderRadius: '12px' }}>
+                                            <i className="fas fa-hotel me-1"></i>Real hotel: ${realHotelPrice}/night
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                             {budgetToEdit?.partner_cost > 0 && budgetToEdit.partner_status === 'modified' ? (
                                 <div className="partner-revised-cost mb-3">
                                     <div className="badge bg-warning text-dark mb-2 px-3 py-2" style={{ fontSize: '0.8rem', borderRadius: '20px' }}>
@@ -1116,6 +1261,10 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                         <div className="d-flex gap-3 mt-4">
                             <button className="btn btn-outline-secondary flex-fill" onClick={resetWizard}>
                                 <i className="fas fa-redo me-2"></i>Start Over
+                            </button>
+                            <button className="btn btn-outline-info flex-fill" onClick={() => setShowItinerary(true)}
+                                style={{ borderColor: '#3b82f6', color: '#3b82f6' }}>
+                                <i className="fas fa-file-alt me-2"></i>View Itinerary
                             </button>
                              <button className="btn-fan-custom flex-fill" onClick={saveBudget} disabled={saving}>
                                 {saving ? (
@@ -1361,6 +1510,40 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                 </div>
             )}
 
+            {/* Itinerary Print Modal */}
+            {showItinerary && (
+                <div className="filter-modal-overlay" style={{ zIndex: 1200, overflow: 'auto' }}>
+                    <div style={{ position: 'absolute', top: '10px', right: '20px', zIndex: 1201, display: 'flex', gap: '8px' }}>
+                        <button
+                            onClick={() => window.print()}
+                            style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem' }}
+                        >
+                            <i className="fas fa-print me-1"></i>Print
+                        </button>
+                        <button
+                            onClick={() => setShowItinerary(false)}
+                            style={{ background: '#374151', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem' }}
+                        >
+                            <i className="fas fa-times me-1"></i>Close
+                        </button>
+                    </div>
+                    <div style={{ marginTop: '50px', paddingBottom: '40px' }}>
+                        <ItinerarySummary
+                            tournament={tournament}
+                            selectedMatches={allFixtures.filter(m => selectedMatchIds.includes(m.id))}
+                            selectedFlight={selectedFlight}
+                            selectedHotel={selectedHotel}
+                            breakdown={breakdown}
+                            estimatedCost={estimatedCost}
+                            nights={nights}
+                            travelGroupSize={travelGroupSize}
+                            spendingTier={spendingTier}
+                            flightOrigin={flightOrigin}
+                            tournamentPricing={tournamentPricing}
+                        />
+                    </div>
+                </div>
+            )}
 
         </FanLayout>
     );
