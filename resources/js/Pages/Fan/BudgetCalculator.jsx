@@ -899,7 +899,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                 travelGroupSize,
                                 includeInsurance,
                                 includeVisa,
-                                includeMerchandise,
+                                includeMerchandise: merchandisePerMatch,
                             }}
                             onComplete={(prefs) => {
                                 setFlightOrigin(prefs.flightOrigin || flightOrigin);
