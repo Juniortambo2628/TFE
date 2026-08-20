@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BudgetController;
@@ -92,6 +93,12 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // API Routes for Fan Dashboard
     Route::post('/budget/save', [BudgetController::class, 'store'])->name('budget.save');
     Route::get('/budget/active', [BudgetController::class, 'getActive'])->name('budget.active');
+
+    // Budget Calculator API
+    Route::post('/api/budget/estimate', [BudgetApiController::class, 'estimate'])->name('api.budget.estimate');
+    Route::post('/api/budget/cost-of-living', [BudgetApiController::class, 'costOfLiving'])->name('api.budget.col');
+    Route::post('/api/budget/exchange-rate', [BudgetApiController::class, 'exchangeRate'])->name('api.budget.exchange');
+    Route::post('/api/budget/visa-info', [BudgetApiController::class, 'visaInfo'])->name('api.budget.visa');
 
     // Feature Pages
     Route::get('/match-schedule', [MatchScheduleController::class, 'index'])->name('match-schedule');
