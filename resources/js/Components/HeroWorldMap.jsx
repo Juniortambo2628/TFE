@@ -3,29 +3,10 @@ import { motion } from 'framer-motion';
 import WorldMap from 'react-svg-worldmap';
 
 /*
- * Zoomable, animated world map for the Hero section.
- * Shows the tournament's host region zoomed in and highlights
- * the country where the currently-displayed stadium is located.
+ * Full world map for the Hero section.
+ * Shows all continents centered; highlights host countries and the
+ * currently-displayed stadium's country.
  */
-
-/* ── Region zoom targets ──────────────────────────────────────
- * Lower scale = more zoomed out = more context visible.
- * targetX/targetY are coordinates in the SVG's 1000×450 viewBox.
- */
-const REGION_ZOOM = {
-    east_africa:      { targetX: 545, targetY: 220, scale: 1.7 },
-    west_africa:      { targetX: 470, targetY: 210, scale: 1.6 },
-    southern_africa:  { targetX: 530, targetY: 275, scale: 1.6 },
-    north_africa:     { targetX: 500, targetY: 170, scale: 1.5 },
-    europe:           { targetX: 510, targetY: 140, scale: 1.5 },
-    middle_east:      { targetX: 590, targetY: 180, scale: 1.6 },
-    south_asia:       { targetX: 665, targetY: 200, scale: 1.6 },
-    east_asia:        { targetX: 785, targetY: 180, scale: 1.4 },
-    north_america:    { targetX: 240, targetY: 175, scale: 1.2 },
-    south_america:    { targetX: 300, targetY: 300, scale: 1.3 },
-    oceania:          { targetX: 865, targetY: 310, scale: 1.6 },
-    default:          { targetX: 500, targetY: 225, scale: 1.0 },
-};
 
 /* Country name → ISO-2 (lowercase) for stadium→country mapping.
  * Includes Wikipedia venue names and common city/location names
@@ -161,46 +142,8 @@ function stadiumCountryCode(stadiumName, tournament) {
     return null;
 }
 
-/**
- * Get the region key for a given tournament.
- */
-function getTournamentRegion(tournament) {
-    if (!tournament) return 'default';
-    const id = tournament.id || '';
-    const hosts = (tournament.hosts || []).map(h => h.toLowerCase());
-    const flags = (tournament.host_flag_codes || []).map(f => f.toLowerCase());
-
-    if (id.includes('afcon') || id.includes('africa')) {
-        if (hosts.some(h => h === 'kenya' || h === 'tanzania' || h === 'uganda')) return 'east_africa';
-        if (hosts.some(h => h === 'nigeria' || h === 'ghana' || h === 'senegal')) return 'west_africa';
-        if (hosts.some(h => h === 'south africa')) return 'southern_africa';
-        return 'west_africa';
-    }
-    if (id.includes('euro')) return 'europe';
-    if (id.includes('wc') || id.includes('world-cup') || id.includes('world_cup')) return 'north_america';
-    if (id.includes('copicopa') || id.includes('copa')) return 'south_america';
-    if (id.includes('asian') || id.includes('afc')) return 'east_asia';
-    if (id.includes('gold') && id.includes('cup')) return 'north_america';
-
-    if (flags.includes('ke') || flags.includes('tz') || flags.includes('ug')) return 'east_africa';
-    if (flags.includes('ng') || flags.includes('gh') || flags.includes('sn')) return 'west_africa';
-    if (flags.includes('za')) return 'southern_africa';
-    if (flags.includes('de') || flags.includes('fr') || flags.includes('es') || flags.includes('gb')) return 'europe';
-    if (flags.includes('us') || flags.includes('ca') || flags.includes('mx')) return 'north_america';
-    if (flags.includes('br') || flags.includes('ar')) return 'south_america';
-    if (flags.includes('jp') || flags.includes('cn') || flags.includes('kr')) return 'east_asia';
-    if (flags.includes('in')) return 'south_asia';
-    if (flags.includes('qa') || flags.includes('sa') || flags.includes('ae')) return 'middle_east';
-    if (flags.includes('au') || flags.includes('nz')) return 'oceania';
-
-    return 'default';
-}
-
 export default function HeroWorldMap({ tournament, stadiums, currentSlide, className }) {
     const activeStadium = stadiums?.[currentSlide] || {};
-
-    const region = useMemo(() => getTournamentRegion(tournament), [tournament?.id]);
-    const zoom = REGION_ZOOM[region] || REGION_ZOOM.default;
 
     const activeCountry = useMemo(
         () => stadiumCountryCode(activeStadium.name, tournament),
@@ -211,17 +154,9 @@ export default function HeroWorldMap({ tournament, stadiums, currentSlide, class
         return (tournament?.host_flag_codes || []).map(c => c.toLowerCase());
     }, [tournament?.id, tournament?.host_flag_codes]);
 
-    /* Compute CSS transform for zoom/pan.
-     * BASE_SCALE enlarges the SVG so the continents fill the viewport better
-     * (the react-svg-worldmap SVG is rendered slightly smaller than its container). */
-    const viewBoxW = 1000;
-    const viewBoxH = 450;
-    const BASE_SCALE = 1.15;
-
-    const txPct = (500 - zoom.targetX) / viewBoxW * 100;
-    const tyPct = (225 - zoom.targetY) / viewBoxH * 100;
-
-    const mapTransform = `translate(${txPct}%, ${tyPct}%) scale(${zoom.scale * BASE_SCALE})`;
+    /* No zoom/pan — show the full world centered, same as the wizard map.
+     * Scale 1.35 enlarges the SVG content to fill the viewport. */
+    const mapTransform = 'scale(1.35)';
 
     /* Style function — full opacity colors */
     const styleFunction = ({ countryCode }) => {
