@@ -52,6 +52,7 @@ class CostOfLivingService
     public function getIndex(string $city): float
     {
         $cityData = $this->getCity($city);
+
         return $cityData['cost_index'] ?? 50.0;
     }
 
@@ -61,7 +62,7 @@ class CostOfLivingService
     public function getDailyExpenses(string $city): array
     {
         $cityData = $this->getCity($city);
-        if (!$cityData) {
+        if (! $cityData) {
             return ['food' => 30, 'transport' => 15, 'misc' => 10, 'total' => 55];
         }
 
@@ -79,7 +80,7 @@ class CostOfLivingService
     public function getHotelPrices(string $city): array
     {
         $cityData = $this->getCity($city);
-        if (!$cityData) {
+        if (! $cityData) {
             return ['budget' => 30, 'mid_range' => 70, 'luxury' => 150];
         }
 
@@ -96,6 +97,7 @@ class CostOfLivingService
     public function getPurchasingPower(string $city): float
     {
         $cityData = $this->getCity($city);
+
         return $cityData['purchasing_power'] ?? 40.0;
     }
 
@@ -105,6 +107,7 @@ class CostOfLivingService
     public function getAllCities(): array
     {
         $data = $this->load();
+
         return array_keys($data);
     }
 }

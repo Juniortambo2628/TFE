@@ -14,10 +14,13 @@ use Illuminate\Support\Facades\Http;
 class FlightPriceService
 {
     private const TOKEN_CACHE_KEY = 'amadeus_token';
+
     private const OFFER_CACHE_TTL = 86400; // 24 hours
 
     private string $clientId;
+
     private string $clientSecret;
+
     private string $baseUrl;
 
     public function __construct()
@@ -32,7 +35,7 @@ class FlightPriceService
      */
     public function isConfigured(): bool
     {
-        return !empty($this->clientId) && !empty($this->clientSecret);
+        return ! empty($this->clientId) && ! empty($this->clientSecret);
     }
 
     /**
@@ -40,7 +43,7 @@ class FlightPriceService
      */
     private function getToken(): ?string
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return null;
         }
 
@@ -72,11 +75,11 @@ class FlightPriceService
     /**
      * Search for flight offers between two cities.
      *
-     * @param string $originCode IATA code (e.g., 'NBO' for Nairobi)
-     * @param string $destCode IATA code (e.g., 'JFK' for New York)
-     * @param string $departureDate YYYY-MM-DD
-     * @param int $adults Number of adults
-     * @param string $travelClass 'ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'
+     * @param  string  $originCode  IATA code (e.g., 'NBO' for Nairobi)
+     * @param  string  $destCode  IATA code (e.g., 'JFK' for New York)
+     * @param  string  $departureDate  YYYY-MM-DD
+     * @param  int  $adults  Number of adults
+     * @param  string  $travelClass  'ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'
      * @return array|null Average price estimate or null on failure
      */
     public function searchFlights(
@@ -90,7 +93,7 @@ class FlightPriceService
 
         return Cache::remember($cacheKey, self::OFFER_CACHE_TTL, function () use ($originCode, $destCode, $departureDate, $adults, $travelClass) {
             $token = $this->getToken();
-            if (!$token) {
+            if (! $token) {
                 return $this->getFallbackEstimate($originCode, $destCode, $travelClass);
             }
 
@@ -113,7 +116,8 @@ class FlightPriceService
                         return $this->getFallbackEstimate($originCode, $destCode, $travelClass);
                     }
 
-                    $prices = array_map(fn($o) => (float) $o['price']['grandTotal'], $offers);
+                    $prices = array_map(fn ($o) => (float) $o['price']['grandTotal'], $offers);
+
                     return [
                         'min' => min($prices),
                         'max' => max($prices),
@@ -145,11 +149,13 @@ class FlightPriceService
 
         if (isset($fallbacks[$route][$class])) {
             $price = $fallbacks[$route][$class];
+
             return ['min' => $price * 0.8, 'max' => $price * 1.3, 'avg' => $price, 'currency' => 'USD', 'source' => 'fallback'];
         }
 
         // Default fallback
         $price = $class === 'business' ? 3000 : 800;
+
         return ['min' => $price * 0.8, 'max' => $price * 1.3, 'avg' => $price, 'currency' => 'USD', 'source' => 'default'];
     }
 }

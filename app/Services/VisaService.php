@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Http;
 class VisaService
 {
     private const CACHE_TTL = 2592000; // 30 days
+
     private string $apiKey;
+
     private string $baseUrl;
 
     public function __construct()
@@ -25,14 +27,14 @@ class VisaService
 
     public function isConfigured(): bool
     {
-        return !empty($this->apiKey);
+        return ! empty($this->apiKey);
     }
 
     /**
      * Check visa requirements for a passport holder visiting a destination.
      *
-     * @param string $passport ISO 3166-1 alpha-3 passport country code (e.g., 'KEN')
-     * @param string $destination ISO 3166-1 alpha-3 destination country code (e.g., 'TZA')
+     * @param  string  $passport  ISO 3166-1 alpha-3 passport country code (e.g., 'KEN')
+     * @param  string  $destination  ISO 3166-1 alpha-3 destination country code (e.g., 'TZA')
      * @return array Visa requirement data
      */
     public function checkVisa(string $passport, string $destination): array
@@ -43,7 +45,7 @@ class VisaService
         $cacheKey = "visa_{$passport}_{$destination}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($passport, $destination) {
-            if (!$this->isConfigured()) {
+            if (! $this->isConfigured()) {
                 return $this->getFallbackResult($passport, $destination);
             }
 
@@ -57,6 +59,7 @@ class VisaService
 
                 if ($response->successful()) {
                     $data = $response->json();
+
                     return [
                         'visa_required' => $data['visa_required'] ?? $data['required'] ?? true,
                         'visa_type' => $data['visa_type'] ?? 'unknown',
@@ -89,6 +92,7 @@ class VisaService
         foreach ($destinations as $dest) {
             $results[$dest] = $this->checkVisa($passport, $dest);
         }
+
         return $results;
     }
 
@@ -111,7 +115,7 @@ class VisaService
         $isVisaFree = isset($visaFree[$passport]) && in_array($destination, $visaFree[$passport]);
 
         return [
-            'visa_required' => !$isVisaFree,
+            'visa_required' => ! $isVisaFree,
             'visa_type' => $isVisaFree ? 'visa_free' : 'visa_required',
             'duration_days' => $isVisaFree ? 90 : 30,
             'cost_usd' => $isVisaFree ? 0 : 50,

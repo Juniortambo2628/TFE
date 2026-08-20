@@ -16,7 +16,9 @@ class HotelPriceService
     private const OFFER_CACHE_TTL = 86400;
 
     private string $clientId;
+
     private string $clientSecret;
+
     private string $baseUrl;
 
     public function __construct()
@@ -28,7 +30,7 @@ class HotelPriceService
 
     public function isConfigured(): bool
     {
-        return !empty($this->clientId) && !empty($this->clientSecret);
+        return ! empty($this->clientId) && ! empty($this->clientSecret);
     }
 
     private function getToken(): ?string
@@ -39,7 +41,7 @@ class HotelPriceService
             return $cached;
         }
 
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return null;
         }
 
@@ -53,6 +55,7 @@ class HotelPriceService
             if ($response->successful()) {
                 $token = $response->json('access_token');
                 cache()->put('amadeus_token', $token, 1700);
+
                 return $token;
             }
         } catch (\Exception $e) {
@@ -65,10 +68,9 @@ class HotelPriceService
     /**
      * Search for hotel offers by city.
      *
-     * @param string $cityCode IATA city code (e.g., 'NBO' for Nairobi)
-     * @param string $checkIn YYYY-MM-DD
-     * @param string $checkOut YYYY-MM-DD
-     * @param int $adults
+     * @param  string  $cityCode  IATA city code (e.g., 'NBO' for Nairobi)
+     * @param  string  $checkIn  YYYY-MM-DD
+     * @param  string  $checkOut  YYYY-MM-DD
      * @return array|null Price range or null on failure
      */
     public function searchHotels(
@@ -81,7 +83,7 @@ class HotelPriceService
 
         return Cache::remember($cacheKey, self::OFFER_CACHE_TTL, function () use ($cityCode, $checkIn, $checkOut, $adults) {
             $token = $this->getToken();
-            if (!$token) {
+            if (! $token) {
                 return $this->getFallbackEstimate($cityCode);
             }
 
@@ -96,12 +98,12 @@ class HotelPriceService
                         'hotelSource' => 'ALL',
                     ]);
 
-                if (!$hotelResponse->successful()) {
+                if (! $hotelResponse->successful()) {
                     return $this->getFallbackEstimate($cityCode);
                 }
 
                 $hotels = array_slice($hotelResponse->json('data', []), 0, 20);
-                $hotelIds = array_map(fn($h) => $h['hotelId'], $hotels);
+                $hotelIds = array_map(fn ($h) => $h['hotelId'], $hotels);
 
                 if (empty($hotelIds)) {
                     return $this->getFallbackEstimate($cityCode);
@@ -135,9 +137,10 @@ class HotelPriceService
                         }
                     }
 
-                    if (!empty($prices)) {
+                    if (! empty($prices)) {
                         $nights = max(1, (strtotime($checkOut) - strtotime($checkIn)) / 86400);
-                        $perNight = array_map(fn($p) => $p / $nights, $prices);
+                        $perNight = array_map(fn ($p) => $p / $nights, $prices);
+
                         return [
                             'min' => min($perNight),
                             'max' => max($perNight),
@@ -163,6 +166,7 @@ class HotelPriceService
         $fallbacks = config('budget_api.hotel_estimates', []);
         if (isset($fallbacks[$cityCode])) {
             $data = $fallbacks[$cityCode];
+
             return [
                 'min' => $data['budget'] ?? 30,
                 'avg' => $data['mid'] ?? 70,

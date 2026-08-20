@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Http;
 class CurrencyService
 {
     private const BASE_URL = 'https://hexarate.paikama.co/api/rates';
+
     private const CACHE_TTL = 86400; // 24 hours
 
     /**
@@ -31,10 +32,11 @@ class CurrencyService
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($from, $to) {
             try {
-                $response = Http::timeout(5)->get(self::BASE_URL . "/{$from}/{$to}/latest");
+                $response = Http::timeout(5)->get(self::BASE_URL."/{$from}/{$to}/latest");
 
                 if ($response->successful()) {
                     $data = $response->json();
+
                     return (float) ($data['data']['rate'] ?? $this->getFallbackRate($from, $to));
                 }
             } catch (\Exception $e) {
@@ -56,6 +58,7 @@ class CurrencyService
         foreach ($to as $target) {
             $results[$target] = $this->getRate($from, $target);
         }
+
         return $results;
     }
 
@@ -65,6 +68,7 @@ class CurrencyService
     private function getFallbackRate(string $from, string $to): float
     {
         $rates = config('budget_api.fallback_rates', []);
+
         return $rates["{$from}_{$to}"] ?? 1.0;
     }
 }

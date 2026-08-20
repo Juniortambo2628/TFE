@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Cache;
-
 /**
  * TournamentBudgetService — Orchestrates all pricing services to produce
  * a comprehensive, real-time budget estimate for a tournament trip.
@@ -31,7 +29,7 @@ class TournamentBudgetService
     /**
      * Generate a comprehensive budget estimate.
      *
-     * @param array $params Estimate parameters
+     * @param  array  $params  Estimate parameters
      * @return array Full estimate with breakdown
      */
     public function estimate(array $params): array
@@ -99,7 +97,7 @@ class TournamentBudgetService
 
         // 6. Visa (one-time, not per person)
         $visaCost = 0;
-        if ($includeVisa && !empty($hosts)) {
+        if ($includeVisa && ! empty($hosts)) {
             $visaResult = $this->visa->checkVisa($passportCountry, $this->getCountryCode($hosts[0]));
             $visaCost = $visaResult['cost_usd'] ?? 0;
         }

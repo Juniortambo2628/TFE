@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CostOfLivingService;
+use App\Services\CurrencyService;
 use App\Services\TournamentBudgetService;
+use App\Services\VisaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -78,7 +81,7 @@ class BudgetApiController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $data = \App\Services\CostOfLivingService::getDailyExpenses($request->city);
+        $data = CostOfLivingService::getDailyExpenses($request->city);
 
         return response()->json([
             'success' => true,
@@ -102,7 +105,7 @@ class BudgetApiController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $rate = \App\Services\CurrencyService::getExchangeRate($request->from, $request->to);
+        $rate = CurrencyService::getExchangeRate($request->from, $request->to);
 
         return response()->json([
             'success' => true,
@@ -130,7 +133,7 @@ class BudgetApiController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $visaService = new \App\Services\VisaService();
+        $visaService = new VisaService;
         $info = $visaService->checkVisa($request->passport_country, $request->destination_country);
 
         return response()->json([
