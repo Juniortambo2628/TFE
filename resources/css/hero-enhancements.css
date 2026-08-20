@@ -800,6 +800,8 @@
 .tfe-hero-slider {
     overflow-x: hidden;
     overflow-y: hidden;
+    height: 100vh;
+    max-height: 100vh;
 }
 
 /* CTA buttons container — flex-wrap on mobile */
@@ -941,11 +943,14 @@
     overflow: hidden;
     background: transparent;
     border: none;
+    /* Soft fade edges into the dark hero background */
+    mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 60%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 60%, transparent 100%);
 }
 
 .hero-worldmap-viewport {
     width: 100%;
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 2.2 / 1;
     overflow: hidden;
     position: relative;
 }
