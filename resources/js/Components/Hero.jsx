@@ -479,8 +479,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         </div>
 
                         {/* Right Content: Trophy + Countdown — floating, no card */}
-                        <div className="col-xl-4 d-none d-xl-block">
-                            <div className="d-flex flex-column align-items-end">
+                        <div className="col-xl-4">
+                            <div className="d-flex flex-column align-items-center align-items-xl-end">
                                 <motion.div
                                     key={`countdown-${tournament ? tournament.id : 'default'}`}
                                     initial={{ opacity: 0, y: 10 }}
@@ -490,11 +490,25 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 >
                                     {/* Trophy / Logo */}
                                     <div className="hero-countdown-trophy-wrap">
-                                        {wikipediaLogo ? (
-                                            <img src={wikipediaLogo} alt="" className="hero-countdown-logo-img" />
-                                        ) : (
-                                            <i className="fas fa-trophy hero-countdown-trophy-icon"></i>
-                                        )}
+                                        {(() => {
+                                            let customTrophy = null;
+                                            if (tournament?.name) {
+                                                if (tournament.name.includes("Africa Cup of Nations")) {
+                                                    customTrophy = "AFCON-trophy-transparent-bg.png";
+                                                } else if (tournament.name.includes("Euro")) {
+                                                    customTrophy = "Euros-trophy-transparent-bg.png";
+                                                } else if (tournament.name.includes("World Cup")) {
+                                                    customTrophy = "World-cup-trophy-transparent-bg.png";
+                                                }
+                                            }
+                                            if (customTrophy) {
+                                                return <img src={`${assetUrl}tournament-trophies/${customTrophy}`} alt="Trophy" className="hero-countdown-logo-img" style={{ transform: 'scale(1.2)' }} />;
+                                            } else if (wikipediaLogo) {
+                                                return <img src={wikipediaLogo} alt="" className="hero-countdown-logo-img" />;
+                                            } else {
+                                                return <i className="fas fa-trophy hero-countdown-trophy-icon"></i>;
+                                            }
+                                        })()}
                                     </div>
                                     {isConcluded ? (
                                         <div className="d-flex flex-column gap-3">
@@ -568,7 +582,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
                                 {/* Host Countries */}
                                 {tournament?.hosts && tournament.hosts.length > 0 && (
-                                    <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end w-100">
+                                    <div className="d-flex align-items-center gap-2 flex-wrap justify-content-center justify-content-xl-end w-100">
                                         <i className="fas fa-map-marker-alt text-danger"></i>
                                         {tournament.hosts.map((host, idx) => (
                                             <span key={idx} className="hero-glass-badge px-2 py-1 rounded-pill" style={{ fontSize: '0.75rem' }}>
@@ -582,7 +596,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 <hr className="w-100 border-white opacity-10 my-3" />
 
                                 {/* CTA Buttons */}
-                                <div className="hero-cta-buttons d-flex flex-row flex-nowrap justify-content-end gap-2 w-100">
+                                <div className="hero-cta-buttons d-flex flex-row flex-nowrap justify-content-center justify-content-xl-end gap-2 w-100">
                                     <button onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
                                         <i className="fas fa-calendar-alt me-2"></i>View Matches
                                     </button>
@@ -595,7 +609,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                     </div>
 
                     {/* Row 2: Tournament Stats Card — full width, aligned with row above */}
-                    <div className="row gx-0">
+                    <div className="row gx-0 d-none d-xl-flex">
                         <div className="col-12 px-3">
                             <motion.div
                                 key={`stats-${tournament ? tournament.id : 'default'}`}
@@ -690,87 +704,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 </div>
             </div>
 
-            {/* Mobile Countdown (visible only on mobile) */}
-            <div className="container d-block d-xl-none position-relative z-1 mb-4">
-                <div className="d-flex justify-content-center">
-                    <div className="hero-countdown p-3 rounded-2xl d-inline-flex flex-column align-items-center glass-card border border-white/5 hero-mobile-countdown">
-                         {/* Tournament Badge — full name */}
-                         <div className="d-flex align-items-center gap-2 mb-2 w-100 justify-content-center">
-                             {wikipediaLogo ? (
-                                 <img src={wikipediaLogo} alt="" className="hero-mobile-logo" />
-                             ) : (
-                                 <div className="hero-mobile-trophy-wrap">
-                                     <i className="fas fa-trophy hero-mobile-trophy-icon"></i>
-                                 </div>
-                             )}
-                             <div className="flex-grow-1 text-center">
-                                 <div className="fw-bold text-white hero-mobile-title">{tournament ? tournament.name : 'Tournament'}</div>
-                                 <span className={'px-2 py-0.5 rounded-pill fw-bold d-inline-block mt-1 ' + (tournament && tournament.status === 'concluded' ? 'text-bg-secondary' : (tournament && tournament.status === 'ongoing' ? 'text-bg-success' : 'text-bg-warning')) + " hero-mobile-status-badge"}>{tournament ? tournament.status : ''}</span>
-                             </div>
-                         </div>
-
-                         {isConcluded ? (
-                             <div className="text-center w-100">
-                                 {/* Winner */}
-                                  <div className="text-white text-opacity-40 mb-1 hero-mobile-label">Champion</div>
-                                 <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
-                                     {tournament.winner && teamNameToCode(tournament.winner) && (
-                                         <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
-                                     )}
-                                      <div className="text-warning fw-bold hero-mobile-winner-name">{tournament.winner || 'To Be Determined'}</div>
-                                 </div>
-
-                                 {/* Runner-ups */}
-                                 <div className="d-flex gap-2 mb-2 pt-2 border-top border-white/10">
-                                     {tournament.runner_up && (
-                                         <div className="flex-grow-1 text-center">
-                                              <div className="text-white text-opacity-30 hero-mobile-place-label">Runner-up</div>
-                                             <div className="d-flex align-items-center justify-content-center gap-1">
-                                                 {teamNameToCode(tournament.runner_up) && (
-                                                     <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xxs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
-                                                 )}
-                                                  <span className="text-white fw-semibold hero-mobile-place-name">{tournament.runner_up}</span>
-                                             </div>
-                                         </div>
-                                     )}
-                                     {tournament.second_runner_up && (
-                                         <div className="flex-grow-1 text-center">
-                                              <div className="text-white text-opacity-30 hero-mobile-place-label">3rd Place</div>
-                                             <div className="d-flex align-items-center justify-content-center gap-1">
-                                                 {teamNameToCode(tournament.second_runner_up) && (
-                                                     <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.second_runner_up)}.png`} alt="" className="hero-flag-xxs" onError={function(e) { if (wikipediaFlags[tournament.second_runner_up]) { e.target.src = wikipediaFlags[tournament.second_runner_up]; } }} />
-                                                 )}
-                                                  <span className="text-white fw-semibold hero-mobile-place-name">{tournament.second_runner_up}</span>
-                                             </div>
-                                         </div>
-                                     )}
-                                 </div>
-
-                                 {/* Final Score */}
-                                 {tournament.final_score && (
-                                     <div className="pt-2 border-top border-white/10 mb-2">
-                                          <div className="text-white text-opacity-30 hero-mobile-score-label">Final Score</div>
-                                          <div className="text-white fw-bold hero-mobile-score-value">{tournament.final_score}</div>
-                                     </div>
-                                 )}
-
-                                 {tournament.top_scorer && tournament.top_scorer.name && (
-                                      <div className="text-white text-opacity-50 mt-1 hero-mobile-scorer">Top Scorer: <span className="text-white fw-bold">{tournament.top_scorer.name}</span>{tournament.top_scorer.goals ? ' (' + tournament.top_scorer.goals + ')' : ''}</div>
-                                 )}
-                             </div>
-                         ) : (
-                             <div className="d-flex gap-3">
-                                {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
-                                    <div key={unit} className="text-center">
-                                        <div className="text-white fw-bold fs-5 font-monospace">{String(timeLeft[unit] || 0).padStart(2, '0')}</div>
-                                        <div className="text-white-50 text-uppercase small hero-countdown-unit-label">{unit.charAt(0)}</div>
-                                    </div>
-                                ))}
-                             </div>
-                         )}
-                    </div>
-                </div>
-            </div>
 
             {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
 

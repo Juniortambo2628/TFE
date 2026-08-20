@@ -869,7 +869,6 @@
     .hero-stat-card-gradient { height: 110px; }
     .hero-stats-card-container { padding: 0.75rem !important; }
     .hero-view-matches-btn { width: 100%; justify-content: center; }
-    .hero-countdown-floating { display: none !important; }
 }
 @media (max-width: 575px) {
     .hero-stat-card-gradient { height: 100px; }
@@ -984,26 +983,45 @@
     padding: 0.75rem 0;
 }
 
+@media (max-width: 767px) {
+    .hero-countdown-floating {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .hero-countdown-trophy-wrap {
+        width: 240px;
+        height: 240px;
+    }
+    .hero-countdown-logo-img {
+        width: 220px;
+        height: 220px;
+    }
+    .hero-countdown-trophy-icon {
+        font-size: 7rem;
+    }
+}
+
 /* Trophy / logo wrap in floating countdown */
 .hero-countdown-trophy-wrap {
-    width: 56px;
-    height: 56px;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    background: rgba(220, 20, 60, 0.12);
-    border: 1px solid rgba(220, 20, 60, 0.25);
+    background: transparent;
+    border: none;
     flex-shrink: 0;
 }
 .hero-countdown-trophy-icon {
-    font-size: 1.5rem;
+    font-size: 3.5rem;
     color: #DC143C;
 }
 .hero-countdown-logo-img {
-    width: 40px;
-    height: 40px;
+    width: 110px;
+    height: 110px;
     object-fit: contain;
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.6));
 }
 
 /* Red pill labels for countdown and results */
