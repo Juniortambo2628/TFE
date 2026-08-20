@@ -5,6 +5,8 @@ import MatchCard from '@/Components/Fan/MatchCard';
 import FlightSelector from '@/Components/Fan/FlightSelector';
 import HotelSelector from '@/Components/Fan/HotelSelector';
 import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
+import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
+import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -851,103 +853,17 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             <button className="btn-back" onClick={() => setWizardStep(2)}>
                                 <i className="fas fa-arrow-left me-1"></i> Back
                             </button>
-                            <div>
-                                <h3>Travel Preferences</h3>
-                                <p className="section-subtitle">Customize your journey</p>
-                            </div>
                         </div>
 
-                        <div className="preferences-grid">
-                            {/* Travel Origin - NEW */}
-                            <div className="preference-group full-width">
-                                <label><i className="fas fa-globe-americas"></i> Traveling From</label>
-                                <div className="origin-selector d-flex gap-2 flex-wrap">
-                                    {getFlightOrigins(tournamentPricing).map(origin => (
-                                        <button
-                                            key={origin.id}
-                                            className={`btn-fan-filter ${flightOrigin === origin.id ? 'active' : ''}`}
-                                            onClick={() => setFlightOrigin(origin.id)}
-                                            style={{ flex: '1 1 auto', minWidth: '150px' }}
-                                        >
-                                            {origin.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Flight Class */}
-                            <div className="preference-group">
-                                <label><i className="fas fa-plane-departure"></i> Flight Class</label>
-                                <div className="option-cards">
-                                    {[
-                                        { value: 'economy', icon: 'fa-plane', label: 'Economy', desc: 'Standard seating' },
-                                        { value: 'business', icon: 'fa-crown', label: 'Business', desc: 'Premium comfort' }
-                                    ].map(opt => (
-                                        <div 
-                                            key={opt.value}
-                                            className={`option-card ${flightClass === opt.value ? 'active' : ''}`}
-                                            onClick={() => setFlightClass(opt.value)}
-                                        >
-                                            <div className="option-icon"><i className={`fas ${opt.icon}`}></i></div>
-                                            <div className="option-details">
-                                                <h4>{opt.label}</h4>
-                                                <p>{opt.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Accommodation */}
-                            <div className="preference-group">
-                                <label><i className="fas fa-hotel"></i> Accommodation</label>
-                                <div className="option-cards">
-                                    {[
-                                        { value: 'hostel', icon: 'fa-bed', label: 'Hostel', desc: 'Budget' },
-                                        { value: '3_star', icon: 'fa-hotel', label: '3-Star', desc: 'Comfortable' },
-                                        { value: 'airbnb', icon: 'fa-home', label: 'Airbnb', desc: 'Local living' },
-                                        { value: '5_star', icon: 'fa-concierge-bell', label: '5-Star', desc: 'Luxury' },
-                                        { value: 'resort', icon: 'fa-umbrella-beach', label: 'Resort', desc: 'All-inclusive' }
-                                    ].map(opt => (
-                                        <div 
-                                            key={opt.value}
-                                            className={`option-card ${accommodation === opt.value ? 'active' : ''}`}
-                                            onClick={() => setAccommodation(opt.value)}
-                                        >
-                                            <div className="option-icon"><i className={`fas ${opt.icon}`}></i></div>
-                                            <div className="option-details">
-                                                <h4>{opt.label}</h4>
-                                                <p>{opt.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Duration */}
-                            <div className="preference-group full-width">
-                                <label><i className="fas fa-clock"></i> Duration (Days)</label>
-                                <div className="range-slider-container">
-                                    <input 
-                                        type="range" 
-                                        className="range-slider"
-                                        min="3" max="30" 
-                                        value={nights}
-                                        onChange={(e) => setNights(parseInt(e.target.value))}
-                                    />
-                                    <span className="range-value">{nights} Days</span>
-                                </div>
-                            </div>
-
-                            {/* Quick Estimate: Number of Matches */}
-                            {quickEstimate && (
+                        {quickEstimate && (
+                            <div style={{ marginBottom: '16px' }}>
                                 <div className="preference-group full-width">
                                     <label><i className="fas fa-futbol"></i> Expected Matches</label>
                                     <div className="range-slider-container">
-                                        <input 
-                                            type="range" 
+                                        <input
+                                            type="range"
                                             className="range-slider"
-                                            min="1" max="15" 
+                                            min="1" max="15"
                                             value={quickEstimateMatches}
                                             onChange={(e) => setQuickEstimateMatches(parseInt(e.target.value))}
                                         />
@@ -958,8 +874,8 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                         Knockout stage %: {quickEstimateKnockoutPct}%
                                     </label>
                                     <div className="range-slider-container">
-                                        <input 
-                                            type="range" 
+                                        <input
+                                            type="range"
                                             className="range-slider"
                                             min="0" max="100" step="10"
                                             value={quickEstimateKnockoutPct}
@@ -967,91 +883,37 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                         />
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Spending Tier */}
-                            <div className="preference-group">
-                                <label><i className="fas fa-wallet"></i> Spending Tier</label>
-                                <div className="option-cards">
-                                    {[
-                                        { value: 'budget', icon: 'fa-piggy-bank', label: 'Budget', desc: 'Save on daily costs' },
-                                        { value: 'mid_range', icon: 'fa-balance-scale', label: 'Mid-Range', desc: 'Comfortable' },
-                                        { value: 'luxury', icon: 'fa-gem', label: 'Luxury', desc: 'Premium experience' }
-                                    ].map(opt => (
-                                        <div 
-                                            key={opt.value}
-                                            className={`option-card ${spendingTier === opt.value ? 'active' : ''}`}
-                                            onClick={() => setSpendingTier(opt.value)}
-                                        >
-                                            <div className="option-icon"><i className={`fas ${opt.icon}`}></i></div>
-                                            <div className="option-details">
-                                                <h4>{opt.label}</h4>
-                                                <p>{opt.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
+                        )}
 
-                            {/* Group Size */}
-                            <div className="preference-group">
-                                <label><i className="fas fa-users"></i> Travel Group</label>
-                                <div className="option-cards">
-                                    {[
-                                        { value: 1, icon: 'fa-user', label: 'Solo', desc: '1 traveler' },
-                                        { value: 2, icon: 'fa-user-friends', label: 'Couple', desc: '2 travelers' },
-                                        { value: 4, icon: 'fa-users', label: 'Family', desc: '3-5 travelers' },
-                                        { value: 6, icon: 'fa-users-cog', label: 'Group', desc: '6+ travelers' }
-                                    ].map(opt => (
-                                        <div 
-                                            key={opt.value}
-                                            className={`option-card ${travelGroupSize === opt.value ? 'active' : ''}`}
-                                            onClick={() => setTravelGroupSize(opt.value)}
-                                        >
-                                            <div className="option-icon"><i className={`fas ${opt.icon}`}></i></div>
-                                            <div className="option-details">
-                                                <h4>{opt.label}</h4>
-                                                <p>{opt.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Add-ons */}
-                            <div className="preference-group full-width">
-                                <label><i className="fas fa-plus-circle"></i> Add-ons</label>
-                                <div className="d-flex flex-wrap gap-2">
-                                    <button
-                                        type="button"
-                                        className={`btn-fan-filter ${includeInsurance ? 'active' : ''}`}
-                                        onClick={() => setIncludeInsurance(!includeInsurance)}
-                                    >
-                                        <i className="fas fa-shield-alt me-1"></i> Travel Insurance
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={`btn-fan-filter ${includeVisa ? 'active' : ''}`}
-                                        onClick={() => setIncludeVisa(!includeVisa)}
-                                    >
-                                        <i className="fas fa-passport me-1"></i> Visa Costs
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={`btn-fan-filter ${merchandisePerMatch ? 'active' : ''}`}
-                                        onClick={() => setMerchandisePerMatch(!merchandisePerMatch)}
-                                    >
-                                        <i className="fas fa-shopping-bag me-1"></i> Merchandise
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="text-center mt-4">
-                            <button className="btn-calculate" onClick={() => setWizardStep(4)} disabled={loading}>
-                                <i className="fas fa-plane me-2"></i>Choose Flights & Hotels
-                            </button>
-                        </div>
+                        <TravelPreferencesWizard
+                            tournamentPricing={tournamentPricing}
+                            initialData={{
+                                region: null,
+                                country: null,
+                                flightOrigin: flightOrigin,
+                                flightClass,
+                                accommodation,
+                                nights,
+                                spendingTier,
+                                travelGroupSize,
+                                includeInsurance,
+                                includeVisa,
+                                includeMerchandise,
+                            }}
+                            onComplete={(prefs) => {
+                                setFlightOrigin(prefs.flightOrigin || flightOrigin);
+                                setFlightClass(prefs.flightClass);
+                                setAccommodation(prefs.accommodation);
+                                setNights(prefs.nights);
+                                setSpendingTier(prefs.spendingTier);
+                                setTravelGroupSize(prefs.travelGroupSize);
+                                setIncludeInsurance(prefs.includeInsurance);
+                                setIncludeVisa(prefs.includeVisa);
+                                setMerchandisePerMatch(prefs.includeMerchandise);
+                                setWizardStep(4);
+                            }}
+                        />
                     </div>
                 )}
 
