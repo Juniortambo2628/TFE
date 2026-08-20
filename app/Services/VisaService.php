@@ -21,8 +21,8 @@ class VisaService
 
     public function __construct()
     {
-        $this->apiKey = config('services.orizn.api_key', '');
-        $this->baseUrl = config('services.orizn.base_url', 'https://visa.orizn.app/api/v1');
+        $this->apiKey = config('budget_api.orizn.api_key', '');
+        $this->baseUrl = config('budget_api.orizn.base_url', 'https://visa.orizn.app/api/v1');
     }
 
     public function isConfigured(): bool
@@ -51,8 +51,8 @@ class VisaService
 
             try {
                 $response = Http::withHeaders([
-                    'x-api-key' => $this->apiKey,
-                ])->timeout(8)->get("{$this->baseUrl}/visa", [
+                    'X-API-Key' => $this->apiKey,
+                ])->timeout(8)->get("{$this->baseUrl}/visa/check", [
                     'passport' => $passport,
                     'destination' => $destination,
                 ]);

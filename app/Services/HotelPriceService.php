@@ -23,9 +23,9 @@ class HotelPriceService
 
     public function __construct()
     {
-        $this->clientId = config('services.amadeus.client_id', '');
-        $this->clientSecret = config('services.amadeus.client_secret', '');
-        $this->baseUrl = config('services.amadeus.base_url', 'https://api.amadeus.com');
+        $this->clientId = config('budget_api.amadeus.client_id', '');
+        $this->clientSecret = config('budget_api.amadeus.client_secret', '');
+        $this->baseUrl = config('budget_api.amadeus.base_url', 'https://api.amadeus.com');
     }
 
     public function isConfigured(): bool
