@@ -251,13 +251,14 @@ function RegionSlide({ selectedRegion, onSelect }) {
     const containerRef = useRef(null);
     const regionColors = useMemo(() => getCountryRegionColors(), []);
 
-    /* After render, patch the SVG's preserveAspectRatio so the map
-     * content fills the wider container instead of letterboxing. */
+    /* After render, patch the SVG so it centers the map content.
+     * xMidYMid meet = center horizontally+vertically, fit inside.
+     * The CSS transform: scale(1.35) then enlarges it to fill. */
     useEffect(() => {
         if (!containerRef.current) return;
         const svg = containerRef.current.querySelector('svg');
         if (svg) {
-            svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         }
     });
 

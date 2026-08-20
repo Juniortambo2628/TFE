@@ -103,7 +103,7 @@
     border: none;
     position: relative;
     width: calc(100% + 50px);
-    aspect-ratio: 2.2 / 1;
+    aspect-ratio: 1.6 / 1;
 }
 .pref-map-container > div {
     width: 100% !important;
@@ -115,6 +115,8 @@
 .pref-map-container > div > div {
     width: 100% !important;
     height: 100% !important;
+    transform: scale(1.35) !important;
+    transform-origin: center center !important;
 }
 .pref-map-container svg {
     width: 100% !important;
