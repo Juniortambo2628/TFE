@@ -101,10 +101,6 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::post('/api/budget/exchange-rate', [BudgetApiController::class, 'exchangeRate'])->name('api.budget.exchange');
     Route::post('/api/budget/visa-info', [BudgetApiController::class, 'visaInfo'])->name('api.budget.visa');
 
-    // SerpAPI (Google Flights + Hotels)
-    Route::post('/api/search/flights', [SerpApiController::class, 'searchFlights'])->name('api.search.flights');
-    Route::post('/api/search/hotels', [SerpApiController::class, 'searchHotels'])->name('api.search.hotels');
-
     // Feature Pages
     Route::get('/match-schedule', [MatchScheduleController::class, 'index'])->name('match-schedule');
     Route::get('/communication', [CommunicationController::class, 'index'])->name('communication');
@@ -199,6 +195,12 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Notifications & Messages
     Route::post('/notifications/read-all', [NotificationController::class, 'markNotificationsRead'])->name('notifications.read-all');
     Route::post('/messages/read-all', [NotificationController::class, 'markMessagesRead'])->name('messages.read-all');
+});
+
+// SerpAPI (Google Flights + Hotels) — auth only, no fan prefix
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/api/search/flights', [SerpApiController::class, 'searchFlights'])->name('api.search.flights');
+    Route::post('/api/search/hotels', [SerpApiController::class, 'searchHotels'])->name('api.search.hotels');
 });
 
 // Admin Routes

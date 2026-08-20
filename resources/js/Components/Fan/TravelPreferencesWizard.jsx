@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WorldMap from 'react-svg-worldmap';
 import { REGIONS, ISO2_TO_ISO3, getCountryRegionColors } from '@/Data/travelRegions';
-import { getFlightOrigins, getAccommodationFactors, getSpendingTiers, getInsuranceDaily, getMerchandisePerMatch } from '@/Data/BudgetPricingData';
+import { getFlightOrigins, getAccommodationFactors, getSpendingTiers } from '@/Data/BudgetPricingData';
 
 const SLIDES = [
     { id: 'region', label: 'Region', icon: 'fa-globe-americas' },
@@ -30,10 +30,8 @@ export default function TravelPreferencesWizard({
     const [currentSlide, setCurrentSlide] = useState(0);
     const [direction, setDirection] = useState(1);
 
-    // Preference state
     const [selectedRegion, setSelectedRegion] = useState(initialData.region || null);
     const [selectedCountry, setSelectedCountry] = useState(initialData.country || null);
-    const [flightOrigin, setFlightOrigin] = useState(initialData.flightOrigin || null);
     const [flightClass, setFlightClass] = useState(initialData.flightClass || 'economy');
     const [accommodation, setAccommodation] = useState(initialData.accommodation || '3_star');
     const [nights, setNights] = useState(initialData.nights || 7);
@@ -43,8 +41,6 @@ export default function TravelPreferencesWizard({
     const [includeVisa, setIncludeVisa] = useState(initialData.includeVisa ?? true);
     const [includeMerchandise, setIncludeMerchandise] = useState(initialData.includeMerchandise ?? true);
 
-    const regionColors = getCountryRegionColors();
-    const flightOrigins = getFlightOrigins(tournamentPricing);
     const accFactors = getAccommodationFactors(tournamentPricing);
     const spendingTiers = getSpendingTiers(tournamentPricing);
 
@@ -53,10 +49,9 @@ export default function TravelPreferencesWizard({
         switch (slide.id) {
             case 'region': return selectedRegion !== null;
             case 'country': return selectedCountry !== null;
-            case 'flight': return flightOrigin !== null;
             default: return true;
         }
-    }, [currentSlide, selectedRegion, selectedCountry, flightOrigin]);
+    }, [currentSlide, selectedRegion, selectedCountry]);
 
     const goNext = () => {
         if (!canProceed()) return;
@@ -75,11 +70,14 @@ export default function TravelPreferencesWizard({
     };
 
     const handleComplete = () => {
+        const originLabel = selectedCountry
+            ? (REGIONS[selectedRegion]?.countries.find(c => c.code === selectedCountry)?.name || selectedCountry)
+            : null;
         onComplete({
             region: selectedRegion,
             country: selectedCountry,
             countryCode: selectedCountry ? ISO2_TO_ISO3[selectedCountry] : null,
-            flightOrigin,
+            flightOrigin: selectedRegion,
             flightClass,
             accommodation,
             nights,
@@ -93,11 +91,10 @@ export default function TravelPreferencesWizard({
 
     const getSummaryLabel = () => {
         const regionName = selectedRegion ? REGIONS[selectedRegion]?.name : '—';
-        const countryName = selectedCountry
-            ? REGIONS[selectedRegion]?.countries.find(c => c.code === selectedCountry)?.name
-            : '—';
-        const originLabel = flightOrigins.find(o => o.id === flightOrigin)?.label || '—';
-        return { regionName, countryName, originLabel };
+        const countryObj = selectedRegion && selectedCountry
+            ? REGIONS[selectedRegion]?.countries.find(c => c.code === selectedCountry)
+            : null;
+        return { regionName, countryName: countryObj?.name || '—' };
     };
 
     const renderSlide = () => {
@@ -108,7 +105,6 @@ export default function TravelPreferencesWizard({
                     <RegionSlide
                         selectedRegion={selectedRegion}
                         onSelect={(r) => { setSelectedRegion(r); setSelectedCountry(null); }}
-                        regionColors={regionColors}
                     />
                 );
             case 'country':
@@ -122,9 +118,6 @@ export default function TravelPreferencesWizard({
             case 'flight':
                 return (
                     <FlightSlide
-                        origins={flightOrigins}
-                        selectedOrigin={flightOrigin}
-                        onSelectOrigin={setFlightOrigin}
                         selectedClass={flightClass}
                         onSelectClass={setFlightClass}
                     />
@@ -180,12 +173,11 @@ export default function TravelPreferencesWizard({
         }
     };
 
-    const slideIndex = currentSlide;
-    const slide = SLIDES[slideIndex];
+    const slide = SLIDES[currentSlide];
 
     return (
         <div className="pref-wizard">
-            {/* Progress bar */}
+            {/* Progress circles */}
             <div className="pref-wizard-progress">
                 {SLIDES.map((s, i) => (
                     <button
@@ -194,8 +186,7 @@ export default function TravelPreferencesWizard({
                         onClick={() => goToSlide(i)}
                         title={s.label}
                     >
-                        <i className={`fas ${s.icon}`}></i>
-                        <span className="step-label">{s.label}</span>
+                        {i + 1}
                     </button>
                 ))}
             </div>
@@ -256,23 +247,65 @@ export default function TravelPreferencesWizard({
 }
 
 /* ── Slide: Region ────────────────────────────────────────── */
-function RegionSlide({ selectedRegion, onSelect, regionColors }) {
+function RegionSlide({ selectedRegion, onSelect }) {
+    const regionColors = useMemo(() => getCountryRegionColors(), []);
+
+    /* Build world map data: all known countries colored by region */
+    const worldMapData = useMemo(() => {
+        return Object.entries(regionColors).map(([code, color]) => ({
+            country: code,
+            color: color,
+            value: 1,
+        }));
+    }, [regionColors]);
+
+    /* Style function: highlight selected region's countries in red */
+    const styleFunction = ({ countryCode }) => {
+        const code = (countryCode || '').toLowerCase();
+        const regionData = selectedRegion ? REGIONS[selectedRegion] : null;
+        const isInSelectedRegion = regionData?.countries.some(
+            c => c.code.toLowerCase() === code
+        );
+
+        if (isInSelectedRegion) {
+            return {
+                fill: '#dc143c',
+                stroke: 'rgba(255,255,255,0.3)',
+                strokeWidth: 0.8,
+                cursor: 'pointer',
+            };
+        }
+        return {
+            fill: 'rgba(220, 20, 60, 0.15)',
+            stroke: 'rgba(255,255,255,0.15)',
+            strokeWidth: 0.4,
+            cursor: 'pointer',
+        };
+    };
+
+    const handleMapClick = ({ countryCode }) => {
+        const code = (countryCode || '').toUpperCase();
+        for (const [key, region] of Object.entries(REGIONS)) {
+            if (region.countries.some(c => c.code === code)) {
+                onSelect(key);
+                return;
+            }
+        }
+    };
+
     return (
         <div>
             <p className="pref-instruction">Select the region you&apos;re traveling from</p>
             <div className="pref-map-container">
                 <WorldMap
-                    color="#374151"
-                    tooltipBgColor="#1f2937"
-                    tooltipTextColor="#e5e7eb"
                     size="lg"
-                    data={Object.entries(regionColors).map(([code, color]) => ({
-                        country: code,
-                        color: selectedRegion && regionColors[code] === REGIONS[selectedRegion]?.color
-                            ? REGIONS[selectedRegion].color
-                            : color,
-                        value: 1,
-                    }))}
+                    data={worldMapData}
+                    styleFunction={styleFunction}
+                    onClickFunction={handleMapClick}
+                    tooltipBgColor="#1a1f2e"
+                    tooltipTextColor="#e5e7eb"
+                    strokeOpacity={0.2}
+                    backgroundColor="transparent"
                 />
             </div>
             <div className="pref-region-grid">
@@ -281,7 +314,6 @@ function RegionSlide({ selectedRegion, onSelect, regionColors }) {
                         key={key}
                         className={`pref-region-btn ${selectedRegion === key ? 'selected' : ''}`}
                         onClick={() => onSelect(key)}
-                        style={{ '--region-color': region.color }}
                     >
                         <span className="region-dot" style={{ background: region.color }}></span>
                         {region.name}
@@ -317,42 +349,25 @@ function CountrySlide({ region, selectedCountry, onSelect }) {
 }
 
 /* ── Slide: Flight ────────────────────────────────────────── */
-function FlightSlide({ origins, selectedOrigin, onSelectOrigin, selectedClass, onSelectClass }) {
+function FlightSlide({ selectedClass, onSelectClass }) {
     return (
         <div>
-            <div className="pref-section">
-                <h4 className="pref-section-title">Where are you flying from?</h4>
-                <div className="pref-option-grid">
-                    {origins.map(origin => (
-                        <button
-                            key={origin.id}
-                            className={`pref-option-card ${selectedOrigin === origin.id ? 'selected' : ''}`}
-                            onClick={() => onSelectOrigin(origin.id)}
-                        >
-                            <i className="fas fa-map-marker-alt"></i>
-                            <span>{origin.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-            <div className="pref-section">
-                <h4 className="pref-section-title">Flight class</h4>
-                <div className="pref-option-grid two-col">
-                    {[
-                        { value: 'economy', icon: 'fa-plane', label: 'Economy', desc: 'Standard seating' },
-                        { value: 'business', icon: 'fa-crown', label: 'Business', desc: 'Premium comfort' },
-                    ].map(opt => (
-                        <button
-                            key={opt.value}
-                            className={`pref-option-card ${selectedClass === opt.value ? 'selected' : ''}`}
-                            onClick={() => onSelectClass(opt.value)}
-                        >
-                            <i className={`fas ${opt.icon}`}></i>
-                            <span className="opt-label">{opt.label}</span>
-                            <span className="opt-desc">{opt.desc}</span>
-                        </button>
-                    ))}
-                </div>
+            <p className="pref-instruction">Select your preferred flight class</p>
+            <div className="pref-option-grid two-col">
+                {[
+                    { value: 'economy', icon: 'fa-plane', label: 'Economy', desc: 'Standard seating' },
+                    { value: 'business', icon: 'fa-crown', label: 'Business', desc: 'Premium comfort' },
+                ].map(opt => (
+                    <button
+                        key={opt.value}
+                        className={`pref-option-card ${selectedClass === opt.value ? 'selected' : ''}`}
+                        onClick={() => onSelectClass(opt.value)}
+                    >
+                        <i className={`fas ${opt.icon}`}></i>
+                        <span className="opt-label">{opt.label}</span>
+                        <span className="opt-desc">{opt.desc}</span>
+                    </button>
+                ))}
             </div>
         </div>
     );
@@ -513,7 +528,6 @@ function SummarySlide({ labels, flightClass, accommodation, nights, spendingTier
     const items = [
         { slide: 0, label: 'Region', value: labels.regionName, icon: 'fa-globe-americas' },
         { slide: 1, label: 'Country', value: labels.countryName, icon: 'fa-flag' },
-        { slide: 2, label: 'Flying from', value: labels.originLabel, icon: 'fa-map-marker-alt' },
         { slide: 2, label: 'Flight class', value: flightClass === 'economy' ? 'Economy' : 'Business', icon: 'fa-plane' },
         { slide: 3, label: 'Accommodation', value: accommodation.replace('_', '-').replace(/\b\w/g, l => l.toUpperCase()), icon: 'fa-hotel' },
         { slide: 4, label: 'Duration', value: `${nights} days`, icon: 'fa-clock' },
