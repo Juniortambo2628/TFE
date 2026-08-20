@@ -34,6 +34,21 @@ export const TEAM_NAMES = {
 
 export const TEAM_FLAGS = {
     'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦',
+    'Kenya': '🇰🇪', 'Tanzania': '🇹🇿', 'Uganda': '🇺🇬',
+    'Germany': '🇩🇪', 'Spain': '🇪🇸', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'France': '🇫🇷',
+    'Brazil': '🇧🇷', 'Argentina': '🇦🇷', 'Netherlands': '🇳🇱', 'Portugal': '🇵🇹',
+    'Morocco': '🇲🇦', 'Nigeria': '🇳🇬', 'Senegal': '🇸🇳', 'Egypt': '🇪🇬',
+    'South Africa': '🇿🇦', 'Ghana': '🇬🇭', 'Cameroon': '🇨🇲', 'Tunisia': '🇹🇳',
+    'Algeria': '🇩🇿', "Côte d'Ivoire": '🇨🇮', 'Australia': '🇦🇺', 'Japan': '🇯🇵',
+    'South Korea': '🇰🇷', 'Iran': '🇮🇷', 'Saudi Arabia': '🇸🇦', 'Qatar': '🇶🇦',
+    'Croatia': '🇭🇷', 'Belgium': '🇧🇪', 'Switzerland': '🇨🇭', 'Poland': '🇵🇱',
+    'Uruguay': '🇺🇾', 'Colombia': '🇨🇴', 'Ecuador': '🇪🇨', 'Chile': '🇨🇱',
+    'Paraguay': '🇵🇾', 'Peru': '🇵🇪', 'Bolivia': '🇧🇴', 'Venezuela': '🇻🇪',
+    'New Zealand': '🇳🇿', 'Panama': '🇵🇦', 'Haiti': '🇭🇹', 'Jamaica': '🇯🇲',
+    'Norway': '🇳🇴', 'Sweden': '🇸🇪', 'Denmark': '🇩🇰', 'Austria': '🇦🇹',
+    'Czech Republic': '🇨🇿', 'Hungary': '🇭🇺', 'Romania': '🇷🇴', 'Serbia': '🇷🇸',
+    'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Ireland': '🇮🇪', 'Turkey': '🇹🇷',
+    'Ukraine': '🇺🇦', 'Israel': '🇮🇱', 'Uzbekistan': '🇺🇿', 'Jordan': '🇯🇴',
 };
 
 export const SPECIAL_MAPPINGS = {

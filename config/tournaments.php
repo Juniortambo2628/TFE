@@ -87,6 +87,14 @@ return [
                     'Final' => 1500,
                 ],
                 'daily_costs' => ['food' => 60, 'transport' => 30, 'misc' => 20],
+                'spending_tiers' => [
+                    'budget' => 0.6,
+                    'mid_range' => 1.0,
+                    'luxury' => 1.8,
+                ],
+                'visa_cost' => ['USA' => 0, 'Canada' => 0, 'Mexico' => 0],
+                'insurance_daily' => 8,
+                'merchandise_per_match' => 40,
                 'venue_tiers' => [
                     'New York New Jersey Stadium' => ['tier' => 'High', 'multiplier' => 1.5, 'hotel_3star' => 250, 'country' => 'USA'],
                     'Los Angeles Stadium' => ['tier' => 'High', 'multiplier' => 1.45, 'hotel_3star' => 240, 'country' => 'USA'],
@@ -166,6 +174,14 @@ return [
                     'Final' => 1200,
                 ],
                 'daily_costs' => ['food' => 55, 'transport' => 25, 'misc' => 15],
+                'spending_tiers' => [
+                    'budget' => 0.6,
+                    'mid_range' => 1.0,
+                    'luxury' => 1.8,
+                ],
+                'visa_cost' => ['Germany' => 0],
+                'insurance_daily' => 7,
+                'merchandise_per_match' => 35,
                 'venue_tiers' => [
                     'Munich' => ['tier' => 'High', 'multiplier' => 1.3, 'hotel_3star' => 170, 'country' => 'Germany'],
                     'Berlin' => ['tier' => 'High', 'multiplier' => 1.25, 'hotel_3star' => 160, 'country' => 'Germany'],
@@ -235,6 +251,14 @@ return [
                     'Final' => 500,
                 ],
                 'daily_costs' => ['food' => 25, 'transport' => 15, 'misc' => 10],
+                'spending_tiers' => [
+                    'budget' => 0.5,
+                    'mid_range' => 1.0,
+                    'luxury' => 2.0,
+                ],
+                'visa_cost' => ['Kenya' => 50, 'Tanzania' => 50, 'Uganda' => 50],
+                'insurance_daily' => 5,
+                'merchandise_per_match' => 20,
                 'venue_tiers' => [
                     'Nairobi' => ['tier' => 'High', 'multiplier' => 1.2, 'hotel_3star' => 90, 'country' => 'Kenya'],
                     'Dar es Salaam' => ['tier' => 'Standard', 'multiplier' => 1.0, 'hotel_3star' => 75, 'country' => 'Tanzania'],

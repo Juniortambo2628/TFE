@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getExchangeRate } from '@/Data/BudgetPricingData';
+import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getExchangeRate, getSpendingTiers, getVisaCosts, getInsuranceDaily, getMerchandisePerMatch } from '@/Data/BudgetPricingData';
 import MatchCard from '@/Components/Fan/MatchCard';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ import axios from 'axios';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
-import { TEAM_FLAGS } from '@/Data/countryFlags';
+import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 
 const USD_TO_KES = 130;
 
@@ -36,6 +36,11 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     const [flightOrigin, setFlightOrigin] = useState('north_america'); // New State
     const [accommodation, setAccommodation] = useState('3_star');
     const [nights, setNights] = useState(7);
+    const [spendingTier, setSpendingTier] = useState('mid_range');
+    const [travelGroupSize, setTravelGroupSize] = useState(1);
+    const [includeInsurance, setIncludeInsurance] = useState(true);
+    const [includeVisa, setIncludeVisa] = useState(true);
+    const [merchandisePerMatch, setMerchandisePerMatch] = useState(true);
     
     // Results
     const [estimatedCost, setEstimatedCost] = useState(0);
@@ -43,6 +48,11 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     const [showResults, setShowResults] = useState(false);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(false);
+    
+    // Quick Estimate Mode (for tournaments without fixtures)
+    const [quickEstimate, setQuickEstimate] = useState(false);
+    const [quickEstimateMatches, setQuickEstimateMatches] = useState(3);
+    const [quickEstimateKnockoutPct, setQuickEstimateKnockoutPct] = useState(30);
     
     // Saved Budgets
     const [savedBudgets, setSavedBudgets] = useState(initialBudgets);
@@ -242,8 +252,9 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
     // Calculate Budget
     const calculateBudget = () => {
-        if (selectedMatchIds.length === 0) {
-            toast.warning("Please select at least one match.");
+        const hasMatches = quickEstimate || selectedMatchIds.length > 0;
+        if (!hasMatches) {
+            toast.warning("Please select at least one match or use Quick Estimate.");
             return;
         }
         setLoading(true);
@@ -256,83 +267,125 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             const TICKET_PRICES = getTicketPrices(tournamentPricing);
             const ACCOMMODATION_FACTORS = getAccommodationFactors(tournamentPricing);
             const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
+            const SPENDING_TIERS = getSpendingTiers(tournamentPricing);
+            const VISA_COSTS = getVisaCosts(tournamentPricing);
+            const INSURANCE_DAILY = getInsuranceDaily(tournamentPricing);
+            const MERCH_PER_MATCH = getMerchandisePerMatch(tournamentPricing);
 
-            // 1. Identify Venues and Stages from selection
-            const selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
-            const venues = selectedMatches.map(m => m.venue);
-            const stages = selectedMatches.map(m => m.stage);
+            const tierMultiplier = SPENDING_TIERS[spendingTier] || 1.0;
 
-            // 2. Average City Multiplier (Cost of Living)
-            let totalCityMultiplier = 0;
-            let avgHotelBaseCost = 0;
-            
-            venues.forEach(venue => {
-                const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 };
-                totalCityMultiplier += cityData.multiplier;
-                avgHotelBaseCost += cityData.avg_hotel_3star;
-            });
-
-            const avgMultiplier = venues.length > 0 ? (totalCityMultiplier / venues.length) : 1.0;
-            const avgBaseHotel = venues.length > 0 ? (avgHotelBaseCost / venues.length) : 160;
-
-            // 3. Surge Pricing Priority (Max surge of selected matches)
+            let totalTicketCost = 0;
+            let avgMultiplier = 1.0;
+            let avgBaseHotel = 160;
             let maxSurge = 1.0;
-            stages.forEach(stage => {
-                const stageSurge = SURGE_RATES[stage] || 1.0;
-                if (stageSurge > maxSurge) maxSurge = stageSurge;
-            });
+            let matchCount = 0;
+            let selectedMatches = [];
 
-            // 4. Calculate Flight Cost (Origin based)
+            if (quickEstimate) {
+                // Quick Estimate: distribute matches across stages
+                matchCount = quickEstimateMatches;
+                const groupMatches = Math.round(matchCount * (1 - quickEstimateKnockoutPct / 100));
+                const knockoutMatches = matchCount - groupMatches;
+
+                totalTicketCost += groupMatches * (TICKET_PRICES['Group Stage'] || 150);
+                totalTicketCost += knockoutMatches * (TICKET_PRICES['Quarter-finals'] || 350);
+                maxSurge = quickEstimateKnockoutPct > 50 ? 1.4 : 1.15;
+
+                // Use average of all venue tiers for estimate
+                const allTiers = Object.values(CITY_TIERS);
+                if (allTiers.length > 0) {
+                    avgMultiplier = allTiers.reduce((s, t) => s + t.multiplier, 0) / allTiers.length;
+                    avgBaseHotel = allTiers.reduce((s, t) => s + t.avg_hotel_3star, 0) / allTiers.length;
+                }
+            } else {
+                // Full calculation from selected matches
+                selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
+                matchCount = selectedMatches.length;
+                const venues = selectedMatches.map(m => m.venue);
+                const stages = selectedMatches.map(m => m.stage);
+
+                let totalCityMultiplier = 0;
+                let totalHotelCost = 0;
+                venues.forEach(venue => {
+                    const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 };
+                    totalCityMultiplier += cityData.multiplier;
+                    totalHotelCost += cityData.avg_hotel_3star;
+                });
+                avgMultiplier = venues.length > 0 ? (totalCityMultiplier / venues.length) : 1.0;
+                avgBaseHotel = venues.length > 0 ? (totalHotelCost / venues.length) : 160;
+
+                stages.forEach(stage => {
+                    const stageSurge = SURGE_RATES[stage] || 1.0;
+                    if (stageSurge > maxSurge) maxSurge = stageSurge;
+                });
+
+                selectedMatches.forEach(m => {
+                    totalTicketCost += TICKET_PRICES[m.stage] || TICKET_PRICES['Group Stage'] || 150;
+                });
+            }
+
+            // Flight Cost
             const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
             const baseFlightCost = originData[flightClass] || 1000;
             const flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
 
-            // 5. Calculate Accommodation Cost
+            // Accommodation Cost (divided by group size for shared rooms)
             const accFactor = ACCOMMODATION_FACTORS[accommodation] || 1.0;
-            const accommodationCost = avgBaseHotel * accFactor * maxSurge * nights;
+            const sharedAccommodation = Math.max(1, Math.ceil(travelGroupSize / 2));
+            const accommodationCost = (avgBaseHotel * accFactor * maxSurge * nights) / sharedAccommodation;
 
-            // 6. Tickets (based on stage from pricing config)
-            let totalTicketCost = 0;
-            selectedMatches.forEach(m => {
-                totalTicketCost += TICKET_PRICES[m.stage] || TICKET_PRICES['Group Stage'] || 150;
-            });
-
-            // 7. Daily Expenses
-            const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge;
-            const dailyTransport = BASE_COSTS.transport * avgMultiplier;
-            const dailyMisc = BASE_COSTS.misc * avgMultiplier;
-
+            // Daily Expenses (adjusted by spending tier and city)
+            const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge * tierMultiplier;
+            const dailyTransport = BASE_COSTS.transport * avgMultiplier * tierMultiplier;
+            const dailyMisc = BASE_COSTS.misc * avgMultiplier * tierMultiplier;
             const foodCost = dailyFood * nights;
             const transportCost = dailyTransport * nights;
             const miscCost = dailyMisc * nights;
 
-            // 8. Total
-            const totalUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost;
-            const totalKES = totalUSD * EXCHANGE_RATE;
+            // Insurance
+            const insuranceCost = includeInsurance ? INSURANCE_DAILY * nights : 0;
+
+            // Visa (total for group)
+            let visaCost = 0;
+            if (includeVisa) {
+                const hosts = tournament?.hosts || [];
+                hosts.forEach(h => { visaCost += VISA_COSTS[h] || 0; });
+            }
+
+            // Merchandise
+            const merchCost = MERCH_PER_MATCH * matchCount;
+
+            // Total per person, then multiply by group size
+            const perPersonUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost + insuranceCost + merchCost;
+            const totalGroupUSD = (perPersonUSD * travelGroupSize) + visaCost;
+            const totalKES = totalGroupUSD * EXCHANGE_RATE;
 
             setUsdToKes(EXCHANGE_RATE);
 
-            // Set Breakdown
             setBreakdown({
-                match_tickets: totalTicketCost * EXCHANGE_RATE,
-                flights: flightCost * EXCHANGE_RATE,
-                accommodation: accommodationCost * EXCHANGE_RATE,
-                food_and_drink: foodCost * EXCHANGE_RATE,
-                local_transport: transportCost * EXCHANGE_RATE,
-                miscellaneous: miscCost * EXCHANGE_RATE
+                match_tickets: totalTicketCost * travelGroupSize * EXCHANGE_RATE,
+                flights: flightCost * travelGroupSize * EXCHANGE_RATE,
+                accommodation: accommodationCost * travelGroupSize * EXCHANGE_RATE,
+                food_and_drink: foodCost * travelGroupSize * EXCHANGE_RATE,
+                local_transport: transportCost * travelGroupSize * EXCHANGE_RATE,
+                insurance: insuranceCost * travelGroupSize * EXCHANGE_RATE,
+                visa: visaCost * EXCHANGE_RATE,
+                merchandise: merchCost * travelGroupSize * EXCHANGE_RATE,
+                miscellaneous: miscCost * travelGroupSize * EXCHANGE_RATE,
             });
 
             setEstimatedCost(totalKES);
             setLoading(false);
             setShowResults(true);
 
-            // Track usage
             axios.post(route('analytics.track'), {
                 event: 'calculator_use_v2',
                 data: {
-                    match_count: selectedMatches.length,
+                    match_count: matchCount,
                     nights,
                     origin: flightOrigin,
+                    group_size: travelGroupSize,
+                    spending_tier: spendingTier,
                     cost_kes: totalKES
                 }
             });
@@ -387,21 +440,27 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     const getBreakdownDetails = (key) => {
         const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
         const originLabel = FLIGHT_ORIGINS.find(o => o.id === flightOrigin)?.label || 'Origin';
-        const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
         const TICKET_PRICES = getTicketPrices(tournamentPricing);
         const ticketStages = Object.entries(TICKET_PRICES).map(([s, p]) => `${s}: $${p}`).join(', ');
+        const matchCount = quickEstimate ? quickEstimateMatches : selectedMatchIds.length;
         
         switch (key) {
             case 'match_tickets':
-                return `Estimated for ${selectedMatchIds.length} match(es). Prices by stage — ${ticketStages}.`;
+                return `Estimated for ${matchCount} match(es). Prices by stage — ${ticketStages}.`;
             case 'flights':
                 return `Round-trip ${flightClass.replace('_', ' ')} class flight from ${originLabel}. Includes event-time demand adjustments.`;
             case 'accommodation':
-                return `${nights} nights of ${accommodation.replace('_', '-')} accommodation. Adjusted for city cost tiers and demand surge.`;
+                return `${nights} nights of ${accommodation.replace('_', '-')} accommodation for ${travelGroupSize > 1 ? `${travelGroupSize} travelers (shared)` : '1 traveler'}. Adjusted for city cost tiers and demand surge.`;
             case 'food_and_drink':
-                return `Daily food and drink allowance adjusted for local cost of living.`;
+                return `Daily food and drink allowance adjusted for local cost of living and spending tier.`;
             case 'local_transport':
                 return `Local transportation (rideshare, metro) estimated per day.`;
+            case 'insurance':
+                return `Travel insurance at $${getInsuranceDaily(tournamentPricing)}/day for ${nights} days.`;
+            case 'visa':
+                return `Visa costs for host country entry (if applicable).`;
+            case 'merchandise':
+                return `Estimated merchandise and souvenirs at $${getMerchandisePerMatch(tournamentPricing)}/match.`;
             case 'miscellaneous':
                 return `Entertainment, souvenirs, and other expenses.`;
             default:
@@ -420,11 +479,20 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         setFilteredMatches([]);
         setShowResults(false);
         setBreakdown({});
+        setQuickEstimate(false);
     };
 
-    // Get country flag
-    const getCountryFlag = (country) => {
-        return TEAM_FLAGS[country] || '🏟️';
+    // Get country flag code for image path
+    const getCountryFlagCode = (country) => {
+        const code = TEAM_FLAGS[country] || countryFlagMap[country.toLowerCase()] || TEAM_CODES[country];
+        return code || null;
+    };
+
+    const getCountryFlagImg = (country) => {
+        const code = getCountryFlagCode(country);
+        if (!code) return null;
+        const basePath = window.location.pathname.includes('/TFE/') ? '/TFE/public' : '';
+        return `${basePath}/assets/Flags/${code}.png`;
     };
 
     // Load saved budget
@@ -657,6 +725,19 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                 <i className="fas fa-star me-2"></i>
                                 Start from Favorites
                             </button>
+
+                            <button
+                                type="button"
+                                className="btn-calculate"
+                                style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }}
+                                onClick={() => {
+                                    setQuickEstimate(true);
+                                    setWizardStep(3);
+                                }}
+                            >
+                                <i className="fas fa-bolt me-2"></i>
+                                Quick Estimate
+                            </button>
                         </div>
                     </div>
                 )}
@@ -791,6 +872,113 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                     <span className="range-value">{nights} Days</span>
                                 </div>
                             </div>
+
+                            {/* Quick Estimate: Number of Matches */}
+                            {quickEstimate && (
+                                <div className="preference-group full-width">
+                                    <label><i className="fas fa-futbol"></i> Expected Matches</label>
+                                    <div className="range-slider-container">
+                                        <input 
+                                            type="range" 
+                                            className="range-slider"
+                                            min="1" max="15" 
+                                            value={quickEstimateMatches}
+                                            onChange={(e) => setQuickEstimateMatches(parseInt(e.target.value))}
+                                        />
+                                        <span className="range-value">{quickEstimateMatches} Matches</span>
+                                    </div>
+                                    <label className="mt-2" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                                        <i className="fas fa-percentage me-1"></i>
+                                        Knockout stage %: {quickEstimateKnockoutPct}%
+                                    </label>
+                                    <div className="range-slider-container">
+                                        <input 
+                                            type="range" 
+                                            className="range-slider"
+                                            min="0" max="100" step="10"
+                                            value={quickEstimateKnockoutPct}
+                                            onChange={(e) => setQuickEstimateKnockoutPct(parseInt(e.target.value))}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Spending Tier */}
+                            <div className="preference-group">
+                                <label><i className="fas fa-wallet"></i> Spending Tier</label>
+                                <div className="option-cards">
+                                    {[
+                                        { value: 'budget', icon: 'fa-piggy-bank', label: 'Budget', desc: 'Save on daily costs' },
+                                        { value: 'mid_range', icon: 'fa-balance-scale', label: 'Mid-Range', desc: 'Comfortable' },
+                                        { value: 'luxury', icon: 'fa-gem', label: 'Luxury', desc: 'Premium experience' }
+                                    ].map(opt => (
+                                        <div 
+                                            key={opt.value}
+                                            className={`option-card ${spendingTier === opt.value ? 'active' : ''}`}
+                                            onClick={() => setSpendingTier(opt.value)}
+                                        >
+                                            <div className="option-icon"><i className={`fas ${opt.icon}`}></i></div>
+                                            <div className="option-details">
+                                                <h4>{opt.label}</h4>
+                                                <p>{opt.desc}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Group Size */}
+                            <div className="preference-group">
+                                <label><i className="fas fa-users"></i> Travel Group</label>
+                                <div className="option-cards">
+                                    {[
+                                        { value: 1, icon: 'fa-user', label: 'Solo', desc: '1 traveler' },
+                                        { value: 2, icon: 'fa-user-friends', label: 'Couple', desc: '2 travelers' },
+                                        { value: 4, icon: 'fa-users', label: 'Family', desc: '3-5 travelers' },
+                                        { value: 6, icon: 'fa-users-cog', label: 'Group', desc: '6+ travelers' }
+                                    ].map(opt => (
+                                        <div 
+                                            key={opt.value}
+                                            className={`option-card ${travelGroupSize === opt.value ? 'active' : ''}`}
+                                            onClick={() => setTravelGroupSize(opt.value)}
+                                        >
+                                            <div className="option-icon"><i className={`fas ${opt.icon}`}></i></div>
+                                            <div className="option-details">
+                                                <h4>{opt.label}</h4>
+                                                <p>{opt.desc}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Add-ons */}
+                            <div className="preference-group full-width">
+                                <label><i className="fas fa-plus-circle"></i> Add-ons</label>
+                                <div className="d-flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        className={`btn-fan-filter ${includeInsurance ? 'active' : ''}`}
+                                        onClick={() => setIncludeInsurance(!includeInsurance)}
+                                    >
+                                        <i className="fas fa-shield-alt me-1"></i> Travel Insurance
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`btn-fan-filter ${includeVisa ? 'active' : ''}`}
+                                        onClick={() => setIncludeVisa(!includeVisa)}
+                                    >
+                                        <i className="fas fa-passport me-1"></i> Visa Costs
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`btn-fan-filter ${merchandisePerMatch ? 'active' : ''}`}
+                                        onClick={() => setMerchandisePerMatch(!merchandisePerMatch)}
+                                    >
+                                        <i className="fas fa-shopping-bag me-1"></i> Merchandise
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="text-center mt-4">
@@ -848,6 +1036,9 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                     { label: 'Accommodation', value: breakdown.accommodation || 0 },
                                     { label: 'Food & Drink', value: breakdown.food_and_drink || 0 },
                                     { label: 'Transport', value: breakdown.local_transport || 0 },
+                                    { label: 'Insurance', value: breakdown.insurance || 0 },
+                                    { label: 'Visa', value: breakdown.visa || 0 },
+                                    { label: 'Merchandise', value: breakdown.merchandise || 0 },
                                     { label: 'Misc', value: breakdown.miscellaneous || 0 }
                                 ].filter(d => d.value > 0)} 
                             />
@@ -860,6 +1051,9 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                 { key: 'accommodation', label: 'Accommodation', icon: 'fa-hotel' },
                                 { key: 'food_and_drink', label: 'Food & Drink', icon: 'fa-utensils' },
                                 { key: 'local_transport', label: 'Local Transport', icon: 'fa-bus' },
+                                { key: 'insurance', label: 'Travel Insurance', icon: 'fa-shield-alt' },
+                                { key: 'visa', label: 'Visa', icon: 'fa-passport' },
+                                { key: 'merchandise', label: 'Merchandise', icon: 'fa-shopping-bag' },
                                 { key: 'miscellaneous', label: 'Miscellaneous', icon: 'fa-ellipsis-h' }
                             ].map(cat => (
                                 <div key={cat.key} className={`accordion-item ${activeAccordion === cat.key ? 'active' : ''}`}>
@@ -942,17 +1136,24 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             {/* Country Grid */}
                             {filterTab === 'country' && (
                                 <div className="selection-grid country-grid">
-                                    {(tournament?.hosts || ['USA', 'Mexico', 'Canada']).map(country => (
-                                        <div 
-                                            key={country}
-                                            className={`selection-card country-card ${selectedCountries.includes(country) ? 'selected' : ''}`}
-                                            onClick={() => toggleCountry(country)}
-                                            style={{ minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
-                                        >
-                                            <div style={{ fontSize: '3rem', marginBottom: '10px' }}>{getCountryFlag(country)}</div>
-                                            <div className="card-label" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{country}</div>
-                                        </div>
-                                    ))}
+                                    {(tournament?.hosts || ['USA', 'Mexico', 'Canada']).map(country => {
+                                        const flagImg = getCountryFlagImg(country);
+                                        return (
+                                            <div 
+                                                key={country}
+                                                className={`selection-card country-card ${selectedCountries.includes(country) ? 'selected' : ''}`}
+                                                onClick={() => toggleCountry(country)}
+                                                style={{ minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
+                                            >
+                                                {flagImg ? (
+                                                    <img src={flagImg} alt={country} style={{ width: '4rem', height: '3rem', objectFit: 'cover', borderRadius: '6px', marginBottom: '10px' }} />
+                                                ) : (
+                                                    <div style={{ fontSize: '3rem', marginBottom: '10px' }}>{country.charAt(0)}</div>
+                                                )}
+                                                <div className="card-label" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{country}</div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
 

@@ -18,6 +18,10 @@ const FALLBACK = {
         'Quarter-finals': 350, 'Semi-finals': 600, 'Third Place': 300, 'Final': 1500,
     },
     daily_costs: { food: 60, transport: 30, misc: 20 },
+    spending_tiers: { budget: 0.6, mid_range: 1.0, luxury: 1.8 },
+    visa_cost: {},
+    insurance_daily: 8,
+    merchandise_per_match: 40,
     venue_tiers: {},
     flight_origins: [
         { id: 'north_america', label: 'North America (USA/Can/Mex)', economy: 400, business: 1200 },
@@ -87,4 +91,24 @@ export function getAccommodationFactors(pricing) {
 /** Get the exchange rate to KES. */
 export function getExchangeRate(pricing) {
     return pricing?.exchange_rate ?? FALLBACK.exchange_rate;
+}
+
+/** Get spending tier multipliers. */
+export function getSpendingTiers(pricing) {
+    return pricing?.spending_tiers || FALLBACK.spending_tiers;
+}
+
+/** Get visa costs per host country. */
+export function getVisaCosts(pricing) {
+    return pricing?.visa_cost || FALLBACK.visa_cost;
+}
+
+/** Get daily travel insurance cost. */
+export function getInsuranceDaily(pricing) {
+    return pricing?.insurance_daily ?? FALLBACK.insurance_daily;
+}
+
+/** Get average merchandise spending per match. */
+export function getMerchandisePerMatch(pricing) {
+    return pricing?.merchandise_per_match ?? FALLBACK.merchandise_per_match;
 }
