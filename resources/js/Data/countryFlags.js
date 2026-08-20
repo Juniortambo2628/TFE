@@ -22,6 +22,7 @@ export const TEAM_CODES = {
     'IR Iran': 'ir', 'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no',
     'Austria': 'at', 'Jordan': 'jo', 'Algeria': 'dz', 'Colombia': 'co',
     'Uzbekistan': 'uz', 'Panama': 'pa', 'Kenya': 'ke',
+    'Tanzania': 'tz', 'Uganda': 'ug', 'Ethiopia': 'et', 'Rwanda': 'rw',
     'TBD': 'TBD', 'TBD (Playoff A)': 'TBD', 'TBD (Playoff B)': 'TBD',
     'TBD (Playoff D)': 'TBD', 'TBD (Playoff F)': 'TBD',
     'TBD (Playoff I)': 'TBD', 'TBD (Playoff K)': 'TBD',
@@ -69,6 +70,18 @@ export const countryFlagMap = {
     'cabo verde': 'cv', 'senegal': 'sn', 'norway': 'no', 'austria': 'at',
     'jordan': 'jo', 'algeria': 'dz', 'ghana': 'gh', 'panama': 'pa',
     'croatia': 'hr', 'colombia': 'co', 'uzbekistan': 'uz', 'nigeria': 'ng',
+    'tanzania': 'tz', 'uganda': 'ug', 'ethiopia': 'et', 'rwanda': 'rw',
+    'cameroon': 'cm', 'congo': 'cg', 'gabon': 'ga', 'guinea': 'gn',
+    'madagascar': 'mg', 'mali': 'ml', 'mauritania': 'mr', 'mozambique': 'mz',
+    'namibia': 'na', 'zambia': 'zm', 'zimbabwe': 'zw', 'botswana': 'bw',
+    'angola': 'ao', 'sudan': 'sd', 'libya': 'ly', 'burkina faso': 'bf',
+    'burundi': 'bi', 'cape verde': 'cv', 'central african republic': 'cf',
+    'chad': 'td', 'comoros': 'km', 'djibouti': 'dj', 'equatorial guinea': 'gq',
+    'eritrea': 'er', 'gambia': 'gm', 'guinea-bissau': 'gw', 'lesotho': 'ls',
+    'liberia': 'lr', 'malawi': 'mw', 'niger': 'ne', 'somalia': 'so',
+    'south sudan': 'ss', 'eswatini': 'sz', 'togo': 'tg',
+    'united states': 'us', 'america': 'us', 'united kingdom': 'gb',
+    'united arab emirates': 'ae', 'saudi': 'sa',
 };
 
 /**

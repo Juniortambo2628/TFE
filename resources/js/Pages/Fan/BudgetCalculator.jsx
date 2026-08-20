@@ -33,7 +33,10 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     
     // Travel Preferences
     const [flightClass, setFlightClass] = useState('economy');
-    const [flightOrigin, setFlightOrigin] = useState('north_america'); // New State
+    const [flightOrigin, setFlightOrigin] = useState(() => {
+        const origins = getFlightOrigins(tournamentPricing);
+        return origins[0]?.id || 'north_america';
+    });
     const [accommodation, setAccommodation] = useState('3_star');
     const [nights, setNights] = useState(7);
     const [spendingTier, setSpendingTier] = useState('mid_range');
@@ -484,13 +487,13 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
 
     // Get country flag code for image path
     const getCountryFlagCode = (country) => {
-        const code = TEAM_FLAGS[country] || countryFlagMap[country.toLowerCase()] || TEAM_CODES[country];
-        return code || null;
+        const lower = country.toLowerCase();
+        return countryFlagMap[lower] || TEAM_CODES[country] || null;
     };
 
     const getCountryFlagImg = (country) => {
         const code = getCountryFlagCode(country);
-        if (!code) return null;
+        if (!code || code === 'TBD') return null;
         const basePath = window.location.pathname.includes('/TFE/') ? '/TFE/public' : '';
         return `${basePath}/assets/Flags/${code}.png`;
     };
