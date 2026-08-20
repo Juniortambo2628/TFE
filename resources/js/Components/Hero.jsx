@@ -771,6 +771,18 @@ export default function Hero({ stadiums: stadiumsProp }) {
                     </motion.div>
                 )}
 
+                {/* Stadium Badge */}
+                <motion.div 
+                    key={`badge-${currentSlide}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="hero-stadium-badge"
+                >
+                    <div className="badge-dot"></div>
+                    <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
+                    <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
+                </motion.div>
             </div>
 
             {/* Attribution Glass Pill */}

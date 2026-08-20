@@ -211,14 +211,17 @@ export default function HeroWorldMap({ tournament, stadiums, currentSlide, class
         return (tournament?.host_flag_codes || []).map(c => c.toLowerCase());
     }, [tournament?.id, tournament?.host_flag_codes]);
 
-    /* Compute CSS transform for zoom/pan */
+    /* Compute CSS transform for zoom/pan.
+     * BASE_SCALE enlarges the SVG so the continents fill the viewport better
+     * (the react-svg-worldmap SVG is rendered slightly smaller than its container). */
     const viewBoxW = 1000;
     const viewBoxH = 450;
+    const BASE_SCALE = 1.15;
 
     const txPct = (500 - zoom.targetX) / viewBoxW * 100;
     const tyPct = (225 - zoom.targetY) / viewBoxH * 100;
 
-    const mapTransform = `translate(${txPct}%, ${tyPct}%) scale(${zoom.scale})`;
+    const mapTransform = `translate(${txPct}%, ${tyPct}%) scale(${zoom.scale * BASE_SCALE})`;
 
     /* Style function — full opacity colors */
     const styleFunction = ({ countryCode }) => {
@@ -277,8 +280,8 @@ export default function HeroWorldMap({ tournament, stadiums, currentSlide, class
                     />
                 </motion.div>
             </div>
-            {/* Active country label */}
-            {activeCountry && (
+            {/* Active country label — hidden when location is the generic "Wikipedia venue" fallback */}
+            {activeCountry && activeStadium.location && !activeStadium.location.toLowerCase().includes('wikipedia') && (
                 <motion.div
                     key={activeCountry}
                     className="hero-worldmap-country-label"
