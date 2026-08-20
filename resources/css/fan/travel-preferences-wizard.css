@@ -115,6 +115,8 @@
 .pref-map-container > div > div {
     width: 100% !important;
     height: 100% !important;
+    transform: scale(1.35) !important;
+    transform-origin: center center !important;
 }
 .pref-map-container svg {
     width: 100% !important;
@@ -133,6 +135,11 @@
     stroke: #ffffff !important;
     stroke-width: 0.8;
     transition: fill 0.15s ease;
+}
+
+/* Suppress browser native tooltip — library handles its own */
+.pref-map-container svg title {
+    display: none;
 }
 
 /* ── Region grid ──────────────────────────────────────────── */

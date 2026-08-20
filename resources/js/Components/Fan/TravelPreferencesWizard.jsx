@@ -251,14 +251,15 @@ function RegionSlide({ selectedRegion, onSelect }) {
     const containerRef = useRef(null);
     const regionColors = useMemo(() => getCountryRegionColors(), []);
 
-    /* Patch the SVG so it fills the container completely.
-     * slice = fill + clip excess, so the continents touch the container edges. */
+    /* Patch the SVG: center content with 'meet', then CSS scales up to fill. */
     useEffect(() => {
         if (!containerRef.current) return;
         const svg = containerRef.current.querySelector('svg');
         if (svg) {
-            svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         }
+        /* Suppress browser native tooltip — library has its own */
+        containerRef.current.querySelectorAll('svg title').forEach(t => t.remove());
     });
 
     /* Build world map data: all known countries colored by region */
