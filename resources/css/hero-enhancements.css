@@ -261,14 +261,17 @@
 }
 
 
-/* Hero background overlay gradient — black 90% → red 50% → transparent → black 100% */
+/* Hero background overlay gradient — 85% overall opacity
+   A(y=0) black 100% → B(y=20) red 90% → C(y=50) red 70% → D(y=65) red 40% → E(y=80) black 60% → F(y=100) black 100% */
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
+    opacity: 0.85;
     background: linear-gradient(to bottom,
-        rgba(0,0,0,0.9) 0%,
-        rgba(220,20,60,0.5) 25%,
-        transparent 50%,
+        rgba(0,0,0,1) 0%,
+        rgba(220,20,60,0.9) 20%,
+        rgba(220,20,60,0.7) 50%,
+        rgba(220,20,60,0.4) 65%,
         rgba(0,0,0,0.6) 80%,
         rgba(0,0,0,1) 100%
     );
@@ -962,46 +965,24 @@
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
-}
-
-/* Override the world-map SVG container to fill the viewport */
-.hero-worldmap-inner > div,
-.hero-worldmap-inner > div > svg {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-.hero-worldmap-inner svg {
-    display: block;
-}
-
-/* Active country label below the map */
-.hero-worldmap-country-label {
-    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    justify-content: center;
+    overflow: hidden;
 }
 
-.hero-worldmap-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    animation: hero-dot-pulse 2s ease-in-out infinite;
+/* Let the SVG fill width but cap height so southern hemisphere is not cut off */
+.hero-worldmap-inner > div {
+    width: 100%;
+    max-height: 100%;
+    overflow: hidden;
 }
 
-@keyframes hero-dot-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%      { opacity: 0.6; transform: scale(1.4); }
+.hero-worldmap-inner > div > svg,
+.hero-worldmap-inner > div > figure {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 100% !important;
+    display: block;
 }
 
 /* ── Responsive adjustments ─────────────────────────────────── */
@@ -1017,9 +998,5 @@
     }
     .hero-worldmap-viewport {
         height: 220px;
-    }
-    .hero-worldmap-country-label {
-        font-size: 0.7rem;
-        padding: 8px 12px;
     }
 }
