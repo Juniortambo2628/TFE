@@ -372,7 +372,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
         : matches;
 
     return (
-        <section className="banner-section position-relative d-flex align-items-end min-vh-100 tfe-hero-slider" id="hero">
+        <section className="banner-section position-relative d-flex flex-column justify-content-center min-vh-100 tfe-hero-slider" id="hero">
             {/* Background Layer - Only this dissolves on slide change */}
             <div className="stadium-slider-wrapper position-absolute top-0 start-0 w-100 h-100 z-0">
                 <AnimatePresence mode='wait'>
@@ -393,21 +393,94 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 <div className="stadium-slide-overlay hero-overlay-gradient"></div>
             </div>
 
+            {/* Top Center: Flag Carousel & Stadium Badge — horizontal row */}
+            {flagTrack.length > 0 && (
+                <div className="hero-top-bar position-absolute top-0 start-0 w-100 z-1">
+                    <div className="d-flex align-items-center justify-content-center gap-3 py-2 px-3 hero-top-bar-inner">
+                        {/* Flag Carousel (compact) */}
+                        <motion.div 
+                            className="flag-carousel-container flag-carousel-compact mb-0 hero-flag-carousel-pointer" 
+                            ref={carouselRef}
+                            onMouseEnter={() => setIsPaused(true)}
+                            onMouseLeave={() => {
+                                if (!showMatchModal) setIsPaused(false);
+                            }}
+                            key={`flags-top-${currentSlide}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <motion.div 
+                                className="flag-track hero-flag-track-pointer"
+                                drag="x"
+                                dragConstraints={carouselRef}
+                                initial={{ x: 0 }}
+                                animate={!isPaused ? { x: [0, "-50%"] } : {}}
+                                transition={{
+                                    x: {
+                                        repeat: Infinity,
+                                        repeatType: "loop",
+                                        duration: 30,
+                                        ease: "linear",
+                                    },
+                                }}
+                            >
+                                {flagTrack.map((f, i) => (
+                                    <motion.div 
+                                        key={`${f}-${i}`} 
+                                        className="flag-item flag-item-sm hero-flag-item-pointer"
+                                        whileHover={{ scale: 1.1, translateY: -3 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onTap={() => {
+                                            openModal(f);
+                                        }}
+                                    >
+                                        <img 
+                                            src={`${assetUrl}assets/Flags/${f}.png`} 
+                                            alt={f} 
+                                            draggable="false"
+                                            onError={function(e) {
+                                                if (wikipediaFlags[f]) {
+                                                    e.target.src = wikipediaFlags[f];
+                                                }
+                                            }}
+                                        />
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Stadium Badge (compact) */}
+                        <motion.div 
+                            key={`badge-top-${currentSlide}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="hero-stadium-badge hero-stadium-badge-sm"
+                        >
+                            <div className="badge-dot"></div>
+                            <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
+                            <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
+                        </motion.div>
+                    </div>
+                </div>
+            )}
+
             {/* Content Layer - Persistent across slide changes */}
-            <div className="container h-100 position-relative z-1">
-                <div className="d-flex flex-column gap-3 position-relative min-vh-100 justify-content-center pt-5 pb-5 mb-5">
+            <div className="container flex-grow-1 d-flex flex-column position-relative z-1">
+                <div className="d-flex flex-column gap-5 position-relative flex-grow-1 justify-content-center pt-5 pb-5">
                     {/* Row 1: World Map + Countdown */}
                     <div className="row align-items-center gx-0">
                         {/* Left: World Map — host countries highlighted */}
-                        <div className="col-xl-7 d-none d-xl-block">
+                        <div className="col-xl-8 d-none d-xl-block">
                             <HeroWorldMap
                                 tournament={tournament}
                             />
                         </div>
 
                         {/* Right Content: Trophy + Countdown — floating, no card */}
-                        <div className="col-xl-5 d-none d-xl-block">
-                            <div className="d-flex justify-content-end">
+                        <div className="col-xl-4 d-none d-xl-block">
+                            <div className="d-flex flex-column align-items-end">
                                 <motion.div
                                     key={`countdown-${tournament ? tournament.id : 'default'}`}
                                     initial={{ opacity: 0, y: 10 }}
@@ -487,21 +560,51 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                         </div>
                                     )}
                                 </motion.div>
+
+                                {/* Divider */}
+                                {tournament?.hosts && tournament.hosts.length > 0 && (
+                                    <hr className="w-100 border-white opacity-10 my-3" />
+                                )}
+
+                                {/* Host Countries */}
+                                {tournament?.hosts && tournament.hosts.length > 0 && (
+                                    <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end w-100">
+                                        <i className="fas fa-map-marker-alt text-danger"></i>
+                                        {tournament.hosts.map((host, idx) => (
+                                            <span key={idx} className="hero-glass-badge px-2 py-1 rounded-pill" style={{ fontSize: '0.75rem' }}>
+                                                {host}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Divider */}
+                                <hr className="w-100 border-white opacity-10 my-3" />
+
+                                {/* CTA Buttons */}
+                                <div className="hero-cta-buttons d-flex flex-row flex-nowrap justify-content-end gap-2 w-100">
+                                    <button onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
+                                        <i className="fas fa-calendar-alt me-2"></i>View Matches
+                                    </button>
+                                    <a href="/register" className="btn-glass-pill hero-view-matches-btn">
+                                        <i className="fas fa-plane me-2"></i>Plan My Trip
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Row 2: Tournament Stats Card — full width, aligned with row above */}
-                    <div className="row gx-0 mt-2">
+                    <div className="row gx-0">
                         <div className="col-12 px-3">
                             <motion.div
                                 key={`stats-${tournament ? tournament.id : 'default'}`}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.2 }}
-                                className="rounded-4 overflow-hidden position-relative shadow-lg p-4 p-md-5 hero-stats-card hero-stats-card-container"
+                                className="rounded-4 overflow-hidden position-relative shadow-lg p-2 p-md-3 hero-stats-card hero-stats-card-container hero-stats-compact"
                             >
-                                <div className="row align-items-end g-4">
+                                <div className="row align-items-center g-4">
                                     {/* Left Content — Tournament Info */}
                                     <div className="col-xl-5">
                                         <h3 className="mb-2 lh-sm hero-stats-title fw-bolder">
@@ -510,33 +613,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                         <p className="text-white-50 mb-3 hero-tagline">
                                             {tournament?.tagline || tournament?.wikipedia_extract?.substring(0, 120) || ''}
                                         </p>
-                                        {tournament?.hosts && tournament.hosts.length > 0 && (
-                                            <div className="d-flex align-items-center gap-2 mb-3">
-                                                <i className="fas fa-map-marker-alt text-danger"></i>
-                                                <div className="d-flex align-items-center gap-1">
-                                                    {tournament.host_flag_codes?.map((code, idx) => (
-                                                        <img
-                                                            key={code}
-                                                            src={`${assetUrl}assets/Flags/${code}.png`}
-                                                            alt={tournament.hosts[idx]}
-                                                            className="hero-host-flag"
-                                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                                        />
-                                                    ))}
-                                                    <span className="text-white-50 hero-host-names-span">
-                                                        {tournament.hosts.join(' · ')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className="hero-cta-buttons mt-1">
-                                            <button onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
-                                                <i className="fas fa-calendar-alt me-2"></i>View Matches
-                                            </button>
-                                            <a href="/register" className="btn-glass-pill hero-view-matches-btn">
-                                                <i className="fas fa-plane me-2"></i>Plan My Trip
-                                            </a>
-                                        </div>
                                     </div>
 
                                     {/* Right Content - 3 Vertical Cards */}
@@ -696,92 +772,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 </div>
             </div>
 
-            {/* Bottom Enhancements: Flag Carousel & Stadium Badge */}
-            <div className="hero-bottom-section">
-                 {/* Flag Carousel Container - Only show if we have flags */}
-                {flagTrack.length > 0 && (
-                    <motion.div 
-                        className="flag-carousel-container mb-3 hero-flag-carousel-pointer" 
-                        ref={carouselRef}
-                        onMouseEnter={() => setIsPaused(true)}
-                        onMouseLeave={() => {
-                            if (!showMatchModal) setIsPaused(false);
-                        }}
-                        key={`flags-${currentSlide}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <motion.div 
-                            className="flag-track hero-flag-track-pointer"
-                        drag="x"
-                        dragConstraints={carouselRef}
-                        initial={{ x: 0 }}
-                        animate={!isPaused ? { x: [0, "-50%"] } : {}}
-                        transition={{
-                            x: {
-                                repeat: Infinity,
-                                repeatType: "loop",
-                                duration: 30,
-                                ease: "linear",
-                            },
-                        }}
-                    >
-                        {flagTrack.map((f, i) => (
-                            <motion.div 
-                                key={`${f}-${i}`} 
-                                className="flag-item hero-flag-item-pointer"
-                                whileHover={{ scale: 1.1, translateY: -5 }}
-                                whileTap={{ scale: 0.9 }}
-                                onTap={() => {
-                                    openModal(f);
-                                }}
-                            >
-                                <img 
-                                    src={`${assetUrl}assets/Flags/${f}.png`} 
-                                    alt={f} 
-                                    draggable="false"
-                                    onError={function(e) {
-                                        if (wikipediaFlags[f]) {
-                                            e.target.src = wikipediaFlags[f];
-                                        }
-                                    }}
-                                />
-                            </motion.div>
-                        ))}
-                    </motion.div>
-
-                    {/* Navigation Arrows for Flags */}
-                    <div className="carousel-arrow left" onClick={(e) => { 
-                        e.stopPropagation(); 
-                        setIsPaused(true);
-                        controls.start({ x: "-25%", transition: { duration: 0.5 } });
-                    }}>
-                        <i className="fas fa-chevron-left"></i>
-                    </div>
-                        <div className="carousel-arrow right" onClick={(e) => { 
-                            e.stopPropagation(); 
-                            setIsPaused(true);
-                            controls.start({ x: "-75%", transition: { duration: 0.5 } });
-                        }}>
-                            <i className="fas fa-chevron-right"></i>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* Stadium Badge */}
-                <motion.div 
-                    key={`badge-${currentSlide}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="hero-stadium-badge"
-                >
-                    <div className="badge-dot"></div>
-                    <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
-                    <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
-                </motion.div>
-            </div>
+            {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
 
             {/* Attribution Glass Pill */}
             <motion.div 

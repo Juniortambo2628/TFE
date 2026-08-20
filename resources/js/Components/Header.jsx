@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import '../../css/tournament-switcher.css';
@@ -29,7 +29,7 @@ export default function Header() {
         style: { zIndex: 1000 },
     },
         React.createElement('div', { className: 'container' },
-            React.createElement('div', { className: 'header-wrapper d-flex align-items-center justify-content-between' },
+            React.createElement('div', { className: 'header-wrapper d-flex align-items-center justify-content-between position-relative' },
                 React.createElement('div', { className: 'logo' },
                     React.createElement(Link, { href: '/', className: 'logo-white' },
                         React.createElement('img', { src: logo, alt: 'TFE Logo', className: 'img-fluid tfe-logo-img', style: { maxHeight: '70px' } })
@@ -38,8 +38,13 @@ export default function Header() {
                         React.createElement('img', { src: logo, alt: 'TFE Logo', className: 'img-fluid tfe-logo-img', style: { maxHeight: '70px' } })
                     )
                 ),
+                React.createElement('div', { className: 'position-absolute top-50 start-50 translate-middle d-none d-lg-block' },
+                    React.createElement(TournamentSwitcher, null)
+                ),
                 React.createElement('div', { className: 'd-flex align-items-center gap-4' },
-                    React.createElement(TournamentSwitcher, null),
+                    React.createElement('div', { className: 'd-lg-none' },
+                        React.createElement(TournamentSwitcher, null)
+                    ),
                     React.createElement(Link, {
                         href: route('login'),
                         className: 'btn-glass-pill btn-glass-pill-sm d-none d-lg-inline-flex',

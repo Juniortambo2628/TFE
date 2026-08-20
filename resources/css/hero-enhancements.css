@@ -37,7 +37,7 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* Bottom interactive section */
+/* Bottom interactive section (legacy, kept for reference) */
 .hero-bottom-section {
     position: absolute;
     bottom: 0;
@@ -49,12 +49,57 @@
     flex-direction: column;
     align-items: center;
     padding-bottom: 3rem;
-    z-index: 1000 !important; /* Extremely high to beat any absolute containers */
-    pointer-events: none; /* Prevent blocking clicks to elements behind */
+    z-index: 1000 !important;
+    pointer-events: none;
 }
 
 .hero-bottom-section > * {
-    pointer-events: auto; /* Re-enable clicks for children */
+    pointer-events: auto;
+}
+
+/* ── Top Bar: Flag Carousel + Stadium Badge (horizontal) ── */
+.hero-top-bar {
+    padding-top: 70px; /* clear the header/navbar */
+    z-index: 5;
+    pointer-events: none;
+}
+.hero-top-bar-inner {
+    pointer-events: auto;
+    flex-wrap: nowrap;
+}
+
+/* Compact flag carousel for top bar */
+.flag-carousel-compact {
+    max-width: 360px;
+    padding: 8px 0;
+    z-index: 5 !important;
+}
+.flag-carousel-compact .flag-track {
+    gap: 10px;
+    padding: 0 20px;
+}
+
+/* Smaller flag items for top bar */
+.flag-item-sm {
+    width: 30px;
+    height: 20px;
+    border-radius: 3px;
+}
+
+/* Compact stadium badge */
+.hero-stadium-badge-sm {
+    padding: 5px 12px;
+    gap: 6px;
+}
+.hero-stadium-badge-sm span:first-of-type {
+    font-size: 0.65rem;
+}
+.hero-stadium-badge-sm span:last-of-type {
+    font-size: 0.6rem;
+}
+.hero-stadium-badge-sm .badge-dot {
+    width: 5px;
+    height: 5px;
 }
 
 .flag-carousel-container {
@@ -672,6 +717,27 @@
     padding: 1rem !important;
 }
 
+/* Compact variant for hero stats card */
+.hero-stats-compact {
+    padding: 0.65rem 0.85rem !important;
+}
+.hero-stats-compact .hero-stats-title {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem !important;
+}
+.hero-stats-compact .hero-tagline {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem !important;
+    line-height: 1.35;
+}
+.hero-stats-compact .hero-cta-buttons {
+    margin-top: 0.25rem !important;
+}
+.hero-stats-compact .row.g-4 {
+    --bs-gutter-y: 0.5rem;
+    --bs-gutter-x: 0.5rem;
+}
+
 /* Glass pill badges — reuse tournament switcher style */
 .hero-stats-badge-dark,
 .hero-stats-badge-orange {
@@ -714,7 +780,7 @@
 
 /* Stat card gradient wrappers — with background images */
 .hero-stat-card-gradient {
-    height: 180px;
+    height: 140px;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
@@ -790,24 +856,27 @@
 /* ── Hero Responsive ── */
 @media (max-width: 1199px) {
     .hero-stats-title { font-size: 1.8rem; }
-    .hero-stat-card-gradient { height: 160px; }
+    .hero-stat-card-gradient { height: 120px; }
 }
 @media (max-width: 991px) {
     .hero-stats-title { font-size: 1.5rem; }
-    .hero-stat-card-gradient { height: 150px; }
+    .hero-stat-card-gradient { height: 115px; }
     .hero-stats-badge-dark,
     .hero-stats-badge-orange { font-size: 0.7rem; padding: 4px 10px; }
 }
 @media (max-width: 767px) {
     .hero-stats-title { font-size: 1.3rem; }
-    .hero-stat-card-gradient { height: 140px; }
+    .hero-stat-card-gradient { height: 110px; }
     .hero-stats-card-container { padding: 0.75rem !important; }
     .hero-view-matches-btn { width: 100%; justify-content: center; }
     .hero-countdown-floating { display: none !important; }
 }
 @media (max-width: 575px) {
-    .hero-stat-card-gradient { height: 120px; }
+    .hero-stat-card-gradient { height: 100px; }
     .hero-stats-title { font-size: 1.1rem; }
+    .hero-top-bar { padding-top: 60px; }
+    .hero-top-bar-inner { flex-wrap: wrap; gap: 0.5rem; }
+    .flag-carousel-compact { max-width: 240px; }
 }
 
 /* Hero section overflow prevention */
@@ -822,8 +891,12 @@
 .hero-cta-buttons {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.75rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+}
+.hero-cta-buttons .btn-glass-pill {
+    white-space: nowrap;
 }
 
 @media (max-width: 575px) {
@@ -954,39 +1027,33 @@
     position: relative;
     width: 100%;
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible;
     background: transparent;
     border: none;
+    margin-top: 0;
 }
 
 .hero-worldmap-viewport {
     width: 100%;
     overflow: hidden;
     position: relative;
-    /* Match the SVG viewBox ratio (1000x500 = 2:1) so nothing is cut off */
-    aspect-ratio: 2 / 1;
 }
 
 .hero-worldmap-inner {
     width: 100%;
-    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
 }
 
-/* Fill the container completely — slice clips excess */
 .hero-worldmap-inner > div {
     width: 100%;
-    height: 100%;
+    line-height: 0;
 }
 
 .hero-worldmap-inner > div > svg,
 .hero-worldmap-inner > div > figure {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
+    filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.4));
 }
 
 /* Suppress browser native tooltip — library handles its own */
@@ -1004,8 +1071,5 @@
     .hero-worldmap-wrapper {
         max-width: 100%;
         border-radius: 12px;
-    }
-    .hero-worldmap-viewport {
-        aspect-ratio: 16 / 9;
     }
 }

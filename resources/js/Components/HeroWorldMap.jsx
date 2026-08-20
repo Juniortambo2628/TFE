@@ -3,8 +3,8 @@ import WorldMap from 'react-svg-worldmap';
 
 /*
  * Full world map for the Hero section.
- * White countries with grey borders on dark background.
- * Host countries highlighted slightly brighter.
+ * Non-host countries: frosted glass (blurred fill, white borders).
+ * Host countries: solid white, sharp.
  */
 
 export default function HeroWorldMap({ tournament, className }) {
@@ -18,14 +18,36 @@ export default function HeroWorldMap({ tournament, className }) {
         return hostCountries.map(code => ({ country: code, value: 1 }));
     }, [hostCountries]);
 
-    /* Suppress browser native tooltip (the library has its own) */
     useEffect(() => {
         if (!wrapperRef.current) return;
-        wrapperRef.current.querySelectorAll('svg title').forEach(t => t.remove());
         const svg = wrapperRef.current.querySelector('svg');
-        if (svg) {
-            svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        if (!svg) return;
+
+        /* Remove library tooltip titles */
+        svg.querySelectorAll('title').forEach(t => t.remove());
+
+        /* Fix aspect ratio to show full map */
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+        /* Inject SVG blur filter for non-host countries */
+        if (!svg.querySelector('#hero-country-blur')) {
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = `
+                <filter id="hero-country-blur" x="-5%" y="-5%" width="110%" height="110%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" />
+                </filter>
+            `;
+            svg.insertBefore(defs, svg.firstChild);
         }
+
+        /* Apply blur filter to non-host country paths */
+        svg.querySelectorAll('path').forEach(path => {
+            const style = path.getAttribute('style') || '';
+            const isHost = style.includes('#ffffff');
+            if (!isHost) {
+                path.setAttribute('filter', 'url(#hero-country-blur)');
+            }
+        });
     });
 
     const styleFunction = ({ countryCode }) => {
@@ -33,15 +55,15 @@ export default function HeroWorldMap({ tournament, className }) {
         if (hostCountries.includes(code)) {
             return {
                 fill: '#ffffff',
-                stroke: 'rgba(150,150,150,0.5)',
-                strokeWidth: 0.5,
+                stroke: '#ffffff',
+                strokeWidth: 1.5,
                 cursor: 'default',
             };
         }
         return {
-            fill: 'rgba(255,255,255,0.85)',
-            stroke: 'rgba(150,150,150,0.3)',
-            strokeWidth: 0.3,
+            fill: 'rgba(255,255,255,0.15)',
+            stroke: 'rgba(255,255,255,0.7)',
+            strokeWidth: 1.2,
             cursor: 'default',
         };
     };
@@ -51,13 +73,12 @@ export default function HeroWorldMap({ tournament, className }) {
             <div className="hero-worldmap-viewport">
                 <div className="hero-worldmap-inner">
                     <WorldMap
-                        color="rgba(255,255,255,0.12)"
+                        color="transparent"
                         size="responsive"
                         data={mapData.length > 0 ? mapData : []}
                         styleFunction={styleFunction}
                         tooltipBgColor="#1a1a2e"
                         tooltipTextColor="#e5e7eb"
-                        strokeOpacity={0.15}
                         backgroundColor="transparent"
                     />
                 </div>
