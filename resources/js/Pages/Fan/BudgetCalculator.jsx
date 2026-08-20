@@ -253,7 +253,7 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         );
     };
 
-    // Calculate Budget
+    // Calculate Budget — tries API first, falls back to client-side
     const calculateBudget = () => {
         const hasMatches = quickEstimate || selectedMatchIds.length > 0;
         if (!hasMatches) {
@@ -262,137 +262,172 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         }
         setLoading(true);
 
-        setTimeout(() => {
-            const CITY_TIERS = getCityTiers(tournamentPricing);
-            const SURGE_RATES = getSurgeRates(tournamentPricing);
-            const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
-            const BASE_COSTS = getDailyCosts(tournamentPricing);
-            const TICKET_PRICES = getTicketPrices(tournamentPricing);
-            const ACCOMMODATION_FACTORS = getAccommodationFactors(tournamentPricing);
-            const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
-            const SPENDING_TIERS = getSpendingTiers(tournamentPricing);
-            const VISA_COSTS = getVisaCosts(tournamentPricing);
-            const INSURANCE_DAILY = getInsuranceDaily(tournamentPricing);
-            const MERCH_PER_MATCH = getMerchandisePerMatch(tournamentPricing);
+        const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
+        const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
+        const originCode = originData?.code || 'NBO';
 
-            const tierMultiplier = SPENDING_TIERS[spendingTier] || 1.0;
+        const hosts = tournament?.hosts || [];
+        const destCity = quickEstimate ? (hosts[0] || 'Nairobi') : (
+            allFixtures.find(m => selectedMatchIds.includes(m.id))?.venue?.split(' Stadium')[0] || hosts[0] || 'Nairobi'
+        );
 
-            let totalTicketCost = 0;
-            let avgMultiplier = 1.0;
-            let avgBaseHotel = 160;
-            let maxSurge = 1.0;
-            let matchCount = 0;
-            let selectedMatches = [];
+        const now = new Date();
+        const departDate = new Date(now);
+        departDate.setMonth(departDate.getMonth() + 3);
+        const returnDate = new Date(departDate);
+        returnDate.setDate(returnDate.getDate() + nights);
 
-            if (quickEstimate) {
-                // Quick Estimate: distribute matches across stages
-                matchCount = quickEstimateMatches;
-                const groupMatches = Math.round(matchCount * (1 - quickEstimateKnockoutPct / 100));
-                const knockoutMatches = matchCount - groupMatches;
+        const apiParams = {
+            tournament_id: initialTournamentId || tournament?.id || 'afcon_2027',
+            origin_code: originCode,
+            destination_city: destCity,
+            departure_date: departDate.toISOString().split('T')[0],
+            return_date: returnDate.toISOString().split('T')[0],
+            nights,
+            flight_class: flightClass,
+            spending_tier: spendingTier,
+            group_size: travelGroupSize,
+            match_count: quickEstimate ? quickEstimateMatches : selectedMatchIds.length,
+            knockout_pct: quickEstimate ? quickEstimateKnockoutPct : 30,
+            passport_country: 'KEN',
+            include_insurance: includeInsurance,
+            include_visa: includeVisa,
+            include_merchandise: merchandisePerMatch,
+        };
 
-                totalTicketCost += groupMatches * (TICKET_PRICES['Group Stage'] || 150);
-                totalTicketCost += knockoutMatches * (TICKET_PRICES['Quarter-finals'] || 350);
-                maxSurge = quickEstimateKnockoutPct > 50 ? 1.4 : 1.15;
-
-                // Use average of all venue tiers for estimate
-                const allTiers = Object.values(CITY_TIERS);
-                if (allTiers.length > 0) {
-                    avgMultiplier = allTiers.reduce((s, t) => s + t.multiplier, 0) / allTiers.length;
-                    avgBaseHotel = allTiers.reduce((s, t) => s + t.avg_hotel_3star, 0) / allTiers.length;
+        axios.post('/api/budget/estimate', apiParams, { timeout: 10000 })
+            .then(res => {
+                if (res.data?.success && res.data.data) {
+                    const d = res.data.data;
+                    setUsdToKes(d.summary.exchange_rate);
+                    const kesBreakdown = {};
+                    Object.entries(d.breakdown).forEach(([key, val]) => {
+                        kesBreakdown[key] = val.kes;
+                    });
+                    setBreakdown(kesBreakdown);
+                    setEstimatedCost(d.summary.total_kes);
+                    setLoading(false);
+                    setShowResults(true);
+                    trackUsage(apiParams.match_count, d.summary.total_kes);
+                } else {
+                    throw new Error('API returned failure');
                 }
-            } else {
-                // Full calculation from selected matches
-                selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
-                matchCount = selectedMatches.length;
-                const venues = selectedMatches.map(m => m.venue);
-                const stages = selectedMatches.map(m => m.stage);
-
-                let totalCityMultiplier = 0;
-                let totalHotelCost = 0;
-                venues.forEach(venue => {
-                    const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 };
-                    totalCityMultiplier += cityData.multiplier;
-                    totalHotelCost += cityData.avg_hotel_3star;
-                });
-                avgMultiplier = venues.length > 0 ? (totalCityMultiplier / venues.length) : 1.0;
-                avgBaseHotel = venues.length > 0 ? (totalHotelCost / venues.length) : 160;
-
-                stages.forEach(stage => {
-                    const stageSurge = SURGE_RATES[stage] || 1.0;
-                    if (stageSurge > maxSurge) maxSurge = stageSurge;
-                });
-
-                selectedMatches.forEach(m => {
-                    totalTicketCost += TICKET_PRICES[m.stage] || TICKET_PRICES['Group Stage'] || 150;
-                });
-            }
-
-            // Flight Cost
-            const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
-            const baseFlightCost = originData[flightClass] || 1000;
-            const flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
-
-            // Accommodation Cost (divided by group size for shared rooms)
-            const accFactor = ACCOMMODATION_FACTORS[accommodation] || 1.0;
-            const sharedAccommodation = Math.max(1, Math.ceil(travelGroupSize / 2));
-            const accommodationCost = (avgBaseHotel * accFactor * maxSurge * nights) / sharedAccommodation;
-
-            // Daily Expenses (adjusted by spending tier and city)
-            const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge * tierMultiplier;
-            const dailyTransport = BASE_COSTS.transport * avgMultiplier * tierMultiplier;
-            const dailyMisc = BASE_COSTS.misc * avgMultiplier * tierMultiplier;
-            const foodCost = dailyFood * nights;
-            const transportCost = dailyTransport * nights;
-            const miscCost = dailyMisc * nights;
-
-            // Insurance
-            const insuranceCost = includeInsurance ? INSURANCE_DAILY * nights : 0;
-
-            // Visa (total for group)
-            let visaCost = 0;
-            if (includeVisa) {
-                const hosts = tournament?.hosts || [];
-                hosts.forEach(h => { visaCost += VISA_COSTS[h] || 0; });
-            }
-
-            // Merchandise
-            const merchCost = MERCH_PER_MATCH * matchCount;
-
-            // Total per person, then multiply by group size
-            const perPersonUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost + insuranceCost + merchCost;
-            const totalGroupUSD = (perPersonUSD * travelGroupSize) + visaCost;
-            const totalKES = totalGroupUSD * EXCHANGE_RATE;
-
-            setUsdToKes(EXCHANGE_RATE);
-
-            setBreakdown({
-                match_tickets: totalTicketCost * travelGroupSize * EXCHANGE_RATE,
-                flights: flightCost * travelGroupSize * EXCHANGE_RATE,
-                accommodation: accommodationCost * travelGroupSize * EXCHANGE_RATE,
-                food_and_drink: foodCost * travelGroupSize * EXCHANGE_RATE,
-                local_transport: transportCost * travelGroupSize * EXCHANGE_RATE,
-                insurance: insuranceCost * travelGroupSize * EXCHANGE_RATE,
-                visa: visaCost * EXCHANGE_RATE,
-                merchandise: merchCost * travelGroupSize * EXCHANGE_RATE,
-                miscellaneous: miscCost * travelGroupSize * EXCHANGE_RATE,
+            })
+            .catch(() => {
+                // Fallback to client-side calculation
+                clientSideCalculate();
             });
+    };
 
-            setEstimatedCost(totalKES);
-            setLoading(false);
-            setShowResults(true);
+    const clientSideCalculate = () => {
+        const CITY_TIERS = getCityTiers(tournamentPricing);
+        const SURGE_RATES = getSurgeRates(tournamentPricing);
+        const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
+        const BASE_COSTS = getDailyCosts(tournamentPricing);
+        const TICKET_PRICES = getTicketPrices(tournamentPricing);
+        const ACCOMMODATION_FACTORS = getAccommodationFactors(tournamentPricing);
+        const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
+        const SPENDING_TIERS = getSpendingTiers(tournamentPricing);
+        const VISA_COSTS = getVisaCosts(tournamentPricing);
+        const INSURANCE_DAILY = getInsuranceDaily(tournamentPricing);
+        const MERCH_PER_MATCH = getMerchandisePerMatch(tournamentPricing);
 
-            axios.post(route('analytics.track'), {
-                event: 'calculator_use_v2',
-                data: {
-                    match_count: matchCount,
-                    nights,
-                    origin: flightOrigin,
-                    group_size: travelGroupSize,
-                    spending_tier: spendingTier,
-                    cost_kes: totalKES
-                }
+        const tierMultiplier = SPENDING_TIERS[spendingTier] || 1.0;
+
+        let totalTicketCost = 0;
+        let avgMultiplier = 1.0;
+        let avgBaseHotel = 160;
+        let maxSurge = 1.0;
+        let matchCount = 0;
+
+        if (quickEstimate) {
+            matchCount = quickEstimateMatches;
+            const groupMatches = Math.round(matchCount * (1 - quickEstimateKnockoutPct / 100));
+            const knockoutMatches = matchCount - groupMatches;
+            totalTicketCost += groupMatches * (TICKET_PRICES['Group Stage'] || 150);
+            totalTicketCost += knockoutMatches * (TICKET_PRICES['Quarter-finals'] || 350);
+            maxSurge = quickEstimateKnockoutPct > 50 ? 1.4 : 1.15;
+            const allTiers = Object.values(CITY_TIERS);
+            if (allTiers.length > 0) {
+                avgMultiplier = allTiers.reduce((s, t) => s + t.multiplier, 0) / allTiers.length;
+                avgBaseHotel = allTiers.reduce((s, t) => s + t.avg_hotel_3star, 0) / allTiers.length;
+            }
+        } else {
+            const selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
+            matchCount = selectedMatches.length;
+            const venues = selectedMatches.map(m => m.venue);
+            const stages = selectedMatches.map(m => m.stage);
+            let totalCityMultiplier = 0;
+            let totalHotelCost = 0;
+            venues.forEach(venue => {
+                const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 };
+                totalCityMultiplier += cityData.multiplier;
+                totalHotelCost += cityData.avg_hotel_3star;
             });
-        }, 800);
+            avgMultiplier = venues.length > 0 ? (totalCityMultiplier / venues.length) : 1.0;
+            avgBaseHotel = venues.length > 0 ? (totalHotelCost / venues.length) : 160;
+            stages.forEach(stage => {
+                const stageSurge = SURGE_RATES[stage] || 1.0;
+                if (stageSurge > maxSurge) maxSurge = stageSurge;
+            });
+            selectedMatches.forEach(m => {
+                totalTicketCost += TICKET_PRICES[m.stage] || TICKET_PRICES['Group Stage'] || 150;
+            });
+        }
+
+        const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
+        const baseFlightCost = originData[flightClass] || 1000;
+        const flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
+        const accFactor = ACCOMMODATION_FACTORS[accommodation] || 1.0;
+        const sharedAccommodation = Math.max(1, Math.ceil(travelGroupSize / 2));
+        const accommodationCost = (avgBaseHotel * accFactor * maxSurge * nights) / sharedAccommodation;
+        const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge * tierMultiplier;
+        const dailyTransport = BASE_COSTS.transport * avgMultiplier * tierMultiplier;
+        const dailyMisc = BASE_COSTS.misc * avgMultiplier * tierMultiplier;
+        const foodCost = dailyFood * nights;
+        const transportCost = dailyTransport * nights;
+        const miscCost = dailyMisc * nights;
+        const insuranceCost = includeInsurance ? INSURANCE_DAILY * nights : 0;
+        let visaCost = 0;
+        if (includeVisa) {
+            const hosts = tournament?.hosts || [];
+            hosts.forEach(h => { visaCost += VISA_COSTS[h] || 0; });
+        }
+        const merchCost = MERCH_PER_MATCH * matchCount;
+        const perPersonUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost + insuranceCost + merchCost;
+        const totalGroupUSD = (perPersonUSD * travelGroupSize) + visaCost;
+        const totalKES = totalGroupUSD * EXCHANGE_RATE;
+
+        setUsdToKes(EXCHANGE_RATE);
+        setBreakdown({
+            match_tickets: totalTicketCost * travelGroupSize * EXCHANGE_RATE,
+            flights: flightCost * travelGroupSize * EXCHANGE_RATE,
+            accommodation: accommodationCost * travelGroupSize * EXCHANGE_RATE,
+            food_and_drink: foodCost * travelGroupSize * EXCHANGE_RATE,
+            local_transport: transportCost * travelGroupSize * EXCHANGE_RATE,
+            insurance: insuranceCost * travelGroupSize * EXCHANGE_RATE,
+            visa: visaCost * EXCHANGE_RATE,
+            merchandise: merchCost * travelGroupSize * EXCHANGE_RATE,
+            miscellaneous: miscCost * travelGroupSize * EXCHANGE_RATE,
+        });
+        setEstimatedCost(totalKES);
+        setLoading(false);
+        setShowResults(true);
+        trackUsage(matchCount, totalKES);
+    };
+
+    const trackUsage = (matchCount, costKes) => {
+        axios.post(route('analytics.track'), {
+            event: 'calculator_use_v2',
+            data: {
+                match_count: matchCount,
+                nights,
+                origin: flightOrigin,
+                group_size: travelGroupSize,
+                spending_tier: spendingTier,
+                cost_kes: costKes,
+            }
+        }).catch(() => {});
     };
 
     const saveBudget = () => {
