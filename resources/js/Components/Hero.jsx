@@ -398,12 +398,10 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 <div className="d-flex flex-column gap-3 position-relative min-vh-100 justify-content-center pt-5 pb-5 mb-5">
                     {/* Row 1: World Map + Countdown */}
                     <div className="row align-items-center gx-0">
-                        {/* Left: Interactive World Map — zoomed to host region */}
+                        {/* Left: World Map — host countries highlighted */}
                         <div className="col-xl-7 d-none d-xl-block">
                             <HeroWorldMap
                                 tournament={tournament}
-                                stadiums={stadiums}
-                                currentSlide={currentSlide}
                             />
                         </div>
 

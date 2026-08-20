@@ -958,8 +958,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transform-origin: center center;
-    will-change: transform;
 }
 
 /* Override the world-map SVG container to fill the viewport */
