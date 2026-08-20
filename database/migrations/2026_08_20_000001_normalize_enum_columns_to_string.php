@@ -30,11 +30,11 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         if ($driver === 'mysql') {
-            DB::statement("ALTER TABLE `{$table}` MODIFY `{$column}` VARCHAR(255) NOT NULL");
+            DB::statement("ALTER TABLE `{$table}` MODIFY `{$column}` VARCHAR(50) NOT NULL");
         } elseif ($driver === 'sqlite') {
             // SQLite stores enums as TEXT natively, no-op.
         } elseif ($driver === 'pgsql') {
-            DB::statement("ALTER TABLE \"{$table}\" ALTER COLUMN \"{$column}\" TYPE VARCHAR(255) USING \"{$column}\"::VARCHAR(255)");
+            DB::statement("ALTER TABLE \"{$table}\" ALTER COLUMN \"{$column}\" TYPE VARCHAR(50) USING \"{$column}\"::VARCHAR(50)");
         }
     }
 };
