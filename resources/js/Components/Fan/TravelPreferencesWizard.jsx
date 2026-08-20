@@ -276,7 +276,7 @@ function RegionSlide({ selectedRegion, onSelect }) {
             };
         }
         return {
-            fill: 'rgba(220, 20, 60, 0.15)',
+            fill: 'rgba(220, 20, 60, 0.7)',
             stroke: 'rgba(255,255,255,0.15)',
             strokeWidth: 0.4,
             cursor: 'pointer',
