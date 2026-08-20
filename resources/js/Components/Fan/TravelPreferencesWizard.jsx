@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WorldMap from 'react-svg-worldmap';
 import { REGIONS, ISO2_TO_ISO3, getCountryRegionColors } from '@/Data/travelRegions';
@@ -248,7 +248,18 @@ export default function TravelPreferencesWizard({
 
 /* ── Slide: Region ────────────────────────────────────────── */
 function RegionSlide({ selectedRegion, onSelect }) {
+    const containerRef = useRef(null);
     const regionColors = useMemo(() => getCountryRegionColors(), []);
+
+    /* After render, patch the SVG's preserveAspectRatio so the map
+     * content fills the wider container instead of letterboxing. */
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const svg = containerRef.current.querySelector('svg');
+        if (svg) {
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        }
+    });
 
     /* Build world map data: all known countries colored by region */
     const worldMapData = useMemo(() => {
@@ -294,7 +305,7 @@ function RegionSlide({ selectedRegion, onSelect }) {
     };
 
     return (
-        <div>
+        <div ref={containerRef}>
             <p className="pref-instruction">Select the region you&apos;re traveling from</p>
             <div className="pref-map-container">
                 <WorldMap

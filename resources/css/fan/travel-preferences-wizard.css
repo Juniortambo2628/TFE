@@ -101,16 +101,30 @@
     background: transparent;
     padding: 0;
     border: none;
-    display: flex;
-    justify-content: center;
-}
-.pref-map-container svg {
-    width: 100% !important;
-    height: auto !important;
-    display: block;
+    position: relative;
+    width: calc(100% + 50px);
+    aspect-ratio: 2.2 / 1;
 }
 .pref-map-container > div {
     width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+.pref-map-container > div > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+.pref-map-container svg {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+.pref-map-container figure {
+    margin: 0;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* ── Region grid ──────────────────────────────────────────── */
