@@ -95,16 +95,19 @@
 
 /* ── Map container ────────────────────────────────────────── */
 .pref-map-container {
-    margin-bottom: 16px;
-    border-radius: 12px;
+    margin: 0 -25px 16px;
+    border-radius: 0;
     overflow: hidden;
     background: transparent;
-    padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0;
+    border: none;
+    display: flex;
+    justify-content: center;
 }
 .pref-map-container svg {
     width: 100% !important;
     height: auto !important;
+    display: block;
 }
 .pref-map-container > div {
     width: 100% !important;

@@ -181,18 +181,18 @@ export default function HeroWorldMap({ tournament, stadiums, currentSlide, class
         const code = (countryCode || '').toLowerCase();
         if (code === activeCountry) {
             return {
-                fill: tournament?.color_accent || '#DC143C',
+                fill: '#DC143C',
                 stroke: '#fff',
                 strokeWidth: 1.5,
-                filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.5))',
+                filter: 'drop-shadow(0 0 8px rgba(220, 20, 60, 0.6))',
                 cursor: 'default',
             };
         }
         if (hostCountries.includes(code)) {
             return {
-                fill: 'rgba(255,255,255,0.35)',
-                stroke: 'rgba(255,255,255,0.2)',
-                strokeWidth: 0.5,
+                fill: 'rgba(255,255,255,0.85)',
+                stroke: 'rgba(255,255,255,0.4)',
+                strokeWidth: 0.8,
                 cursor: 'default',
             };
         }

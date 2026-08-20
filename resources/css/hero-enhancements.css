@@ -939,10 +939,8 @@
     width: 100%;
     border-radius: 16px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: transparent;
+    border: none;
 }
 
 .hero-worldmap-viewport {
@@ -950,7 +948,6 @@
     aspect-ratio: 2 / 1;
     overflow: hidden;
     position: relative;
-    border-radius: 16px;
 }
 
 .hero-worldmap-inner {
