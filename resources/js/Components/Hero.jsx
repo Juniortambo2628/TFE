@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
+import HeroWorldMap from '@/Components/HeroWorldMap';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -395,10 +396,16 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {/* Content Layer - Persistent across slide changes */}
             <div className="container h-100 position-relative z-1">
                 <div className="d-flex flex-column gap-3 position-relative min-vh-100 justify-content-center pt-5 pb-5 mb-5">
-                    {/* Row 1: Countdown only — tournament info moved to stats card below */}
+                    {/* Row 1: World Map + Countdown */}
                     <div className="row align-items-center gx-0">
-                        {/* Left spacer — empty, stats card below handles tournament info */}
-                        <div className="col-xl-7 d-none d-xl-block"></div>
+                        {/* Left: Interactive World Map — zoomed to host region */}
+                        <div className="col-xl-7 d-none d-xl-block">
+                            <HeroWorldMap
+                                tournament={tournament}
+                                stadiums={stadiums}
+                                currentSlide={currentSlide}
+                            />
+                        </div>
 
                         {/* Right Content: Trophy + Countdown — floating, no card */}
                         <div className="col-xl-5 d-none d-xl-block">

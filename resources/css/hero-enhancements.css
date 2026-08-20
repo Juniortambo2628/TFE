@@ -932,3 +932,91 @@
     text-transform: lowercase;
     white-space: nowrap;
 }
+
+/* ── Hero World Map ─────────────────────────────────────────── */
+.hero-worldmap-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.hero-worldmap-viewport {
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    position: relative;
+    border-radius: 16px;
+}
+
+.hero-worldmap-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+/* Override the world-map SVG container to fill the viewport */
+.hero-worldmap-inner > div,
+.hero-worldmap-inner > div > svg {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.hero-worldmap-inner svg {
+    display: block;
+}
+
+/* Active country label below the map */
+.hero-worldmap-country-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hero-worldmap-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: hero-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hero-dot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.6; transform: scale(1.4); }
+}
+
+/* ── Responsive adjustments ─────────────────────────────────── */
+@media (max-width: 1199.98px) {
+    .hero-worldmap-wrapper {
+        max-width: 420px;
+    }
+}
+@media (max-width: 767.98px) {
+    .hero-worldmap-wrapper {
+        max-width: 100%;
+        border-radius: 12px;
+    }
+    .hero-worldmap-viewport {
+        aspect-ratio: 16 / 9;
+    }
+    .hero-worldmap-country-label {
+        font-size: 0.7rem;
+        padding: 8px 12px;
+    }
+}
