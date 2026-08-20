@@ -251,14 +251,13 @@ function RegionSlide({ selectedRegion, onSelect }) {
     const containerRef = useRef(null);
     const regionColors = useMemo(() => getCountryRegionColors(), []);
 
-    /* After render, patch the SVG so it centers the map content.
-     * xMidYMid meet = center horizontally+vertically, fit inside.
-     * The CSS transform: scale(1.35) then enlarges it to fill. */
+    /* Patch the SVG so it fills the container completely.
+     * slice = fill + clip excess, so the continents touch the container edges. */
     useEffect(() => {
         if (!containerRef.current) return;
         const svg = containerRef.current.querySelector('svg');
         if (svg) {
-            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
         }
     });
 
@@ -271,9 +270,10 @@ function RegionSlide({ selectedRegion, onSelect }) {
         }));
     }, [regionColors]);
 
-    /* Style function: highlight selected region's countries in red */
+    /* Style function: region colors by default, white on selected/hovered */
     const styleFunction = ({ countryCode }) => {
         const code = (countryCode || '').toLowerCase();
+        const regionColor = regionColors[code] || 'rgba(220, 20, 60, 0.7)';
         const regionData = selectedRegion ? REGIONS[selectedRegion] : null;
         const isInSelectedRegion = regionData?.countries.some(
             c => c.code.toLowerCase() === code
@@ -281,15 +281,15 @@ function RegionSlide({ selectedRegion, onSelect }) {
 
         if (isInSelectedRegion) {
             return {
-                fill: '#dc143c',
-                stroke: 'rgba(255,255,255,0.3)',
+                fill: '#ffffff',
+                stroke: '#ffffff',
                 strokeWidth: 0.8,
                 cursor: 'pointer',
             };
         }
         return {
-            fill: 'rgba(220, 20, 60, 0.7)',
-            stroke: 'rgba(255,255,255,0.15)',
+            fill: regionColor,
+            stroke: '#ffffff',
             strokeWidth: 0.4,
             cursor: 'pointer',
         };
