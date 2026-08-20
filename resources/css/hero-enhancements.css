@@ -261,11 +261,17 @@
 }
 
 
-/* Hero background overlay gradient */
+/* Hero background overlay gradient — black 90% → red 50% → transparent → black 100% */
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(220,20,60,0.35) 45%, rgba(0,0,0,0.88) 100%);
+    background: linear-gradient(to bottom,
+        rgba(0,0,0,0.9) 0%,
+        rgba(220,20,60,0.5) 25%,
+        transparent 50%,
+        rgba(0,0,0,0.6) 80%,
+        rgba(0,0,0,1) 100%
+    );
 }
 
 /* Hosting countries glass pill */
@@ -947,7 +953,7 @@
 
 .hero-worldmap-viewport {
     width: 100%;
-    height: 320px;
+    height: 280px;
     overflow: hidden;
     position: relative;
 }
@@ -956,7 +962,7 @@
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
 }
 
