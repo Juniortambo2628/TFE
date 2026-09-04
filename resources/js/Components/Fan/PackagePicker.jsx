@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import CapacityBar from '@/Components/Common/CapacityBar';
 
 /**
  * PackagePicker — Step-0 chooser in the BudgetCalculator wizard.
@@ -48,7 +49,6 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
 
                 {hasPackages && packages.map((pkg) => {
                     const soldOut = pkg.is_sold_out;
-                    const urgencyClass = pkg.availability_pct >= 80 ? 'text-danger' : pkg.availability_pct >= 50 ? 'text-warning' : 'text-success';
                     return (
                         <div key={pkg.id} className="col-md-6 col-lg-4">
                             <button
@@ -109,20 +109,12 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                         </span>
                                     </div>
 
-                                    {pkg.capacity && (
-                                        <div className="mb-3">
-                                            <div className="d-flex justify-content-between text-white-50 small mb-1">
-                                                <span>{pkg.sold_count} of {pkg.capacity} booked</span>
-                                                <span className={urgencyClass}>{pkg.availability_pct}%</span>
-                                            </div>
-                                            <div className="progress" style={{ height: 4, background: 'rgba(255,255,255,0.08)' }}>
-                                                <div
-                                                    className={`progress-bar ${pkg.availability_pct >= 80 ? 'bg-danger' : pkg.availability_pct >= 50 ? 'bg-warning' : 'bg-success'}`}
-                                                    style={{ width: `${pkg.availability_pct}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
+                                    <CapacityBar
+                                        sold={pkg.sold_count}
+                                        capacity={pkg.capacity}
+                                        pct={pkg.availability_pct}
+                                        className="mb-3"
+                                    />
 
                                     <div className="d-flex align-items-center justify-content-between gap-2">
                                         <span className={`fw-semibold ${soldOut ? 'text-white-50' : 'text-danger'}`}>

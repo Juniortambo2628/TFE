@@ -6,6 +6,7 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
+import TournamentPill from '@/Components/Common/TournamentPill';
 
 export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cross' }) {
     const { tournament } = useTournament();
@@ -163,23 +164,11 @@ export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cr
                                     <Link href={route('fan.tribes.show', tribe.id)} className="text-decoration-none">
                                         <h3 className="tribe-name">{tribe.name}</h3>
                                     </Link>
-                                    {/* Tournament pill — cross-tournament tribes read as
-                                        "Open" so the fan knows they're not scoped. */}
-                                    <span
-                                        className="d-inline-flex align-items-center gap-1 mb-2"
-                                        style={{
-                                            fontSize: '0.65rem',
-                                            padding: '2px 8px',
-                                            borderRadius: 999,
-                                            background: tribe.tournament_id ? 'rgba(59,130,246,0.15)' : 'rgba(16,185,129,0.15)',
-                                            color: tribe.tournament_id ? '#3b82f6' : '#10b981',
-                                            fontWeight: 600,
-                                            letterSpacing: 0.3,
-                                        }}
-                                    >
-                                        <i className={`fas ${tribe.tournament_id ? 'fa-trophy' : 'fa-globe'}`} style={{ fontSize: '0.55rem' }}></i>
-                                        {tribe.tournament_short || (tribe.tournament_id ? tribe.tournament_id : 'Open to all')}
-                                    </span>
+                                    <TournamentPill
+                                        tournamentId={tribe.tournament_id}
+                                        shortName={tribe.tournament_short}
+                                        className="mb-2"
+                                    />
                                     <p className="tribe-description">{tribe.description || 'A community for football fans'}</p>
                                     
                                     <div className="tribe-stats">

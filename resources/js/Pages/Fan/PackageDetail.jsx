@@ -4,6 +4,7 @@ import { Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
+import CapacityBar from '@/Components/Common/CapacityBar';
 
 /**
  * Fan-facing package detail page.
@@ -19,8 +20,6 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
     const currency = pkg.currency || tournamentSummary?.pricing?.currency || 'USD';
     const soldOut = pkg.is_sold_out;
     const availPct = pkg.availability_pct;
-    const availTone = availPct >= 80 ? 'text-danger' : availPct >= 50 ? 'text-warning' : 'text-success';
-    const availBg = availPct >= 80 ? 'bg-danger' : availPct >= 50 ? 'bg-warning' : 'bg-success';
 
     const useThisPackage = () => {
         router.visit(route('fan.budget-calculator') + `?package=${pkg.id}`);
@@ -166,22 +165,14 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
                             </div>
                             <div className="text-white-50 small mb-3">per person, all-in</div>
 
-                            {pkg.capacity && (
-                                <div className="mb-3">
-                                    <div className="d-flex justify-content-between text-white-50 small mb-1">
-                                        <span>{pkg.sold_count} of {pkg.capacity} booked</span>
-                                        <span className={availTone}>{availPct}%</span>
-                                    </div>
-                                    <div className="progress" style={{ height: 6, background: 'rgba(255,255,255,0.08)' }}>
-                                        <div className={`progress-bar ${availBg}`} style={{ width: `${availPct}%` }} />
-                                    </div>
-                                    {!soldOut && pkg.seats_left !== null && (
-                                        <div className={`small mt-1 ${availPct >= 80 ? 'text-danger' : 'text-white-50'}`}>
-                                            {pkg.seats_left} {pkg.seats_left === 1 ? 'seat' : 'seats'} left
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                            <CapacityBar
+                                sold={pkg.sold_count}
+                                capacity={pkg.capacity}
+                                pct={availPct}
+                                size="md"
+                                seatsLeftLabel
+                                className="mb-3"
+                            />
 
                             <button
                                 type="button"

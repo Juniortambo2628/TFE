@@ -6,6 +6,8 @@ import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { router, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import CapacityBar from '@/Components/Common/CapacityBar';
+import MetricTile from '@/Components/Common/MetricTile';
 
 /**
  * Admin Packages — CRUD for prepacked fixed-price itineraries.
@@ -169,55 +171,53 @@ export default function Packages({ auth, packages = [], tournaments = [], filter
                 }}
             />
 
-            {/* Analytics row */}
+            {/* Analytics row — MetricTile keeps the four cards visually
+                consistent and centralizes the tone thresholds. */}
             {analytics && analytics.total_packages > 0 && (
                 <div className="row g-3 mb-3">
                     <div className="col-6 col-md-3">
-                        <div className="admin-card-dark p-3">
-                            <div className="text-white-50 small">Total bookings</div>
-                            <div className="text-white fw-bold fs-3">{analytics.total_bookings.toLocaleString()}</div>
-                            <div className="text-info small">
-                                across {analytics.total_packages} package{analytics.total_packages === 1 ? '' : 's'}
-                            </div>
-                        </div>
+                        <MetricTile
+                            label="Total bookings"
+                            value={analytics.total_bookings.toLocaleString()}
+                            subtext={`across ${analytics.total_packages} package${analytics.total_packages === 1 ? '' : 's'}`}
+                        />
                     </div>
                     <div className="col-6 col-md-3">
-                        <div className="admin-card-dark p-3">
-                            <div className="text-white-50 small">Gross revenue</div>
-                            <div className="text-white fw-bold fs-5">
-                                {Object.entries(analytics.gross_revenue || {}).map(([cur, amt]) => (
-                                    <div key={cur}>
-                                        {cur} {Number(amt).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                    </div>
-                                ))}
-                                {Object.keys(analytics.gross_revenue || {}).length === 0 && (
-                                    <span className="text-white-50">—</span>
-                                )}
-                            </div>
-                            <div className="text-white-50 small">sold_count × base_price</div>
-                        </div>
+                        <MetricTile
+                            label="Gross revenue"
+                            size="sm"
+                            value={
+                                Object.keys(analytics.gross_revenue || {}).length === 0
+                                    ? <span className="text-white-50">—</span>
+                                    : Object.entries(analytics.gross_revenue).map(([cur, amt]) => (
+                                        <div key={cur}>
+                                            {cur} {Number(amt).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                        </div>
+                                    ))
+                            }
+                            subtext="sold_count × base_price"
+                        />
                     </div>
                     <div className="col-6 col-md-3">
-                        <div className="admin-card-dark p-3">
-                            <div className="text-white-50 small">Avg availability</div>
-                            <div
-                                className={`fw-bold fs-3 ${analytics.avg_availability_pct >= 80 ? 'text-danger' : analytics.avg_availability_pct >= 50 ? 'text-warning' : 'text-success'}`}
-                            >
-                                {analytics.avg_availability_pct}%
-                            </div>
-                            <div className="text-white-50 small">across packages with capacity</div>
-                        </div>
+                        <MetricTile
+                            label="Avg availability"
+                            value={`${analytics.avg_availability_pct}%`}
+                            tone={analytics.avg_availability_pct >= 80 ? 'danger' : analytics.avg_availability_pct >= 50 ? 'warning' : 'success'}
+                            subtext="across packages with capacity"
+                        />
                     </div>
                     <div className="col-6 col-md-3">
-                        <div className="admin-card-dark p-3">
-                            <div className="text-white-50 small">Selling fast / sold out</div>
-                            <div className="text-white fw-bold fs-3">
-                                <span className="text-warning">{analytics.selling_fast_count}</span>
-                                <span className="text-white-50 mx-1">/</span>
-                                <span className="text-danger">{analytics.sold_out_count}</span>
-                            </div>
-                            <div className="text-white-50 small">≥80% booked / capacity reached</div>
-                        </div>
+                        <MetricTile
+                            label="Selling fast / sold out"
+                            value={
+                                <>
+                                    <span className="text-warning">{analytics.selling_fast_count}</span>
+                                    <span className="text-white-50 mx-1">/</span>
+                                    <span className="text-danger">{analytics.sold_out_count}</span>
+                                </>
+                            }
+                            subtext="≥80% booked / capacity reached"
+                        />
                     </div>
                 </div>
             )}
@@ -290,21 +290,14 @@ export default function Packages({ auth, packages = [], tournaments = [], filter
                                         {pkg.is_featured && <span className="admin-badge admin-badge-amber">Featured</span>}
                                         {!pkg.is_active && <span className="admin-badge admin-badge-red">Inactive</span>}
                                     </div>
-                                    {pkg.capacity && (
-                                        <div className="mb-3">
-                                            <div className="d-flex justify-content-between text-white-50 small mb-1">
-                                                <span>{pkg.sold_count} sold / {pkg.capacity}</span>
-                                                <span>{pkg.availability_pct}%</span>
-                                            </div>
-                                            <div className="progress" style={{ height: 6, background: 'rgba(255,255,255,0.08)' }}>
-                                                <div
-                                                    className={`progress-bar ${pkg.availability_pct >= 80 ? 'bg-danger' : pkg.availability_pct >= 50 ? 'bg-warning' : 'bg-success'}`}
-                                                    style={{ width: `${pkg.availability_pct}%` }}
-                                                />
-                                            </div>
-                                            {pkg.is_sold_out && <span className="text-danger small mt-1 d-block">Sold out</span>}
-                                        </div>
-                                    )}
+                                    <CapacityBar
+                                        sold={pkg.sold_count}
+                                        capacity={pkg.capacity}
+                                        pct={pkg.availability_pct}
+                                        size="md"
+                                        seatsLeftLabel
+                                        className="mb-3"
+                                    />
                                     <div className="d-flex gap-2">
                                         <button className="btn-admin-outline btn-admin-sm flex-grow-1" onClick={() => openEdit(pkg)}>
                                             <i className="fas fa-edit me-1"></i>Edit

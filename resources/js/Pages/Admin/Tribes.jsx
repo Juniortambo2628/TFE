@@ -4,6 +4,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { router, useForm } from '@inertiajs/react';
+import TournamentPill from '@/Components/Common/TournamentPill';
 
 /**
  * Admin Tribes — list + reassign tournament + delete.
@@ -93,20 +94,11 @@ export default function Tribes({ auth, tribes = { data: [] }, tournaments = [] }
                                             <small className="text-white-50">{tribe.slug}</small>
                                         </td>
                                         <td>
-                                            {tribe.tournament_id ? (
-                                                <span
-                                                    className="admin-badge admin-badge-blue"
-                                                    title={tribe.tournament_id}
-                                                >
-                                                    <i className="fas fa-trophy me-1"></i>
-                                                    {tribe.tournament_short || tribe.tournament_id}
-                                                </span>
-                                            ) : (
-                                                <span className="admin-badge admin-badge-green">
-                                                    <i className="fas fa-globe me-1"></i>
-                                                    Cross-tournament
-                                                </span>
-                                            )}
+                                            <TournamentPill
+                                                tournamentId={tribe.tournament_id}
+                                                shortName={tribe.tournament_short}
+                                                size="md"
+                                            />
                                         </td>
                                         <td className="text-white">{tribe.creator_name}</td>
                                         <td className="text-white">{tribe.member_count}</td>

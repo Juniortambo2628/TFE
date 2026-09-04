@@ -18,8 +18,8 @@
 /* ── Surfaces ────────────────────────────────────────────────────────── */
 
 .tfe-shared-card {
-    background: var(--card-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--glass-surface);
+    border: 1px solid var(--glass-border-hairline);
     border-radius: var(--radius-xl);
     padding: var(--space-xl);
     box-shadow: var(--shadow-md);
