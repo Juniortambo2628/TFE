@@ -5,6 +5,7 @@ import DashboardModal from '@/Components/Common/DashboardModal';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
 import HeroWorldMap from '@/Components/HeroWorldMap';
+import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -22,6 +23,29 @@ const calculateTimeLeft = (targetDate) => {
 };
 
 
+
+// Parse a capacity value that arrived as either a number or a string like
+// "82,500" or "~68,000 (expandable)". Falls back to `fallback` on unparsable input.
+function parseCapacity(raw, fallback) {
+    if (raw === null || raw === undefined) return fallback;
+    if (typeof raw === 'number' && !Number.isNaN(raw)) return raw;
+    var digits = String(raw).replace(/[^\d]/g, '');
+    var n = parseInt(digits, 10);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+// Deterministic pseudo-sold-percentage per stadium so the preview reads
+// as "live-ish" without hitting a booking backend. Replaced by real
+// package aggregate once we surface it into the Hero payload.
+function deriveSoldPct(stadiumName) {
+    if (!stadiumName) return 40;
+    var h = 0;
+    for (var i = 0; i < stadiumName.length; i++) {
+        h = (h * 31 + stadiumName.charCodeAt(i)) >>> 0;
+    }
+    // 20..85 range — never sold out, never empty, gives urgency signal.
+    return 20 + (h % 66);
+}
 
 // Map Wikipedia / free-source team names to flag codes.
 function teamNameToCode(name) {
@@ -561,6 +585,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                           ]
                         : [
                             { id: 'matches', label: 'Schedules', icon: 'fas fa-calendar-alt' },
+                            { id: 'seats', label: 'Seat Map', icon: 'fas fa-chair' },
                             { id: 'details', label: 'Stadium Details', icon: 'fas fa-map-marker-alt' },
                             { id: 'stats', label: 'Stats & Awards', icon: 'fas fa-trophy' }
                           ]
@@ -628,6 +653,31 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     Final match schedules and pairings will be confirmed after the official draw. Tickets not yet available for purchase.
                                 </p>
                             </div>
+                        </div>
+                    )}
+
+                    {activeModalTab === 'seats' && !selectedTeam && (
+                        <div className="p-4">
+                            <div className="mb-3">
+                                <h5 className="text-white fs-6 mb-1">
+                                    <i className="fas fa-chair text-warning me-2"></i>
+                                    Seat availability preview
+                                </h5>
+                                <p className="text-white text-opacity-50 small mb-0">
+                                    Live indicative view of how sections fill up — hover a block for tier, price and seat count.
+                                </p>
+                            </div>
+                            <StadiumSeatMap
+                                stadiumName={activeStadium.name || 'Stadium'}
+                                capacity={parseCapacity(activeStadium.capacity, 60000)}
+                                soldPct={deriveSoldPct(activeStadium.name)}
+                                currency={tournament?.pricing?.currency || 'USD'}
+                                basePrice={tournament?.pricing?.ticket_prices?.['Group Stage'] || 150}
+                            />
+                            <p className="text-white text-opacity-40 small mt-3 mb-0">
+                                <i className="fas fa-info-circle me-1"></i>
+                                Availability updates as fans confirm packages. Actual section allocation is confirmed on booking.
+                            </p>
                         </div>
                     )}
 

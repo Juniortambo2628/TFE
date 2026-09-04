@@ -5,8 +5,9 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
+import WeatherCard from '@/Components/Fan/WeatherCard';
 
-export default function Journey({ auth, paymentData, activeBudget }) {
+export default function Journey({ auth, paymentData, activeBudget, weather = undefined }) {
     const { tournament } = useTournament();
     const { totalBookings, totalPaid, totalDue, bookings, paymentSchedules } = paymentData;
     const progress = totalPaid + totalDue > 0 ? Math.round((totalPaid / (totalPaid + totalDue)) * 100) : 0;
@@ -257,6 +258,9 @@ export default function Journey({ auth, paymentData, activeBudget }) {
                         )}
                     </div>
                 </div>
+
+                {/* Weather + packing checklist (Open-Meteo, deferred) */}
+                <WeatherCard weather={weather} tournamentName={tournament?.short_name || tournament?.name} />
 
                 {/* Travel Info */}
                 <div className="content-card travel-info-card mt-4">

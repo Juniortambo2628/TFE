@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Services\FixtureService;
+use App\Services\WeatherService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -86,9 +87,28 @@ class JourneyController extends Controller
         // Mock active budget if null, just to be safe during migration/testing, or return null.
         // Code handles null.
 
+        // Weather forecast for the active tournament's first host city —
+        // deferred so the Journey page renders before the Open-Meteo hop
+        // completes (cached for 3h once fetched).
+        $tournament = $this->activeTournament();
+        $hosts = $tournament['hosts'] ?? [];
+        $startDate = $tournament['start_date'] ?? null;
+        $endDate = $tournament['end_date'] ?? null;
+        $weather = null;
+        if (! empty($hosts)) {
+            $weather = \Inertia\Inertia::defer(function () use ($hosts, $startDate, $endDate) {
+                return app(WeatherService::class)->forecast(
+                    (string) $hosts[0],
+                    $startDate,
+                    $endDate,
+                );
+            });
+        }
+
         return Inertia::render('Fan/Journey', [
             'paymentData' => $paymentData,
             'activeBudget' => $activeBudget,
+            'weather' => $weather,
         ]);
     }
 

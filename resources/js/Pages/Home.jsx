@@ -13,6 +13,7 @@ import News from '@/Components/News';
 import Contact from '@/Components/Contact';
 
 import Testimonials from '@/Components/Landing/Testimonials';
+import TournamentCompare from '@/Components/Landing/TournamentCompare';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
@@ -101,6 +102,9 @@ export default function Home({ appName }) {
                 <About variant="split" />
                 <Features variant="split-reverse" />
                 <Services variant="split" />
+
+                {/* Compare-tournaments widget — helps fans pick which one to plan */}
+                <TournamentCompare />
 
                 {/* Popular Experiences — stacked variant (title row + cards) */}
                 <HorizontalCardSection

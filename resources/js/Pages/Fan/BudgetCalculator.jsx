@@ -7,6 +7,7 @@ import HotelSelector from '@/Components/Fan/HotelSelector';
 import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
+import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -1231,6 +1232,14 @@ export default function BudgetCalculator({
                                 </div>
                             ))}
                         </div>
+
+                        <CostScenarioChart
+                            currentTotalKes={estimatedCost}
+                            matchCount={selectedMatchIds.length || 1}
+                            nights={nights}
+                            accommodation={accommodation}
+                            pricing={tournamentPricing}
+                        />
 
                         <div className="d-flex gap-3 mt-4">
                             <button className="btn btn-outline-secondary flex-fill" onClick={resetWizard}>
