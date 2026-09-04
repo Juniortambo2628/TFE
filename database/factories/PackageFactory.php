@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Listing;
+use App\Models\Package;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Package>
+ * @extends Factory<Package>
  */
 class PackageFactory extends Factory
 {

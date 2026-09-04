@@ -96,7 +96,7 @@ class JourneyController extends Controller
         $endDate = $tournament['end_date'] ?? null;
         $weather = null;
         if (! empty($hosts)) {
-            $weather = \Inertia\Inertia::defer(function () use ($hosts, $startDate, $endDate) {
+            $weather = Inertia::defer(function () use ($hosts, $startDate, $endDate) {
                 return app(WeatherService::class)->forecast(
                     (string) $hosts[0],
                     $startDate,

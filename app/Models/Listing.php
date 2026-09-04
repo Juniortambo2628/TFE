@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TournamentService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -157,7 +158,7 @@ class Listing extends Model
             return null;
         }
 
-        return app(\App\Services\TournamentService::class)->get($this->tournament_id);
+        return app(TournamentService::class)->get($this->tournament_id);
     }
 }
 

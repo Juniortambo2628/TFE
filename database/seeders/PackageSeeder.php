@@ -30,6 +30,7 @@ class PackageSeeder extends Seeder
             // stomp on manual admin curation.
             if (Listing::forTournament($id)->ofType('package')->exists()) {
                 $this->command->info("Skipping {$id} (packages already exist).");
+
                 continue;
             }
 
@@ -105,7 +106,7 @@ class PackageSeeder extends Seeder
                 ],
                 [
                     'name' => "{$short} VIP Final Weekend",
-                    'description' => "Fly in for the semi-finals and stay through the trophy lift. 5-star hotel, business-class flight, VIP-tier tickets. Limited availability.",
+                    'description' => 'Fly in for the semi-finals and stay through the trophy lift. 5-star hotel, business-class flight, VIP-tier tickets. Limited availability.',
                     'base_price' => $this->priceFor($config, 'vip'),
                     'nights' => 5,
                     'flight_class' => 'business',
@@ -119,7 +120,7 @@ class PackageSeeder extends Seeder
                 ],
                 [
                     'name' => "{$short} Family Weekend",
-                    'description' => "A relaxed weekend built for families: two group-stage matches, 4-star hotel near the venue, and time to see the host city between games.",
+                    'description' => 'A relaxed weekend built for families: two group-stage matches, 4-star hotel near the venue, and time to see the host city between games.',
                     'base_price' => $this->priceFor($config, 'family'),
                     'nights' => 4,
                     'flight_class' => 'economy',

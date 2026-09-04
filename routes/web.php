@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AnnouncementsController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\MessagesController;
+use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\PrizeController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Fan\JourneyController;
 use App\Http\Controllers\Fan\LoanApplicationController;
 use App\Http\Controllers\Fan\MatchScheduleController;
 use App\Http\Controllers\Fan\NotificationController;
+use App\Http\Controllers\Fan\PackageController;
 use App\Http\Controllers\Fan\PaymentController;
 use App\Http\Controllers\Fan\PredictWinController;
 use App\Http\Controllers\Fan\ProfileController;
@@ -37,6 +39,7 @@ use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
 use Illuminate\Support\Facades\Route;
@@ -46,7 +49,7 @@ Route::get('/news', [NewsController::class, 'index'])->name('news.index');
 
 // Public Partner Hub — /partners/{slug} — no auth needed, it's a
 // discovery surface fans can hit before signing up.
-Route::get('/partners/{slug}', [App\Http\Controllers\PartnerHubController::class, 'show'])
+Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])
     ->name('partners.hub');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
@@ -165,7 +168,7 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/store', [FanStoreController::class, 'index'])->name('store');
 
     // Package detail (public detail of a single admin-managed package)
-    Route::get('/packages/{package}', [App\Http\Controllers\Fan\PackageController::class, 'show'])
+    Route::get('/packages/{package}', [PackageController::class, 'show'])
         ->name('packages.show');
 
     // Predict & Win
@@ -287,9 +290,9 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::delete('/prizes/{prize}', [PrizeController::class, 'destroy'])->name('prizes.destroy');
 
     // Partner directory (Sprint 9) — verify, feature, edit branded hub.
-    Route::get('/partners', [App\Http\Controllers\Admin\PartnerController::class, 'index'])->name('partners.index');
-    Route::get('/partners/{user}', [App\Http\Controllers\Admin\PartnerController::class, 'edit'])->name('partners.edit');
-    Route::put('/partners/{user}', [App\Http\Controllers\Admin\PartnerController::class, 'update'])->name('partners.update');
+    Route::get('/partners', [PartnerController::class, 'index'])->name('partners.index');
+    Route::get('/partners/{user}', [PartnerController::class, 'edit'])->name('partners.edit');
+    Route::put('/partners/{user}', [PartnerController::class, 'update'])->name('partners.update');
 
     // Packages Management (fixed-price prepacked itineraries)
     Route::get('/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages.index');

@@ -192,6 +192,7 @@ class WeatherService
         if ($code === null) {
             return 'Unknown';
         }
+
         return match (true) {
             $code === 0 => 'Clear',
             in_array($code, [1, 2, 3]) => 'Partly cloudy',

@@ -32,7 +32,7 @@ return new class extends Migration
             Schema::table('budgets', function (Blueprint $t) {
                 try {
                     $t->dropForeign(['package_id']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // best-effort — SQLite may not have named the FK.
                 }
             });
@@ -41,7 +41,7 @@ return new class extends Migration
             Schema::table('bookings', function (Blueprint $t) {
                 try {
                     $t->dropForeign(['package_id']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // best-effort
                 }
             });
@@ -106,7 +106,7 @@ return new class extends Migration
             Schema::table($table, function (Blueprint $t) {
                 try {
                     $t->dropForeign(['listing_id']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                 }
             });
             Schema::table($table, function (Blueprint $t) {

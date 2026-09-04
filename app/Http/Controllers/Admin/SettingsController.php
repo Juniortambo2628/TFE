@@ -7,6 +7,7 @@ use App\Models\SiteSetting;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -61,7 +62,7 @@ class SettingsController extends Controller
             // active_tournament flips the site-wide default — clear
             // the switcher list too.
             if (array_key_exists('active_tournament', $data)) {
-                \Illuminate\Support\Facades\Cache::forget('tournament:list:all');
+                Cache::forget('tournament:list:all');
             }
         }
 
