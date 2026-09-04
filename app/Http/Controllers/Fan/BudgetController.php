@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
-use App\Models\Package;
+use App\Models\Listing;
 use App\Services\FixtureService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
@@ -90,15 +90,17 @@ class BudgetController extends Controller
             ];
         };
 
-        // Packages the fan can pick as a starting point — active + this
-        // tournament only, sorted by featured then display_order.
-        $packages = Package::forTournament($tournamentId)
+        // Packages the fan can pick as a starting point — Listing rows
+        // of type 'package', active + this tournament only, sorted by
+        // featured then display_order.
+        $packages = Listing::forTournament($tournamentId)
+            ->ofType('package')
             ->active()
             ->orderByDesc('is_featured')
             ->orderBy('display_order')
             ->orderBy('name')
             ->get()
-            ->map(function (Package $p) {
+            ->map(function (Listing $p) {
                 return [
                     'id' => $p->id,
                     'name' => $p->name,
@@ -179,21 +181,21 @@ class BudgetController extends Controller
             return back()->with('error', 'Only approved or modified budgets can be confirmed.');
         }
 
-        // Package-backed budgets: refuse to confirm if the package sold out
+        // Package-backed budgets: refuse to confirm if the listing sold out
         // between when the fan built the plan and when they confirmed it,
         // and bump sold_count on success so capacity signals stay accurate.
-        $package = $budget->package_id ? Package::find($budget->package_id) : null;
-        if ($package && $package->is_sold_out) {
+        $listing = $budget->listing_id ? Listing::find($budget->listing_id) : null;
+        if ($listing && $listing->is_sold_out) {
             return back()->with('error', 'Sorry — this package sold out while you were reviewing. Rebuild your itinerary as a custom plan or pick another package.');
         }
 
-        // Create the booking scoped to the same tournament + package as the budget.
+        // Create the booking scoped to the same tournament + listing as the budget.
         Booking::create([
             'user_id' => $budget->user_id,
             'tournament_id' => $budget->tournament_id,
-            'package_id' => $budget->package_id,
+            'listing_id' => $budget->listing_id,
             'package_name' => $budget->name,
-            'package_type' => $package ? $package->name : 'Custom Itinerary',
+            'package_type' => $listing ? $listing->name : 'Custom Itinerary',
             'status' => 'pending_payment',
             'total_amount' => $budget->partner_cost > 0 ? $budget->partner_cost : $budget->total_cost,
             'amount_paid' => 0,
@@ -204,9 +206,9 @@ class BudgetController extends Controller
             'matches' => $budget->match_ids,
         ]);
 
-        if ($package) {
+        if ($listing) {
             // Atomic increment — safe under concurrent confirmations.
-            $package->increment('sold_count');
+            $listing->increment('sold_count');
         }
 
         Budget::where('user_id', $budget->user_id)
@@ -233,15 +235,17 @@ class BudgetController extends Controller
             'breakdown' => 'required|array',
             'nights' => 'nullable|integer',
             'tournament_id' => 'nullable|string',
-            // Optional — set when the fan started from a prepacked package.
+            // Optional — set when the fan started from a prepacked listing.
             // The budget carries the FK so we know its origin even if the
-            // fan later customizes ticket count or class.
-            'package_id' => 'nullable|exists:packages,id',
+            // fan later customizes ticket count or class. Accepts either
+            // `listing_id` (new) or `package_id` (legacy fan payload).
+            'listing_id' => 'nullable|exists:listings,id',
+            'package_id' => 'nullable|exists:listings,id',
         ]);
 
         $user = Auth::user();
         $tournamentId = $validated['tournament_id'] ?? $this->activeTournamentId();
-        $packageId = $validated['package_id'] ?? null;
+        $listingId = $validated['listing_id'] ?? $validated['package_id'] ?? null;
 
         if (isset($validated['id'])) {
             $budget = Budget::where('user_id', $user->id)->findOrFail($validated['id']);
@@ -254,7 +258,7 @@ class BudgetController extends Controller
                 'breakdown' => $validated['breakdown'],
                 'nights' => $validated['nights'] ?? $budget->nights,
                 'tournament_id' => $tournamentId,
-                'package_id' => $packageId ?? $budget->package_id,
+                'listing_id' => $listingId ?? $budget->listing_id,
                 'is_active' => true,
             ]);
 
@@ -275,7 +279,7 @@ class BudgetController extends Controller
         $budget = Budget::create([
             'user_id' => $user->id,
             'tournament_id' => $tournamentId,
-            'package_id' => $packageId,
+            'listing_id' => $listingId,
             'name' => $validated['name'] ?? 'My Tournament Trip',
             'total_cost' => $validated['total_cost'],
             'match_ids' => $validated['match_ids'],

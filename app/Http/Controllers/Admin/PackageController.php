@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Package;
+use App\Models\Listing;
 use App\Services\FixtureService;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class PackageController extends Controller
         // Filter surface — default to all tournaments.
         $filterTournament = $request->query('tournament_id');
 
-        $query = Package::query()->orderBy('display_order')->orderByDesc('is_featured')->orderBy('name');
+        $query = Listing::query()->ofType('package')->orderBy('display_order')->orderByDesc('is_featured')->orderBy('name');
         if ($filterTournament) {
             $query->where('tournament_id', $filterTournament);
         }

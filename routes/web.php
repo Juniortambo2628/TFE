@@ -43,6 +43,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+
+// Public Partner Hub — /partners/{slug} — no auth needed, it's a
+// discovery surface fans can hit before signing up.
+Route::get('/partners/{slug}', [App\Http\Controllers\PartnerHubController::class, 'show'])
+    ->name('partners.hub');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
 
@@ -280,6 +285,11 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/prizes', [PrizeController::class, 'store'])->name('prizes.store');
     Route::put('/prizes/{prize}', [PrizeController::class, 'update'])->name('prizes.update');
     Route::delete('/prizes/{prize}', [PrizeController::class, 'destroy'])->name('prizes.destroy');
+
+    // Partner directory (Sprint 9) — verify, feature, edit branded hub.
+    Route::get('/partners', [App\Http\Controllers\Admin\PartnerController::class, 'index'])->name('partners.index');
+    Route::get('/partners/{user}', [App\Http\Controllers\Admin\PartnerController::class, 'edit'])->name('partners.edit');
+    Route::put('/partners/{user}', [App\Http\Controllers\Admin\PartnerController::class, 'update'])->name('partners.update');
 
     // Packages Management (fixed-price prepacked itineraries)
     Route::get('/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages.index');

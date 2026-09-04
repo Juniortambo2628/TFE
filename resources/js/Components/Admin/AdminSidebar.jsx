@@ -15,6 +15,7 @@ export default function AdminSidebar({ user }) {
         { label: 'Payments', icon: 'fas fa-credit-card', route: 'admin.payments', path: '/admin/payments' },
         { label: 'Bookings', icon: 'fas fa-calendar-check', route: 'admin.bookings.index', path: '/admin/bookings' },
         { label: 'Packages', icon: 'fas fa-gift', route: 'admin.packages.index', path: '/admin/packages' },
+        { label: 'Partners', icon: 'fas fa-handshake', route: 'admin.partners.index', path: '/admin/partners' },
         { label: 'Products', icon: 'fas fa-box-open', route: 'admin.products.index', path: '/admin/products' },
         { label: 'Loans', icon: 'fas fa-hand-holding-usd', route: 'admin.loan-applications', path: '/admin/loan-applications' },
         { label: 'Prizes', icon: 'fas fa-trophy', route: 'admin.prizes.index', path: '/admin/prizes' },

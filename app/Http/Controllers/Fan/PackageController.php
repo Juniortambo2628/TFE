@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Package;
+use App\Models\Listing;
 use App\Services\FixtureService;
 use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;

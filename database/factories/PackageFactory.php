@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Package;
+use App\Models\Listing;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
  */
 class PackageFactory extends Factory
 {
-    protected $model = Package::class;
+    protected $model = Listing::class;
 
     public function definition(): array
     {
@@ -20,6 +20,7 @@ class PackageFactory extends Factory
 
         return [
             'tournament_id' => $tournamentId,
+            'type' => 'package',
             'name' => $this->faker->words(3, true),
             'slug' => Str::slug($this->faker->words(3, true)).'-'.Str::random(6),
             'description' => $this->faker->sentence(15),

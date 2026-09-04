@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Package;
+use App\Models\Listing;
 use App\Services\FixtureService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -28,7 +28,7 @@ class PackageSeeder extends Seeder
         foreach (config('tournaments.tournaments', []) as $id => $config) {
             // Skip a tournament that already has packages — don't
             // stomp on manual admin curation.
-            if (Package::forTournament($id)->exists()) {
+            if (Listing::forTournament($id)->ofType('package')->exists()) {
                 $this->command->info("Skipping {$id} (packages already exist).");
                 continue;
             }
@@ -134,8 +134,9 @@ class PackageSeeder extends Seeder
             ];
 
             foreach ($templates as $tpl) {
-                Package::create(array_merge($tpl, [
+                Listing::create(array_merge($tpl, [
                     'tournament_id' => $id,
+                    'type' => 'package',
                     'currency' => $currency,
                     'slug' => Str::slug($tpl['name']).'-'.Str::random(6),
                     'is_active' => $status !== 'concluded',

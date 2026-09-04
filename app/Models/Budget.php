@@ -12,7 +12,7 @@ class Budget extends Model
     protected $fillable = [
         'user_id',
         'tournament_id',
-        'package_id',
+        'listing_id',
         'name',
         'total_cost',
         'match_ids',
@@ -42,9 +42,19 @@ class Budget extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Backwards-compat: `Budget->package` still works for older code
+     * that expects the pre-rename accessor name, but the FK is now
+     * listing_id under the hood.
+     */
+    public function listing()
+    {
+        return $this->belongsTo(Listing::class);
+    }
+
     public function package()
     {
-        return $this->belongsTo(Package::class);
+        return $this->belongsTo(Listing::class, 'listing_id');
     }
 
     /**

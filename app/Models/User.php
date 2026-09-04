@@ -36,6 +36,9 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'registration_completed',
         'status',
         'is_partner',
+        'partner_type',
+        'verification_status',
+        'services_offered',
         'privacy_consent',
         'privacy_consent_at',
         'cover_image',
@@ -69,6 +72,7 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'marketing_consent' => 'boolean',
         'is_partner' => 'boolean',
         'is_admin' => 'boolean',
+        'services_offered' => 'array',
         'privacy_consent' => 'boolean',
         'privacy_consent_at' => 'datetime',
         'community_consent' => 'boolean',
@@ -77,6 +81,15 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
     public function profile()
     {
         return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * Partner-hub branded profile — only partner users have one.
+     * Nullable relation; controllers that need it should firstOrCreate.
+     */
+    public function partnerProfile()
+    {
+        return $this->hasOne(PartnerProfile::class);
     }
 
     public function securitySetting()
