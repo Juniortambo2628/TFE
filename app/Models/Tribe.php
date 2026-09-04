@@ -108,4 +108,46 @@ class Tribe extends Model
     {
         return $this->created_by === $user->id;
     }
+
+    // ── Tournament scoping ─────────────────────────────────────────────
+    //
+    // A NULL tournament_id means "open to fans of every tournament" —
+    // useful for meta-communities (e.g. an African-football fan tribe
+    // that spans AFCON + WC + Euros). A set tournament_id scopes the
+    // tribe to fans of that one tournament.
+
+    public function scopeForTournament($query, ?string $tournamentId)
+    {
+        if ($tournamentId === null) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($tournamentId) {
+            $q->where('tournament_id', $tournamentId)
+                ->orWhereNull('tournament_id');
+        });
+    }
+
+    public function scopeOnlyCrossTournament($query)
+    {
+        return $query->whereNull('tournament_id');
+    }
+
+    public function scopeOnlyForTournament($query, string $tournamentId)
+    {
+        return $query->where('tournament_id', $tournamentId);
+    }
+
+    /**
+     * Resolve the tournament payload for this tribe from config, or null
+     * for cross-tournament tribes.
+     */
+    public function getTournamentAttribute(): ?array
+    {
+        if (! $this->tournament_id) {
+            return null;
+        }
+
+        return app(\App\Services\TournamentService::class)->get($this->tournament_id);
+    }
 }

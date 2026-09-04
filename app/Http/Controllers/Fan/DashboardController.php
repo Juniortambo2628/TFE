@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
+use App\Models\Tribe;
 use App\Models\TribeMember;
 use App\Services\FixtureService;
 use App\Traits\ResolvesTournament;
@@ -54,13 +55,21 @@ class DashboardController extends Controller
             ->where('status', 'completed')->count();
         $installmentsCount = PaymentSchedule::where('user_id', $userId)->count();
 
+        // Joined-tribes count reflects what the fan can see on the Tribes
+        // page for the current tournament — memberships in tribes that
+        // are scoped to this tournament OR open to all tournaments.
+        $joinedTribesCount = TribeMember::where('user_id', $userId)
+            ->whereIn('tribe_id',
+                Tribe::forTournament($tournamentId)->pluck('id')
+            )->count();
+
         $stats = [
             'bookings' => $totalBookings,
             'paid' => $totalPaid,
             'due' => $totalDue,
             'payments_count' => $completedPaymentsCount,
             'installments_count' => $installmentsCount,
-            'joined_tribes_count' => TribeMember::where('user_id', $userId)->count(),
+            'joined_tribes_count' => $joinedTribesCount,
         ];
 
         // Fetch recent successful transactions (only the needed records)

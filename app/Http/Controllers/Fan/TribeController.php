@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tribe;
 use App\Models\TribePost;
 use App\Models\TribePostReply;
+use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -13,19 +14,39 @@ use Inertia\Inertia;
 
 class TribeController extends Controller
 {
+    use ResolvesTournament;
+
     /**
-     * Display a listing of tribes.
+     * Display a listing of tribes. Tournament filter is the fan-side
+     * lens on the multi-tournament pivot: the default is "this
+     * tournament + cross-tournament", but the client can request
+     * ?scope=this|cross|all to narrow or widen.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $tournament = $this->activeTournament();
+        $tournamentId = $tournament['id'];
+        $scope = in_array($request->query('scope'), ['this', 'cross', 'all'], true)
+            ? $request->query('scope')
+            : 'default';
 
-        // Get all tribes with member count and creator info
-        $tribes = Tribe::with('creator')
-            ->withCount('members')
-            ->orderByDesc('member_count')
+        $query = Tribe::with('creator')->withCount('members');
+
+        match ($scope) {
+            'this' => $query->onlyForTournament($tournamentId),
+            'cross' => $query->onlyCrossTournament(),
+            'all' => $query, // no scope
+            default => $query->forTournament($tournamentId), // "this + cross"
+        };
+
+        $tribes = $query->orderByDesc('member_count')
             ->get()
             ->map(function ($tribe) use ($user) {
+                $tCfg = $tribe->tournament_id
+                    ? config("tournaments.tournaments.{$tribe->tournament_id}")
+                    : null;
+
                 return [
                     'id' => $tribe->id,
                     'name' => $tribe->name,
@@ -40,10 +61,13 @@ class TribeController extends Controller
                     'creator' => [
                         'name' => $tribe->creator->name,
                     ],
+                    // Multi-tournament badge data — a null tournament_id
+                    // means "open to fans of every tournament".
+                    'tournament_id' => $tribe->tournament_id,
+                    'tournament_short' => $tCfg['short_name'] ?? $tCfg['name'] ?? null,
                 ];
             });
 
-        // Calculate stats
         $stats = [
             'total_tribes' => $tribes->count(),
             'joined_tribes' => $tribes->where('is_member', true)->count(),
@@ -53,6 +77,7 @@ class TribeController extends Controller
         return Inertia::render('Fan/Tribes', [
             'tribes' => $tribes,
             'stats' => $stats,
+            'activeScope' => $scope === 'default' ? 'this_and_cross' : $scope,
         ]);
     }
 
@@ -149,7 +174,15 @@ class TribeController extends Controller
             'name' => 'required|string|max:100|unique:tribes',
             'description' => 'nullable|string|max:1000',
             'privacy' => 'in:public,private,invite_only',
+            'cross_tournament' => 'nullable|boolean',
         ]);
+
+        // Default: this tribe belongs to whichever tournament the creator
+        // is currently viewing. Passing cross_tournament=true opts out
+        // and makes it visible to fans of every tournament.
+        $tournamentId = $request->boolean('cross_tournament')
+            ? null
+            : $this->activeTournamentId();
 
         $tribe = Tribe::create([
             'name' => $request->name,
@@ -157,6 +190,7 @@ class TribeController extends Controller
             'description' => $request->description,
             'created_by' => Auth::id(),
             'privacy' => $request->privacy ?? 'public',
+            'tournament_id' => $tournamentId,
         ]);
 
         // Add creator as admin member
