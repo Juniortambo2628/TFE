@@ -33,8 +33,8 @@ const ABOUT_CARDS = [
 export default function About({ variant = 'split' }) {
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
-    var tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
-    var hosts = tournament && tournament.hosts ? tournament.hosts.join(', ') : 'USA, Canada, Mexico';
+    var tournamentName = tournament ? tournament.name : 'the next tournament';
+    var hosts = tournament && tournament.hosts && tournament.hosts.length ? tournament.hosts.join(', ') : 'top destinations';
 
     var description = 'We create premium travel experiences for African football fans who value comfort, style, and a personal approach. From ' + hosts + ' and beyond — only trusted destinations, exclusive offers, and top-tier service for ' + tournamentName + '.';
 

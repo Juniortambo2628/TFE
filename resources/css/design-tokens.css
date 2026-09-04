@@ -38,6 +38,15 @@
     --surface-hover: rgba(255, 255, 255, 0.03);
     --surface-subtle: rgba(255, 255, 255, 0.02);
 
+    /* ── Glass Layers ──
+       Recurring inline-style patterns across the fan/admin dashboards,
+       promoted so future components stop copy-pasting the numbers. */
+    --glass-surface: rgba(20, 20, 20, 0.6);
+    --glass-surface-strong: rgba(255, 255, 255, 0.05);
+    --glass-surface-subtle: rgba(255, 255, 255, 0.03);
+    --glass-border-hairline: rgba(255, 255, 255, 0.06);
+    --glass-border-strong: rgba(255, 255, 255, 0.1);
+
     /* ── Border Colors ── */
     --border-default: #222222;
     --border-light: #333333;

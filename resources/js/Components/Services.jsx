@@ -7,7 +7,7 @@ const SERVICE_CARDS = [
     {
         image: 'assets/img/IMG-12.jpg',
         title: 'Structured Financing',
-        subtitle: 'Break World Cup packages into monthly payments over 12-24 months instead of paying upfront.',
+        subtitle: 'Break tournament travel packages into monthly payments over 12-24 months instead of paying upfront.',
         tags: ['Financing', '12-24 Months'],
     },
     {
@@ -32,7 +32,7 @@ const SERVICE_CARDS = [
 
 export default function Services({ variant = 'split' }) {
     const { tournament } = useTournament();
-    const tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
+    const tournamentName = tournament ? tournament.name : 'tournament';
     const description = 'Comprehensive solutions to make your ' + tournamentName + ' dream a reality. From flexible financing to complete travel packages.';
     return (
         <HorizontalCardSection

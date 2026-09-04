@@ -11,6 +11,8 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
+        'tournament_id',
+        'listing_id',
         'package_name',
         'package_type',
         'status',
@@ -34,5 +36,15 @@ class Booking extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function listing()
+    {
+        return $this->belongsTo(Listing::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Listing::class, 'listing_id');
     }
 }

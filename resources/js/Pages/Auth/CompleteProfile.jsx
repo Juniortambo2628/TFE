@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import SearchableSelect from '@/Components/SearchableSelect';
 import { countries } from '../../Data/countries';
-import WorldCup2026Data from '../../Data/WorldCup2026Data';
 import '../../../css/register-dark.css';
-import { SPECIAL_MAPPINGS } from '@/Data/countryFlags';
+import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 
 export default function CompleteProfile({ auth }) {
     const { assetUrl } = usePage().props;
     const user = auth.user;
+    const tournamentTeams = useTournamentTeams({ assetUrl });
 
     const { data, setData, post, processing, errors } = useForm({
         phone: '',
@@ -18,33 +18,18 @@ export default function CompleteProfile({ auth }) {
         terms_agreed: false,
     });
 
+    // Teams the fan can support are pulled from the active tournament
+    // (Wikipedia teams + config flag codes), never from a static WC list.
     const teams = [
-        ...WorldCup2026Data.qualifiedTeams.map(teamName => {
-            let iso = SPECIAL_MAPPINGS[teamName];
-            let flag = null;
-            if (iso) {
-                 flag = `${assetUrl}assets/Flags/${iso.toLowerCase()}.png`;
-            } else {
-                 const country = countries.find(c => 
-                    c.value.toLowerCase() === teamName.toLowerCase() || 
-                    (teamName === 'USA' && c.iso === 'US') ||
-                    (teamName === 'Korea Republic' && c.iso === 'KR') ||
-                    (teamName === 'IR Iran' && c.iso === 'IR') ||
-                    (teamName === 'Côte d\'Ivoire' && c.iso === 'CI')
-                );
-                if (country) {
-                    iso = country.iso;
-                    flag = `${assetUrl}assets/Flags/${country.iso.toLowerCase()}.png`;
-                }
-            }
+        ...tournamentTeams.map(function (t) {
             return {
-                name: teamName,
-                iso: iso || '',
-                flag: flag,
-                icon: flag ? null : 'fas fa-futbol'
+                name: t.value,
+                iso: t.iso || '',
+                flag: t.flag,
+                icon: t.flag ? null : 'fas fa-futbol',
             };
         }),
-        { name: 'Other', icon: 'fas fa-globe' }
+        { name: 'Other', icon: 'fas fa-globe' },
     ];
 
     const submit = (e) => {

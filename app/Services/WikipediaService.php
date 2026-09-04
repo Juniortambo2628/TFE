@@ -397,6 +397,8 @@ class WikipediaService
                 'opened' => null,
                 'location' => null,
                 'coordinates' => null,
+                'lat' => null,
+                'lng' => null,
             ];
 
             if (! empty($wikitext)) {
@@ -408,12 +410,89 @@ class WikipediaService
                     $data['capacity'] = $this->getField($infobox, 'capacity');
                     $data['opened'] = $this->cleanWikiValue($this->getField($infobox, 'opened'));
                     $data['location'] = $this->cleanWikiValue($this->getField($infobox, 'location'));
-                    $data['coordinates'] = $this->cleanWikiValue($this->getField($infobox, 'coordinates'));
+
+                    // Coordinates: try the raw wikitext first (before cleanWikiValue
+                    // strips the templates that carry the numbers), then fall back
+                    // to the cleaned form.
+                    $rawCoords = $this->getField($infobox, 'coordinates');
+                    $coords = self::parseCoordinates($rawCoords);
+                    if ($coords) {
+                        $data['lat'] = $coords['lat'];
+                        $data['lng'] = $coords['lng'];
+                    }
+                    $data['coordinates'] = $this->cleanWikiValue($rawCoords);
                 }
             }
 
             return $data;
         });
+    }
+
+    /**
+     * Parse a Wikipedia "coordinates" infobox value into {lat, lng}.
+     * Handles the three common shapes we see:
+     *   {{coord|40|48|48|N|74|4|39|W|type:landmark}}
+     *   {{coord|40.813333|-74.077500|type:landmark}}
+     *   40.813333, -74.077500
+     * Returns null when nothing can be extracted (never throws).
+     */
+    public static function parseCoordinates(?string $raw): ?array
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        // {{coord|DEG|MIN|SEC|N|DEG|MIN|SEC|W|...}}
+        if (preg_match(
+            '/\{\{coord\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([NS])\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([EW])/i',
+            $raw,
+            $m,
+        )) {
+            $lat = ((float) $m[1]) + ((float) $m[2] / 60) + ((float) $m[3] / 3600);
+            if (strtoupper($m[4]) === 'S') {
+                $lat = -$lat;
+            }
+            $lng = ((float) $m[5]) + ((float) $m[6] / 60) + ((float) $m[7] / 3600);
+            if (strtoupper($m[8]) === 'W') {
+                $lng = -$lng;
+            }
+
+            return ['lat' => round($lat, 6), 'lng' => round($lng, 6)];
+        }
+
+        // {{coord|DEG|MIN|N|DEG|MIN|W|...}}  (no seconds)
+        if (preg_match(
+            '/\{\{coord\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([NS])\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([EW])/i',
+            $raw,
+            $m,
+        )) {
+            $lat = ((float) $m[1]) + ((float) $m[2] / 60);
+            if (strtoupper($m[3]) === 'S') {
+                $lat = -$lat;
+            }
+            $lng = ((float) $m[4]) + ((float) $m[5] / 60);
+            if (strtoupper($m[6]) === 'W') {
+                $lng = -$lng;
+            }
+
+            return ['lat' => round($lat, 6), 'lng' => round($lng, 6)];
+        }
+
+        // {{coord|LAT|LNG|...}} — decimal degrees, signed
+        if (preg_match('/\{\{coord\|(-?\d+\.\d+)\|(-?\d+\.\d+)/i', $raw, $m)) {
+            return ['lat' => (float) $m[1], 'lng' => (float) $m[2]];
+        }
+
+        // Plain "40.813333, -74.077500"
+        if (preg_match('/(-?\d+\.\d+)\s*[,;]\s*(-?\d+\.\d+)/', $raw, $m)) {
+            $lat = (float) $m[1];
+            $lng = (float) $m[2];
+            if (abs($lat) <= 90 && abs($lng) <= 180) {
+                return ['lat' => $lat, 'lng' => $lng];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -714,14 +793,27 @@ class WikipediaService
 
     /**
      * Get all Wikipedia data for a tournament in one call — convenient for sharing.
+     *
+     * On a cold cache, pre-warm the three independent primary HTTP requests
+     * (summary / extract / wikitext) in parallel with Http::pool so
+     * downstream methods (venues, teams, results, awards, matches — all
+     * derived from wikitext) hit their per-key caches instead of firing
+     * serial HTTP requests. Venue stadium data is likewise pre-warmed in a
+     * single pool per tournament instead of N sequential requests.
      */
     public function getAll(string $title, ?int $ttl = null): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
 
+        // Phase 1 — warm the primary caches in parallel (only misses actually
+        // fire; hits short-circuit inside each cache helper).
+        $this->warmPrimary($title, $ttl);
+
+        // Phase 2 — venues come out of the cached wikitext, no new HTTP.
         $venues = $this->getVenues($title, $ttl);
 
-        // Enrich each venue with stadium data (capacity, opened, location, thumbnail)
+        // Phase 3 — warm all per-venue summary + wikitext in parallel too.
+        $this->warmStadiums($venues, $ttl);
         foreach ($venues as &$venue) {
             $stadiumData = $this->getStadiumData($venue['wikipedia_title'] ?? $venue['name'], $ttl);
             $venue = array_merge($venue, $stadiumData);
@@ -741,6 +833,166 @@ class WikipediaService
             'awards' => $this->getAwards($title, $ttl),
             'flags' => $this->getFlagImages($this->getTeamCodesFromConfig($title), $ttl),
         ];
+    }
+
+    /**
+     * Pre-populate the three primary caches for a tournament title using
+     * one Http::pool round-trip. Only misses are fetched. Any failure
+     * degrades silently — the per-method cache calls will retry.
+     */
+    protected function warmPrimary(string $title, int $ttl): void
+    {
+        $summaryKey = 'wikipedia:summary:'.md5($title);
+        $extractKey = 'wikipedia:extract:'.md5($title);
+        $wikitextKey = 'wikipedia:wikitext:'.md5($title);
+
+        $needSummary = ! Cache::has($summaryKey);
+        $needExtract = ! Cache::has($extractKey);
+        $needWikitext = ! Cache::has($wikitextKey);
+
+        if (! $needSummary && ! $needExtract && ! $needWikitext) {
+            return;
+        }
+
+        $encodedTitle = rawurlencode(str_replace(' ', '_', $title));
+        $timeout = app()->environment('local') ? 3 : 8;
+        $userAgent = 'TFE/1.0 (https://tfe.okjtech.co.ke; contact@tfe.okjtech.co.ke)';
+
+        try {
+            $responses = Http::pool(function ($pool) use (
+                $needSummary, $needExtract, $needWikitext, $encodedTitle, $title, $timeout, $userAgent
+            ) {
+                $requests = [];
+                $base = $pool->timeout($timeout)->withHeaders(['User-Agent' => $userAgent]);
+                if (app()->environment('local')) {
+                    $base = $base->withoutVerifying();
+                }
+                if ($needSummary) {
+                    $requests['summary'] = $base->get($this->summaryBase.$encodedTitle);
+                }
+                if ($needExtract) {
+                    $requests['extract'] = $base->get($this->actionBase, [
+                        'action' => 'query', 'titles' => $title, 'prop' => 'extracts',
+                        'exintro' => 1, 'explaintext' => 1, 'format' => 'json',
+                    ]);
+                }
+                if ($needWikitext) {
+                    $requests['wikitext'] = $base->get($this->actionBase, [
+                        'action' => 'parse', 'page' => $title, 'prop' => 'wikitext', 'format' => 'json',
+                    ]);
+                }
+
+                return $requests;
+            });
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        if ($needSummary && isset($responses['summary']) && $responses['summary']->successful()) {
+            $data = $responses['summary']->json();
+            Cache::put($summaryKey, [
+                'title' => $data['title'] ?? $title,
+                'extract' => $data['extract'] ?? '',
+                'thumbnail' => $data['thumbnail']['source'] ?? null,
+                'url' => $data['content_urls']['desktop']['page'] ?? null,
+            ], $ttl);
+        }
+
+        if ($needExtract && isset($responses['extract']) && $responses['extract']->successful()) {
+            $pages = $responses['extract']->json()['query']['pages'] ?? [];
+            $extract = '';
+            foreach ($pages as $page) {
+                $extract = $page['extract'] ?? '';
+                break;
+            }
+            Cache::put($extractKey, $extract, $ttl);
+        }
+
+        if ($needWikitext && isset($responses['wikitext']) && $responses['wikitext']->successful()) {
+            $wikitext = $responses['wikitext']->json()['parse']['wikitext']['*'] ?? '';
+            Cache::put($wikitextKey, $wikitext, $ttl);
+        }
+    }
+
+    /**
+     * Pre-warm stadium summary + wikitext caches for a batch of venues
+     * in one pool. Skips entries already cached.
+     */
+    protected function warmStadiums(array $venues, int $ttl): void
+    {
+        $needed = [];
+        foreach ($venues as $v) {
+            $stadiumTitle = $v['wikipedia_title'] ?? $v['name'] ?? null;
+            if (! $stadiumTitle) {
+                continue;
+            }
+            $summaryKey = 'wikipedia:summary:'.md5($stadiumTitle);
+            $wikitextKey = 'wikipedia:wikitext:'.md5($stadiumTitle);
+            $missSummary = ! Cache::has($summaryKey);
+            $missWikitext = ! Cache::has($wikitextKey);
+            if ($missSummary || $missWikitext) {
+                $needed[] = [
+                    'title' => $stadiumTitle,
+                    'summary_key' => $summaryKey,
+                    'wikitext_key' => $wikitextKey,
+                    'need_summary' => $missSummary,
+                    'need_wikitext' => $missWikitext,
+                ];
+            }
+        }
+
+        if (empty($needed)) {
+            return;
+        }
+
+        $timeout = app()->environment('local') ? 3 : 8;
+        $userAgent = 'TFE/1.0 (https://tfe.okjtech.co.ke; contact@tfe.okjtech.co.ke)';
+
+        // Chunk pool size — Wikipedia is fine with a handful at once.
+        foreach (array_chunk($needed, 8) as $chunk) {
+            try {
+                $responses = Http::pool(function ($pool) use ($chunk, $timeout, $userAgent) {
+                    $base = $pool->timeout($timeout)->withHeaders(['User-Agent' => $userAgent]);
+                    if (app()->environment('local')) {
+                        $base = $base->withoutVerifying();
+                    }
+                    $requests = [];
+                    foreach ($chunk as $i => $item) {
+                        if ($item['need_summary']) {
+                            $requests["s_{$i}"] = $base->get(
+                                $this->summaryBase.rawurlencode(str_replace(' ', '_', $item['title']))
+                            );
+                        }
+                        if ($item['need_wikitext']) {
+                            $requests["w_{$i}"] = $base->get($this->actionBase, [
+                                'action' => 'parse', 'page' => $item['title'],
+                                'prop' => 'wikitext', 'format' => 'json',
+                            ]);
+                        }
+                    }
+
+                    return $requests;
+                });
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            foreach ($chunk as $i => $item) {
+                if ($item['need_summary'] && isset($responses["s_{$i}"]) && $responses["s_{$i}"]->successful()) {
+                    $data = $responses["s_{$i}"]->json();
+                    Cache::put($item['summary_key'], [
+                        'title' => $data['title'] ?? $item['title'],
+                        'extract' => $data['extract'] ?? '',
+                        'thumbnail' => $data['thumbnail']['source'] ?? null,
+                        'url' => $data['content_urls']['desktop']['page'] ?? null,
+                    ], $ttl);
+                }
+                if ($item['need_wikitext'] && isset($responses["w_{$i}"]) && $responses["w_{$i}"]->successful()) {
+                    $wikitext = $responses["w_{$i}"]->json()['parse']['wikitext']['*'] ?? '';
+                    Cache::put($item['wikitext_key'], $wikitext, $ttl);
+                }
+            }
+        }
     }
 
     /**

@@ -235,6 +235,9 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                                 <Link href={route('admin.bookings.index')} className="btn-admin-outline">
                                     <i className="fas fa-calendar-check"></i> Manage Bookings
                                 </Link>
+                                <Link href={route('admin.packages.index')} className="btn-admin-outline">
+                                    <i className="fas fa-gift"></i> Manage Packages
+                                </Link>
                                 <Link href={route('admin.products.index')} className="btn-admin-outline">
                                     <i className="fas fa-box-open"></i> Manage Inventory
                                 </Link>

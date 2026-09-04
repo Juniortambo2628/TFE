@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TournamentService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +19,7 @@ class Tribe extends Model
         'created_by',
         'privacy',
         'forum_enabled',
+        'tournament_id',
     ];
 
     protected $casts = [
@@ -106,5 +108,47 @@ class Tribe extends Model
     public function isOwner(User $user): bool
     {
         return $this->created_by === $user->id;
+    }
+
+    // ── Tournament scoping ─────────────────────────────────────────────
+    //
+    // A NULL tournament_id means "open to fans of every tournament" —
+    // useful for meta-communities (e.g. an African-football fan tribe
+    // that spans AFCON + WC + Euros). A set tournament_id scopes the
+    // tribe to fans of that one tournament.
+
+    public function scopeForTournament($query, ?string $tournamentId)
+    {
+        if ($tournamentId === null) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($tournamentId) {
+            $q->where('tournament_id', $tournamentId)
+                ->orWhereNull('tournament_id');
+        });
+    }
+
+    public function scopeOnlyCrossTournament($query)
+    {
+        return $query->whereNull('tournament_id');
+    }
+
+    public function scopeOnlyForTournament($query, string $tournamentId)
+    {
+        return $query->where('tournament_id', $tournamentId);
+    }
+
+    /**
+     * Resolve the tournament payload for this tribe from config, or null
+     * for cross-tournament tribes.
+     */
+    public function getTournamentAttribute(): ?array
+    {
+        if (! $this->tournament_id) {
+            return null;
+        }
+
+        return app(TournamentService::class)->get($this->tournament_id);
     }
 }

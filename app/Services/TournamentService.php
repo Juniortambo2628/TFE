@@ -47,7 +47,7 @@ class TournamentService
             // Silently fall through to default — SiteSetting is best-effort.
         }
 
-        return config('tournaments.default', 'wc_2026');
+        return config('tournaments.default');
     }
 
     /**
@@ -63,16 +63,68 @@ class TournamentService
 
     /**
      * Get full tournament data for a specific ID.
+     *
+     * The entire assembled payload (config + Wikipedia + admin overrides)
+     * is cached under a single key so every Inertia request is a single
+     * cache read instead of ~15 array merges. The inner Wikipedia call
+     * remains cached separately for the refresh command.
      */
     public function get(string $id): array
     {
         $config = config("tournaments.tournaments.{$id}");
         if (! $config) {
-            $id = config('tournaments.default', 'wc_2026');
+            $id = config('tournaments.default');
             $config = config("tournaments.tournaments.{$id}");
         }
 
         $ttl = $this->ttlFor($config);
+
+        // Collect the admin-configurable overrides once, hash them into
+        // the assembled-payload cache key so any change invalidates the
+        // cache on the next request (no stale hero / tagline / trophy).
+        $overrides = $this->loadOverrides($id);
+        $fullKey = "tournament:{$id}:full:".md5(json_encode($overrides));
+
+        return Cache::remember($fullKey, $ttl, function () use ($id, $config, $ttl, $overrides) {
+            return $this->assemble($id, $config, $ttl, $overrides);
+        });
+    }
+
+    /**
+     * Load admin overrides for a tournament from the site_settings table.
+     * All keys are optional — a missing key means "fall back to config".
+     * Silently tolerates a missing site_settings table (fresh installs).
+     */
+    protected function loadOverrides(string $id): array
+    {
+        $overrides = [
+            'hero_image' => null,
+            'tagline' => null,
+            'trophy_image' => null,
+            'color_accent' => null,
+        ];
+        try {
+            if (Schema::hasTable('site_settings')) {
+                $overrides['hero_image'] = SiteSetting::get("hero_bg_{$id}");
+                $overrides['tagline'] = SiteSetting::get("tournament_tagline_{$id}");
+                $overrides['trophy_image'] = SiteSetting::get("tournament_trophy_{$id}");
+                $overrides['color_accent'] = SiteSetting::get("tournament_accent_{$id}");
+            }
+        } catch (\Throwable $e) {
+            // best-effort — config values still apply.
+        }
+
+        return $overrides;
+    }
+
+    /**
+     * Build the full tournament payload from config + Wikipedia + admin
+     * overrides. Extracted from get() so the outer cache wraps everything.
+     *
+     * @param  array{hero_image:?string,tagline:?string,trophy_image:?string,color_accent:?string}  $overrides
+     */
+    protected function assemble(string $id, array $config, int $ttl, array $overrides): array
+    {
         $wikiTitle = $config['wikipedia_title'] ?? $config['name'];
 
         $wikipedia = Cache::remember(
@@ -112,18 +164,12 @@ class TournamentService
             $finalVenue = $finalMatch['stadium'].($finalMatch['city'] ? ', '.$finalMatch['city'] : '');
         }
 
-        // Admin-uploaded hero background overrides the config default.
-        $heroImage = $config['hero_image'] ?? null;
-        try {
-            if (Schema::hasTable('site_settings')) {
-                $adminHero = SiteSetting::get("hero_bg_{$id}");
-                if ($adminHero) {
-                    $heroImage = $adminHero;
-                }
-            }
-        } catch (\Throwable $e) {
-            // Silently fall back to config hero_image.
-        }
+        // Admin overrides > config defaults. Loaded once in get() and
+        // passed in so no per-call SiteSetting queries fire here.
+        $heroImage = $overrides['hero_image'] ?: ($config['hero_image'] ?? null);
+        $tagline = $overrides['tagline'] ?: ($config['tagline'] ?? null);
+        $trophyImage = $overrides['trophy_image'] ?: ($config['trophy_image'] ?? null);
+        $colorAccent = $overrides['color_accent'] ?: ($config['color_accent'] ?? null);
 
         return array_merge($config, [
             'status' => self::computedStatus($config),
@@ -134,8 +180,11 @@ class TournamentService
             'team_flag_codes' => $config['team_flag_codes'] ?? [],
             'facts' => $wikipedia['facts'] ?? [],
             'is_default' => $id === config('tournaments.default'),
-            // Hero image: admin upload > config default
+            // Hero image, tagline, trophy, accent: admin override > config default.
             'hero_image' => $heroImage,
+            'tagline' => $tagline,
+            'trophy_image' => $trophyImage,
+            'color_accent' => $colorAccent,
             // Wikipedia logo (overrides hardcoded hero_image when available)
             'wikipedia_logo' => $wikipedia['logo'] ?? null,
             // Merged results (config fallback + Wikipedia)
@@ -209,37 +258,44 @@ class TournamentService
 
     /**
      * List all tournaments with computed status — used by the switcher UI.
+     *
+     * Cached for an hour so the shared HandleInertiaRequests prop doesn't
+     * rebuild the sorted list per request. Cache invalidates itself hourly
+     * (matches the shortest interesting status-transition window) and is
+     * cleared explicitly by clearCache() when the refresh command runs.
      */
     public function all(): array
     {
-        $tournaments = [];
-        foreach (config('tournaments.tournaments', []) as $id => $config) {
-            $computedStatus = self::computedStatus($config);
-            $tournaments[] = [
-                'id' => $id,
-                'name' => $config['name'],
-                'short_name' => $config['short_name'],
-                'slug' => $config['slug'],
-                'status' => $computedStatus,
-                'start_date' => $config['start_date'],
-                'end_date' => $config['end_date'],
-                'hosts' => $config['hosts'] ?? [],
-            ];
-        }
-
-        // Sort: ongoing first, then upcoming (by start_date), then concluded
-        $order = ['ongoing' => 0, 'upcoming' => 1, 'concluded' => 2];
-        usort($tournaments, function ($a, $b) use ($order) {
-            $oa = $order[$a['status']] ?? 3;
-            $ob = $order[$b['status']] ?? 3;
-            if ($oa !== $ob) {
-                return $oa <=> $ob;
+        return Cache::remember('tournament:list:all', 3600, function () {
+            $tournaments = [];
+            foreach (config('tournaments.tournaments', []) as $id => $config) {
+                $computedStatus = self::computedStatus($config);
+                $tournaments[] = [
+                    'id' => $id,
+                    'name' => $config['name'],
+                    'short_name' => $config['short_name'],
+                    'slug' => $config['slug'],
+                    'status' => $computedStatus,
+                    'start_date' => $config['start_date'],
+                    'end_date' => $config['end_date'],
+                    'hosts' => $config['hosts'] ?? [],
+                ];
             }
 
-            return $a['start_date'] <=> $b['start_date'];
-        });
+            // Sort: ongoing first, then upcoming (by start_date), then concluded
+            $order = ['ongoing' => 0, 'upcoming' => 1, 'concluded' => 2];
+            usort($tournaments, function ($a, $b) use ($order) {
+                $oa = $order[$a['status']] ?? 3;
+                $ob = $order[$b['status']] ?? 3;
+                if ($oa !== $ob) {
+                    return $oa <=> $ob;
+                }
 
-        return $tournaments;
+                return $a['start_date'] <=> $b['start_date'];
+            });
+
+            return $tournaments;
+        });
     }
 
     /**
@@ -269,10 +325,23 @@ class TournamentService
     }
 
     /**
-     * Clear all cache for a specific tournament (used by the refresh command).
+     * Clear all cached data for a specific tournament — the Wikipedia
+     * payload AND every assembled variant (keyed on the admin overrides
+     * hash), plus the switcher list. Used by the refresh command and by
+     * the admin "Refresh" button.
      */
     public function clearCache(string $id): void
     {
         Cache::forget("tournament:{$id}:wikipedia");
+        Cache::forget('tournament:list:all');
+
+        // Clear the current-overrides variant AND the empty-overrides
+        // variant so an admin who just cleared an override still sees
+        // the fresh payload on the next request.
+        $emptyKey = 'tournament:'.$id.':full:'.md5(json_encode([
+            'hero_image' => null, 'tagline' => null, 'trophy_image' => null, 'color_accent' => null,
+        ]));
+        Cache::forget($emptyKey);
+        Cache::forget('tournament:'.$id.':full:'.md5(json_encode($this->loadOverrides($id))));
     }
 }

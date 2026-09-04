@@ -6,6 +6,9 @@ import FlightSelector from '@/Components/Fan/FlightSelector';
 import HotelSelector from '@/Components/Fan/HotelSelector';
 import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
+import PackagePicker from '@/Components/Fan/PackagePicker';
+import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
+import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -15,14 +18,36 @@ import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 
-const USD_TO_KES = 130;
-
-export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [], tournamentPricing: rawPricing = {}, tournamentId: initialTournamentId = '', venueCountries = {} }) {
+export default function BudgetCalculator({
+    auth,
+    savedBudgets: initialBudgets = [],
+    budgetToEdit = null,
+    tournamentPricing: rawPricing = {},
+    tournamentId: initialTournamentId = '',
+    packages = [],
+    // Fixture bundle is deferred by the server — on first paint it's
+    // undefined; Inertia fills it in via a background partial reload.
+    fixtureBundle = null,
+}) {
+    // Package the fan picked at step 0. null = they're building custom.
+    const [selectedPackage, setSelectedPackage] = useState(null);
+    // Unpack the deferred bundle with sane defaults so the component
+    // renders (in a loading state) before the fetch lands.
+    const allFixtures = fixtureBundle?.allFixtures || [];
+    const userFavorites = fixtureBundle?.userFavorites || [];
+    const venues = fixtureBundle?.venues || [];
+    const stages = fixtureBundle?.stages || [];
+    const groups = fixtureBundle?.groups || [];
+    const teams = fixtureBundle?.teams || [];
+    const venueCountries = fixtureBundle?.venueCountries || {};
+    const fixturesLoading = !fixtureBundle;
     const { tournament } = useTournament();
     const tournamentPricing = rawPricing;
     const [usdToKes, setUsdToKes] = useState(getExchangeRate(tournamentPricing));
-    // Wizard State
-    const [wizardStep, setWizardStep] = useState(1);
+    // Wizard State — start at step 0 (package picker) so fans see the
+    // fast-path prepacked options before building custom. budgetToEdit
+    // and the ?match= deep link skip past it (handled below).
+    const [wizardStep, setWizardStep] = useState(0);
     
     // Filter State
     const [selectedStadiums, setSelectedStadiums] = useState([]);
@@ -104,6 +129,54 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
         }
     }, [budgetToEdit]);
 
+    // Package picker handlers — step-0 chooser wires into these.
+    const handlePickPackage = (pkg) => {
+        if (!pkg) return;
+        setSelectedPackage(pkg);
+        // Pre-fill wizard state from the package template. Fan can still
+        // tweak in later steps; we track the origin via selectedPackage
+        // so the save call carries package_id.
+        setSelectedMatchIds(pkg.included_match_ids || []);
+        setFlightClass(pkg.flight_class || 'economy');
+        setAccommodation(pkg.accommodation_level || '3_star');
+        setNights(pkg.nights || 7);
+        // Populate filteredMatches so step 2 shows the package's matches.
+        if (Array.isArray(pkg.included_match_ids) && pkg.included_match_ids.length > 0 && allFixtures.length > 0) {
+            const matches = allFixtures.filter((m) => pkg.included_match_ids.includes(m.id));
+            setFilteredMatches(matches);
+        }
+        setWizardStep(2);
+    };
+
+    const handleBuildCustom = () => {
+        setSelectedPackage(null);
+        setWizardStep(1);
+    };
+
+    // Skip step 0 automatically if the fan is editing an existing budget,
+    // landed via a ?match=… deep link, or clicked "Use this package" on a
+    // detail page (?package=<id>). Also skip if no packages exist for
+    // this tournament — no point showing an empty picker.
+    useEffect(() => {
+        if (budgetToEdit) return; // handled in its own effect
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('match')) return;
+
+        // Deep-link from the package detail page.
+        const pkgIdParam = params.get('package');
+        if (pkgIdParam) {
+            const pkg = (packages || []).find(p => String(p.id) === String(pkgIdParam));
+            if (pkg) {
+                handlePickPackage(pkg);
+                return;
+            }
+        }
+
+        if (!packages || packages.length === 0) {
+            setWizardStep(1);
+        }
+    }, [budgetToEdit, packages]);
+
     // Initialize from URL query parameter (e.g., ?match=19 from Plan Trip CTA)
     useEffect(() => {
         if (budgetToEdit) return; // Don't override budgetToEdit
@@ -132,25 +205,20 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     const allStages = stages;
     const allGroups = groups;
 
-    // Stadium image mapping - use available images
-    const stadiumImages = {
-        'Mexico City Stadium': 'Estadio_Azteca_desde_el_aire_1.webp',
-        'Estadio Guadalajara': 'Estadio_Akron_02-07-2022_cabecera_sur_lado_derecho.webp',
-        'Estadio Monterrey': 'Estadio_BBVA.webp',
-        'Toronto Stadium': 'BMO_Field.webp',
-        'BC Place Vancouver': 'BC_Place_Opening_Day_2011-09-30.webp',
-        'Los Angeles Stadium': 'Levis_Stadium.webp', // Fallback - no SoFi image available
-        'New York New Jersey Stadium': 'Metlife_stadium.webp',
-        'Dallas Stadium': 'Cowboys_stadium_inside_view_3.webp',
-        'Atlanta Stadium': 'NRG_Stadium,_LEAGUES_CUP_2024_TIGRES_INTER_MIAMI.jnp.webp', // Fallback
-        'Houston Stadium': 'Nrgstadium0.webp',
-        'Philadelphia Stadium': 'Lincoln_Financial_Field.webp',
-        'Miami Stadium': 'Hard_Rock_Stadium_2017.webp',
-        'Seattle Stadium': 'CenturyLink_Field_&_Safeco_Field.webp',
-        'San Francisco Bay Area Stadium': 'Levis_Stadium.webp',
-        'Boston Stadium': 'Gillette_Stadium_entrance_and_lighthouse.webp',
-        'Kansas City Stadium': 'Arrowhead_Stadium_(October_27,_2019_-_2).webp'
-    };
+    // Stadium image lookup — resolves the Wikipedia thumbnail for a venue name
+    // from the tournament payload. Any tournament that has Wikipedia venues
+    // gets rich imagery for free; a missing lookup falls through to the
+    // component's local placeholder.
+    const wikipediaVenueImages = React.useMemo(function () {
+        var map = {};
+        var venuesList = (tournament && tournament.venues) || [];
+        venuesList.forEach(function (v) {
+            if (v && v.name) {
+                map[v.name] = v.thumbnail || v.image || null;
+            }
+        });
+        return map;
+    }, [tournament]);
 
     // Favorite matches based on fixture_id
     const favoriteMatches = allFixtures.filter(match => {
@@ -473,6 +541,9 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
             breakdown: breakdown,
             nights: nights,
             tournament_id: initialTournamentId || tournament?.id || null,
+            // Carry the package origin so bookings + sold_count can be
+            // tracked when the fan confirms this itinerary later.
+            package_id: selectedPackage?.id || null,
         };
 
         router.post(route('fan.budget.save'), data, {
@@ -727,6 +798,61 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                         </div>
                     </div>
                 </DashboardHero>
+
+                {/* Wizard Step 0: Package picker — fast-path prepacked options.
+                    Only rendered when packages exist for this tournament and the
+                    fan isn't editing an existing budget / arriving via ?match=. */}
+                {!showResults && wizardStep === 0 && packages && packages.length > 0 && (
+                    <div className="section-card">
+                        <div className="section-header">
+                            <div className="section-icon">
+                                <i className="fas fa-gift"></i>
+                            </div>
+                            <div>
+                                <h3>Start with a package or build your own</h3>
+                                <p className="section-subtitle">
+                                    Pick a fixed-price package we've curated, or build a fully custom itinerary from scratch.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="p-3">
+                            <PackagePicker
+                                packages={packages}
+                                onPickPackage={handlePickPackage}
+                                onBuildCustom={handleBuildCustom}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Package origin banner — shows in later steps so the fan
+                    knows they can revisit the picker. */}
+                {!showResults && selectedPackage && wizardStep > 0 && (
+                    <div
+                        className="mb-3 p-3 rounded d-flex align-items-center justify-content-between"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(220,20,60,0.10), rgba(59,130,246,0.10))',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                        }}
+                    >
+                        <div>
+                            <div className="text-white fw-semibold">
+                                <i className="fas fa-gift me-2 text-danger"></i>
+                                Based on package: {selectedPackage.name}
+                            </div>
+                            <div className="text-white-50 small">
+                                Fixed price {selectedPackage.currency} {Number(selectedPackage.base_price).toLocaleString()} — customize anything you like.
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-outline-light"
+                            onClick={() => { setSelectedPackage(null); setWizardStep(0); }}
+                        >
+                            Change starting point
+                        </button>
+                    </div>
+                )}
 
                 {/* Wizard Step 1: Method Selection */}
                 {!showResults && wizardStep === 1 && (
@@ -1120,6 +1246,24 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                             ))}
                         </div>
 
+                        <CostScenarioChart
+                            currentTotalKes={estimatedCost}
+                            matchCount={selectedMatchIds.length || 1}
+                            nights={nights}
+                            accommodation={accommodation}
+                            pricing={tournamentPricing}
+                        />
+
+                        {/* Multi-city venue map — pins every tournament venue,
+                            highlights the fan's selected matches, and draws
+                            distance chips between consecutive stops. */}
+                        <div className="mt-4">
+                            <ItineraryMap
+                                venues={(tournament && tournament.venues) || []}
+                                selectedMatches={allFixtures.filter((m) => selectedMatchIds.includes(m.id))}
+                            />
+                        </div>
+
                         <div className="d-flex gap-3 mt-4">
                             <button className="btn btn-outline-secondary flex-fill" onClick={resetWizard}>
                                 <i className="fas fa-redo me-2"></i>Start Over
@@ -1211,13 +1355,14 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                 <div className="selection-grid stadium-grid">
                                     {allVenues.map(venue => {
                                         // Dynamic base path for WAMP compatibility
-                                        const basePath = window.location.pathname.includes('/TFE/') 
-                                            ? '/TFE/public' 
+                                        const basePath = window.location.pathname.includes('/TFE/')
+                                            ? '/TFE/public'
                                             : '';
-                                        const imgSrc = stadiumImages[venue] 
-                                            ? `${basePath}/assets/stadium_selection_modal/${stadiumImages[venue]}`
-                                            : `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
-                                        
+                                        // Prefer the Wikipedia thumbnail resolved from the active
+                                        // tournament; fall back to a generic backdrop.
+                                        const imgSrc = wikipediaVenueImages[venue]
+                                            || `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
+
                                         return (
                                             <div 
                                                 key={venue}

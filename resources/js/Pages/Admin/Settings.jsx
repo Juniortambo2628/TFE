@@ -7,6 +7,14 @@ import { router, useForm, usePage } from '@inertiajs/react';
 export default function Settings({ auth, settings = {}, tournament_hero_images = {} }) {
     const { props: pageProps } = usePage();
     const flash = pageProps.flash || {};
+    // Tournament list is shared globally by HandleInertiaRequests — mirrors
+    // config/tournaments.php with computed status. Never hardcoded here.
+    const TOURNAMENTS = pageProps.tournament_list || [];
+    // First upcoming/ongoing tournament in the list is the sensible default
+    // when the admin hasn't picked one yet.
+    const defaultTournamentId = TOURNAMENTS.find(t => t.status !== 'concluded')?.id
+        || TOURNAMENTS[0]?.id
+        || '';
 
     const [activeTab, setActiveTab] = useState('site');
     const [logoFiles, setLogoFiles] = useState([]);
@@ -56,7 +64,7 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
         // Maintenance
         maintenance_mode: settings.maintenance_mode || false,
         // Active Tournament (admin-managed)
-        active_tournament: settings.active_tournament || 'wc_2026',
+        active_tournament: settings.active_tournament || defaultTournamentId,
         // Visual Card Backgrounds
         bg_card_dashboard: null,
         bg_card_users: null,
@@ -68,17 +76,6 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
         { label: 'Settings' }
-    ];
-
-    // Tournaments list — mirrors config/tournaments.php on the frontend
-    const TOURNAMENTS = [
-        { id: 'wc_2026', name: 'FIFA World Cup 2026', status: 'upcoming' },
-        { id: 'afcon_2027', name: 'Africa Cup of Nations 2027', status: 'upcoming' },
-        { id: 'ucl_2025_26', name: 'UEFA Champions League 2025-26', status: 'ongoing' },
-        { id: 'euro_2024', name: 'UEFA Euro 2024', status: 'concluded' },
-        { id: 'copa_2024', name: 'CONMEBOL Copa America 2024', status: 'concluded' },
-        { id: 'afcon_2023', name: 'Africa Cup of Nations 2023', status: 'concluded' },
-        { id: 'wc_2022', name: 'FIFA World Cup 2022', status: 'concluded' },
     ];
 
     const tabs = [
@@ -243,7 +240,7 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                        </div>
                        <div className="card-body">
                            <div className="row g-4">
-                               {TOURNAMENTS.filter(t => ['wc_2026', 'afcon_2027', 'euro_2024'].includes(t.id)).map(tournament => {
+                               {TOURNAMENTS.map(tournament => {
                                    const settingKey = `hero_bg_${tournament.id}`;
                                    const currentBg = settings[settingKey] || tournament_hero_images[tournament.id];
                                    const fileState = heroBgFiles[settingKey] || [];
@@ -270,6 +267,62 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                                })}
                            </div>
                        </div>
+                    </div>
+
+                    {/* Per-tournament content overrides — tagline, trophy image URL, accent colour.
+                        All optional; empty falls back to config/tournaments.php. */}
+                    <div className="admin-card-dark mt-4">
+                        <div className="card-header">
+                            <h3><i className="fas fa-palette"></i> Per-Tournament Content</h3>
+                            <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>
+                                Override the tagline, trophy image, and accent colour without editing config. Leave blank to use the config default.
+                            </p>
+                        </div>
+                        <div className="card-body">
+                            {TOURNAMENTS.map(tournament => {
+                                const taglineKey = `tournament_tagline_${tournament.id}`;
+                                const trophyKey = `tournament_trophy_${tournament.id}`;
+                                const accentKey = `tournament_accent_${tournament.id}`;
+                                return (
+                                    <div key={tournament.id} className="pb-3 mb-3 border-bottom border-white border-opacity-10">
+                                        <div className="text-white fw-semibold mb-2">
+                                            {tournament.name}
+                                            <span className="text-white-50 small ms-2">({tournament.status})</span>
+                                        </div>
+                                        <div className="row g-3">
+                                            <div className="col-md-6">
+                                                <label className="admin-form-label">Tagline</label>
+                                                <input
+                                                    className="admin-form-input"
+                                                    placeholder="e.g. East Africa welcomes AFCON…"
+                                                    value={data[taglineKey] ?? settings[taglineKey] ?? ''}
+                                                    onChange={e => setData(taglineKey, e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="col-md-4">
+                                                <label className="admin-form-label">Trophy image URL</label>
+                                                <input
+                                                    className="admin-form-input"
+                                                    placeholder="tournament-trophies/…png"
+                                                    value={data[trophyKey] ?? settings[trophyKey] ?? ''}
+                                                    onChange={e => setData(trophyKey, e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="col-md-2">
+                                                <label className="admin-form-label">Accent colour</label>
+                                                <input
+                                                    type="color"
+                                                    className="admin-form-input"
+                                                    style={{ height: 40, padding: 4 }}
+                                                    value={(data[accentKey] ?? settings[accentKey] ?? '#dc143c')}
+                                                    onChange={e => setData(accentKey, e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             )}

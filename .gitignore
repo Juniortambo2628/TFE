@@ -43,3 +43,8 @@ The-Football-Experience/vendor/
 
 # GitHub Actions Deployment Keys
 github-actions-thefootballexperience*
+
+# Route dumps — generated artifacts, no reason to ship them
+/routes.json
+/routes.txt
+/routes_audit.json

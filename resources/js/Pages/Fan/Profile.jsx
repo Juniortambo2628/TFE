@@ -6,14 +6,13 @@ import { AvatarCreator } from '@readyplayerme/react-avatar-creator';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import SearchableSelect from '@/Components/SearchableSelect';
 import { countries } from '../../Data/countries';
-import WorldCup2026Data from '../../Data/WorldCup2026Data';
 import '../../../css/fan/profile.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { useTournament } from '@/Context/TournamentContext';
-import { SPECIAL_MAPPINGS } from '@/Data/countryFlags';
+import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 
 export default function Profile({ auth, socialStats, profile, additionalSettings, isOwnProfile = true, isFollowing = false, userTribes = [], userPosts = [], followers = [], followingList = [], security_settings = {} }) {
     const { tournament } = useTournament();
@@ -161,33 +160,19 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
         { id: '2fa', label: 'Two-Factor Auth', icon: 'fas fa-shield-alt' }
     ];
 
+    // Tournament-driven team list — reflects whichever tournament the fan
+    // has active. Falls back to config team codes if Wikipedia is empty.
+    const tournamentTeams = useTournamentTeams({ assetUrl });
     const teams = [
-        ...WorldCup2026Data.qualifiedTeams.map(teamName => {
-            let iso = SPECIAL_MAPPINGS[teamName];
-            let flag = null;
-            if (iso) {
-                 flag = `${assetUrl}assets/Flags/${iso.toLowerCase()}.png`;
-            } else {
-                 const country = countries.find(c => 
-                    c.value.toLowerCase() === teamName.toLowerCase() || 
-                    (teamName === 'USA' && c.iso === 'US') ||
-                    (teamName === 'Korea Republic' && c.iso === 'KR') ||
-                    (teamName === 'IR Iran' && c.iso === 'IR') ||
-                    (teamName === 'Côte d\'Ivoire' && c.iso === 'CI')
-                );
-                if (country) {
-                    iso = country.iso;
-                    flag = `${assetUrl}assets/Flags/${country.iso.toLowerCase()}.png`;
-                }
-            }
+        ...tournamentTeams.map(function (t) {
             return {
-                name: teamName,
-                iso: iso || '',
-                flag: flag,
-                icon: flag ? null : 'fas fa-futbol'
+                name: t.value,
+                iso: t.iso || '',
+                flag: t.flag,
+                icon: t.flag ? null : 'fas fa-futbol',
             };
         }),
-        { name: 'Other', icon: 'fas fa-globe' }
+        { name: 'Other', icon: 'fas fa-globe' },
     ];
 
     return (

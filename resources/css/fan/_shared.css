@@ -1,0 +1,119 @@
+/* ==========================================================================
+   FAN _SHARED — extracted primitives for the fan dashboard.
+   Purpose: give the recurring "glass card" / "summary grid" / "card header"
+   patterns a single source of truth so future consolidation of the fan
+   CSS files (dashboard.css + fan-dashboard-cards.css + fan-dashboard-header.css
+   + fan-pages.css, ~4.8k lines) can proceed in small safe steps rather
+   than a big-bang rewrite.
+
+   This file OVERRIDES nothing — every rule targets a new
+   ".tfe-shared-*" utility class so the existing dashboard styles keep
+   winning by cascade. New components should reach for these utilities;
+   the older files can be simplified one selector at a time as they're
+   touched.
+
+   Tokens come from design-tokens.css — never hardcode a colour here.
+   ========================================================================== */
+
+/* ── Surfaces ────────────────────────────────────────────────────────── */
+
+.tfe-shared-card {
+    background: var(--glass-surface);
+    border: 1px solid var(--glass-border-hairline);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
+}
+
+.tfe-shared-card--glow-red {
+    box-shadow: 0 0 0 1px rgba(220, 20, 60, 0.35), var(--shadow-lg);
+}
+
+.tfe-shared-card--glow-blue {
+    box-shadow: 0 0 0 1px rgba(0, 210, 255, 0.35), var(--shadow-lg);
+}
+
+.tfe-shared-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-divider);
+}
+
+.tfe-shared-card__header h3,
+.tfe-shared-card__header h4 {
+    margin: 0;
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-semibold);
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+
+.tfe-shared-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.tfe-shared-content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-lg);
+}
+
+/* ── Empty states ────────────────────────────────────────────────────── */
+
+.tfe-shared-empty {
+    text-align: center;
+    padding: var(--space-2xl) var(--space-lg);
+    color: var(--text-secondary);
+}
+
+.tfe-shared-empty i {
+    font-size: var(--fs-4xl);
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: var(--space-md);
+}
+
+.tfe-shared-empty h4 {
+    font-size: var(--fs-lg);
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+/* ── Utility chips ───────────────────────────────────────────────────── */
+
+.tfe-shared-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+}
+
+.tfe-shared-chip--danger  { background: var(--tint-red);   color: var(--danger); border-color: transparent; }
+.tfe-shared-chip--info    { background: var(--tint-cyan);  color: var(--fan-cyan); border-color: transparent; }
+.tfe-shared-chip--success { background: var(--tint-green); color: var(--success); border-color: transparent; }
+.tfe-shared-chip--warning { background: var(--tint-amber); color: var(--warning); border-color: transparent; }
+
+/* ── Overflow / scrolling ───────────────────────────────────────────── */
+
+.tfe-shared-scroll-x {
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.tfe-shared-scroll-x::-webkit-scrollbar { height: 6px; }
+.tfe-shared-scroll-x::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}

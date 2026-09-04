@@ -3,17 +3,19 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import '../../../css/register-dark.css';
 import { countries } from '../../Data/countries';
-import WorldCup2026Data from '../../Data/WorldCup2026Data';
 import SearchableSelect from '../../Components/SearchableSelect';
 import axios from 'axios';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
-import { SPECIAL_MAPPINGS } from '@/Data/countryFlags';
+import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
+import { useTournament } from '@/Context/TournamentContext';
 
 const totalSteps = 3;
 
 export default function Register() {
     const { assetUrl } = usePage().props;
+    const { tournament } = useTournament();
+    const tournamentTeams = useTournamentTeams({ assetUrl });
     const { data, setData, post, processing, errors, reset } = useForm({
         // Auth
         first_name: '',
@@ -187,33 +189,18 @@ export default function Register() {
         });
     };
     
+    // Teams the fan can support: derived from the currently active tournament.
+    // No more WC-2026-only list — switching tournament switches this dropdown.
     const teams = [
-        ...WorldCup2026Data.qualifiedTeams.map(teamName => {
-            let iso = SPECIAL_MAPPINGS[teamName];
-            let flag = null;
-            if (iso) {
-                 flag = `${assetUrl}assets/Flags/${iso.toLowerCase()}.png`;
-            } else {
-                 const country = countries.find(c => 
-                    c.value.toLowerCase() === teamName.toLowerCase() || 
-                    (teamName === 'USA' && c.iso === 'US') ||
-                    (teamName === 'Korea Republic' && c.iso === 'KR') ||
-                    (teamName === 'IR Iran' && c.iso === 'IR') ||
-                    (teamName === 'Côte d\'Ivoire' && c.iso === 'CI')
-                );
-                if (country) {
-                    iso = country.iso;
-                    flag = `${assetUrl}assets/Flags/${country.iso.toLowerCase()}.png`;
-                }
-            }
+        ...tournamentTeams.map(function (t) {
             return {
-                name: teamName,
-                iso: iso || '',
-                flag: flag,
-                icon: flag ? null : 'fas fa-futbol'
+                name: t.value,
+                iso: t.iso || '',
+                flag: t.flag,
+                icon: t.flag ? null : 'fas fa-futbol',
             };
         }),
-        { name: 'Other', icon: 'fas fa-globe' }
+        { name: 'Other', icon: 'fas fa-globe' },
     ];
 
     const progressPercentage = (currentStep / totalSteps) * 100;
@@ -458,7 +445,7 @@ export default function Register() {
                                     <div className="consent-section bg-dark p-4 rounded mb-4 dash-modal-subtle">
                                         <p className="mb-2 text-white">By registering for WCTFE, you agree to:</p>
                                         <ul className="text-white small mb-4 ms-3">
-                                            <li>Receive communications about World Cup 2026 travel packages</li>
+                                            <li>Receive communications about {tournament?.name || 'tournament'} travel packages</li>
                                             <li>Participate in our community features and events</li>
                                             <li>Share your information with our trusted travel partners</li>
                                         </ul>

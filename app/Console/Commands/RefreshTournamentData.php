@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  *
  * Usage:
  *   php artisan tournaments:refresh
- *   php artisan tournaments:refresh --id=wc_2026
+ *   php artisan tournaments:refresh --id=afcon_2027
  */
 class RefreshTournamentData extends Command
 {

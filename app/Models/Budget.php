@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TournamentService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,6 +13,7 @@ class Budget extends Model
     protected $fillable = [
         'user_id',
         'tournament_id',
+        'listing_id',
         'name',
         'total_cost',
         'match_ids',
@@ -41,9 +43,33 @@ class Budget extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function tournament()
+    /**
+     * Backwards-compat: `Budget->package` still works for older code
+     * that expects the pre-rename accessor name, but the FK is now
+     * listing_id under the hood.
+     */
+    public function listing()
     {
-        return $this->belongsTo(Tournament::class, 'tournament_id');
+        return $this->belongsTo(Listing::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Listing::class, 'listing_id');
+    }
+
+    /**
+     * Resolve the full tournament payload for this budget from config
+     * (there is no Tournament model — tournaments live in config/tournaments.php
+     * and are enriched at runtime by TournamentService).
+     */
+    public function getTournamentAttribute(): ?array
+    {
+        if (! $this->tournament_id) {
+            return null;
+        }
+
+        return app(TournamentService::class)->get($this->tournament_id);
     }
 
     public function getMatchCountAttribute()
