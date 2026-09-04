@@ -8,21 +8,31 @@ use App\Models\Budget;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Services\FixtureService;
-use App\Services\TournamentService;
+use App\Traits\ResolvesTournament;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class JourneyController extends Controller
 {
+    use ResolvesTournament;
+
     public function index()
     {
         $user = Auth::user();
         $userId = $user->id;
+        $tournamentId = $this->activeTournamentId();
 
-        // Fetch Data
-        $bookings = Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+        // Fetch Data — bookings and active budget are scoped to the active
+        // tournament so switching tournaments switches the whole journey view.
+        $bookings = Booking::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
+            ->orderBy('created_at', 'desc')
+            ->get();
         $paymentSchedules = PaymentSchedule::where('user_id', $userId)->orderBy('due_date', 'asc')->get();
-        $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
+        $activeBudget = Budget::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
+            ->where('is_active', true)
+            ->first();
 
         // Calculate Totals using PaymentTransaction as source of truth
         $totalPaid = PaymentTransaction::where('user_id', $userId)
@@ -90,9 +100,9 @@ class JourneyController extends Controller
 
         $matches = [];
         if (! empty($booking->matches)) {
-            $tournamentService = app(TournamentService::class);
-            $tournament = $tournamentService->current();
-            $tournamentId = $tournament['id'] ?? 'wc_2026';
+            // Prefer the booking's own tournament (may differ from the
+            // currently-active one if the user switched context after booking).
+            $tournamentId = $booking->tournament_id ?: $this->activeTournamentId();
             $fixtureService = app(FixtureService::class);
             $allFixtures = $fixtureService->getFixtures($tournamentId);
             $matches = array_values(array_filter($allFixtures, function ($f) use ($booking) {

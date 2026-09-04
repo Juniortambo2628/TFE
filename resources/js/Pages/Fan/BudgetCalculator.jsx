@@ -15,8 +15,6 @@ import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 
-const USD_TO_KES = 130;
-
 export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [], tournamentPricing: rawPricing = {}, tournamentId: initialTournamentId = '', venueCountries = {} }) {
     const { tournament } = useTournament();
     const tournamentPricing = rawPricing;
@@ -132,25 +130,20 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
     const allStages = stages;
     const allGroups = groups;
 
-    // Stadium image mapping - use available images
-    const stadiumImages = {
-        'Mexico City Stadium': 'Estadio_Azteca_desde_el_aire_1.webp',
-        'Estadio Guadalajara': 'Estadio_Akron_02-07-2022_cabecera_sur_lado_derecho.webp',
-        'Estadio Monterrey': 'Estadio_BBVA.webp',
-        'Toronto Stadium': 'BMO_Field.webp',
-        'BC Place Vancouver': 'BC_Place_Opening_Day_2011-09-30.webp',
-        'Los Angeles Stadium': 'Levis_Stadium.webp', // Fallback - no SoFi image available
-        'New York New Jersey Stadium': 'Metlife_stadium.webp',
-        'Dallas Stadium': 'Cowboys_stadium_inside_view_3.webp',
-        'Atlanta Stadium': 'NRG_Stadium,_LEAGUES_CUP_2024_TIGRES_INTER_MIAMI.jnp.webp', // Fallback
-        'Houston Stadium': 'Nrgstadium0.webp',
-        'Philadelphia Stadium': 'Lincoln_Financial_Field.webp',
-        'Miami Stadium': 'Hard_Rock_Stadium_2017.webp',
-        'Seattle Stadium': 'CenturyLink_Field_&_Safeco_Field.webp',
-        'San Francisco Bay Area Stadium': 'Levis_Stadium.webp',
-        'Boston Stadium': 'Gillette_Stadium_entrance_and_lighthouse.webp',
-        'Kansas City Stadium': 'Arrowhead_Stadium_(October_27,_2019_-_2).webp'
-    };
+    // Stadium image lookup — resolves the Wikipedia thumbnail for a venue name
+    // from the tournament payload. Any tournament that has Wikipedia venues
+    // gets rich imagery for free; a missing lookup falls through to the
+    // component's local placeholder.
+    const wikipediaVenueImages = React.useMemo(function () {
+        var map = {};
+        var venuesList = (tournament && tournament.venues) || [];
+        venuesList.forEach(function (v) {
+            if (v && v.name) {
+                map[v.name] = v.thumbnail || v.image || null;
+            }
+        });
+        return map;
+    }, [tournament]);
 
     // Favorite matches based on fixture_id
     const favoriteMatches = allFixtures.filter(match => {
@@ -1211,13 +1204,14 @@ export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = 
                                 <div className="selection-grid stadium-grid">
                                     {allVenues.map(venue => {
                                         // Dynamic base path for WAMP compatibility
-                                        const basePath = window.location.pathname.includes('/TFE/') 
-                                            ? '/TFE/public' 
+                                        const basePath = window.location.pathname.includes('/TFE/')
+                                            ? '/TFE/public'
                                             : '';
-                                        const imgSrc = stadiumImages[venue] 
-                                            ? `${basePath}/assets/stadium_selection_modal/${stadiumImages[venue]}`
-                                            : `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
-                                        
+                                        // Prefer the Wikipedia thumbnail resolved from the active
+                                        // tournament; fall back to a generic backdrop.
+                                        const imgSrc = wikipediaVenueImages[venue]
+                                            || `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
+
                                         return (
                                             <div 
                                                 key={venue}

@@ -7,24 +7,24 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
 use App\Services\FixtureService;
-use App\Services\TournamentService;
+use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class BudgetController extends Controller
 {
+    use ResolvesTournament;
+
     public function index(Request $request)
     {
         $userId = Auth::id();
         $editId = $request->query('id');
         $budgetToEdit = null;
 
-        // Resolve active tournament
-        $tournamentService = app(TournamentService::class);
-        $tournament = $tournamentService->current();
-        $tournamentId = $tournament['id'] ?? 'afcon_2027';
-        $isConcluded = ($tournament['status'] ?? '') === 'concluded';
+        $tournament = $this->activeTournament();
+        $tournamentId = $tournament['id'];
+        $isConcluded = $this->isTournamentConcluded($tournament);
 
         if ($editId) {
             $budgetToEdit = Budget::where('user_id', $userId)
@@ -32,7 +32,10 @@ class BudgetController extends Controller
                 ->first();
         }
 
+        // Show budgets for the active tournament only — parallel plans for
+        // other tournaments are surfaced in Itineraries.
         $savedBudgets = Budget::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -93,10 +96,16 @@ class BudgetController extends Controller
     {
         $userId = Auth::id();
 
+        // Itineraries lists every plan across every tournament the user has
+        // touched — helpful for the multi-tournament planner.
         $itineraries = Budget::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($budget) {
+                $tournamentConfig = $budget->tournament_id
+                    ? config("tournaments.tournaments.{$budget->tournament_id}")
+                    : null;
+
                 return [
                     'id' => $budget->id,
                     'name' => $budget->name,
@@ -109,6 +118,8 @@ class BudgetController extends Controller
                     'match_count' => count($budget->match_ids ?? []),
                     'accommodation' => $budget->accommodation_level,
                     'flight' => $budget->flight_class,
+                    'tournament_id' => $budget->tournament_id,
+                    'tournament_name' => $tournamentConfig['short_name'] ?? $tournamentConfig['name'] ?? null,
                 ];
             });
 
@@ -127,9 +138,10 @@ class BudgetController extends Controller
             return back()->with('error', 'Only approved or modified budgets can be confirmed.');
         }
 
-        // Create the booking
+        // Create the booking scoped to the same tournament as the budget
         Booking::create([
             'user_id' => $budget->user_id,
+            'tournament_id' => $budget->tournament_id,
             'package_name' => $budget->name,
             'package_type' => 'Custom Itinerary',
             'status' => 'pending_payment',
@@ -143,6 +155,7 @@ class BudgetController extends Controller
         ]);
 
         Budget::where('user_id', $budget->user_id)
+            ->where('tournament_id', $budget->tournament_id)
             ->update(['is_active' => false]);
 
         $budget->update([
@@ -168,7 +181,7 @@ class BudgetController extends Controller
         ]);
 
         $user = Auth::user();
-        $tournamentId = $validated['tournament_id'] ?? config('tournaments.default', 'afcon_2027');
+        $tournamentId = $validated['tournament_id'] ?? $this->activeTournamentId();
 
         if (isset($validated['id'])) {
             $budget = Budget::where('user_id', $user->id)->findOrFail($validated['id']);
@@ -184,7 +197,10 @@ class BudgetController extends Controller
                 'is_active' => true,
             ]);
 
+            // Deactivate only budgets for this tournament — the user may still
+            // have an active plan for another tournament they're also planning.
             Budget::where('user_id', $user->id)
+                ->where('tournament_id', $tournamentId)
                 ->where('id', '!=', $budget->id)
                 ->update(['is_active' => false]);
 
@@ -192,6 +208,7 @@ class BudgetController extends Controller
         }
 
         Budget::where('user_id', $user->id)
+            ->where('tournament_id', $tournamentId)
             ->update(['is_active' => false]);
 
         $budget = Budget::create([
@@ -212,7 +229,10 @@ class BudgetController extends Controller
 
     public function getActive()
     {
+        // Active budget is scoped to the currently active tournament so
+        // the Fan Dashboard always reflects the tournament in view.
         $budget = Budget::where('user_id', Auth::id())
+            ->where('tournament_id', $this->activeTournamentId())
             ->where('is_active', true)
             ->first();
 

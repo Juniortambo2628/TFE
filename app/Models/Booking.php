@@ -11,6 +11,7 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
+        'tournament_id',
         'package_name',
         'package_type',
         'status',

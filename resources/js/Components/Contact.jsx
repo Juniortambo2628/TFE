@@ -2,6 +2,7 @@
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
 import LandingModal from '@/Components/Common/LandingModal';
+import { useTournament } from '@/Context/TournamentContext';
 
 const CONTACT_CARDS = [
     {
@@ -33,6 +34,8 @@ export default function Contact() {
     var setOpenCard = modalData[1];
     var handleClick = function (data) { setOpenCard(data); };
     var closeModal = function () { setOpenCard(null); };
+    var tournamentCtx = useTournament();
+    var tournamentName = tournamentCtx.tournament ? tournamentCtx.tournament.short_name || tournamentCtx.tournament.name : 'your next tournament';
 
     return (
         <>
@@ -41,7 +44,7 @@ export default function Contact() {
                 number="05"
                 badge="Contact"
                 title="Get in Touch"
-                description="Have questions about our packages or financing? Our team is here to help you plan your World Cup 2026 — and beyond — with confidence."
+                description={'Have questions about our packages or financing? Our team is here to help you plan your ' + tournamentName + ' — and beyond — with confidence.'}
             >
                 {CONTACT_CARDS.map(function (card) {
                     return React.createElement(LandingCard, {

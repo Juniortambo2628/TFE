@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
 import LandingModal from '@/Components/Common/LandingModal';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Testimonials() {
+    var tournamentCtx = useTournament();
+    var tournamentName = tournamentCtx.tournament
+        ? (tournamentCtx.tournament.short_name || tournamentCtx.tournament.name)
+        : 'their tournament';
     var testimonialsState = useState([]);
     var testimonials = testimonialsState[0];
     var setTestimonials = testimonialsState[1];
@@ -38,7 +43,7 @@ export default function Testimonials() {
                 number="06"
                 badge="Community"
                 title="What Fans Say"
-                description="Join thousands of African football fans experiencing the World Cup journey with us."
+                description={'Join thousands of African football fans experiencing ' + tournamentName + ' with us.'}
             >
                 {loading ? (
                     React.createElement('div', { style: { color: 'rgba(255,255,255,0.5)', padding: '2rem' } }, 'Loading stories...')

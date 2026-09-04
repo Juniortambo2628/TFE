@@ -19,7 +19,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
         {
             target: 'dashboard-hero-section',
             title: 'Welcome to Your Dashboard',
-            content: 'This is your central hub for World Cup 2026. Here you can see your trip overview, budget status, and upcoming activities.'
+            content: `This is your central hub for ${tournament?.short_name || tournament?.name || 'the tournament'}. Here you can see your trip overview, budget status, and upcoming activities.`
         },
         
         // 2. Header Links

@@ -6,7 +6,7 @@ export const TermsOfService = () => (
         <p>Welcome to The Football Experience (WCTFE). By accessing or using our platform, you agree to be bound by these Terms and Conditions and our Privacy Policy.</p>
         
         <h3 className="text-xl font-bold text-white mt-4">2. Services Provided</h3>
-        <p>WCTFE provides a platform for football fans to plan their World Cup 2026 journey, including:</p>
+        <p>WCTFE provides a platform for football fans to plan their tournament journey (including FIFA World Cup, UEFA Euro, Africa Cup of Nations and other supported competitions), including:</p>
         <ul className="list-disc pl-5 space-y-1">
             <li>Creating personalized itineraries.</li>
             <li>Accessing travel and accommodation information.</li>

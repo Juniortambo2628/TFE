@@ -47,7 +47,7 @@ class TournamentService
             // Silently fall through to default — SiteSetting is best-effort.
         }
 
-        return config('tournaments.default', 'wc_2026');
+        return config('tournaments.default');
     }
 
     /**
@@ -68,7 +68,7 @@ class TournamentService
     {
         $config = config("tournaments.tournaments.{$id}");
         if (! $config) {
-            $id = config('tournaments.default', 'wc_2026');
+            $id = config('tournaments.default');
             $config = config("tournaments.tournaments.{$id}");
         }
 

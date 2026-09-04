@@ -23,145 +23,7 @@ const calculateTimeLeft = (targetDate) => {
 
 
 
-const STADIUM_MATCHES = {
-    'Estadio Azteca': [ // Mexico City Stadium
-        { id: 1, home: 'mx', away: 'za', date: '11 June 2026', time: '12:00', type: 'Match 1 (Group A)' },
-        { id: 24, home: 'uz', away: 'co', date: '17 June 2026', time: '19:00', type: 'Match 24 (Group K)' },
-        { id: 53, home: 'TBD', away: 'mx', date: '24 June 2026', time: '19:00', type: 'Match 53 (Group A)' },
-        { id: 79, home: 'TBD', away: 'TBD', date: '30 June 2026', time: '16:00', type: 'Round of 32' },
-        { id: 92, home: 'TBD', away: 'TBD', date: '5 July 2026', time: '16:00', type: 'Round of 16' },
-    ],
-    'Estadio Akron': [ // Estadio Guadalajara
-        { id: 2, home: 'kr', away: 'TBD', date: '11 June 2026', time: '18:00', type: 'Match 2 (Group A)' },
-        { id: 28, home: 'mx', away: 'kr', date: '18 June 2026', time: '19:00', type: 'Match 28 (Group A)' },
-        { id: 48, home: 'co', away: 'TBD', date: '23 June 2026', time: '19:00', type: 'Match 48 (Group K)' },
-        { id: 66, home: 'uy', away: 'es', date: '26 June 2026', time: '19:00', type: 'Match 66 (Group H)' },
-    ],
-    'Estadio BBVA': [ // Estadio Monterrey
-        { id: 12, home: 'TBD', away: 'tn', date: '14 June 2026', time: '19:00', type: 'Match 12 (Group F)' },
-        { id: 36, home: 'tn', away: 'jp', date: '20 June 2026', time: '19:00', type: 'Match 36 (Group F)' },
-        { id: 54, home: 'za', away: 'kr', date: '24 June 2026', time: '19:00', type: 'Match 54 (Group A)' },
-        { id: 75, home: 'TBD', away: 'TBD', date: '29 June 2026', time: '13:00', type: 'Round of 32' },
-    ],
-    'BMO Field': [ // Toronto Stadium
-        { id: 3, home: 'ca', away: 'TBD', date: '12 June 2026', time: '12:00', type: 'Match 3 (Group B)' },
-        { id: 21, home: 'gh', away: 'pa', date: '17 June 2026', time: '10:00', type: 'Match 21 (Group L)' },
-        { id: 33, home: 'de', away: 'ci', date: '20 June 2026', time: '10:00', type: 'Match 33 (Group E)' },
-        { id: 46, home: 'pa', away: 'hr', date: '23 June 2026', time: '13:00', type: 'Match 46 (Group L)' },
-        { id: 62, home: 'sn', away: 'TBD', date: '26 June 2026', time: '10:00', type: 'Match 62 (Group I)' },
-        { id: 83, home: 'TBD', away: 'TBD', date: '2 July 2026', time: '10:00', type: 'Round of 32' },
-    ],
-    'BC Place': [ // BC Place Vancouver
-        { id: 6, home: 'au', away: 'TBD', date: '13 June 2026', time: '13:00', type: 'Match 6 (Group D)' },
-        { id: 27, home: 'ca', away: 'qa', date: '18 June 2026', time: '16:00', type: 'Match 27 (Group B)' },
-        { id: 51, home: 'ch', away: 'ca', date: '24 June 2026', time: '16:00', type: 'Match 51 (Group B)' },
-        { id: 64, home: 'nz', away: 'be', date: '26 June 2026', time: '16:00', type: 'Match 64 (Group G)' },
-        { id: 85, home: 'TBD', away: 'TBD', date: '2 July 2026', time: '16:00', type: 'Round of 32' },
-        { id: 96, home: 'TBD', away: 'TBD', date: '7 July 2026', time: '16:00', type: 'Round of 16' },
-    ],
-    'SoFi Stadium': [ // Los Angeles Stadium
-        { id: 4, home: 'us', away: 'py', date: '12 June 2026', time: '18:00', type: 'Match 4 (Group D)' },
-        { id: 15, home: 'ir', away: 'nz', date: '15 June 2026', time: '16:00', type: 'Match 15 (Group G)' },
-        { id: 26, home: 'ch', away: 'TBD', date: '18 June 2026', time: '13:00', type: 'Match 26 (Group B)' },
-        { id: 39, home: 'be', away: 'ir', date: '21 June 2026', time: '16:00', type: 'Match 39 (Group G)' },
-        { id: 59, home: 'TBD', away: 'us', date: '25 June 2026', time: '19:00', type: 'Match 59 (Group D)' },
-        { id: 73, home: 'TBD', away: 'TBD', date: '28 June 2026', time: '16:00', type: 'Round of 32' },
-        { id: 84, home: 'TBD', away: 'TBD', date: '2 July 2026', time: '13:00', type: 'Round of 32' },
-        { id: 98, home: 'TBD', away: 'TBD', date: '10 July 2026', time: '16:00', type: 'Quarter-Final' },
-    ],
-    'MetLife Stadium': [ // New York New Jersey Stadium
-        { id: 7, home: 'br', away: 'ma', date: '13 June 2026', time: '16:00', type: 'Match 7 (Group C)' },
-        { id: 17, home: 'fr', away: 'sn', date: '16 June 2026', time: '10:00', type: 'Match 17 (Group I)' },
-        { id: 41, home: 'no', away: 'sn', date: '22 June 2026', time: '10:00', type: 'Match 41 (Group I)' },
-        { id: 56, home: 'ec', away: 'de', date: '25 June 2026', time: '10:00', type: 'Match 56 (Group E)' },
-        { id: 67, home: 'pa', away: 'gb-eng', date: '27 June 2026', time: '10:00', type: 'Match 67 (Group L)' },
-        { id: 77, home: 'TBD', away: 'TBD', date: '30 June 2026', time: '10:00', type: 'Round of 32' },
-        { id: 91, home: 'TBD', away: 'TBD', date: '5 July 2026', time: '13:00', type: 'Round of 16' },
-        { id: 104, home: 'TBD', away: 'TBD', date: '19 July 2026', time: '16:00', type: 'WORLD CUP FINAL' },
-    ],
-    'AT&T Stadium': [ // Dallas Stadium
-        { id: 11, home: 'nl', away: 'jp', date: '14 June 2026', time: '16:00', type: 'Match 11 (Group F)' },
-        { id: 22, home: 'gb-eng', away: 'hr', date: '17 June 2026', time: '13:00', type: 'Match 22 (Group L)' },
-        { id: 43, home: 'ar', away: 'at', date: '22 June 2026', time: '16:00', type: 'Match 43 (Group J)' },
-        { id: 57, home: 'jp', away: 'TBD', date: '25 June 2026', time: '16:00', type: 'Match 57 (Group F)' },
-        { id: 70, home: 'jo', away: 'ar', date: '27 June 2026', time: '16:00', type: 'Match 70 (Group J)' },
-        { id: 78, home: 'TBD', away: 'TBD', date: '30 June 2026', time: '13:00', type: 'Round of 32' },
-        { id: 88, home: 'TBD', away: 'TBD', date: '3 July 2026', time: '16:00', type: 'Round of 32' },
-        { id: 93, home: 'TBD', away: 'TBD', date: '6 July 2026', time: '13:00', type: 'Round of 16' },
-        { id: 101, home: 'TBD', away: 'TBD', date: '14 July 2026', time: '16:00', type: 'Semi-Final' },
-    ],
-    'Mercedes-Benz Stadium': [ // Atlanta Stadium
-        { id: 14, home: 'es', away: 'cv', date: '15 June 2026', time: '13:00', type: 'Match 14 (Group H)' },
-        { id: 25, home: 'TBD', away: 'za', date: '18 June 2026', time: '10:00', type: 'Match 25 (Group A)' },
-        { id: 38, home: 'es', away: 'sa', date: '21 June 2026', time: '13:00', type: 'Match 38 (Group H)' },
-        { id: 50, home: 'ma', away: 'ht', date: '24 June 2026', time: '10:00', type: 'Match 50 (Group C)' },
-        { id: 72, home: 'TBD', away: 'uz', date: '27 June 2026', time: '19:00', type: 'Match 72 (Group K)' },
-        { id: 80, home: 'TBD', away: 'TBD', date: '1 July 2026', time: '10:00', type: 'Round of 32' },
-        { id: 95, home: 'TBD', away: 'TBD', date: '7 July 2026', time: '13:00', type: 'Round of 16' },
-        { id: 102, home: 'TBD', away: 'TBD', date: '15 July 2026', time: '16:00', type: 'Semi-Final' },
-    ],
-    'NRG Stadium': [ // Houston Stadium
-        { id: 10, home: 'de', away: 'cw', date: '14 June 2026', time: '13:00', type: 'Match 10 (Group E)' },
-        { id: 23, home: 'pt', away: 'TBD', date: '17 June 2026', time: '16:00', type: 'Match 23 (Group K)' },
-        { id: 35, home: 'nl', away: 'TBD', date: '20 June 2026', time: '16:00', type: 'Match 35 (Group F)' },
-        { id: 47, home: 'pt', away: 'uz', date: '23 June 2026', time: '16:00', type: 'Match 47 (Group K)' },
-        { id: 65, home: 'cv', away: 'sa', date: '26 June 2026', time: '19:00', type: 'Match 65 (Group H)' },
-        { id: 76, home: 'TBD', away: 'TBD', date: '29 June 2026', time: '16:00', type: 'Round of 32' },
-        { id: 90, home: 'TBD', away: 'TBD', date: '4 July 2026', time: '16:00', type: 'Round of 16' },
-    ],
-    'Lincoln Financial Field': [ // Philadelphia Stadium
-        { id: 9, home: 'ci', away: 'ec', date: '14 June 2026', time: '10:00', type: 'Match 9 (Group E)' },
-        { id: 29, home: 'br', away: 'ht', date: '19 June 2026', time: '10:00', type: 'Match 29 (Group C)' },
-        { id: 42, home: 'fr', away: 'TBD', date: '22 June 2026', time: '13:00', type: 'Match 42 (Group I)' },
-        { id: 55, home: 'cw', away: 'ci', date: '25 June 2026', time: '10:00', type: 'Match 55 (Group E)' },
-        { id: 68, home: 'hr', away: 'gh', date: '27 June 2026', time: '10:00', type: 'Match 68 (Group L)' },
-        { id: 89, home: 'TBD', away: 'TBD', date: '4 July 2026', time: '13:00', type: 'Round of 16' },
-    ],
-    'Hard Rock Stadium': [ // Miami Stadium
-        { id: 13, home: 'sa', away: 'uy', date: '15 June 2026', time: '10:00', type: 'Match 13 (Group H)' },
-        { id: 37, home: 'uy', away: 'cv', date: '21 June 2026', time: '10:00', type: 'Match 37 (Group H)' },
-        { id: 49, home: 'gb-sct', away: 'br', date: '24 June 2026', time: '10:00', type: 'Match 49 (Group C)' },
-        { id: 71, home: 'co', away: 'pt', date: '27 June 2026', time: '19:00', type: 'Match 71 (Group K)' },
-        { id: 86, home: 'TBD', away: 'TBD', date: '3 July 2026', time: '10:00', type: 'Round of 32' },
-        { id: 99, home: 'TBD', away: 'TBD', date: '11 July 2026', time: '13:00', type: 'Quarter-Final' },
-        { id: 103, home: 'TBD', away: 'TBD', date: '18 July 2026', time: '16:00', type: 'Third Place' },
-    ],
-    'Lumen Field': [ // Seattle Stadium
-        { id: 16, home: 'be', away: 'eg', date: '15 June 2026', time: '19:00', type: 'Match 16 (Group G)' },
-        { id: 32, home: 'us', away: 'au', date: '19 June 2026', time: '19:00', type: 'Match 32 (Group D)' },
-        { id: 52, home: 'TBD', away: 'qa', date: '24 June 2026', time: '16:00', type: 'Match 52 (Group B)' },
-        { id: 63, home: 'eg', away: 'ir', date: '26 June 2026', time: '16:00', type: 'Match 63 (Group G)' },
-        { id: 82, home: 'TBD', away: 'TBD', date: '1 July 2026', time: '16:00', type: 'Round of 32' },
-        { id: 94, home: 'TBD', away: 'TBD', date: '6 July 2026', time: '16:00', type: 'Round of 16' },
-    ],
-    'Levi\'s Stadium': [ // San Francisco Bay Area Stadium
-        { id: 8, home: 'qa', away: 'ch', date: '13 June 2026', time: '19:00', type: 'Match 8 (Group B)' },
-        { id: 20, home: 'at', away: 'jo', date: '16 June 2026', time: '19:00', type: 'Match 20 (Group J)' },
-        { id: 31, home: 'TBD', away: 'py', date: '19 June 2026', time: '16:00', type: 'Match 31 (Group D)' },
-        { id: 44, home: 'jo', away: 'dz', date: '22 June 2026', time: '19:00', type: 'Match 44 (Group J)' },
-        { id: 60, home: 'py', away: 'au', date: '25 June 2026', time: '19:00', type: 'Match 60 (Group D)' },
-        { id: 81, home: 'TBD', away: 'TBD', date: '1 July 2026', time: '13:00', type: 'Round of 32' },
-    ],
-    'Gillette Stadium': [ // Boston Stadium
-        { id: 5, home: 'ht', away: 'gb-sct', date: '13 June 2026', time: '10:00', type: 'Match 5 (Group C)' },
-        { id: 18, home: 'TBD', away: 'no', date: '16 June 2026', time: '13:00', type: 'Match 18 (Group I)' },
-        { id: 30, home: 'gb-sct', away: 'ma', date: '19 June 2026', time: '13:00', type: 'Match 30 (Group C)' },
-        { id: 45, home: 'gb-eng', away: 'gh', date: '23 June 2026', time: '10:00', type: 'Match 45 (Group L)' },
-        { id: 61, home: 'no', away: 'fr', date: '26 June 2026', time: '10:00', type: 'Match 61 (Group I)' },
-        { id: 74, home: 'TBD', away: 'TBD', date: '29 June 2026', time: '10:00', type: 'Round of 32' },
-        { id: 97, home: 'TBD', away: 'TBD', date: '9 July 2026', time: '16:00', type: 'Quarter-Final' },
-    ],
-    'GEHA Field at Arrowhead Stadium': [ // Kansas City Stadium
-        { id: 19, home: 'ar', away: 'dz', date: '16 June 2026', time: '16:00', type: 'Match 19 (Group J)' },
-        { id: 34, home: 'ec', away: 'cw', date: '20 June 2026', time: '13:00', type: 'Match 34 (Group E)' },
-        { id: 58, home: 'tn', away: 'nl', date: '25 June 2026', time: '16:00', type: 'Match 58 (Group F)' },
-        { id: 69, home: 'dz', away: 'at', date: '27 June 2026', time: '16:00', type: 'Match 69 (Group J)' },
-        { id: 87, home: 'TBD', away: 'TBD', date: '3 July 2026', time: '13:00', type: 'Round of 32' },
-        { id: 100, home: 'TBD', away: 'TBD', date: '11 July 2026', time: '16:00', type: 'Quarter-Final' },
-    ],
-};
-
-// Map Wikipedia team names to flag codes for non-WC2026 tournaments
+// Map Wikipedia / free-source team names to flag codes.
 function teamNameToCode(name) {
     if (!name) return null;
     var n = name.toLowerCase().trim();
@@ -197,6 +59,10 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var topScorer = (tournament && tournament.top_scorer) || null;
     var wikipediaFlags = (tournament && tournament.wikipedia_flags) || {};
 
+    // Stadiums come exclusively from the resolved tournament's Wikipedia
+    // venues now — no more per-tournament hardcoded branches. When Wikipedia
+    // is empty, fall back to any prop-supplied list, then to a single
+    // tournament-branded placeholder so the carousel/countdown still renders.
     var stadiums;
     if (wikipediaVenues.length > 0) {
         stadiums = wikipediaVenues.map(function (v) {
@@ -212,30 +78,15 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 url: v.url || '',
             };
         });
-    } else if (tournament && tournament.id !== 'wc_2026') {
-        stadiums = [{
-            name: tournament.short_name + ' Venues',
-            location: (tournament.hosts || []).join(', '),
-            capacity: 'TBD',
-            history: '',
-            fun_fact: '',
-            image: heroImage,
-            matches: [],
-            attribution: '',
-        }];
+    } else if (stadiumsProp && stadiumsProp.length > 0) {
+        stadiums = stadiumsProp;
     } else {
-        stadiums = stadiumsProp || [];
-    }
-
-    // Guard against empty stadiums array - keep at least one placeholder so
-    // activeStadium.name and carousel interval don't crash.
-    if (stadiums.length === 0) {
         stadiums = [{
-            name: tournament ? tournament.short_name : 'Tournament Venue',
+            name: tournament ? (tournament.short_name || tournament.name) : 'Tournament Venue',
             location: (tournament && tournament.hosts) ? tournament.hosts.join(', ') : '',
             capacity: 'TBD',
             history: '',
-            fun_fact: '',
+            fun_fact: tournament && tournament.wikipedia_extract ? tournament.wikipedia_extract.substring(0, 160) : '',
             image: heroImage,
             matches: [],
             attribution: '',
@@ -286,45 +137,26 @@ export default function Hero({ stadiums: stadiumsProp }) {
     }, [stadiums.length, isPaused, loaderReady]);
 
     const activeStadium = stadiums[currentSlide] || {};
-    // Get team flags: config team_flag_codes > Wikipedia teams > host_flag_codes > STADIUM_MATCHES
+    // Team flags come from (in order): config team_flag_codes → Wikipedia teams
+    // → host country flags. No stadium-fixture hardcoding.
     var configFlags = (tournament && tournament.team_flag_codes) || [];
     var wikiTeams = (tournament && tournament.teams) || [];
-    // Match data source: STADIUM_MATCHES (WC2026) or Wikipedia matches (all others)
-    var allMatches = [];
+
+    // Filter the tournament's fixture set to only matches at the active stadium.
+    // We accept a loose match on the stadium name so Wikipedia's "MetLife Stadium,
+    // East Rutherford" still matches our "MetLife Stadium" venue label.
     var activeStadiumLower = (activeStadium.name || '').toLowerCase();
-    // Prefer hardcoded STADIUM_MATCHES (has full schedule); merge Wikipedia scores where available
-    var hardcodedMatches = STADIUM_MATCHES[activeStadium.name] || [];
-    if (hardcodedMatches.length > 0) {
-        allMatches = hardcodedMatches.map(function(m) {
-            // Try to find a Wikipedia match with a score for the same teams/date
-            var wikiMatch = wikipediaMatches.find(function(wm) {
-                var wCode1 = teamNameToCode(wm.team1) || wm.team1;
-                var wCode2 = teamNameToCode(wm.team2) || wm.team2;
-                return (wCode1 === m.home && wCode2 === m.away) || (wCode1 === m.away && wCode2 === m.home);
-            });
-            return {
-                id: m.id,
-                home: m.home,
-                away: m.away,
-                score: (wikiMatch && wikiMatch.score) || m.score || null,
-                date: m.date || (wikiMatch && wikiMatch.date) || '',
-                time: m.time || (wikiMatch && wikiMatch.time) || '',
-                type: m.type || 'Match',
-                stadium: m.stadium || (wikiMatch && wikiMatch.stadium) || '',
-                goals1: (wikiMatch && wikiMatch.goals1) || m.goals1 || '',
-                goals2: (wikiMatch && wikiMatch.goals2) || m.goals2 || '',
-            };
+    var allMatches = [];
+    if (wikipediaMatches.length > 0) {
+        var stadiumMatches = wikipediaMatches.filter(function (m) {
+            if (!m.stadium || !activeStadiumLower) return false;
+            var s = m.stadium.toLowerCase();
+            return s.includes(activeStadiumLower) || activeStadiumLower.includes(s);
         });
-    } else if (wikipediaMatches.length > 0) {
-        // Filter Wikipedia matches by current stadium name (fuzzy match)
-        var stadiumMatches = wikipediaMatches.filter(function(m) {
-            if (!m.stadium) return false;
-            return m.stadium.toLowerCase().includes(activeStadiumLower) ||
-                   activeStadiumLower.includes(m.stadium.toLowerCase());
-        });
-        // If no stadium-specific matches found, show all Wikipedia matches
+        // If no stadium-specific matches (Wikipedia had no stadium field for
+        // this tournament), fall through to all matches so the modal isn't empty.
         var matchesToUse = stadiumMatches.length > 0 ? stadiumMatches : wikipediaMatches;
-        allMatches = matchesToUse.map(function(m, idx) {
+        allMatches = matchesToUse.map(function (m, idx) {
             var code1 = teamNameToCode(m.team1) || m.team1;
             var code2 = teamNameToCode(m.team2) || m.team2;
             return {
@@ -488,26 +320,17 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     transition={{ duration: 0.5, delay: 0.1 }}
                                     className="hero-countdown-floating"
                                 >
-                                    {/* Trophy / Logo */}
+                                    {/* Trophy / Logo — config-driven, no name string-matching. */}
                                     <div className="hero-countdown-trophy-wrap">
                                         {(() => {
-                                            let customTrophy = null;
-                                            if (tournament?.name) {
-                                                if (tournament.name.includes("Africa Cup of Nations")) {
-                                                    customTrophy = "AFCON-trophy-transparent-bg.png";
-                                                } else if (tournament.name.includes("Euro")) {
-                                                    customTrophy = "Euros-trophy-transparent-bg.png";
-                                                } else if (tournament.name.includes("World Cup")) {
-                                                    customTrophy = "World-cup-trophy-transparent-bg.png";
-                                                }
+                                            var trophyPath = tournament && tournament.trophy_image;
+                                            if (trophyPath) {
+                                                return <img src={`${assetUrl}${trophyPath}`} alt={`${tournament.short_name || 'Tournament'} trophy`} className="hero-countdown-logo-img" style={{ transform: 'scale(1.2)' }} />;
                                             }
-                                            if (customTrophy) {
-                                                return <img src={`${assetUrl}tournament-trophies/${customTrophy}`} alt="Trophy" className="hero-countdown-logo-img" style={{ transform: 'scale(1.2)' }} />;
-                                            } else if (wikipediaLogo) {
+                                            if (wikipediaLogo) {
                                                 return <img src={wikipediaLogo} alt="" className="hero-countdown-logo-img" />;
-                                            } else {
-                                                return <i className="fas fa-trophy hero-countdown-trophy-icon"></i>;
                                             }
+                                            return <i className="fas fa-trophy hero-countdown-trophy-icon"></i>;
                                         })()}
                                     </div>
                                     {isConcluded ? (

@@ -1,14 +1,19 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Footer() {
+    const { tournament } = useTournament();
+    const journeyLabel = tournament
+        ? (tournament.short_name || tournament.name)
+        : 'tournament';
     return (
         <footer className="footer bg-dark py-5 py-lg-11 py-xl-12">
             <div className="container">
                 <div className="row">
                     <div className="col-xl-5 mb-8 mb-xl-0">
                         <div className="d-flex flex-column gap-8 pe-xl-5">
-                            <h2 className="mb-0 text-white">Ready to start your World Cup journey?</h2>
+                            <h2 className="mb-0 text-white">{`Ready to start your ${journeyLabel} journey?`}</h2>
                             <div className="d-flex flex-column gap-2">
                                 <a href="mailto:info@wctfe.com" className="link-hover hstack gap-3 text-white fs-5">
                                     <iconify-icon icon="lucide:mail" className="fs-7 text-primary"></iconify-icon>

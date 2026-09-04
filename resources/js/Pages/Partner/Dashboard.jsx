@@ -3,9 +3,12 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Link, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
+import { useTournament } from '@/Context/TournamentContext';
 
 export default function Dashboard({ requests, stats }) {
     const { auth } = usePage().props;
+    const { tournament } = useTournament();
+    const tournamentLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
 
     const statusClass = (status) =>
         `partner-status-${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'pending'}`;
@@ -19,7 +22,7 @@ export default function Dashboard({ requests, stats }) {
                 <DashboardHero
                     role="partner"
                     title={`Welcome, ${auth.user.name.split(' ')[0]}!`}
-                    subtitle="Manage travel requests and help fans plan their World Cup 2026 journey."
+                    subtitle={`Manage travel requests and help fans plan their ${tournamentLabel} journey.`}
                 />
 
                 {/* Summary Cards */}

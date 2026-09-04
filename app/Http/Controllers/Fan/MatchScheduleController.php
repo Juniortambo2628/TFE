@@ -5,22 +5,22 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\FavoriteMatch;
 use App\Services\FixtureService;
-use App\Services\TournamentService;
+use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class MatchScheduleController extends Controller
 {
+    use ResolvesTournament;
+
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        // Resolve active tournament
-        $tournamentService = app(TournamentService::class);
-        $tournament = $tournamentService->current();
-        $tournamentId = $tournament['id'] ?? 'afcon_2027';
-        $isConcluded = ($tournament['status'] ?? '') === 'concluded';
+        $tournament = $this->activeTournament();
+        $tournamentId = $tournament['id'];
+        $isConcluded = $this->isTournamentConcluded($tournament);
 
         // Get user's favorite external IDs (scoped to this tournament)
         $favoriteExternalIds = FavoriteMatch::where('user_id', $user->id)
@@ -68,10 +68,7 @@ class MatchScheduleController extends Controller
     {
         $user = Auth::user();
 
-        // Resolve active tournament for scoping
-        $tournamentService = app(TournamentService::class);
-        $tournament = $tournamentService->current();
-        $tournamentId = $tournament['id'] ?? 'wc_2026';
+        $tournamentId = $this->activeTournamentId();
 
         // Determine source from fixture ID prefix
         $source = match (true) {

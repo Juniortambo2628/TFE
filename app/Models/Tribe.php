@@ -18,6 +18,7 @@ class Tribe extends Model
         'created_by',
         'privacy',
         'forum_enabled',
+        'tournament_id',
     ];
 
     protected $casts = [

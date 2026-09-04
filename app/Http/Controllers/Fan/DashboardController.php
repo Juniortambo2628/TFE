@@ -10,12 +10,14 @@ use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Models\TribeMember;
 use App\Services\FixtureService;
-use App\Services\TournamentService;
+use App\Traits\ResolvesTournament;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    use ResolvesTournament;
+
     public function index()
     {
         $user = auth()->user();
@@ -28,16 +30,21 @@ class DashboardController extends Controller
 
         $userId = $user->id;
 
-        // Resolve active tournament
-        $tournamentService = app(TournamentService::class);
-        $tournament = $tournamentService->current();
-        $tournamentId = $tournament['id'] ?? 'afcon_2027';
-        $isConcluded = ($tournament['status'] ?? '') === 'concluded';
-        $nextActive = $tournamentService->nextActive();
+        // Resolve active tournament (shared trait — never falls back to wc_2026)
+        $tournament = $this->activeTournament();
+        $tournamentId = $tournament['id'];
+        $isConcluded = $this->isTournamentConcluded($tournament);
+        $nextActive = $this->tournamentService()->nextActive();
 
-        // Fetch Summary Data (use DB-level aggregation to avoid loading all records)
-        $activeBudget = Budget::where('user_id', $userId)->where('is_active', true)->first();
-        $totalBookings = Booking::where('user_id', $userId)->count();
+        // Fetch Summary Data — scoped to the active tournament so multi-tournament
+        // planners don't see mixed totals or the wrong active budget.
+        $activeBudget = Budget::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
+            ->where('is_active', true)
+            ->first();
+        $totalBookings = Booking::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
+            ->count();
 
         $totalPaid = PaymentTransaction::where('user_id', $userId)
             ->where('status', 'completed')->sum('amount');
@@ -63,8 +70,12 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Fetch recent bookings
-        $recentBookings = Booking::where('user_id', $userId)->orderBy('created_at', 'desc')->take(5)->get();
+        // Fetch recent bookings for this tournament
+        $recentBookings = Booking::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
         // Prepare Activity Feed
         $activities = collect([]);
@@ -94,7 +105,6 @@ class DashboardController extends Controller
 
         // Fetch suggested matches based on user's supported team
         $teamSupport = $user->team_support;
-        $tournamentId = $tournament['id'] ?? 'wc_2026';
         $suggestedMatches = [];
         if ($teamSupport) {
             $fixtureService = app(FixtureService::class);

@@ -7,6 +7,14 @@ import { router, useForm, usePage } from '@inertiajs/react';
 export default function Settings({ auth, settings = {}, tournament_hero_images = {} }) {
     const { props: pageProps } = usePage();
     const flash = pageProps.flash || {};
+    // Tournament list is shared globally by HandleInertiaRequests — mirrors
+    // config/tournaments.php with computed status. Never hardcoded here.
+    const TOURNAMENTS = pageProps.tournament_list || [];
+    // First upcoming/ongoing tournament in the list is the sensible default
+    // when the admin hasn't picked one yet.
+    const defaultTournamentId = TOURNAMENTS.find(t => t.status !== 'concluded')?.id
+        || TOURNAMENTS[0]?.id
+        || '';
 
     const [activeTab, setActiveTab] = useState('site');
     const [logoFiles, setLogoFiles] = useState([]);
@@ -56,7 +64,7 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
         // Maintenance
         maintenance_mode: settings.maintenance_mode || false,
         // Active Tournament (admin-managed)
-        active_tournament: settings.active_tournament || 'wc_2026',
+        active_tournament: settings.active_tournament || defaultTournamentId,
         // Visual Card Backgrounds
         bg_card_dashboard: null,
         bg_card_users: null,
@@ -68,17 +76,6 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
         { label: 'Settings' }
-    ];
-
-    // Tournaments list — mirrors config/tournaments.php on the frontend
-    const TOURNAMENTS = [
-        { id: 'wc_2026', name: 'FIFA World Cup 2026', status: 'upcoming' },
-        { id: 'afcon_2027', name: 'Africa Cup of Nations 2027', status: 'upcoming' },
-        { id: 'ucl_2025_26', name: 'UEFA Champions League 2025-26', status: 'ongoing' },
-        { id: 'euro_2024', name: 'UEFA Euro 2024', status: 'concluded' },
-        { id: 'copa_2024', name: 'CONMEBOL Copa America 2024', status: 'concluded' },
-        { id: 'afcon_2023', name: 'Africa Cup of Nations 2023', status: 'concluded' },
-        { id: 'wc_2022', name: 'FIFA World Cup 2022', status: 'concluded' },
     ];
 
     const tabs = [
@@ -243,7 +240,7 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                        </div>
                        <div className="card-body">
                            <div className="row g-4">
-                               {TOURNAMENTS.filter(t => ['wc_2026', 'afcon_2027', 'euro_2024'].includes(t.id)).map(tournament => {
+                               {TOURNAMENTS.map(tournament => {
                                    const settingKey = `hero_bg_${tournament.id}`;
                                    const currentBg = settings[settingKey] || tournament_hero_images[tournament.id];
                                    const fileState = heroBgFiles[settingKey] || [];

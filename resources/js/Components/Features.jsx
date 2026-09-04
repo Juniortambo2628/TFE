@@ -32,7 +32,7 @@ const FEATURE_CARDS = [
 
 export default function Features({ variant = 'split' }) {
     const { tournament } = useTournament();
-    const tournamentName = tournament ? tournament.name : 'FIFA World Cup 2026';
+    const tournamentName = tournament ? tournament.name : 'the next tournament';
     const description = 'Structured financing solutions, flexible payment plans, community savings groups, and all-inclusive travel packages designed for ' + tournamentName + ' fans.';
     return (
         <HorizontalCardSection

@@ -9,8 +9,8 @@ export default function FanFooter() {
                 <div className="footer-section">
                     <h4>How to Reach Us</h4>
                     <div className="contact-info">
-                        <p>WCTFE Dashboard</p>
-                        <p>World Cup Travel Experience</p>
+                        <p>TFE Dashboard</p>
+                        <p>{tournament ? `${tournament.short_name || tournament.name} — travel experience` : 'The Football Experience — plan your next tournament'}</p>
                         <p><a href="mailto:support@wctfe.com">support@wctfe.com</a></p>
                     </div>
                 </div>

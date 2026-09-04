@@ -41,9 +41,18 @@ class Budget extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function tournament()
+    /**
+     * Resolve the full tournament payload for this budget from config
+     * (there is no Tournament model — tournaments live in config/tournaments.php
+     * and are enriched at runtime by TournamentService).
+     */
+    public function getTournamentAttribute(): ?array
     {
-        return $this->belongsTo(Tournament::class, 'tournament_id');
+        if (! $this->tournament_id) {
+            return null;
+        }
+
+        return app(\App\Services\TournamentService::class)->get($this->tournament_id);
     }
 
     public function getMatchCountAttribute()

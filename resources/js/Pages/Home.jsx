@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import '../../css/hero-enhancements.css';
 
 // Components
@@ -47,7 +47,7 @@ const EXPERIENCES = [
     },
 ];
 
-export default function Home({ appName, stadiums = [] }) {
+export default function Home({ appName }) {
 
     // Global Initializations
     useEffect(() => {
@@ -91,7 +91,7 @@ export default function Home({ appName, stadiums = [] }) {
             <Header />
 
             <div className="page-wrapper overflow-hidden bg-black text-white">
-                <Hero stadiums={stadiums} />
+                <Hero />
 
                 {/* Top Ad Space */}
                 <div className="container my-5">
