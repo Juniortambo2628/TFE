@@ -159,6 +159,10 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Fan Store
     Route::get('/store', [FanStoreController::class, 'index'])->name('store');
 
+    // Package detail (public detail of a single admin-managed package)
+    Route::get('/packages/{package}', [App\Http\Controllers\Fan\PackageController::class, 'show'])
+        ->name('packages.show');
+
     // Predict & Win
     Route::get('/predict-win', [PredictWinController::class, 'index'])->name('predict-win');
     Route::post('/predict-win/predict', [PredictWinController::class, 'predict'])->name('predict-win.predict');

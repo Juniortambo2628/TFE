@@ -14,7 +14,7 @@ import { toast } from 'sonner';
  * config/tournaments.php). Fixtures + venues for the picker come from
  * a lazy JSON endpoint so the initial page load stays lean.
  */
-export default function Packages({ auth, packages = [], tournaments = [], filter_tournament_id = null }) {
+export default function Packages({ auth, packages = [], tournaments = [], filter_tournament_id = null, analytics = null }) {
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState(null);
     const [toDelete, setToDelete] = useState(null);
@@ -168,6 +168,59 @@ export default function Packages({ auth, packages = [], tournaments = [], filter
                     onClick: openCreate,
                 }}
             />
+
+            {/* Analytics row */}
+            {analytics && analytics.total_packages > 0 && (
+                <div className="row g-3 mb-3">
+                    <div className="col-6 col-md-3">
+                        <div className="admin-card-dark p-3">
+                            <div className="text-white-50 small">Total bookings</div>
+                            <div className="text-white fw-bold fs-3">{analytics.total_bookings.toLocaleString()}</div>
+                            <div className="text-info small">
+                                across {analytics.total_packages} package{analytics.total_packages === 1 ? '' : 's'}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="admin-card-dark p-3">
+                            <div className="text-white-50 small">Gross revenue</div>
+                            <div className="text-white fw-bold fs-5">
+                                {Object.entries(analytics.gross_revenue || {}).map(([cur, amt]) => (
+                                    <div key={cur}>
+                                        {cur} {Number(amt).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    </div>
+                                ))}
+                                {Object.keys(analytics.gross_revenue || {}).length === 0 && (
+                                    <span className="text-white-50">—</span>
+                                )}
+                            </div>
+                            <div className="text-white-50 small">sold_count × base_price</div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="admin-card-dark p-3">
+                            <div className="text-white-50 small">Avg availability</div>
+                            <div
+                                className={`fw-bold fs-3 ${analytics.avg_availability_pct >= 80 ? 'text-danger' : analytics.avg_availability_pct >= 50 ? 'text-warning' : 'text-success'}`}
+                            >
+                                {analytics.avg_availability_pct}%
+                            </div>
+                            <div className="text-white-50 small">across packages with capacity</div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="admin-card-dark p-3">
+                            <div className="text-white-50 small">Selling fast / sold out</div>
+                            <div className="text-white fw-bold fs-3">
+                                <span className="text-warning">{analytics.selling_fast_count}</span>
+                                <span className="text-white-50 mx-1">/</span>
+                                <span className="text-danger">{analytics.sold_out_count}</span>
+                            </div>
+                            <div className="text-white-50 small">≥80% booked / capacity reached</div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Tournament filter */}
             <div className="admin-card-dark mb-3">

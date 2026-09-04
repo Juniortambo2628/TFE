@@ -30,7 +30,13 @@ class PackageController extends Controller
             $query->where('tournament_id', $filterTournament);
         }
 
-        $packages = $query->get()->map(function (Package $p) {
+        $packages = $query->get();
+
+        // Analytics — computed after filter so the tiles reflect the
+        // current tournament slice (or "all" when no filter).
+        $analytics = $this->analyticsFor($packages);
+
+        $packagesForView = $packages->map(function (Package $p) {
             $config = config("tournaments.tournaments.{$p->tournament_id}");
 
             return [
@@ -61,10 +67,41 @@ class PackageController extends Controller
         });
 
         return Inertia::render('Admin/Packages', [
-            'packages' => $packages,
+            'packages' => $packagesForView,
             'tournaments' => $tournaments,
             'filter_tournament_id' => $filterTournament,
+            'analytics' => $analytics,
         ]);
+    }
+
+    /**
+     * Compute a small set of at-a-glance stats for the packages page:
+     *   total_packages, total_bookings (sum sold_count), gross_revenue
+     *   (sold_count * base_price, grouped by currency for correctness),
+     *   avg_availability_pct, selling_fast_count (>=80% sold), and
+     *   sold_out_count.
+     */
+    private function analyticsFor($packages): array
+    {
+        $withCapacity = $packages->filter(fn ($p) => $p->capacity > 0);
+
+        $revenueByCurrency = [];
+        foreach ($packages as $p) {
+            $currency = $p->currency ?: 'USD';
+            $revenueByCurrency[$currency] = ($revenueByCurrency[$currency] ?? 0) + ($p->sold_count * (float) $p->base_price);
+        }
+
+        return [
+            'total_packages' => $packages->count(),
+            'total_bookings' => (int) $packages->sum('sold_count'),
+            'gross_revenue' => $revenueByCurrency,
+            'avg_availability_pct' => $withCapacity->count()
+                ? (int) round($withCapacity->avg(fn ($p) => $p->availability_pct))
+                : 0,
+            'selling_fast_count' => $withCapacity->filter(fn ($p) => $p->availability_pct >= 80 && ! $p->is_sold_out)->count(),
+            'sold_out_count' => $packages->filter(fn ($p) => $p->is_sold_out)->count(),
+            'featured_count' => $packages->filter(fn ($p) => $p->is_featured)->count(),
+        ];
     }
 
     /**

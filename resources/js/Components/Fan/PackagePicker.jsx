@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from '@inertiajs/react';
 
 /**
  * PackagePicker — Step-0 chooser in the BudgetCalculator wizard.
@@ -123,11 +124,21 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                         </div>
                                     )}
 
-                                    <div className="d-flex align-items-center gap-2 text-danger">
-                                        <span className="fw-semibold">
+                                    <div className="d-flex align-items-center justify-content-between gap-2">
+                                        <span className={`fw-semibold ${soldOut ? 'text-white-50' : 'text-danger'}`}>
                                             {soldOut ? 'Sold out' : 'Use this package'}
+                                            {!soldOut && <i className="fas fa-arrow-right ms-2"></i>}
                                         </span>
-                                        {!soldOut && <i className="fas fa-arrow-right"></i>}
+                                        {/* Detail-page link. stopPropagation so it doesn't
+                                            trigger the parent "pick package" onClick. */}
+                                        <Link
+                                            href={route('fan.packages.show', pkg.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="text-info small text-decoration-none"
+                                        >
+                                            Details
+                                            <i className="fas fa-external-link-alt ms-1" style={{ fontSize: '0.6rem' }}></i>
+                                        </Link>
                                     </div>
                                 </div>
                             </button>

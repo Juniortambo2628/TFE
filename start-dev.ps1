@@ -42,6 +42,10 @@ Write-Host "Running migrations..." -ForegroundColor Cyan
 php artisan migrate --force
 
 Write-Host ""
+Write-Host "Seeding demo packages when empty..." -ForegroundColor Cyan
+php artisan tinker --execute="if (App\Models\Package::count() === 0) { Artisan::call('db:seed', ['--class' => 'PackageSeeder', '--force' => true]); echo Artisan::output(); }"
+
+Write-Host ""
 Write-Host "Starting Laravel server on http://localhost:8000 ..." -ForegroundColor Cyan
 
 # Start Laravel in a new tab

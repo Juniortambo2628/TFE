@@ -153,13 +153,25 @@ export default function BudgetCalculator({
         setWizardStep(1);
     };
 
-    // Skip step 0 automatically if the fan is editing an existing budget
-    // or landed via a ?match=… deep link. Also skip if no packages exist
-    // for this tournament — no point showing an empty picker.
+    // Skip step 0 automatically if the fan is editing an existing budget,
+    // landed via a ?match=… deep link, or clicked "Use this package" on a
+    // detail page (?package=<id>). Also skip if no packages exist for
+    // this tournament — no point showing an empty picker.
     useEffect(() => {
         if (budgetToEdit) return; // handled in its own effect
         const params = new URLSearchParams(window.location.search);
         if (params.get('match')) return;
+
+        // Deep-link from the package detail page.
+        const pkgIdParam = params.get('package');
+        if (pkgIdParam) {
+            const pkg = (packages || []).find(p => String(p.id) === String(pkgIdParam));
+            if (pkg) {
+                handlePickPackage(pkg);
+                return;
+            }
+        }
+
         if (!packages || packages.length === 0) {
             setWizardStep(1);
         }

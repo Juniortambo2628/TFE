@@ -41,6 +41,10 @@ echo Running migrations...
 call php artisan migrate --force
 
 echo.
+echo Seeding demo packages when empty...
+call php artisan tinker --execute="if (App\Models\Package::count() === 0) { Artisan::call('db:seed', ['--class' => 'PackageSeeder', '--force' => true]); echo Artisan::output(); }"
+
+echo.
 echo Starting Laravel server on http://localhost:8000 ...
 start cmd /k "cd /d C:\wamp64\www\TFE && php artisan serve"
 

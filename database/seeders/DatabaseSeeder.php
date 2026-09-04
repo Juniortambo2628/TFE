@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             WorldCupSeeder::class,
+            PackageSeeder::class,
         ]);
     }
 }
