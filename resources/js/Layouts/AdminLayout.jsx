@@ -1,47 +1,30 @@
 import React from 'react';
-import { usePage } from '@inertiajs/react';
 import AdminSidebar from '@/Components/Admin/AdminSidebar';
-import DashboardHeader from '@/Components/Common/DashboardHeader';
-import { AdminThemeProvider, useAdminTheme } from '@/Context/AdminThemeContext';
-import BaseLayout from './BaseLayout';
+import RoleLayout from './RoleLayout';
+// Same CSS stack as FanLayout — single source of truth for header,
+// hero, cards, fonts. admin-theme.css only layers admin-specific
+// utility classes (btn-admin, admin-card-dark) on top of that base.
+import '../../css/fan/_shared.css';
+import '../../css/fan/dashboard.css';
+import '../../css/fan/fan-dashboard-cards.css';
+import '../../css/fan/fan-dashboard-header.css';
 import '../../css/admin-theme.css';
 
-function AdminHeaderWithEditToggle(props) {
-    const { editMode, toggleEditMode } = useAdminTheme();
-
-    const extraActions = (
-        <button
-            onClick={toggleEditMode}
-            className={`px-3 py-1 rounded-full text-sm font-semibold transition-all d-flex align-items-center gap-2 ${editMode ? 'bg-primary text-white' : 'text-white'}`}
-            style={{
-                background: editMode ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
-                border: `1px solid ${editMode ? '#3b82f6' : '#444'}`,
-                cursor: 'pointer',
-            }}
-        >
-            <i className={`fas ${editMode ? 'fa-check' : 'fa-paint-brush'}`}></i>
-            {editMode ? 'Finish Customizing' : 'Customize UI'}
-        </button>
-    );
-
-    return <DashboardHeader role="admin" {...props} extraActions={extraActions} />;
-}
-
+/**
+ * AdminLayout — now a thin wrapper around RoleLayout so the admin
+ * surface renders through the exact same BaseLayout + DashboardHeader
+ * as the fan surface. The old AdminThemeProvider + Customize UI toggle
+ * were removed in favour of a single source of truth: what the fan sees
+ * is what the admin sees, minus the fan nav pills.
+ */
 export default function AdminLayout({ children, title }) {
-    const { assetUrl, auth } = usePage().props;
-    const user = auth.user;
-
     return (
-        <AdminThemeProvider>
-            <BaseLayout
-                title={title ? `${title} | Admin` : 'Admin Dashboard'}
-                user={user}
-                assetUrl={assetUrl}
-                sidebar={AdminSidebar}
-                header={(props) => <AdminHeaderWithEditToggle {...props} />}
-            >
-                {children}
-            </BaseLayout>
-        </AdminThemeProvider>
+        <RoleLayout
+            title={title ? `${title} | Admin` : 'Admin Dashboard'}
+            sidebar={AdminSidebar}
+            role="admin"
+        >
+            {children}
+        </RoleLayout>
     );
 }

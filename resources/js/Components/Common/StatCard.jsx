@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { usePage } from '@inertiajs/react';
-import AdminCustomizeModal from '@/Components/Admin/AdminCustomizeModal';
 
 /**
  * StatCard - Unified stat card component for the entire platform.
@@ -8,22 +7,24 @@ import AdminCustomizeModal from '@/Components/Admin/AdminCustomizeModal';
  * - Basic stats with consistent branding
  * - Visual cards with background images (Admin style)
  * - Flexible accent colors
+ *
+ * Sprint 10: the inline "edit background" overlay was dropped along
+ * with the admin Customize-UI system. Backgrounds still come through
+ * settingsKey/bgType — just edit them on the Settings page.
  */
-export default function StatCard({ 
-    label, 
-    value, 
-    icon, 
+export default function StatCard({
+    label,
+    value,
+    icon,
     subtext,
-    image, 
-    bgType, 
-    settingsKey, 
+    image,
+    bgType,
+    settingsKey,
     variant = 'red', // red, blue, amber, etc.
     type = 'standard', // 'standard' (SummaryCard style) or 'visual' (AdminStatCard style)
-    className = "",
-    allowEdit = false
+    className = '',
 }) {
     const { adminSettings = {} } = usePage().props;
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Visual card logic (background images)
     const displayImage = (settingsKey && adminSettings[settingsKey]) 
@@ -38,47 +39,19 @@ export default function StatCard({
         } : {};
 
         return (
-            <div 
-                className={`visual-card ${displayImage ? '' : 'all-events'} ${className}`} 
-                style={{ 
-                    ...cardStyle,
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}
+            <div
+                className={`visual-card ${displayImage ? '' : 'all-events'} ${className}`}
+                style={{ ...cardStyle, position: 'relative', overflow: 'hidden' }}
             >
                 {displayImage && <div className="visual-card-overlay"></div>}
-                
-                {allowEdit && settingsKey && (
-                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center edit-overlay">
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsModalOpen(true);
-                            }}
-                            className="btn btn-sm btn-light fw-bold"
-                        >
-                            <i className="fas fa-image me-1"></i> Edit Background
-                        </button>
-                    </div>
-                )}
-                
+
                 <div className="visual-card-content">
                     <div className="d-flex align-items-center gap-2 mb-1">
                         {icon && <i className={`${icon}`} style={{ opacity: 0.8, fontSize: '0.8rem' }}></i>}
-                        <div className="visual-card-subtitle">
-                            {label}
-                        </div>
+                        <div className="visual-card-subtitle">{label}</div>
                     </div>
-                    <div className="visual-card-title">
-                        {value}
-                    </div>
+                    <div className="visual-card-title">{value}</div>
                 </div>
-
-                <AdminCustomizeModal 
-                    isOpen={isModalOpen} 
-                    onClose={() => setIsModalOpen(false)} 
-                    cardData={{ label, settingsKey, currentImage: displayImage }}
-                />
             </div>
         );
     }

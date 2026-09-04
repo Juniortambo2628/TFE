@@ -4,8 +4,8 @@ import DashboardHeader from '@/Components/Common/DashboardHeader';
 import BaseLayout from './BaseLayout';
 
 /**
- * Factory for role-based layouts (Fan, Partner).
- * AdminLayout remains separate due to AdminThemeProvider and edit-mode toggle.
+ * Factory for role-based layouts (Fan, Partner, Admin) — every dashboard
+ * surface routes through here so header/hero/sidebar stay in lockstep.
  *
  * @param {Object} config
  * @param {React.Component} config.sidebar - Sidebar component
