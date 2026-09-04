@@ -8,8 +8,9 @@ if (process.env.NODE_ENV === 'production') {
     plugins.push(
         purgecss({
             content: [
-                './resources/js/**/*.jsx',
+                './resources/js/**/*.{js,jsx}',
                 './resources/views/**/*.blade.php',
+                './app/**/*.php',
             ],
             defaultExtractor: (content) => {
                 const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || [];

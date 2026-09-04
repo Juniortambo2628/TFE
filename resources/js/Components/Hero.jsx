@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -60,28 +60,28 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var wikipediaFlags = (tournament && tournament.wikipedia_flags) || {};
 
     // Stadiums come exclusively from the resolved tournament's Wikipedia
-    // venues now — no more per-tournament hardcoded branches. When Wikipedia
-    // is empty, fall back to any prop-supplied list, then to a single
-    // tournament-branded placeholder so the carousel/countdown still renders.
-    var stadiums;
-    if (wikipediaVenues.length > 0) {
-        stadiums = wikipediaVenues.map(function (v) {
-            return {
-                name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
-                location: v.location || 'Wikipedia venue',
-                capacity: v.capacity || 'TBD',
-                history: v.opened || '',
-                fun_fact: v.extract || '',
-                image: v.thumbnail || v.image || heroImage,
-                matches: [],
-                attribution: 'Data from Wikipedia',
-                url: v.url || '',
-            };
-        });
-    } else if (stadiumsProp && stadiumsProp.length > 0) {
-        stadiums = stadiumsProp;
-    } else {
-        stadiums = [{
+    // venues now — no more per-tournament hardcoded branches. Memoized on
+    // tournament id so a carousel tick doesn't rebuild the list.
+    var stadiums = useMemo(function () {
+        if (wikipediaVenues.length > 0) {
+            return wikipediaVenues.map(function (v) {
+                return {
+                    name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
+                    location: v.location || 'Wikipedia venue',
+                    capacity: v.capacity || 'TBD',
+                    history: v.opened || '',
+                    fun_fact: v.extract || '',
+                    image: v.thumbnail || v.image || heroImage,
+                    matches: [],
+                    attribution: 'Data from Wikipedia',
+                    url: v.url || '',
+                };
+            });
+        }
+        if (stadiumsProp && stadiumsProp.length > 0) {
+            return stadiumsProp;
+        }
+        return [{
             name: tournament ? (tournament.short_name || tournament.name) : 'Tournament Venue',
             location: (tournament && tournament.hosts) ? tournament.hosts.join(', ') : '',
             capacity: 'TBD',
@@ -91,7 +91,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             matches: [],
             attribution: '',
         }];
-    }
+    }, [tournament?.id, wikipediaVenues, stadiumsProp, heroImage, tournament]);
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
@@ -143,20 +143,18 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var wikiTeams = (tournament && tournament.teams) || [];
 
     // Filter the tournament's fixture set to only matches at the active stadium.
-    // We accept a loose match on the stadium name so Wikipedia's "MetLife Stadium,
-    // East Rutherford" still matches our "MetLife Stadium" venue label.
+    // Memoized on the stadium name — recomputes only when the carousel
+    // advances to a new stadium, not on every render.
     var activeStadiumLower = (activeStadium.name || '').toLowerCase();
-    var allMatches = [];
-    if (wikipediaMatches.length > 0) {
+    var allMatches = useMemo(function () {
+        if (wikipediaMatches.length === 0) return [];
         var stadiumMatches = wikipediaMatches.filter(function (m) {
             if (!m.stadium || !activeStadiumLower) return false;
             var s = m.stadium.toLowerCase();
             return s.includes(activeStadiumLower) || activeStadiumLower.includes(s);
         });
-        // If no stadium-specific matches (Wikipedia had no stadium field for
-        // this tournament), fall through to all matches so the modal isn't empty.
         var matchesToUse = stadiumMatches.length > 0 ? stadiumMatches : wikipediaMatches;
-        allMatches = matchesToUse.map(function (m, idx) {
+        return matchesToUse.map(function (m, idx) {
             var code1 = teamNameToCode(m.team1) || m.team1;
             var code2 = teamNameToCode(m.team2) || m.team2;
             return {
@@ -172,20 +170,24 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 goals2: m.goals2 || '',
             };
         });
-    }
+    }, [wikipediaMatches, activeStadiumLower]);
     var matches = allMatches;
-    var flagCodes;
-    if (configFlags.length > 0) {
-        flagCodes = configFlags;
-    } else if (wikiTeams.length > 0) {
-        flagCodes = [...new Set(wikiTeams.map(function (t) { return teamNameToCode(t.name); }).filter(Boolean))];
-    } else if (tournament && tournament.host_flag_codes && tournament.host_flag_codes.length > 0) {
-        flagCodes = tournament.host_flag_codes;
-    } else {
-        flagCodes = matches.length > 0 ? [...new Set(matches.flatMap(function (m) { return [m.home, m.away]; }).filter(function (f) { return f !== 'TBD'; }))] : [];
-    }
-    // Double the list for seamless -50% loop
-    var flagTrack = flagCodes.concat(flagCodes);
+
+    // Flag track derives only from the tournament — memoize to stop the
+    // infinite scroll animation from re-creating the array 60x/sec.
+    var flagTrack = useMemo(function () {
+        var flagCodes;
+        if (configFlags.length > 0) {
+            flagCodes = configFlags;
+        } else if (wikiTeams.length > 0) {
+            flagCodes = [...new Set(wikiTeams.map(function (t) { return teamNameToCode(t.name); }).filter(Boolean))];
+        } else if (tournament && tournament.host_flag_codes && tournament.host_flag_codes.length > 0) {
+            flagCodes = tournament.host_flag_codes;
+        } else {
+            flagCodes = matches.length > 0 ? [...new Set(matches.flatMap(function (m) { return [m.home, m.away]; }).filter(function (f) { return f !== 'TBD'; }))] : [];
+        }
+        return flagCodes.concat(flagCodes);
+    }, [tournament?.id, configFlags, wikiTeams, matches, tournament]);
 
     const openModal = (team = null) => {
         setSelectedTeam(team);
@@ -199,9 +201,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
         setIsPaused(false);
     };
 
-    const filteredMatches = selectedTeam 
-        ? matches.filter(m => m.home === selectedTeam || m.away === selectedTeam)
-        : matches;
+    const filteredMatches = useMemo(function () {
+        return selectedTeam
+            ? matches.filter(function (m) { return m.home === selectedTeam || m.away === selectedTeam; })
+            : matches;
+    }, [selectedTeam, matches]);
 
     return (
         <section className="banner-section position-relative d-flex flex-column justify-content-center min-vh-100 tfe-hero-slider" id="hero">

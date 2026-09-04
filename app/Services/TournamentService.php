@@ -63,6 +63,11 @@ class TournamentService
 
     /**
      * Get full tournament data for a specific ID.
+     *
+     * The entire assembled payload (config + Wikipedia + admin overrides)
+     * is cached under a single key so every Inertia request is a single
+     * cache read instead of ~15 array merges. The inner Wikipedia call
+     * remains cached separately for the refresh command.
      */
     public function get(string $id): array
     {
@@ -73,6 +78,33 @@ class TournamentService
         }
 
         $ttl = $this->ttlFor($config);
+
+        // Include the admin hero override in the cache key so an admin
+        // upload invalidates the cache next request instead of showing
+        // the previous hero for the whole TTL. Also include a hash of
+        // the wiki payload key so refresh command clears the assembled
+        // payload as well.
+        $adminHero = null;
+        try {
+            if (Schema::hasTable('site_settings')) {
+                $adminHero = SiteSetting::get("hero_bg_{$id}");
+            }
+        } catch (\Throwable $e) {
+            // best-effort
+        }
+        $fullKey = "tournament:{$id}:full:".md5((string) $adminHero);
+
+        return Cache::remember($fullKey, $ttl, function () use ($id, $config, $ttl, $adminHero) {
+            return $this->assemble($id, $config, $ttl, $adminHero);
+        });
+    }
+
+    /**
+     * Build the full tournament payload from config + Wikipedia + admin
+     * overrides. Extracted from get() so the outer cache wraps everything.
+     */
+    protected function assemble(string $id, array $config, int $ttl, ?string $adminHero): array
+    {
         $wikiTitle = $config['wikipedia_title'] ?? $config['name'];
 
         $wikipedia = Cache::remember(
@@ -113,17 +145,9 @@ class TournamentService
         }
 
         // Admin-uploaded hero background overrides the config default.
-        $heroImage = $config['hero_image'] ?? null;
-        try {
-            if (Schema::hasTable('site_settings')) {
-                $adminHero = SiteSetting::get("hero_bg_{$id}");
-                if ($adminHero) {
-                    $heroImage = $adminHero;
-                }
-            }
-        } catch (\Throwable $e) {
-            // Silently fall back to config hero_image.
-        }
+        // $adminHero was resolved once in get() and passed in — no per-call
+        // SiteSetting query, and the cache key already accounts for it.
+        $heroImage = $adminHero ?: ($config['hero_image'] ?? null);
 
         return array_merge($config, [
             'status' => self::computedStatus($config),
@@ -209,37 +233,44 @@ class TournamentService
 
     /**
      * List all tournaments with computed status — used by the switcher UI.
+     *
+     * Cached for an hour so the shared HandleInertiaRequests prop doesn't
+     * rebuild the sorted list per request. Cache invalidates itself hourly
+     * (matches the shortest interesting status-transition window) and is
+     * cleared explicitly by clearCache() when the refresh command runs.
      */
     public function all(): array
     {
-        $tournaments = [];
-        foreach (config('tournaments.tournaments', []) as $id => $config) {
-            $computedStatus = self::computedStatus($config);
-            $tournaments[] = [
-                'id' => $id,
-                'name' => $config['name'],
-                'short_name' => $config['short_name'],
-                'slug' => $config['slug'],
-                'status' => $computedStatus,
-                'start_date' => $config['start_date'],
-                'end_date' => $config['end_date'],
-                'hosts' => $config['hosts'] ?? [],
-            ];
-        }
-
-        // Sort: ongoing first, then upcoming (by start_date), then concluded
-        $order = ['ongoing' => 0, 'upcoming' => 1, 'concluded' => 2];
-        usort($tournaments, function ($a, $b) use ($order) {
-            $oa = $order[$a['status']] ?? 3;
-            $ob = $order[$b['status']] ?? 3;
-            if ($oa !== $ob) {
-                return $oa <=> $ob;
+        return Cache::remember('tournament:list:all', 3600, function () {
+            $tournaments = [];
+            foreach (config('tournaments.tournaments', []) as $id => $config) {
+                $computedStatus = self::computedStatus($config);
+                $tournaments[] = [
+                    'id' => $id,
+                    'name' => $config['name'],
+                    'short_name' => $config['short_name'],
+                    'slug' => $config['slug'],
+                    'status' => $computedStatus,
+                    'start_date' => $config['start_date'],
+                    'end_date' => $config['end_date'],
+                    'hosts' => $config['hosts'] ?? [],
+                ];
             }
 
-            return $a['start_date'] <=> $b['start_date'];
-        });
+            // Sort: ongoing first, then upcoming (by start_date), then concluded
+            $order = ['ongoing' => 0, 'upcoming' => 1, 'concluded' => 2];
+            usort($tournaments, function ($a, $b) use ($order) {
+                $oa = $order[$a['status']] ?? 3;
+                $ob = $order[$b['status']] ?? 3;
+                if ($oa !== $ob) {
+                    return $oa <=> $ob;
+                }
 
-        return $tournaments;
+                return $a['start_date'] <=> $b['start_date'];
+            });
+
+            return $tournaments;
+        });
     }
 
     /**
@@ -269,10 +300,28 @@ class TournamentService
     }
 
     /**
-     * Clear all cache for a specific tournament (used by the refresh command).
+     * Clear all cached data for a specific tournament — the Wikipedia
+     * payload AND every assembled variant (there is one per admin hero
+     * override), plus the switcher list. Used by the refresh command
+     * and by the admin "Refresh" button.
      */
     public function clearCache(string $id): void
     {
         Cache::forget("tournament:{$id}:wikipedia");
+        Cache::forget('tournament:list:all');
+
+        // Assembled payloads are keyed on the admin hero hash, so we
+        // clear both the "no hero" variant and any currently-set one.
+        Cache::forget('tournament:'.$id.':full:'.md5(''));
+        try {
+            if (Schema::hasTable('site_settings')) {
+                $adminHero = SiteSetting::get("hero_bg_{$id}");
+                if ($adminHero) {
+                    Cache::forget('tournament:'.$id.':full:'.md5($adminHero));
+                }
+            }
+        } catch (\Throwable $e) {
+            // best-effort
+        }
     }
 }

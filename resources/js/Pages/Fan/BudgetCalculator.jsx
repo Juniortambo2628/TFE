@@ -15,7 +15,26 @@ import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 
-export default function BudgetCalculator({ auth, savedBudgets: initialBudgets = [], userFavorites = [], budgetToEdit = null, allFixtures = [], venues = [], stages = [], groups = [], teams = [], tournamentPricing: rawPricing = {}, tournamentId: initialTournamentId = '', venueCountries = {} }) {
+export default function BudgetCalculator({
+    auth,
+    savedBudgets: initialBudgets = [],
+    budgetToEdit = null,
+    tournamentPricing: rawPricing = {},
+    tournamentId: initialTournamentId = '',
+    // Fixture bundle is deferred by the server — on first paint it's
+    // undefined; Inertia fills it in via a background partial reload.
+    fixtureBundle = null,
+}) {
+    // Unpack the deferred bundle with sane defaults so the component
+    // renders (in a loading state) before the fetch lands.
+    const allFixtures = fixtureBundle?.allFixtures || [];
+    const userFavorites = fixtureBundle?.userFavorites || [];
+    const venues = fixtureBundle?.venues || [];
+    const stages = fixtureBundle?.stages || [];
+    const groups = fixtureBundle?.groups || [];
+    const teams = fixtureBundle?.teams || [];
+    const venueCountries = fixtureBundle?.venueCountries || {};
+    const fixturesLoading = !fixtureBundle;
     const { tournament } = useTournament();
     const tournamentPricing = rawPricing;
     const [usdToKes, setUsdToKes] = useState(getExchangeRate(tournamentPricing));

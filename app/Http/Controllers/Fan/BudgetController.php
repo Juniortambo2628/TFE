@@ -39,56 +39,65 @@ class BudgetController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get all fixtures from dynamic source
-        $fixtureService = app(FixtureService::class);
-        $allFixtures = $fixtureService->getFixtures($tournamentId);
-
-        // Resolve favorites against live fixtures list using external_id
-        $favoriteExternalIds = FavoriteMatch::where('user_id', $userId)
-            ->where('tournament_id', $tournamentId)
-            ->whereNotNull('external_id')
-            ->pluck('external_id')
-            ->toArray();
-
-        $favoriteFixtures = array_values(array_filter($allFixtures, function ($f) use ($favoriteExternalIds) {
-            return in_array($f['id'], $favoriteExternalIds);
-        }));
-
-        // Extract unique venues, stages, groups for filtering
-        $venues = collect($allFixtures)->pluck('venue')->filter()->unique()->values()->toArray();
-        $stages = collect($allFixtures)->pluck('stage')->filter()->unique()->values()->toArray();
-        $groups = collect($allFixtures)->pluck('group')->filter()->unique()->values()->toArray();
-        $teams = collect($allFixtures)
-            ->pluck('homeTeam')
-            ->merge(collect($allFixtures)->pluck('awayTeam'))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values()
-            ->toArray();
-
-        // Build venue-to-country map from pricing config for country filter
+        // Fixture-derived props (~100 matches + venue/stage/team/country maps)
+        // are deferred: Inertia sends the page skeleton immediately and
+        // fetches this bundle in a background partial reload. First paint
+        // no longer waits on FixtureService (which hits Wikipedia on
+        // cold cache).
         $pricing = $tournament['pricing'] ?? [];
-        $venueCountries = [];
-        foreach ($pricing['venue_tiers'] ?? [] as $venue => $data) {
-            if (! empty($data['country'])) {
-                $venueCountries[$venue] = $data['country'];
+        $fixtureBundle = function () use ($tournamentId, $userId, $pricing) {
+            $fixtureService = app(FixtureService::class);
+            $allFixtures = $fixtureService->getFixtures($tournamentId);
+
+            $favoriteExternalIds = FavoriteMatch::where('user_id', $userId)
+                ->where('tournament_id', $tournamentId)
+                ->whereNotNull('external_id')
+                ->pluck('external_id')
+                ->toArray();
+
+            $favoriteFixtures = array_values(array_filter($allFixtures, function ($f) use ($favoriteExternalIds) {
+                return in_array($f['id'], $favoriteExternalIds);
+            }));
+
+            $venues = collect($allFixtures)->pluck('venue')->filter()->unique()->values()->toArray();
+            $stages = collect($allFixtures)->pluck('stage')->filter()->unique()->values()->toArray();
+            $groups = collect($allFixtures)->pluck('group')->filter()->unique()->values()->toArray();
+            $teams = collect($allFixtures)
+                ->pluck('homeTeam')
+                ->merge(collect($allFixtures)->pluck('awayTeam'))
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->toArray();
+
+            $venueCountries = [];
+            foreach ($pricing['venue_tiers'] ?? [] as $venue => $data) {
+                if (! empty($data['country'])) {
+                    $venueCountries[$venue] = $data['country'];
+                }
             }
-        }
+
+            return [
+                'allFixtures' => $allFixtures,
+                'userFavorites' => $favoriteFixtures,
+                'venues' => $venues,
+                'stages' => $stages,
+                'groups' => $groups,
+                'teams' => $teams,
+                'venueCountries' => $venueCountries,
+            ];
+        };
 
         return Inertia::render('Fan/BudgetCalculator', [
             'savedBudgets' => $savedBudgets,
-            'userFavorites' => $favoriteFixtures,
             'budgetToEdit' => $budgetToEdit,
-            'allFixtures' => $allFixtures,
-            'venues' => $venues,
-            'stages' => $stages,
-            'groups' => $groups,
-            'teams' => $teams,
             'isConcluded' => $isConcluded,
             'tournamentId' => $tournamentId,
             'tournamentPricing' => $pricing,
-            'venueCountries' => $venueCountries,
+            // Defer the heavy fixture bundle — page renders immediately,
+            // Inertia fetches this in a background partial reload.
+            'fixtureBundle' => Inertia::defer($fixtureBundle),
         ]);
     }
 
