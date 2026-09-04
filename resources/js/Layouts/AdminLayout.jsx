@@ -8,6 +8,8 @@ import '../../css/fan/_shared.css';
 import '../../css/fan/dashboard.css';
 import '../../css/fan/fan-dashboard-cards.css';
 import '../../css/fan/fan-dashboard-header.css';
+import '../../css/fan/dashboard-header-extras.css';
+import '../../css/fan/dashboard-hero.css';
 import '../../css/admin-theme.css';
 
 /**

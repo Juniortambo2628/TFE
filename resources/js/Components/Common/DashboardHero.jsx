@@ -1,30 +1,20 @@
 import React from 'react';
 import Breadcrumbs from './Breadcrumbs';
 
-const ROLE_STYLES = {
-    fan: {
-        accentColor: '#dc143c',
-        homeRoute: 'fan.dashboard',
-        gradient: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-        boxShadow: '0 8px 32px rgba(220, 20, 60, 0.2)',
-        border: '1px solid #333',
-    },
-    admin: {
-        accentColor: '#3b82f6',
-        homeRoute: 'admin.dashboard',
-        gradient: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)',
-        border: '1px solid #1e3a5f',
-    },
-    partner: {
-        accentColor: '#d97706',
-        homeRoute: 'partner.dashboard',
-        gradient: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-        boxShadow: '0 4px 24px rgba(217, 119, 6, 0.15)',
-        border: '1px solid #d97706',
-    },
+const HOME_ROUTE = {
+    fan: 'fan.dashboard',
+    admin: 'admin.dashboard',
+    partner: 'partner.dashboard',
 };
 
+/**
+ * DashboardHero — single hero card used by every role.
+ *
+ * All visuals live in resources/css/fan/dashboard-hero.css and are
+ * scoped by [data-role]. When a bgImage is provided, the .has-bg class
+ * kicks in and the image lands via the --dash-hero-bg-image CSS var
+ * (so the gradient can layer on top without inline styles).
+ */
 export default function DashboardHero({
     title,
     subtitle = '',
@@ -35,15 +25,10 @@ export default function DashboardHero({
     children,
     id = null,
     role = 'fan',
-    accentColor: overrideColor,
     action = null,
 }) {
-    const style = ROLE_STYLES[role] || ROLE_STYLES.fan;
-    const accentColor = overrideColor || style.accentColor;
-
-    const cardBackground = bgImage
-        ? `linear-gradient(to right, rgba(20, 0, 0, 0.9) 0%, ${accentColor}66 100%), url(${bgImage})`
-        : style.gradient;
+    const homeRoute = HOME_ROUTE[role] || HOME_ROUTE.fan;
+    const styleVars = bgImage ? { '--dash-hero-bg-image': `url(${bgImage})` } : undefined;
 
     return (
         <div id={id} className="mb-4">
@@ -52,45 +37,20 @@ export default function DashboardHero({
                 breadcrumbs={breadcrumbs}
                 actions={actions}
                 showBack={showBack}
-                accentColor={accentColor}
-                homeRoute={style.homeRoute}
+                homeRoute={homeRoute}
             />
 
-            <div style={{
-                background: cardBackground,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                padding: '2rem 2.5rem',
-                borderRadius: '16px',
-                boxShadow: style.boxShadow,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '2rem',
-                border: bgImage ? `1px solid ${accentColor}4d` : style.border,
-                overflow: 'hidden',
-                minHeight: '180px',
-            }}>
-                <div style={{ flex: '1', minWidth: '300px', position: 'relative', zIndex: 1 }}>
-                    <h1 style={{
-                        color: '#fff', fontSize: '2.5rem', fontWeight: '800',
-                        marginBottom: '0.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-                    }}>
-                        {title}
-                    </h1>
-                    {subtitle && (
-                        <p style={{
-                            color: '#eee', fontSize: '1.1rem', marginBottom: '0',
-                            textShadow: '0 1px 4px rgba(0,0,0,0.5)'
-                        }}>
-                            {subtitle}
-                        </p>
-                    )}
+            <div
+                className={`dashboard-hero${bgImage ? ' has-bg' : ''}`}
+                data-role={role}
+                style={styleVars}
+            >
+                <div className="dashboard-hero__body">
+                    <h1 className="dashboard-hero__title">{title}</h1>
+                    {subtitle && <p className="dashboard-hero__subtitle">{subtitle}</p>}
                 </div>
 
-                <div style={{ position: 'relative', zIndex: 1 }}>
+                <div className="dashboard-hero__actions">
                     {children}
                     {action && (
                         <button
