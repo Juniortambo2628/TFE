@@ -277,6 +277,13 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::put('/prizes/{prize}', [PrizeController::class, 'update'])->name('prizes.update');
     Route::delete('/prizes/{prize}', [PrizeController::class, 'destroy'])->name('prizes.destroy');
 
+    // Packages Management (fixed-price prepacked itineraries)
+    Route::get('/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages.index');
+    Route::get('/packages/fixtures', [App\Http\Controllers\Admin\PackageController::class, 'fixtures'])->name('packages.fixtures');
+    Route::post('/packages', [App\Http\Controllers\Admin\PackageController::class, 'store'])->name('packages.store');
+    Route::put('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'update'])->name('packages.update');
+    Route::delete('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'destroy'])->name('packages.destroy');
+
     // Savings Goals Management
     Route::get('/savings-goals', [App\Http\Controllers\Admin\SavingsGoalController::class, 'index'])->name('savings-goals.index');
     Route::delete('/savings-goals/{savingsGoal}', [App\Http\Controllers\Admin\SavingsGoalController::class, 'destroy'])->name('savings-goals.destroy');

@@ -6,6 +6,7 @@ import FlightSelector from '@/Components/Fan/FlightSelector';
 import HotelSelector from '@/Components/Fan/HotelSelector';
 import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
+import PackagePicker from '@/Components/Fan/PackagePicker';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -21,10 +22,13 @@ export default function BudgetCalculator({
     budgetToEdit = null,
     tournamentPricing: rawPricing = {},
     tournamentId: initialTournamentId = '',
+    packages = [],
     // Fixture bundle is deferred by the server — on first paint it's
     // undefined; Inertia fills it in via a background partial reload.
     fixtureBundle = null,
 }) {
+    // Package the fan picked at step 0. null = they're building custom.
+    const [selectedPackage, setSelectedPackage] = useState(null);
     // Unpack the deferred bundle with sane defaults so the component
     // renders (in a loading state) before the fetch lands.
     const allFixtures = fixtureBundle?.allFixtures || [];
@@ -38,8 +42,10 @@ export default function BudgetCalculator({
     const { tournament } = useTournament();
     const tournamentPricing = rawPricing;
     const [usdToKes, setUsdToKes] = useState(getExchangeRate(tournamentPricing));
-    // Wizard State
-    const [wizardStep, setWizardStep] = useState(1);
+    // Wizard State — start at step 0 (package picker) so fans see the
+    // fast-path prepacked options before building custom. budgetToEdit
+    // and the ?match= deep link skip past it (handled below).
+    const [wizardStep, setWizardStep] = useState(0);
     
     // Filter State
     const [selectedStadiums, setSelectedStadiums] = useState([]);
@@ -120,6 +126,42 @@ export default function BudgetCalculator({
             }
         }
     }, [budgetToEdit]);
+
+    // Package picker handlers — step-0 chooser wires into these.
+    const handlePickPackage = (pkg) => {
+        if (!pkg) return;
+        setSelectedPackage(pkg);
+        // Pre-fill wizard state from the package template. Fan can still
+        // tweak in later steps; we track the origin via selectedPackage
+        // so the save call carries package_id.
+        setSelectedMatchIds(pkg.included_match_ids || []);
+        setFlightClass(pkg.flight_class || 'economy');
+        setAccommodation(pkg.accommodation_level || '3_star');
+        setNights(pkg.nights || 7);
+        // Populate filteredMatches so step 2 shows the package's matches.
+        if (Array.isArray(pkg.included_match_ids) && pkg.included_match_ids.length > 0 && allFixtures.length > 0) {
+            const matches = allFixtures.filter((m) => pkg.included_match_ids.includes(m.id));
+            setFilteredMatches(matches);
+        }
+        setWizardStep(2);
+    };
+
+    const handleBuildCustom = () => {
+        setSelectedPackage(null);
+        setWizardStep(1);
+    };
+
+    // Skip step 0 automatically if the fan is editing an existing budget
+    // or landed via a ?match=… deep link. Also skip if no packages exist
+    // for this tournament — no point showing an empty picker.
+    useEffect(() => {
+        if (budgetToEdit) return; // handled in its own effect
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('match')) return;
+        if (!packages || packages.length === 0) {
+            setWizardStep(1);
+        }
+    }, [budgetToEdit, packages]);
 
     // Initialize from URL query parameter (e.g., ?match=19 from Plan Trip CTA)
     useEffect(() => {
@@ -485,6 +527,9 @@ export default function BudgetCalculator({
             breakdown: breakdown,
             nights: nights,
             tournament_id: initialTournamentId || tournament?.id || null,
+            // Carry the package origin so bookings + sold_count can be
+            // tracked when the fan confirms this itinerary later.
+            package_id: selectedPackage?.id || null,
         };
 
         router.post(route('fan.budget.save'), data, {
@@ -739,6 +784,61 @@ export default function BudgetCalculator({
                         </div>
                     </div>
                 </DashboardHero>
+
+                {/* Wizard Step 0: Package picker — fast-path prepacked options.
+                    Only rendered when packages exist for this tournament and the
+                    fan isn't editing an existing budget / arriving via ?match=. */}
+                {!showResults && wizardStep === 0 && packages && packages.length > 0 && (
+                    <div className="section-card">
+                        <div className="section-header">
+                            <div className="section-icon">
+                                <i className="fas fa-gift"></i>
+                            </div>
+                            <div>
+                                <h3>Start with a package or build your own</h3>
+                                <p className="section-subtitle">
+                                    Pick a fixed-price package we've curated, or build a fully custom itinerary from scratch.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="p-3">
+                            <PackagePicker
+                                packages={packages}
+                                onPickPackage={handlePickPackage}
+                                onBuildCustom={handleBuildCustom}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Package origin banner — shows in later steps so the fan
+                    knows they can revisit the picker. */}
+                {!showResults && selectedPackage && wizardStep > 0 && (
+                    <div
+                        className="mb-3 p-3 rounded d-flex align-items-center justify-content-between"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(220,20,60,0.10), rgba(59,130,246,0.10))',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                        }}
+                    >
+                        <div>
+                            <div className="text-white fw-semibold">
+                                <i className="fas fa-gift me-2 text-danger"></i>
+                                Based on package: {selectedPackage.name}
+                            </div>
+                            <div className="text-white-50 small">
+                                Fixed price {selectedPackage.currency} {Number(selectedPackage.base_price).toLocaleString()} — customize anything you like.
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-outline-light"
+                            onClick={() => { setSelectedPackage(null); setWizardStep(0); }}
+                        >
+                            Change starting point
+                        </button>
+                    </div>
+                )}
 
                 {/* Wizard Step 1: Method Selection */}
                 {!showResults && wizardStep === 1 && (

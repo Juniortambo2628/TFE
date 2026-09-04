@@ -12,6 +12,7 @@ class Budget extends Model
     protected $fillable = [
         'user_id',
         'tournament_id',
+        'package_id',
         'name',
         'total_cost',
         'match_ids',
@@ -39,6 +40,11 @@ class Budget extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
     }
 
     /**

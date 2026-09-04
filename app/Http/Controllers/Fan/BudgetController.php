@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
+use App\Models\Package;
 use App\Services\FixtureService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
@@ -89,12 +90,43 @@ class BudgetController extends Controller
             ];
         };
 
+        // Packages the fan can pick as a starting point — active + this
+        // tournament only, sorted by featured then display_order.
+        $packages = Package::forTournament($tournamentId)
+            ->active()
+            ->orderByDesc('is_featured')
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get()
+            ->map(function (Package $p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'description' => $p->description,
+                    'hero_image' => $p->hero_image,
+                    'base_price' => $p->base_price,
+                    'currency' => $p->currency,
+                    'included_match_ids' => $p->included_match_ids ?? [],
+                    'included_venues' => $p->included_venues ?? [],
+                    'nights' => $p->nights,
+                    'flight_class' => $p->flight_class,
+                    'accommodation_level' => $p->accommodation_level,
+                    'capacity' => $p->capacity,
+                    'sold_count' => $p->sold_count,
+                    'seats_left' => $p->seats_left,
+                    'availability_pct' => $p->availability_pct,
+                    'is_sold_out' => $p->is_sold_out,
+                    'is_featured' => $p->is_featured,
+                ];
+            });
+
         return Inertia::render('Fan/BudgetCalculator', [
             'savedBudgets' => $savedBudgets,
             'budgetToEdit' => $budgetToEdit,
             'isConcluded' => $isConcluded,
             'tournamentId' => $tournamentId,
             'tournamentPricing' => $pricing,
+            'packages' => $packages,
             // Defer the heavy fixture bundle — page renders immediately,
             // Inertia fetches this in a background partial reload.
             'fixtureBundle' => Inertia::defer($fixtureBundle),
@@ -147,12 +179,21 @@ class BudgetController extends Controller
             return back()->with('error', 'Only approved or modified budgets can be confirmed.');
         }
 
-        // Create the booking scoped to the same tournament as the budget
+        // Package-backed budgets: refuse to confirm if the package sold out
+        // between when the fan built the plan and when they confirmed it,
+        // and bump sold_count on success so capacity signals stay accurate.
+        $package = $budget->package_id ? Package::find($budget->package_id) : null;
+        if ($package && $package->is_sold_out) {
+            return back()->with('error', 'Sorry — this package sold out while you were reviewing. Rebuild your itinerary as a custom plan or pick another package.');
+        }
+
+        // Create the booking scoped to the same tournament + package as the budget.
         Booking::create([
             'user_id' => $budget->user_id,
             'tournament_id' => $budget->tournament_id,
+            'package_id' => $budget->package_id,
             'package_name' => $budget->name,
-            'package_type' => 'Custom Itinerary',
+            'package_type' => $package ? $package->name : 'Custom Itinerary',
             'status' => 'pending_payment',
             'total_amount' => $budget->partner_cost > 0 ? $budget->partner_cost : $budget->total_cost,
             'amount_paid' => 0,
@@ -162,6 +203,11 @@ class BudgetController extends Controller
             'accommodation' => $budget->accommodation_level,
             'matches' => $budget->match_ids,
         ]);
+
+        if ($package) {
+            // Atomic increment — safe under concurrent confirmations.
+            $package->increment('sold_count');
+        }
 
         Budget::where('user_id', $budget->user_id)
             ->where('tournament_id', $budget->tournament_id)
@@ -187,10 +233,15 @@ class BudgetController extends Controller
             'breakdown' => 'required|array',
             'nights' => 'nullable|integer',
             'tournament_id' => 'nullable|string',
+            // Optional — set when the fan started from a prepacked package.
+            // The budget carries the FK so we know its origin even if the
+            // fan later customizes ticket count or class.
+            'package_id' => 'nullable|exists:packages,id',
         ]);
 
         $user = Auth::user();
         $tournamentId = $validated['tournament_id'] ?? $this->activeTournamentId();
+        $packageId = $validated['package_id'] ?? null;
 
         if (isset($validated['id'])) {
             $budget = Budget::where('user_id', $user->id)->findOrFail($validated['id']);
@@ -203,6 +254,7 @@ class BudgetController extends Controller
                 'breakdown' => $validated['breakdown'],
                 'nights' => $validated['nights'] ?? $budget->nights,
                 'tournament_id' => $tournamentId,
+                'package_id' => $packageId ?? $budget->package_id,
                 'is_active' => true,
             ]);
 
@@ -223,6 +275,7 @@ class BudgetController extends Controller
         $budget = Budget::create([
             'user_id' => $user->id,
             'tournament_id' => $tournamentId,
+            'package_id' => $packageId,
             'name' => $validated['name'] ?? 'My Tournament Trip',
             'total_cost' => $validated['total_cost'],
             'match_ids' => $validated['match_ids'],
