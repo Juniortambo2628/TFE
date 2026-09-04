@@ -44,6 +44,9 @@ class Listing extends Model
         'sold_count',
         'is_active',
         'is_featured',
+        'moderation_status',
+        'moderation_notes',
+        'submitted_at',
         'display_order',
         'created_by',
     ];
@@ -58,6 +61,7 @@ class Listing extends Model
         'capacity' => 'integer',
         'sold_count' => 'integer',
         'display_order' => 'integer',
+        'submitted_at' => 'datetime',
     ];
 
     protected $appends = ['availability_pct', 'is_sold_out', 'seats_left'];
@@ -126,6 +130,16 @@ class Listing extends Model
     public function scopePublishedBy($query, string $morphType, int $id)
     {
         return $query->where('publisher_type', $morphType)->where('publisher_id', $id);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('moderation_status', 'approved');
+    }
+
+    public function scopePendingModeration($query)
+    {
+        return $query->where('moderation_status', 'pending');
     }
 
     // ── Availability accessors ─────────────────────────────────────────

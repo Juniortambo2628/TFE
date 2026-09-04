@@ -4,6 +4,7 @@ use App\Helpers\DashboardHelper;
 use App\Http\Controllers\Admin\AnnouncementsController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\ListingApprovalController;
 use App\Http\Controllers\Admin\MessagesController;
 use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\PrizeController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
@@ -294,6 +296,11 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/partners/{user}', [PartnerController::class, 'edit'])->name('partners.edit');
     Route::put('/partners/{user}', [PartnerController::class, 'update'])->name('partners.update');
 
+    // Sprint 10 — approval queue for partner-authored listings.
+    Route::get('/listing-approvals', [ListingApprovalController::class, 'index'])->name('listing-approvals.index');
+    Route::post('/listing-approvals/{listing}/approve', [ListingApprovalController::class, 'approve'])->name('listing-approvals.approve');
+    Route::post('/listing-approvals/{listing}/reject', [ListingApprovalController::class, 'reject'])->name('listing-approvals.reject');
+
     // Packages Management (fixed-price prepacked itineraries)
     Route::get('/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages.index');
     Route::get('/packages/fixtures', [App\Http\Controllers\Admin\PackageController::class, 'fixtures'])->name('packages.fixtures');
@@ -344,6 +351,17 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
     Route::post('/security/password', [App\Http\Controllers\Partner\SecurityController::class, 'changePassword'])->name('security.password');
     Route::post('/security/two-factor', [App\Http\Controllers\Partner\SecurityController::class, 'toggleTwoFactor'])->name('security.two-factor');
     Route::post('/security/two-factor/confirm', [App\Http\Controllers\Partner\SecurityController::class, 'confirmTwoFactor'])->name('security.two-factor.confirm');
+
+    // Sprint 10 — Publish tab: partner-authored listings CRUD.
+    Route::get('/listings', [ListingController::class, 'index'])->name('listings.index');
+    Route::get('/listings/fixtures', [ListingController::class, 'fixtures'])->name('listings.fixtures');
+    Route::post('/listings', [ListingController::class, 'store'])->name('listings.store');
+    Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
+    Route::post('/listings/{listing}/submit', [ListingController::class, 'submit'])->name('listings.submit');
+    Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+
+    // Sprint 10 — Measure tab: per-partner analytics.
+    Route::get('/analytics', [App\Http\Controllers\Partner\AnalyticsController::class, 'index'])->name('analytics');
 
     // Communication/Messages Routes
     Route::get('/messages', [App\Http\Controllers\Partner\CommunicationController::class, 'index'])->name('messages');

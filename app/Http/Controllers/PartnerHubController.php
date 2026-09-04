@@ -25,12 +25,13 @@ class PartnerHubController extends Controller
             abort(404);
         }
 
-        // Listings this partner has published — active only on the
-        // public hub. Sprint 10 will let partners toggle draft/published
-        // per listing; today "active" is the closest proxy.
+        // Listings this partner has published. Sprint 10: only the ones
+        // admin has moderated to `approved` reach the public hub — a
+        // partner's draft or pending row stays inside the Publish tab.
         $listings = Listing::query()
             ->where('publisher_type', User::class)
             ->where('publisher_id', $profile->user_id)
+            ->approved()
             ->active()
             ->orderByDesc('is_featured')
             ->orderBy('display_order')

@@ -4,22 +4,26 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
+use App\Models\Listing;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $scoped = $this->baseQuery($request);
+
         $stats = [
-            'pending' => Budget::where('is_active', true)->where('partner_status', 'pending')->count(),
-            'approved' => Budget::where('is_active', true)->where('partner_status', 'approved')->count(),
-            'modified' => Budget::where('is_active', true)->where('partner_status', 'modified')->count(),
-            'rejected' => Budget::where('is_active', true)->where('partner_status', 'rejected')->count(),
-            'total_revenue' => Budget::where('is_active', true)->where('partner_status', 'approved')->sum('partner_cost') ?: 0,
+            'pending' => (clone $scoped)->where('partner_status', 'pending')->count(),
+            'approved' => (clone $scoped)->where('partner_status', 'approved')->count(),
+            'modified' => (clone $scoped)->where('partner_status', 'modified')->count(),
+            'rejected' => (clone $scoped)->where('partner_status', 'rejected')->count(),
+            'total_revenue' => (clone $scoped)->where('partner_status', 'approved')->sum('partner_cost') ?: 0,
         ];
 
-        $requests = $this->getRequestsData();
+        $requests = $this->getRequestsData($request);
 
         return Inertia::render('Partner/Dashboard', [
             'requests' => $requests,
@@ -82,19 +86,42 @@ class DashboardController extends Controller
         return back()->with('success', 'Request updated successfully.');
     }
 
-    public function requests()
+    public function requests(Request $request)
     {
-        $data = $this->getRequestsData();
+        $data = $this->getRequestsData($request);
 
         return Inertia::render('Partner/Requests', [
             'requests' => $data,
         ]);
     }
 
-    private function getRequestsData()
+    /**
+     * Scope helper — Sprint 10 pivot. If the partner has published one
+     * or more listings, only budgets whose fan picked one of those
+     * listings show up in their queue. If not (legacy partners with no
+     * published inventory yet), fall through to the historical global
+     * queue so nothing goes dark mid-transition.
+     */
+    private function baseQuery(Request $request)
     {
-        return Budget::with('user.profile')
-            ->where('is_active', true)
+        $partnerId = $request->user()->id;
+        $listingIds = Listing::query()
+            ->publishedBy(User::class, $partnerId)
+            ->pluck('id');
+
+        $q = Budget::query()->where('is_active', true);
+
+        if ($listingIds->isNotEmpty()) {
+            $q->whereIn('listing_id', $listingIds);
+        }
+
+        return $q;
+    }
+
+    private function getRequestsData(Request $request)
+    {
+        return $this->baseQuery($request)
+            ->with('user.profile')
             ->whereIn('partner_status', ['pending', 'modified', 'approved', 'rejected'])
             ->orderBy('created_at', 'desc')
             ->get()
