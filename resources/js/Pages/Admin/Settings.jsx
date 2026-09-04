@@ -268,6 +268,62 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                            </div>
                        </div>
                     </div>
+
+                    {/* Per-tournament content overrides — tagline, trophy image URL, accent colour.
+                        All optional; empty falls back to config/tournaments.php. */}
+                    <div className="admin-card-dark mt-4">
+                        <div className="card-header">
+                            <h3><i className="fas fa-palette"></i> Per-Tournament Content</h3>
+                            <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>
+                                Override the tagline, trophy image, and accent colour without editing config. Leave blank to use the config default.
+                            </p>
+                        </div>
+                        <div className="card-body">
+                            {TOURNAMENTS.map(tournament => {
+                                const taglineKey = `tournament_tagline_${tournament.id}`;
+                                const trophyKey = `tournament_trophy_${tournament.id}`;
+                                const accentKey = `tournament_accent_${tournament.id}`;
+                                return (
+                                    <div key={tournament.id} className="pb-3 mb-3 border-bottom border-white border-opacity-10">
+                                        <div className="text-white fw-semibold mb-2">
+                                            {tournament.name}
+                                            <span className="text-white-50 small ms-2">({tournament.status})</span>
+                                        </div>
+                                        <div className="row g-3">
+                                            <div className="col-md-6">
+                                                <label className="admin-form-label">Tagline</label>
+                                                <input
+                                                    className="admin-form-input"
+                                                    placeholder="e.g. East Africa welcomes AFCON…"
+                                                    value={data[taglineKey] ?? settings[taglineKey] ?? ''}
+                                                    onChange={e => setData(taglineKey, e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="col-md-4">
+                                                <label className="admin-form-label">Trophy image URL</label>
+                                                <input
+                                                    className="admin-form-input"
+                                                    placeholder="tournament-trophies/…png"
+                                                    value={data[trophyKey] ?? settings[trophyKey] ?? ''}
+                                                    onChange={e => setData(trophyKey, e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="col-md-2">
+                                                <label className="admin-form-label">Accent colour</label>
+                                                <input
+                                                    type="color"
+                                                    className="admin-form-input"
+                                                    style={{ height: 40, padding: 4 }}
+                                                    value={(data[accentKey] ?? settings[accentKey] ?? '#dc143c')}
+                                                    onChange={e => setData(accentKey, e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
 

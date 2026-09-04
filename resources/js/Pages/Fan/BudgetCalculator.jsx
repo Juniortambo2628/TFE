@@ -8,6 +8,7 @@ import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
 import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
+import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -1240,6 +1241,16 @@ export default function BudgetCalculator({
                             accommodation={accommodation}
                             pricing={tournamentPricing}
                         />
+
+                        {/* Multi-city venue map — pins every tournament venue,
+                            highlights the fan's selected matches, and draws
+                            distance chips between consecutive stops. */}
+                        <div className="mt-4">
+                            <ItineraryMap
+                                venues={(tournament && tournament.venues) || []}
+                                selectedMatches={allFixtures.filter((m) => selectedMatchIds.includes(m.id))}
+                            />
+                        </div>
 
                         <div className="d-flex gap-3 mt-4">
                             <button className="btn btn-outline-secondary flex-fill" onClick={resetWizard}>

@@ -397,6 +397,8 @@ class WikipediaService
                 'opened' => null,
                 'location' => null,
                 'coordinates' => null,
+                'lat' => null,
+                'lng' => null,
             ];
 
             if (! empty($wikitext)) {
@@ -408,12 +410,89 @@ class WikipediaService
                     $data['capacity'] = $this->getField($infobox, 'capacity');
                     $data['opened'] = $this->cleanWikiValue($this->getField($infobox, 'opened'));
                     $data['location'] = $this->cleanWikiValue($this->getField($infobox, 'location'));
-                    $data['coordinates'] = $this->cleanWikiValue($this->getField($infobox, 'coordinates'));
+
+                    // Coordinates: try the raw wikitext first (before cleanWikiValue
+                    // strips the templates that carry the numbers), then fall back
+                    // to the cleaned form.
+                    $rawCoords = $this->getField($infobox, 'coordinates');
+                    $coords = self::parseCoordinates($rawCoords);
+                    if ($coords) {
+                        $data['lat'] = $coords['lat'];
+                        $data['lng'] = $coords['lng'];
+                    }
+                    $data['coordinates'] = $this->cleanWikiValue($rawCoords);
                 }
             }
 
             return $data;
         });
+    }
+
+    /**
+     * Parse a Wikipedia "coordinates" infobox value into {lat, lng}.
+     * Handles the three common shapes we see:
+     *   {{coord|40|48|48|N|74|4|39|W|type:landmark}}
+     *   {{coord|40.813333|-74.077500|type:landmark}}
+     *   40.813333, -74.077500
+     * Returns null when nothing can be extracted (never throws).
+     */
+    public static function parseCoordinates(?string $raw): ?array
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        // {{coord|DEG|MIN|SEC|N|DEG|MIN|SEC|W|...}}
+        if (preg_match(
+            '/\{\{coord\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([NS])\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([EW])/i',
+            $raw,
+            $m,
+        )) {
+            $lat = ((float) $m[1]) + ((float) $m[2] / 60) + ((float) $m[3] / 3600);
+            if (strtoupper($m[4]) === 'S') {
+                $lat = -$lat;
+            }
+            $lng = ((float) $m[5]) + ((float) $m[6] / 60) + ((float) $m[7] / 3600);
+            if (strtoupper($m[8]) === 'W') {
+                $lng = -$lng;
+            }
+
+            return ['lat' => round($lat, 6), 'lng' => round($lng, 6)];
+        }
+
+        // {{coord|DEG|MIN|N|DEG|MIN|W|...}}  (no seconds)
+        if (preg_match(
+            '/\{\{coord\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([NS])\|(\d+(?:\.\d+)?)\|(\d+(?:\.\d+)?)\|([EW])/i',
+            $raw,
+            $m,
+        )) {
+            $lat = ((float) $m[1]) + ((float) $m[2] / 60);
+            if (strtoupper($m[3]) === 'S') {
+                $lat = -$lat;
+            }
+            $lng = ((float) $m[4]) + ((float) $m[5] / 60);
+            if (strtoupper($m[6]) === 'W') {
+                $lng = -$lng;
+            }
+
+            return ['lat' => round($lat, 6), 'lng' => round($lng, 6)];
+        }
+
+        // {{coord|LAT|LNG|...}} — decimal degrees, signed
+        if (preg_match('/\{\{coord\|(-?\d+\.\d+)\|(-?\d+\.\d+)/i', $raw, $m)) {
+            return ['lat' => (float) $m[1], 'lng' => (float) $m[2]];
+        }
+
+        // Plain "40.813333, -74.077500"
+        if (preg_match('/(-?\d+\.\d+)\s*[,;]\s*(-?\d+\.\d+)/', $raw, $m)) {
+            $lat = (float) $m[1];
+            $lng = (float) $m[2];
+            if (abs($lat) <= 90 && abs($lng) <= 180) {
+                return ['lat' => $lat, 'lng' => $lng];
+            }
+        }
+
+        return null;
     }
 
     /**
