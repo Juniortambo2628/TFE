@@ -41,40 +41,29 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Quick Stats Row */}
-            <div className="admin-visual-cards mb-4" style={{ overflow: 'visible', flexWrap: 'wrap' }}>
-                <StatCard 
-                    type="visual"
-                    label="Total Users" 
-                    value={stats?.total_users || 0} 
-                    icon="fas fa-users"
-                    bgType="dashboard"
-                    settingsKey="bg_card_dashboard_total_users"
-                    image="/assets/images/bgimage05.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
+            {/* Quick Stats Row — matches Fan dashboard summary-cards-grid so
+                the admin surface reads with the same tokens as fan. */}
+            <div className="summary-cards-grid">
+                <StatCard
+                    label="Total Users"
+                    value={stats?.total_users || 0}
+                    icon="fa-users"
+                    variant="blue"
+                    subtext="Registered accounts"
                 />
-                <StatCard 
-                    type="visual"
-                    label="Total Revenue" 
-                    value={formatMoney(stats?.total_revenue || 0)} 
-                    icon="fas fa-coins"
-                    bgType="dashboard"
-                    settingsKey="bg_card_dashboard_total_revenue"
-                    image="/assets/images/bgimage06.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
+                <StatCard
+                    label="Total Revenue"
+                    value={formatMoney(stats?.total_revenue || 0)}
+                    icon="fa-coins"
+                    variant="red"
+                    subtext="Paystack transactions"
                 />
-                <StatCard 
-                    type="visual"
-                    label="Active Tribes" 
-                    value={stats?.active_tribes || 0} 
-                    icon="fas fa-handshake"
-                    bgType="dashboard"
-                    settingsKey="bg_card_dashboard_active_tribes"
-                    image="/assets/images/bgimage07.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
+                <StatCard
+                    label="Active Tribes"
+                    value={stats?.active_tribes || 0}
+                    icon="fa-handshake"
+                    variant="blue"
+                    subtext="Communities in use"
                 />
             </div>
 

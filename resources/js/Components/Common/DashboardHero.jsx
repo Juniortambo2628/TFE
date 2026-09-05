@@ -15,13 +15,18 @@ const HOME_ROUTE = {
  * kicks in and the image lands via the --dash-hero-bg-image CSS var
  * (so the gradient can layer on top without inline styles).
  */
+// Every dashboard hero shares the same stadium backdrop unless a caller
+// overrides it — same rich look on fan, admin and partner surfaces
+// (the role accent still tints the overlay via [data-role] CSS).
+const DEFAULT_BG = '/assets/img/fan/backgrounds/stadium_hero.png';
+
 export default function DashboardHero({
     title,
     subtitle = '',
     breadcrumbs = [],
     actions = null,
     showBack = false,
-    bgImage = null,
+    bgImage = DEFAULT_BG,
     children,
     id = null,
     role = 'fan',
@@ -41,7 +46,7 @@ export default function DashboardHero({
             />
 
             <div
-                className={`dashboard-hero${bgImage ? ' has-bg' : ''}`}
+                className={`dashboard-hero has-bg`}
                 data-role={role}
                 style={styleVars}
             >
