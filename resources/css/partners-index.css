@@ -1,0 +1,319 @@
+/**
+ * PartnersIndex — public /partners directory styles.
+ *
+ * All colors, spacing, gradients live here (no inline styles on the
+ * JSX). Cards read a per-partner accent via --partner-accent that the
+ * component sets from profile.theme_accent.
+ */
+
+.partners-index-page {
+    background: #0a0a0a;
+    color: #fff;
+    min-height: 100vh;
+}
+
+.partners-index-hero {
+    padding: 6rem 0 4rem;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.partners-index-hero__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.75rem;
+}
+
+.partners-index-hero__title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.partners-index-hero__subtitle {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.05rem;
+    max-width: 640px;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.partners-index-search {
+    position: relative;
+    max-width: 620px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.25rem 0.5rem 0.25rem 3rem;
+}
+
+.partners-index-search__icon {
+    position: absolute;
+    left: 1rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.partners-index-search__input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    color: #fff;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    outline: none;
+}
+
+.partners-index-search__input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.partners-index-search__clear {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.partners-index-search__clear:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.partners-index-filters {
+    padding: 2rem 0 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.partners-index-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+}
+
+.partners-index-filter-label {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    min-width: 120px;
+}
+
+.partners-index-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.partners-index-chip {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.partners-index-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.partners-index-chip.is-active {
+    background: #dc143c;
+    border-color: #dc143c;
+    color: #fff;
+}
+
+.partners-index-results {
+    padding: 3rem 0 6rem;
+}
+
+.partners-index-count {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.partners-index-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.partners-index-empty {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.partners-index-empty i {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+}
+
+.partners-index-empty h3 {
+    color: #fff;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.partner-card {
+    --partner-accent: #dc143c;
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 20, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.partner-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--partner-accent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    color: inherit;
+}
+
+.partner-card__hero {
+    position: relative;
+    height: 160px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+}
+
+.partner-card__logo {
+    height: 48px;
+    width: 48px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 6px;
+    object-fit: contain;
+}
+
+.partner-card__verified {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.partner-card__body {
+    flex: 1;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.partner-card__type {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    color: var(--partner-accent);
+    font-weight: 600;
+}
+
+.partner-card__name {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.partner-card__tagline {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.partner-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.25rem;
+}
+
+.partner-card__tag {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.7rem;
+}
+
+.partner-card__tag--more {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.partner-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.partner-card__listings {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.8rem;
+}
+
+.partner-card__cta {
+    color: var(--partner-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+@media (max-width: 640px) {
+    .partners-index-hero {
+        padding: 4rem 0 3rem;
+    }
+    .partners-index-hero__title {
+        font-size: 2rem;
+    }
+    .partners-index-filter-label {
+        min-width: unset;
+    }
+}

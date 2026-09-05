@@ -49,8 +49,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
 
-// Public Partner Hub — /partners/{slug} — no auth needed, it's a
-// discovery surface fans can hit before signing up.
+// Public Partner directory + hub — no auth needed. Sprint 11 added
+// the index; the {slug} hub predates it.
+Route::get('/partners', [PartnerHubController::class, 'index'])
+    ->name('partners.index');
 Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])
     ->name('partners.hub');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
