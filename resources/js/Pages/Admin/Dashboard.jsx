@@ -2,6 +2,7 @@ import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
+import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { AreaChart, BarChart, Card, Title, Text } from "@tremor/react";
 import { Link, usePage } from '@inertiajs/react';
 import { formatMoney } from '@/lib/utils';
@@ -64,6 +65,23 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                     icon="fa-handshake"
                     variant="blue"
                     subtext="Communities in use"
+                />
+            </div>
+
+            {/* Sprint 32 — shared quick-actions grid, matches fan + partner. */}
+            <div className="content-card quick-actions-card mt-4">
+                <div className="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <QuickActionsGrid
+                    actions={[
+                        { id: 'ad-users',     label: 'Users',      icon: 'fa-users',           href: route('admin.users') },
+                        { id: 'ad-partners',  label: 'Partners',   icon: 'fa-handshake',       href: route('admin.partners.index') },
+                        { id: 'ad-approvals', label: 'Approvals',  icon: 'fa-clipboard-check', href: route('admin.listing-approvals') },
+                        { id: 'ad-payments',  label: 'Payments',   icon: 'fa-credit-card',     href: route('admin.payments') },
+                        { id: 'ad-analytics', label: 'Analytics',  icon: 'fa-chart-line',      href: route('admin.analytics') },
+                        { id: 'ad-settings',  label: 'Settings',   icon: 'fa-cog',             href: route('admin.settings') },
+                    ]}
                 />
             </div>
 

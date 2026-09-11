@@ -551,11 +551,18 @@ body {
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  /* Sprint 32 — the card should feel like one continuous slab, so no
+     dividing rule between header and body and the leading icon is
+     hidden (see below). Individual pages can still opt back in by
+     targeting a more specific selector. */
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
-.card-header i {
-  color: var(--accent);
-  font-size: 18px;
+/* Sprint 32 — hide the leading icon on card headings. Kept in markup
+   so we don't have to touch every page; just visually removed. */
+.card-header > i:first-child {
+  display: none;
 }
 
 .card-header h3 {
@@ -788,7 +795,7 @@ body {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .table-row {
@@ -889,7 +896,7 @@ body {
   border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .status-confirmed,
@@ -1233,7 +1240,7 @@ body {
     font-weight: 600;
     color: var(--text-muted);
     font-size: 12px;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   .package-name {

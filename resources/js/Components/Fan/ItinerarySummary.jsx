@@ -58,7 +58,7 @@ export default function ItinerarySummary({
         <div className="itinerary-summary" style={{ fontFamily: "'Georgia', serif", color: '#1a1a1a', maxWidth: '800px', margin: '0 auto', background: '#fff', padding: '40px' }}>
             {/* Header */}
             <div style={{ textAlign: 'center', borderBottom: '3px double #1a1a1a', paddingBottom: '20px', marginBottom: '30px' }}>
-                <div style={{ fontSize: '0.8rem', letterSpacing: '3px', textTransform: 'uppercase', color: '#666', marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.8rem', letterSpacing: '3px', textTransform: 'none', color: '#666', marginBottom: '8px' }}>
                     Travel Itinerary & Budget
                 </div>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: '700', margin: '0 0 4px' }}>

@@ -104,7 +104,7 @@
 
 .loan-row__ref {
     font-size: 0.75rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.1em;
     color: rgba(255, 255, 255, 0.5);
 }
@@ -141,7 +141,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
+    text-transform: none;
     border: 1px solid transparent;
 }
 
@@ -188,7 +188,7 @@
     color: rgba(255, 255, 255, 0.4);
     font-size: 0.75rem;
     letter-spacing: 0.05em;
-    text-transform: uppercase;
+    text-transform: none;
     padding: 0.25rem 0.5rem;
 }
 

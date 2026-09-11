@@ -51,7 +51,7 @@
 
 .powered-by__prefix {
     font-size: 0.65rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.5);
 }

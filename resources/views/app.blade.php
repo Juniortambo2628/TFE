@@ -26,6 +26,20 @@
             <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
         @endunless
 
+        {{-- Sprint 32 — Bootstrap utilities + grid on dashboards.
+             The dashboard JSX is peppered with `d-flex`, `flex-column`,
+             `justify-content-*`, `align-items-*`, `p-*`, `gap-*`, `row g-*`
+             and `col-md-*` classes that were no-ops on Fan/Admin/Partner
+             surfaces because the full landing stylesheet is gated above.
+             We deliberately load only the utilities + grid modules so we
+             get layout classes without pulling in Bootstrap's reset,
+             typography, or component styles — those clobber the fan
+             design tokens (learned the hard way in Sprint 11). --}}
+        @if ($isDashboard)
+            <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/bootstrap-utilities.css') }}">
+            <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/bootstrap-grid.css') }}">
+        @endif
+
         <!-- Scripts -->
         @routes
         @viteReactRefresh

@@ -151,19 +151,26 @@
 
 /* ===== CARDS ===== */
 
+/* Sprint 32 — the admin dark card was a solid opaque #1a1d21; unify with
+   the glass card used across fan + partner so all three roles read the
+   same. Drop the header divider (continuous slab) and hide the leading
+   icon on the header. */
 .admin-card-dark {
-    background: var(--admin-bg-card);
-    border: 1px solid var(--admin-border);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .admin-card-dark .card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--admin-border);
+    padding: 1.25rem 1.5rem 0.75rem;
+    border-bottom: 0;
     background: transparent;
 }
 
@@ -177,8 +184,8 @@
     color: var(--admin-text);
 }
 
-.admin-card-dark .card-header h3 i {
-    color: var(--admin-primary);
+.admin-card-dark .card-header h3 > i:first-child {
+    display: none;
 }
 
 .admin-card-dark .card-body {
@@ -400,7 +407,7 @@
     border-radius: 50px;
     font-size: 0.7rem;
     font-weight: 600;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
 }
 
@@ -571,7 +578,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--admin-text-muted);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
     border-bottom: 1px solid var(--admin-border);
 }

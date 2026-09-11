@@ -19,7 +19,7 @@ export default function AdPlaceholder({ position = 'horizontal', className = '' 
         minHeight: isHorizontal ? '120px' : '300px',
         color: '#666',
         fontWeight: 'bold',
-        textTransform: 'uppercase',
+        textTransform: 'none',
         letterSpacing: '1px',
         resize: 'both',
         overflow: 'hidden',

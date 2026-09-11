@@ -14,7 +14,7 @@ import { countries } from '../../Data/countries';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 
 export default function Users({ auth, users = { data: [] }, stats = {}, filters }) {
-    const { assetUrl } = usePage().props;
+    const { assetUrl, adminTheme } = usePage().props;
     const safeFilters = (filters && !Array.isArray(filters)) ? filters : {};
     const [search, setSearch] = useState(safeFilters.search || '');
     const [sortBy, setSortBy] = useState(typeof safeFilters.sort === 'string' ? safeFilters.sort : 'newest');

@@ -3,6 +3,7 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Link, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
+import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
@@ -65,27 +66,16 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
             <div className="content-cards-grid mt-4">
                 <div className="content-card quick-actions-card">
                     <div className="card-header">
-                        <i className="fas fa-bolt"></i>
-                        <h3>Quick actions</h3>
+                        <h3>Quick Actions</h3>
                     </div>
-                    <div className="quick-actions-grid">
-                        <Link href={route('partner.listings.index')} className="quick-action-btn">
-                            <i className="fas fa-tags"></i>
-                            <span>Publish</span>
-                        </Link>
-                        <Link href={route('partner.requests')} className="quick-action-btn">
-                            <i className="fas fa-inbox"></i>
-                            <span>Convert</span>
-                        </Link>
-                        <Link href={route('partner.analytics')} className="quick-action-btn">
-                            <i className="fas fa-chart-line"></i>
-                            <span>Measure</span>
-                        </Link>
-                        <Link href={route('partner.messages')} className="quick-action-btn">
-                            <i className="fas fa-envelope"></i>
-                            <span>Messages</span>
-                        </Link>
-                    </div>
+                    <QuickActionsGrid
+                        actions={[
+                            { id: 'pa-publish',   label: 'Publish',   icon: 'fa-tags',        href: route('partner.listings.index') },
+                            { id: 'pa-convert',   label: 'Convert',   icon: 'fa-inbox',       href: route('partner.requests') },
+                            { id: 'pa-measure',   label: 'Measure',   icon: 'fa-chart-line',  href: route('partner.analytics') },
+                            { id: 'pa-messages',  label: 'Messages',  icon: 'fa-envelope',    href: route('partner.messages') },
+                        ]}
+                    />
                 </div>
 
                 <div className="content-card activity-card">
