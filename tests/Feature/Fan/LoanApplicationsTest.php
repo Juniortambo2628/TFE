@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Fan;
 
+use App\Models\Budget;
 use App\Models\LoanApplication;
 use App\Models\PartnerProfile;
 use App\Models\User;
@@ -155,7 +156,7 @@ class LoanApplicationsTest extends TestCase
         $fan = $this->fan();
         $bank = $this->financePartner('bank', 'Bank');
 
-        $budget = \App\Models\Budget::create([
+        $budget = Budget::create([
             'user_id' => $fan->id,
             'tournament_id' => 'wc_2026',
             'name' => 'EUR trip',
