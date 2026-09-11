@@ -73,14 +73,14 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                 />
                 <StatCard
                     label="Approved"
-                    value={formatMoney(stats.approved_amount ?? 0)}
+                    value={formatMoney(stats.approved_amount ?? 0, 'USD')}
                     icon="fa-check-circle"
                     variant="blue"
                     subtext="Underwritten so far"
                 />
                 <StatCard
                     label="Disbursed"
-                    value={formatMoney(stats.disbursed_amount ?? 0)}
+                    value={formatMoney(stats.disbursed_amount ?? 0, 'USD')}
                     icon="fa-hand-holding-usd"
                     variant="blue"
                     subtext="Landed in your account"
@@ -271,7 +271,7 @@ function LoanRow({ loan, onWithdraw }) {
             <div className="loan-row__head">
                 <div>
                     <div className="loan-row__ref">{loan.reference_id}</div>
-                    <div className="loan-row__amount">{formatMoney(loan.amount)}</div>
+                    <div className="loan-row__amount">{formatMoney(loan.amount, 'USD')}</div>
                     {loan.purpose && <div className="loan-row__purpose">{loan.purpose}</div>}
                 </div>
                 <div className="loan-row__meta">
@@ -309,7 +309,7 @@ function LoanRow({ loan, onWithdraw }) {
                     <span>
                         <i className="fas fa-file-invoice me-1"></i>
                         Attached to {loan.budget.reference_id} (
-                        {formatMoney(loan.budget.total_cost)}
+                        {formatMoney(loan.budget.total_cost, loan.budget.currency || 'USD')}
                         {loan.budget.nights ? ` · ${loan.budget.nights} nights` : ''}
                         )
                     </span>

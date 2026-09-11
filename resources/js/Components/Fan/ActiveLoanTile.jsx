@@ -31,7 +31,7 @@ export default function ActiveLoanTile({ loan }) {
                         <i className="fas fa-hand-holding-usd"></i>
                         Trip financing · {loan.reference_id}
                     </div>
-                    <h3 className="active-loan-tile__amount">{formatMoney(loan.amount)}</h3>
+                    <h3 className="active-loan-tile__amount">{formatMoney(loan.amount, 'USD')}</h3>
                     <div className="active-loan-tile__caption">{STATUS_COPY[loan.status] || loan.status}</div>
                 </div>
 

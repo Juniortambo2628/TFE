@@ -49,6 +49,11 @@ class LoanApplicationController extends Controller
                         'id' => $l->budget->id,
                         'reference_id' => 'REQ-'.str_pad($l->budget->id, 6, '0', STR_PAD_LEFT),
                         'total_cost' => (float) $l->budget->total_cost,
+                        // Sprint 30 — the linked budget can be in a currency
+                        // other than USD (Sprint 28); ship the code so the
+                        // "Attached to REQ-…" line renders in the currency
+                        // the fan built it in, not the platform default.
+                        'currency' => $l->budget->currency ?? 'USD',
                         'nights' => $l->budget->nights,
                     ] : null,
                 ];

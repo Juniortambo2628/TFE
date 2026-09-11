@@ -30,6 +30,9 @@ class SavingsGoalController extends Controller
             'target_amount' => 'required|numeric|min:1000',
             'target_date' => 'nullable|date|after:today',
             'budget_id' => 'nullable|exists:budgets,id',
+            // Sprint 30 — a goal can be saved for in any currency the
+            // budget calculator supports. Whitelist matches Sprint 28.
+            'currency' => 'nullable|string|in:USD,EUR,GBP,KES,ZAR,NGN,XOF',
         ]);
 
         $user = Auth::user();
@@ -40,6 +43,7 @@ class SavingsGoalController extends Controller
             'name' => $validated['name'],
             'target_amount' => $validated['target_amount'],
             'current_amount' => 0,
+            'currency' => $validated['currency'] ?? 'USD',
             'target_date' => $validated['target_date'] ?? null,
             'status' => 'active',
         ]);
@@ -57,6 +61,7 @@ class SavingsGoalController extends Controller
             'name' => 'sometimes|string|max:255',
             'target_amount' => 'sometimes|numeric|min:1000',
             'target_date' => 'nullable|date',
+            'currency' => 'sometimes|string|in:USD,EUR,GBP,KES,ZAR,NGN,XOF',
         ]);
 
         $savingsGoal->update($validated);

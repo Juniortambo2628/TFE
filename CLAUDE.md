@@ -171,15 +171,27 @@ export function formatMoney(amount, currency = 'USD') { … }
 is the single source of truth — 74 downstream callers rely on it.
 Guarded by `tests/JS/currency.test.mjs`.
 
-**Sprint 28 — multicurrency budgets.** The Budget Calculator lets the fan
-pick a display currency (USD, EUR, GBP, KES, ZAR, NGN, XOF). The
-engine still computes in USD; `getRateForCurrency(pricing, code)` in
-`resources/js/Data/BudgetPricingData.js` converts once at render (a
-tournament may override any rate via `pricing.exchange_rates`).
-Persisted on `budgets.currency` (default USD) and echoed back on the
-Journey/Saved-plans surfaces so a fan reopening a plan sees the same
-amount they saved. Guarded by `tests/Feature/Fan/BudgetCurrencyTest.php`
-and `tests/JS/exchangeRate.test.mjs`.
+**Sprint 28–30 — multicurrency, end-to-end.** The Budget Calculator
+lets the fan pick a display currency (USD, EUR, GBP, KES, ZAR, NGN,
+XOF); the engine still computes in USD;
+`getRateForCurrency(pricing, code)` in `resources/js/Data/BudgetPricingData.js`
+converts once at render (a tournament may override any rate via
+`pricing.exchange_rates`). The pick is persisted on:
+
+- `budgets.currency` (Sprint 28) — restored when the fan reopens a plan.
+- `bookings.currency` (Sprint 29) — copied from the budget on
+  `BudgetController::confirm`; Fan/Journey renders every row in it.
+- `savings_goals.currency` (Sprint 30) — per-goal picker; Fan/SavingsGoals
+  totals fall back to the primary goal's currency.
+
+Loans stay USD platform-wide (the truth is one number in one currency);
+`Fan/LoanApplications` still formats `loan.amount` explicitly as USD but
+now formats `loan.budget.total_cost` in the attached budget's currency
+so a EUR-built request reads correctly. Guarded by
+`tests/Feature/Fan/BudgetCurrencyTest.php`,
+`tests/Feature/Fan/BookingCurrencyTest.php`,
+`tests/Feature/Fan/SavingsGoalCurrencyTest.php`, and
+`tests/JS/exchangeRate.test.mjs`.
 
 ### Notifications
 
@@ -333,5 +345,6 @@ tests/
 | 27     | Fan onboarding hint on the Finance CTA               |
 | 28     | Multicurrency Budget Calculator (USD, EUR, GBP, KES, ZAR, NGN, XOF) |
 | 29     | Budget currency propagates to Booking + Journey render |
+| 30     | Multicurrency reaches SavingsGoals + LoanApplications displays |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.

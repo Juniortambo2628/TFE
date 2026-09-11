@@ -147,6 +147,45 @@ class LoanApplicationsTest extends TestCase
         $this->assertSame(3000.0, (float) $stats['disbursed_amount']);
     }
 
+    public function test_attached_budget_carries_its_currency_into_the_payload(): void
+    {
+        // Sprint 30 — a loan attached to a EUR budget must ship the EUR
+        // code so the fan's "attached to REQ-…" line renders in EUR
+        // rather than the platform default USD.
+        $fan = $this->fan();
+        $bank = $this->financePartner('bank', 'Bank');
+
+        $budget = \App\Models\Budget::create([
+            'user_id' => $fan->id,
+            'tournament_id' => 'wc_2026',
+            'name' => 'EUR trip',
+            'total_cost' => 4200,
+            'currency' => 'EUR',
+            'match_ids' => [1, 2],
+            'accommodation_level' => '3_star',
+            'flight_class' => 'economy',
+            'breakdown' => ['match_tickets' => 1000],
+            'nights' => 7,
+        ]);
+
+        LoanApplication::create([
+            'user_id' => $fan->id,
+            'finance_partner_id' => $bank->id,
+            'budget_id' => $budget->id,
+            'amount' => 4200,
+            'purpose' => 'Trip',
+            'status' => 'PENDING',
+        ]);
+
+        $loans = $this->actingAs($fan)
+            ->get(route('fan.loan-applications'))
+            ->viewData('page')['props']['loans'];
+
+        $this->assertNotNull($loans[0]['budget']);
+        $this->assertSame('EUR', $loans[0]['budget']['currency']);
+        $this->assertEquals(4200, $loans[0]['budget']['total_cost']);
+    }
+
     public function test_finance_partners_picker_payload_is_shaped(): void
     {
         $this->financePartner('a', 'Alpha');
