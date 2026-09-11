@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\Listing;
 use App\Models\LoanApplication;
 use App\Models\User;
+use App\Notifications\BudgetResponseNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -145,6 +146,9 @@ class DashboardController extends Controller
         }
 
         $budget->update($updateData);
+
+        // Sprint 17 — notify the fan a partner responded to their brief.
+        $budget->refresh()->user?->notify(new BudgetResponseNotification($budget));
 
         return back()->with('success', 'Request updated successfully.');
     }

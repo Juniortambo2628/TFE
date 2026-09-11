@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoanApplication;
+use App\Notifications\LoanStatusNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -59,6 +60,11 @@ class LoanReviewController extends Controller
         ]);
 
         $loanApplication->update($validated);
+
+        // Sprint 17 — notify the fan the decision landed. Loan needs
+        // to be refreshed so LoanStatusNotification reads the new status.
+        $loanApplication->refresh()->loadMissing('financePartner.partnerProfile');
+        $loanApplication->user?->notify(new LoanStatusNotification($loanApplication));
 
         return back()->with('success', "Loan {$validated['status']} — applicant notified.");
     }

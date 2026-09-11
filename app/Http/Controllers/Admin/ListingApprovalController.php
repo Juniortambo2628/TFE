@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Models\User;
+use App\Notifications\ListingModerationNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -80,6 +81,9 @@ class ListingApprovalController extends Controller
             'is_active' => true,
         ]);
 
+        // Sprint 17 — notify the publisher partner.
+        $listing->publisher?->notify(new ListingModerationNotification($listing, 'approved'));
+
         return back()->with('success', "'{$listing->name}' approved and now live.");
     }
 
@@ -94,6 +98,8 @@ class ListingApprovalController extends Controller
             'moderation_notes' => $validated['notes'],
             'is_active' => false,
         ]);
+
+        $listing->publisher?->notify(new ListingModerationNotification($listing, 'rejected'));
 
         return back()->with('success', "'{$listing->name}' returned to partner with feedback.");
     }
