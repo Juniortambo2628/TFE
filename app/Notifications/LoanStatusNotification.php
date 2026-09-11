@@ -28,10 +28,12 @@ class LoanStatusNotification extends Notification
         $status = strtolower($this->loan->status);
         $amount = number_format($this->loan->amount);
 
+        // Kept for future re-enable of the mail channel — via() is
+        // database-only today. Currency matches the fan surfaces (USD).
         return (new MailMessage)
             ->subject('Loan Application '.ucfirst($status))
-            ->line("Your loan application for KES {$amount} has been {$status}.")
-            ->action('View Application', route('fan.wallet'));
+            ->line("Your loan application for USD {$amount} has been {$status}.")
+            ->action('View Application', route('fan.loan-applications'));
     }
 
     public function toArray(object $notifiable): array

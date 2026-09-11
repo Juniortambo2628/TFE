@@ -131,4 +131,71 @@ class BulkApprovalTest extends TestCase
             ->post(route('admin.listing-approvals.bulk-approve'), ['ids' => [$listing->id]])
             ->assertStatus(403);
     }
+
+    // ── Sprint 20 (review fixes) ──
+
+    public function test_bulk_approve_clears_stale_moderation_notes(): void
+    {
+        $admin = $this->admin();
+        $partner = User::factory()->partner()->create();
+        $listing = Listing::factory()->create([
+            'publisher_type' => User::class,
+            'publisher_id' => $partner->id,
+            'moderation_status' => 'rejected',
+            'moderation_notes' => 'Add venues photo before we can list this.',
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.listing-approvals.bulk-approve'), ['ids' => [$listing->id]])
+            ->assertRedirect();
+
+        $listing->refresh();
+        $this->assertSame('approved', $listing->moderation_status);
+        // The stale rejection feedback must not follow the listing
+        // into approval.
+        $this->assertNull($listing->moderation_notes);
+    }
+
+    public function test_bulk_reject_accepts_already_rejected_and_updates_notes(): void
+    {
+        $admin = $this->admin();
+        $partner = User::factory()->partner()->create();
+        $listing = Listing::factory()->create([
+            'publisher_type' => User::class,
+            'publisher_id' => $partner->id,
+            'moderation_status' => 'rejected',
+            'moderation_notes' => 'Original feedback.',
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.listing-approvals.bulk-reject'), [
+                'ids' => [$listing->id],
+                'notes' => 'Updated feedback — please add a hero image.',
+            ])
+            ->assertRedirect();
+
+        $this->assertStringContainsString('Updated feedback',
+            $listing->fresh()->moderation_notes);
+    }
+
+    public function test_bulk_flash_reports_skipped_count(): void
+    {
+        $admin = $this->admin();
+        $partner = User::factory()->partner()->create();
+        $pending = $this->pendingListingFor($partner);
+        $alreadyApproved = Listing::factory()->create([
+            'publisher_type' => User::class,
+            'publisher_id' => $partner->id,
+            'moderation_status' => 'approved',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.listing-approvals.bulk-approve'), [
+                'ids' => [$pending->id, $alreadyApproved->id],
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success', fn ($msg) => str_contains($msg, '1 skipped'));
+    }
 }

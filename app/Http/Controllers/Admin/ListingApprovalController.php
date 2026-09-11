@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Models\User;
 use App\Notifications\ListingModerationNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 /**
@@ -118,23 +119,34 @@ class ListingApprovalController extends Controller
             'ids.*' => 'integer',
         ]);
 
+        // Eager-load publisher so the notify() loop below doesn't fire
+        // an N+1 SELECT per row (Sprint 19 review finding).
         $listings = Listing::query()
             ->whereIn('id', $validated['ids'])
             ->where('publisher_type', User::class)
             ->whereIn('moderation_status', ['pending', 'draft', 'rejected'])
+            ->with('publisher')
             ->get();
 
-        foreach ($listings as $listing) {
-            $listing->update([
-                'moderation_status' => 'approved',
-                'is_active' => true,
-            ]);
-            $listing->publisher?->notify(new ListingModerationNotification($listing, 'approved'));
-        }
+        // All-or-nothing at the DB level so a mid-loop failure doesn't
+        // leave half the batch flipped + half the partners notified.
+        // Notifications live in the same connection, so a rollback
+        // wipes their inserts too.
+        DB::transaction(function () use ($listings) {
+            foreach ($listings as $listing) {
+                $listing->update([
+                    'moderation_status' => 'approved',
+                    // Clear stale rejection feedback so the partner
+                    // doesn't keep seeing "Add venues photo" attached
+                    // to a newly-approved listing.
+                    'moderation_notes' => null,
+                    'is_active' => true,
+                ]);
+                $listing->publisher?->notify(new ListingModerationNotification($listing, 'approved'));
+            }
+        });
 
-        $n = $listings->count();
-
-        return back()->with('success', "Approved {$n} listing".($n === 1 ? '' : 's').'.');
+        return back()->with('success', $this->bulkFlash('Approved', $listings->count(), count($validated['ids'])));
     }
 
     /**
@@ -151,23 +163,45 @@ class ListingApprovalController extends Controller
             'notes' => 'required|string|max:2000',
         ]);
 
+        // Include 'rejected' so admin can update prior feedback on
+        // rows that are already returned — otherwise typing new notes
+        // silently no-ops (Sprint 19 review finding).
         $listings = Listing::query()
             ->whereIn('id', $validated['ids'])
             ->where('publisher_type', User::class)
-            ->whereIn('moderation_status', ['pending', 'draft', 'approved'])
+            ->whereIn('moderation_status', ['pending', 'draft', 'approved', 'rejected'])
+            ->with('publisher')
             ->get();
 
-        foreach ($listings as $listing) {
-            $listing->update([
-                'moderation_status' => 'rejected',
-                'moderation_notes' => $validated['notes'],
-                'is_active' => false,
-            ]);
-            $listing->publisher?->notify(new ListingModerationNotification($listing, 'rejected'));
+        DB::transaction(function () use ($listings, $validated) {
+            foreach ($listings as $listing) {
+                $listing->update([
+                    'moderation_status' => 'rejected',
+                    'moderation_notes' => $validated['notes'],
+                    'is_active' => false,
+                ]);
+                $listing->publisher?->notify(new ListingModerationNotification($listing, 'rejected'));
+            }
+        });
+
+        return back()->with('success', $this->bulkFlash('Returned', $listings->count(), count($validated['ids']), 'with feedback'));
+    }
+
+    /**
+     * Format the bulk-action flash so the admin sees when some IDs
+     * were skipped (e.g. another admin already acted, or a status
+     * changed between selection and submit). Silent skips were a
+     * Sprint 19 review finding.
+     */
+    protected function bulkFlash(string $verb, int $updated, int $requested, string $suffix = ''): string
+    {
+        $noun = 'listing'.($updated === 1 ? '' : 's');
+        $msg = trim("{$verb} {$updated} {$noun} {$suffix}");
+        if ($updated < $requested) {
+            $skipped = $requested - $updated;
+            $msg .= " ({$skipped} skipped — status changed since selection)";
         }
 
-        $n = $listings->count();
-
-        return back()->with('success', "Returned {$n} listing".($n === 1 ? '' : 's').' with feedback.');
+        return $msg.'.';
     }
 }

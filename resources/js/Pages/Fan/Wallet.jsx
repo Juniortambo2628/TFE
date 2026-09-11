@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { cn } from '@/lib/utils';
+import { cn, formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
 export default function Wallet({ auth, walletData }) {
@@ -34,7 +34,7 @@ export default function Wallet({ auth, walletData }) {
                                 </div>
                             </div>
                             <h2 className="text-3xl font-bold text-white mb-1">
-                                ₦{parseFloat(balance).toLocaleString()}
+                                {formatMoney(balance)}
                             </h2>
                             <p className="text-green-500 text-sm flex items-center gap-1">
                                 <i className="fas fa-lock"></i> Secured in Escrow
@@ -51,7 +51,7 @@ export default function Wallet({ auth, walletData }) {
                             </div>
                             <div className="flex justify-between items-end mb-2">
                                 <span className="text-xl font-bold text-white">{Math.round(progress)}%</span>
-                                <span className="text-white/40 text-xs">Goal: ₦{parseFloat(goalTarget).toLocaleString()}</span>
+                                <span className="text-white/40 text-xs">Goal: {formatMoney(goalTarget)}</span>
                             </div>
                             <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                                 <div 
@@ -70,7 +70,7 @@ export default function Wallet({ auth, walletData }) {
                                 </div>
                             </div>
                             <h2 className="text-3xl font-bold text-white mb-1">
-                                ₦{parseFloat(loanBalance).toLocaleString()}
+                                {formatMoney(loanBalance)}
                             </h2>
                             <Link href={route('fan.loan-applications')} className="text-purple-500 text-sm hover:underline">
                                 Manage financing
@@ -108,7 +108,7 @@ export default function Wallet({ auth, walletData }) {
                                                     "font-bold",
                                                     tx.type === 'deposit' ? "text-green-500" : "text-white"
                                                 )}>
-                                                    {tx.type === 'deposit' ? '+' : '-'}₦{tx.amount.toLocaleString()}
+                                                    {tx.type === 'deposit' ? '+' : '-'}{formatMoney(tx.amount)}
                                                 </div>
                                             </div>
                                         ))

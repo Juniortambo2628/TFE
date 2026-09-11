@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
@@ -21,7 +21,22 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
     const [bulkNotes, setBulkNotes] = useState('');
 
     const listingIds = useMemo(() => listings.map((l) => l.id), [listings]);
-    const allSelected = listingIds.length > 0 && selected.size === listingIds.length;
+    const listingIdSet = useMemo(() => new Set(listingIds), [listingIds]);
+
+    // Drop any selected IDs that aren't in the current listings prop
+    // — a concurrent moderation elsewhere can shrink the queue while
+    // we still hold stale IDs. Prevents "select-all" showing checked
+    // from a set that doesn't match what's on screen.
+    useEffect(() => {
+        setSelected((prev) => {
+            const next = new Set([...prev].filter((id) => listingIdSet.has(id)));
+            return next.size === prev.size ? prev : next;
+        });
+    }, [listingIdSet]);
+
+    // allSelected must actually cover *these* IDs, not just match the count.
+    const allSelected = listingIds.length > 0
+        && listingIds.every((id) => selected.has(id));
     const anySelected = selected.size > 0;
 
     const toggle = (id) => {
@@ -86,9 +101,14 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
         );
     };
 
-    // Bulk actions only make sense against pending/draft/rejected buckets —
-    // approving what's already approved is a no-op; hide the bar there.
+    // Bulk actions surface on any bucket other than 'approved' — the
+    // approve path is a no-op there. Individual button availability is
+    // gated below (bulkApprove hidden on 'approved', bulkReject on
+    // 'rejected' is fine because backend now accepts re-rejection with
+    // updated notes).
     const bulkAllowed = filter_status !== 'approved';
+    const canBulkApprove = filter_status !== 'approved';
+    const canBulkReject = true; // always available in visible buckets
 
     return (
         <AdminLayout title="Listing approvals">
@@ -132,17 +152,21 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
 
                     {anySelected && (
                         <div className="d-flex gap-2">
-                            <button className="btn btn-success btn-sm" onClick={bulkApprove}>
-                                <i className="fas fa-check me-1"></i>
-                                Approve {selected.size}
-                            </button>
-                            <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => setBulkReject(true)}
-                            >
-                                <i className="fas fa-undo me-1"></i>
-                                Return {selected.size} with feedback
-                            </button>
+                            {canBulkApprove && (
+                                <button className="btn btn-success btn-sm" onClick={bulkApprove}>
+                                    <i className="fas fa-check me-1"></i>
+                                    Approve {selected.size}
+                                </button>
+                            )}
+                            {canBulkReject && (
+                                <button
+                                    className="btn btn-outline-danger btn-sm"
+                                    onClick={() => setBulkReject(true)}
+                                >
+                                    <i className="fas fa-undo me-1"></i>
+                                    Return {selected.size} with feedback
+                                </button>
+                            )}
                             <button className="btn btn-link btn-sm text-white-50" onClick={clearSelection}>
                                 Clear
                             </button>
