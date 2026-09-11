@@ -3,14 +3,13 @@
 namespace Database\Factories;
 
 use App\Models\Listing;
-use App\Models\Package;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<Package>
+ * @extends Factory<Listing>
  */
-class PackageFactory extends Factory
+class ListingFactory extends Factory
 {
     protected $model = Listing::class;
 
