@@ -4,13 +4,15 @@ namespace App\Notifications;
 
 use App\Models\Budget;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
 /**
  * Sprint 17 — fires to the fan when a travel partner responds to
  * their itinerary brief (approved / modified / rejected).
+ * Sprint 21 — ShouldQueue for parity with the other approval notifications.
  */
-class BudgetResponseNotification extends Notification
+class BudgetResponseNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

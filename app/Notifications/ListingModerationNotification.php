@@ -4,14 +4,19 @@ namespace App\Notifications;
 
 use App\Models\Listing;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
 /**
  * Sprint 17 — fires to a partner when admin approves or rejects one
  * of their published listings. Rejection carries the moderation
  * notes so the partner sees the feedback inline.
+ *
+ * Sprint 21 — ShouldQueue so a bulk moderation of 200 listings doesn't
+ * block the request on 200 sequential DB inserts. Sync driver (dev
+ * default) still runs inline; database driver (prod) needs a worker.
  */
-class ListingModerationNotification extends Notification
+class ListingModerationNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

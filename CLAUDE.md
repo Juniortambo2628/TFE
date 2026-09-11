@@ -145,8 +145,16 @@ dashboard (Sprint 16).
 ### Notifications
 
 All notifications use `via: ['database']` only (SMTP not configured; adding
-`mail` fires errors in the approval flow). Shape read by
-`DashboardHeader.jsx`:
+`mail` fires errors in the approval flow). The approval-flow notifications
+implement `ShouldQueue` (Sprint 21) so a bulk moderation of 200 listings
+doesn't block the request on 200 sequential DB inserts.
+
+- **Dev** (`.env.example`): `QUEUE_CONNECTION=sync` — notifications fire
+  inline, no worker needed.
+- **Prod**: `QUEUE_CONNECTION=database` + a running `php artisan queue:work`
+  so the fan-out actually processes.
+
+Shape read by `DashboardHeader.jsx`:
 
 ```php
 [

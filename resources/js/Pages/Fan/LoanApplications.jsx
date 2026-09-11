@@ -210,11 +210,7 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                 </div>
 
                 {loans.length === 0 ? (
-                    <div className="empty-state">
-                        <i className="fas fa-file-invoice-dollar"></i>
-                        <h4>No applications yet</h4>
-                        <p>Submit your first financing request above.</p>
-                    </div>
+                    <FinancingEmptyState hasPartners={hasPartners} />
                 ) : (
                     <div className="loan-list mt-3">
                         {loans.map((loan) => <LoanRow key={loan.id} loan={loan} onWithdraw={withdraw} />)}
@@ -222,6 +218,45 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                 )}
             </div>
         </FanLayout>
+    );
+}
+
+function FinancingEmptyState({ hasPartners }) {
+    if (!hasPartners) {
+        return (
+            <div className="empty-state financing-empty">
+                <i className="fas fa-university"></i>
+                <h4>No finance partners onboarded yet</h4>
+                <p>
+                    We're bringing verified banks and lenders onto the platform. As soon as one
+                    is available for your tournament, you'll see them here and on the budget
+                    calculator.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="financing-empty financing-empty--pitch">
+            <div className="financing-empty__glyph">
+                <i className="fas fa-hand-holding-usd"></i>
+            </div>
+            <div className="financing-empty__body">
+                <h4>Finance the whole trip in one step</h4>
+                <p>
+                    Build your itinerary in the budget calculator — matches, hotels, flights —
+                    then apply for financing against the total, right on the results screen.
+                    Underwriters see the full picture and can decide faster.
+                </p>
+                <div className="financing-empty__actions">
+                    <Link href={route('fan.budget-calculator')} className="btn btn-warning">
+                        <i className="fas fa-calculator me-2"></i>
+                        Open the budget calculator
+                    </Link>
+                    <span className="financing-empty__or">or apply directly above</span>
+                </div>
+            </div>
+        </div>
     );
 }
 

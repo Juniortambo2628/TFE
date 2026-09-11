@@ -4,10 +4,15 @@ namespace App\Notifications;
 
 use App\Models\LoanApplication;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class LoanStatusNotification extends Notification
+/**
+ * Sprint 21 — ShouldQueue for parity with the other approval
+ * notifications; sync driver in dev still runs inline.
+ */
+class LoanStatusNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
