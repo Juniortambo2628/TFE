@@ -96,6 +96,7 @@ class BudgetController extends Controller
         $packages = Listing::forTournament($tournamentId)
             ->ofType('package')
             ->active()
+            ->with('publisher.partnerProfile') // publisherSummary() N+1 guard
             ->orderByDesc('is_featured')
             ->orderBy('display_order')
             ->orderBy('name')
@@ -119,6 +120,7 @@ class BudgetController extends Controller
                     'availability_pct' => $p->availability_pct,
                     'is_sold_out' => $p->is_sold_out,
                     'is_featured' => $p->is_featured,
+                    'publisher' => $p->publisherSummary(),
                 ];
             });
 

@@ -174,6 +174,36 @@ class Listing extends Model
 
         return app(TournamentService::class)->get($this->tournament_id);
     }
+
+    /**
+     * Compact publisher block for fan-facing surfaces — the "Powered by
+     * {partner}" badge on package cards and the credit strip on the
+     * PackageDetail hero read from this. Returns null for admin-authored
+     * listings so the badge only appears when there's an actual partner
+     * hub to link back to.
+     *
+     * Eager-load the relation with ->with('publisher.partnerProfile')
+     * when calling this in a loop, or it fires N+1.
+     */
+    public function publisherSummary(): ?array
+    {
+        if ($this->publisher_type !== User::class) {
+            return null;
+        }
+        $publisher = $this->publisher;
+        $profile = $publisher?->partnerProfile;
+        if (! $profile || ! $profile->is_public) {
+            return null;
+        }
+
+        return [
+            'slug' => $profile->slug,
+            'display_name' => $profile->display_name,
+            'logo_url' => $profile->logo_url,
+            'theme_accent' => $profile->theme_accent,
+            'verified' => $publisher->verification_status === 'verified',
+        ];
+    }
 }
 
 // Legacy alias so any lingering `App\Models\Package` references keep
