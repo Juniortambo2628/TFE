@@ -72,8 +72,8 @@ export default function Wallet({ auth, walletData }) {
                             <h2 className="text-3xl font-bold text-white mb-1">
                                 ₦{parseFloat(loanBalance).toLocaleString()}
                             </h2>
-                            <Link href={route('fan.contact')} className="text-purple-500 text-sm hover:underline">
-                                Apply for more funding
+                            <Link href={route('fan.loan-applications')} className="text-purple-500 text-sm hover:underline">
+                                Manage financing
                             </Link>
                         </div>
                     </div>
