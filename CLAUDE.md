@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 24. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 28. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -159,18 +159,27 @@ two places (keep them in sync):
   `Official {type} Partner` doesn't produce `Official Finance Partner Partner`
   for `finance_partner`.
 
-### Currency (Sprint 23)
+### Currency (Sprint 23 + Sprint 28)
 
-Every listing, budget, and loan on the platform is USD. The default in
+Listings and loans are USD platform-wide. The default in
 `resources/js/lib/utils.js`:
 
 ```js
 export function formatMoney(amount, currency = 'USD') { … }
 ```
 
-is the single source of truth — 74 downstream callers rely on it. The
-one exception is `Fan/Payments.jsx`, which passes the transaction's own
-recorded currency. Guarded by `tests/JS/currency.test.mjs`.
+is the single source of truth — 74 downstream callers rely on it.
+Guarded by `tests/JS/currency.test.mjs`.
+
+**Sprint 28 — multicurrency budgets.** The Budget Calculator lets the fan
+pick a display currency (USD, EUR, GBP, KES, ZAR, NGN, XOF). The
+engine still computes in USD; `getRateForCurrency(pricing, code)` in
+`resources/js/Data/BudgetPricingData.js` converts once at render (a
+tournament may override any rate via `pricing.exchange_rates`).
+Persisted on `budgets.currency` (default USD) and echoed back on the
+Journey/Saved-plans surfaces so a fan reopening a plan sees the same
+amount they saved. Guarded by `tests/Feature/Fan/BudgetCurrencyTest.php`
+and `tests/JS/exchangeRate.test.mjs`.
 
 ### Notifications
 

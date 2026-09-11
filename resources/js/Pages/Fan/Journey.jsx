@@ -6,6 +6,7 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
 import WeatherCard from '@/Components/Fan/WeatherCard';
+import { formatMoney } from '@/lib/utils';
 
 export default function Journey({ auth, paymentData, activeBudget, weather = undefined }) {
     const { tournament } = useTournament();
@@ -126,7 +127,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                              <div className="row g-4 text-center">
                                 <div className="col-md-4">
                                      <span className="d-block text-white-50 small text-uppercase">Estimated Budget</span>
-                                     <span className="h4 fw-bold text-white">KES {new Intl.NumberFormat().format(activeBudget.total_cost)}</span>
+                                     <span className="h4 fw-bold text-white">{formatMoney(activeBudget.total_cost, activeBudget.currency || 'USD')}</span>
                                 </div>
                                 <div className="col-md-4 border-start border-end border-secondary">
                                      <span className="d-block text-white-50 small text-uppercase">Matches Planned</span>

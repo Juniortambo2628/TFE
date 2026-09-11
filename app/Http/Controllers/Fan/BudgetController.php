@@ -255,6 +255,10 @@ class BudgetController extends Controller
             'id' => 'nullable|exists:budgets,id',
             'name' => 'nullable|string|max:255',
             'total_cost' => 'required|numeric',
+            // Sprint 28 — 3-letter ISO code (defaults to USD if omitted so
+            // older client bundles keep working). Whitelist is small on
+            // purpose: adding a currency means adding a display rate too.
+            'currency' => 'nullable|string|in:USD,EUR,GBP,KES,ZAR,NGN,XOF',
             'match_ids' => 'required|array',
             'accommodation_level' => 'required|string',
             'flight_class' => 'required|string',
@@ -278,6 +282,7 @@ class BudgetController extends Controller
             $budget->update([
                 'name' => $validated['name'] ?? $budget->name,
                 'total_cost' => $validated['total_cost'],
+                'currency' => $validated['currency'] ?? $budget->currency ?? 'USD',
                 'match_ids' => $validated['match_ids'],
                 'accommodation_level' => $validated['accommodation_level'],
                 'flight_class' => $validated['flight_class'],
@@ -308,6 +313,7 @@ class BudgetController extends Controller
             'listing_id' => $listingId,
             'name' => $validated['name'] ?? 'My Tournament Trip',
             'total_cost' => $validated['total_cost'],
+            'currency' => $validated['currency'] ?? 'USD',
             'match_ids' => $validated['match_ids'],
             'accommodation_level' => $validated['accommodation_level'],
             'flight_class' => $validated['flight_class'],

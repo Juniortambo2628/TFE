@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
+import { getRateForCurrency } from '@/Data/BudgetPricingData';
+import { formatMoney } from '@/lib/utils';
 
 /**
  * CostScenarioChart — "what if I…" bar chart for a saved budget.
@@ -10,43 +12,47 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLin
  * client-side using the same tournament pricing config the calculator
  * already has — no new API calls.
  *
+ * Sprint 28 — the display currency comes from the calculator; the
+ * chart labels its axis + tooltip in whatever the fan picked.
+ *
  * Props:
- *   currentTotalKes  number  — the calculator's current total (in KES)
- *   matchCount       number  — currently selected match count
- *   nights           number  — trip length
- *   accommodation    string  — current accommodation key
- *   pricing          object  — tournament pricing config (accommodation, daily_costs, exchange_rate)
+ *   currentTotal   number  — the calculator's current total (in `currency`)
+ *   matchCount     number  — currently selected match count
+ *   nights         number  — trip length
+ *   accommodation  string  — current accommodation key
+ *   pricing        object  — tournament pricing config
+ *   currency       string  — ISO code the total is expressed in
  */
 export default function CostScenarioChart({
-    currentTotalKes = 0,
+    currentTotal = 0,
     matchCount = 1,
     nights = 7,
     accommodation = '3_star',
     pricing = {},
+    currency = 'USD',
 }) {
     const scenarios = useMemo(() => {
-        const exchange = pricing.exchange_rate || 130;
+        const rate = getRateForCurrency(pricing, currency);
         const accFactors = pricing.accommodation || {
             hostel: 0.4, airbnb: 0.75, '3_star': 1.0, '4_star': 1.6, '5_star': 2.5, resort: 3.5,
         };
         const dailyBase = pricing.daily_costs || { food: 60, transport: 30, misc: 20 };
-        const dailyCostKes = ((dailyBase.food || 0) + (dailyBase.transport || 0) + (dailyBase.misc || 0)) * exchange;
+        // daily_costs are in USD in the config, convert to the display currency.
+        const dailyCost = ((dailyBase.food || 0) + (dailyBase.transport || 0) + (dailyBase.misc || 0)) * rate;
 
         // Rough per-match cost derived from current total ÷ matches; used
         // for the ±match scenarios. Undershoots for knockout swings but
         // is directionally correct without re-running the full calc.
-        const perMatchKes = matchCount > 0 ? currentTotalKes * 0.35 / matchCount : 0;
+        const perMatchCost = matchCount > 0 ? currentTotal * 0.35 / matchCount : 0;
 
         // Accommodation swap: swap current accommodation factor for
         // hostel/5-star and scale the "accommodation share" of the total.
-        // We assume accommodation is ~35% of the current bill (matches
-        // the calculator's default weighting well enough).
         const currentFactor = accFactors[accommodation] || 1.0;
-        const accShare = currentTotalKes * 0.35;
-        const rest = currentTotalKes - accShare;
+        const accShare = currentTotal * 0.35;
+        const rest = currentTotal - accShare;
         const swapAcc = (targetKey) => {
             const target = accFactors[targetKey];
-            if (!target || !currentFactor) return currentTotalKes;
+            if (!target || !currentFactor) return currentTotal;
             return rest + (accShare * (target / currentFactor));
         };
 
@@ -54,51 +60,49 @@ export default function CostScenarioChart({
             {
                 key: 'drop-match',
                 label: '−1 match',
-                total: Math.max(0, currentTotalKes - perMatchKes),
+                total: Math.max(0, currentTotal - perMatchCost),
             },
             {
                 key: 'baseline',
                 label: 'Current plan',
-                total: currentTotalKes,
+                total: currentTotal,
                 isBaseline: true,
             },
             {
                 key: 'add-match',
                 label: '+1 match',
-                total: currentTotalKes + perMatchKes,
+                total: currentTotal + perMatchCost,
             },
             {
                 key: 'short',
                 label: `${Math.max(1, nights - 2)} nights`,
-                total: Math.max(0, currentTotalKes - dailyCostKes * 2),
+                total: Math.max(0, currentTotal - dailyCost * 2),
             },
             {
                 key: 'long',
                 label: `${nights + 2} nights`,
-                total: currentTotalKes + dailyCostKes * 2,
+                total: currentTotal + dailyCost * 2,
             },
             {
                 key: 'downgrade',
                 label: 'Hostel',
-                total: accommodation !== 'hostel' ? swapAcc('hostel') : currentTotalKes,
+                total: accommodation !== 'hostel' ? swapAcc('hostel') : currentTotal,
             },
             {
                 key: 'upgrade',
                 label: '5-star',
-                total: accommodation !== '5_star' ? swapAcc('5_star') : currentTotalKes,
+                total: accommodation !== '5_star' ? swapAcc('5_star') : currentTotal,
             },
         ];
 
-        // Sort ascending by total but keep baseline in place so the eye
-        // reads "cheaper on the left, pricier on the right".
         return rows.map((r) => ({
             ...r,
-            delta: r.total - currentTotalKes,
-            deltaPct: currentTotalKes > 0 ? Math.round(((r.total - currentTotalKes) / currentTotalKes) * 100) : 0,
+            delta: r.total - currentTotal,
+            deltaPct: currentTotal > 0 ? Math.round(((r.total - currentTotal) / currentTotal) * 100) : 0,
         })).sort((a, b) => a.total - b.total);
-    }, [currentTotalKes, matchCount, nights, accommodation, pricing]);
+    }, [currentTotal, matchCount, nights, accommodation, pricing, currency]);
 
-    if (!currentTotalKes) return null;
+    if (!currentTotal) return null;
 
     return (
         <div className="mt-4 p-3 rounded" style={{ background: 'rgba(20,20,20,0.5)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -120,7 +124,7 @@ export default function CostScenarioChart({
                         />
                         <YAxis
                             stroke="rgba(255,255,255,0.5)"
-                            tickFormatter={(v) => 'KES ' + Math.round(v / 1000) + 'k'}
+                            tickFormatter={(v) => `${currency} ` + Math.round(v / 1000) + 'k'}
                             tick={{ fontSize: 11 }}
                             width={80}
                         />
@@ -132,13 +136,13 @@ export default function CostScenarioChart({
                                 const pct = item?.payload?.deltaPct || 0;
                                 const sign = delta > 0 ? '+' : delta < 0 ? '−' : '';
                                 return [
-                                    'KES ' + Math.round(value).toLocaleString(),
+                                    formatMoney(Math.round(value), currency),
                                     delta === 0 ? 'Current plan' : `${sign}${Math.abs(pct)}% vs current`,
                                 ];
                             }}
                         />
                         <ReferenceLine
-                            y={currentTotalKes}
+                            y={currentTotal}
                             stroke="rgba(255,255,255,0.35)"
                             strokeDasharray="4 4"
                             label={{ value: 'Current', position: 'right', fill: 'rgba(255,255,255,0.5)', fontSize: 10 }}
@@ -149,7 +153,7 @@ export default function CostScenarioChart({
                                     key={s.key}
                                     fill={
                                         s.isBaseline ? '#3b82f6' :
-                                        s.total < currentTotalKes ? '#10b981' :
+                                        s.total < currentTotal ? '#10b981' :
                                         '#ef4444'
                                     }
                                 />
