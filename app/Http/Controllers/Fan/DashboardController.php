@@ -6,6 +6,7 @@ use App\Helpers\DashboardHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
+use App\Models\LoanApplication;
 use App\Models\PaymentSchedule;
 use App\Models\PaymentTransaction;
 use App\Models\Tribe;
@@ -128,8 +129,41 @@ class DashboardController extends Controller
             }));
         }
 
+        // Sprint 16 — surface the fan's most recent in-flight loan on
+        // the dashboard so their financing status is one glance away.
+        // In-flight means anything except REJECTED. Older completed
+        // (DISBURSED) rows stay visible so the fan sees the money
+        // landed until they dismiss it by starting a new application.
+        $activeLoan = null;
+        $latestLoan = LoanApplication::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['PENDING', 'APPROVED', 'DISBURSED'])
+            ->with('financePartner.partnerProfile')
+            ->orderByDesc('created_at')
+            ->first();
+        if ($latestLoan) {
+            $profile = $latestLoan->financePartner?->partnerProfile;
+            $activeLoan = [
+                'id' => $latestLoan->id,
+                'reference_id' => 'LOAN-'.str_pad($latestLoan->id, 6, '0', STR_PAD_LEFT),
+                'amount' => (float) $latestLoan->amount,
+                'status' => $latestLoan->status,
+                'interest_rate' => $latestLoan->interest_rate,
+                'purpose' => $latestLoan->purpose,
+                'created_at' => $latestLoan->created_at?->toIso8601String(),
+                'partner' => $profile ? [
+                    'slug' => $profile->slug,
+                    'display_name' => $profile->display_name,
+                    'logo_url' => $profile->logo_url,
+                    'theme_accent' => $profile->theme_accent,
+                    'verified' => $latestLoan->financePartner->verification_status === 'verified',
+                ] : null,
+            ];
+        }
+
         return Inertia::render('Fan/Dashboard', [
             'activeBudget' => $activeBudget,
+            'activeLoan' => $activeLoan,
             'stats' => $stats,
             'recentPayments' => $recentPayments,
             'recentBookings' => $recentBookings,
