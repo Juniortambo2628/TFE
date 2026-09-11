@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
+
+// Sprint 27 — the CTA is subtle by design (a sidebar-style card at the
+// bottom of the calculator result). Fans who've never seen it — the
+// exact people it exists for — miss it. On first render we add a soft
+// pulse ring + a small dismissible "First time here?" nudge, and
+// remember the dismissal in localStorage. Anyone who's already applied
+// for financing (localStorage 'tfe_finance_hint_seen' present, or
+// the fan has expanded / submitted the form on any prior visit) sees
+// the card in its normal state.
+const HINT_STORAGE_KEY = 'tfe_finance_hint_seen';
 
 /**
  * FinanceThisTrip — Sprint 14 CTA rendered on the BudgetCalculator
@@ -15,6 +25,23 @@ export default function FinanceThisTrip({ financePartners = [], budgetTotal, bud
 
     const [selected, setSelected] = useState(financePartners[0]);
     const [expanded, setExpanded] = useState(false);
+    const [showHint, setShowHint] = useState(false);
+
+    useEffect(() => {
+        try {
+            if (!localStorage.getItem(HINT_STORAGE_KEY)) {
+                setShowHint(true);
+            }
+        } catch {
+            // Private mode / storage disabled — the hint just won't
+            // show, which is the safer failure mode.
+        }
+    }, []);
+
+    const dismissHint = () => {
+        setShowHint(false);
+        try { localStorage.setItem(HINT_STORAGE_KEY, '1'); } catch { /* noop */ }
+    };
     const { data, setData, post, processing, errors } = useForm({
         amount: Math.round(budgetTotal),
         purpose: 'Tournament trip financing',
@@ -36,8 +63,26 @@ export default function FinanceThisTrip({ financePartners = [], budgetTotal, bud
         });
     };
 
+    const expand = () => {
+        // Expanding counts as "seen" — no reason to keep pulsing after.
+        dismissHint();
+        setExpanded(true);
+    };
+
     return (
-        <div className="finance-cta" style={{ '--partner-accent': selected.theme_accent || '#0072CE' }}>
+        <div
+            className={`finance-cta${showHint && !expanded ? ' finance-cta--pulse' : ''}`}
+            style={{ '--partner-accent': selected.theme_accent || '#0072CE' }}
+        >
+            {showHint && !expanded && (
+                <div className="finance-cta__hint">
+                    <i className="fas fa-arrow-down"></i>
+                    <span>First time here? You can finance the trip below.</span>
+                    <button type="button" onClick={dismissHint} className="finance-cta__hint-close" aria-label="Dismiss hint">
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+            )}
             <div className="finance-cta__header">
                 <div className="finance-cta__lead">
                     <div className="finance-cta__eyebrow">Not paying up-front?</div>
@@ -48,7 +93,7 @@ export default function FinanceThisTrip({ financePartners = [], budgetTotal, bud
                     </p>
                 </div>
                 {!expanded && (
-                    <button type="button" className="finance-cta__btn" onClick={() => setExpanded(true)}>
+                    <button type="button" className="finance-cta__btn" onClick={expand}>
                         <i className="fas fa-hand-holding-usd"></i>
                         Explore financing
                     </button>

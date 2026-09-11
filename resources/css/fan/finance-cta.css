@@ -9,6 +9,7 @@
 
 .finance-cta {
     --partner-accent: #0072CE;
+    position: relative;
     margin-top: 1.25rem;
     padding: 1.25rem 1.5rem;
     background:
@@ -16,6 +17,55 @@
     border: 1px solid color-mix(in srgb, var(--partner-accent) 40%, transparent);
     border-radius: 16px;
     color: #fff;
+}
+
+/* Sprint 27 — first-time-only pulse ring around the CTA card and a
+   dismissible hint bubble. localStorage key: tfe_finance_hint_seen. */
+.finance-cta--pulse {
+    animation: finance-cta-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes finance-cta-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--partner-accent) 0%, transparent); }
+    50%      { box-shadow: 0 0 0 8px color-mix(in srgb, var(--partner-accent) 22%, transparent); }
+}
+
+.finance-cta__hint {
+    position: absolute;
+    top: -12px;
+    left: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 4px 10px 4px 12px;
+    background: var(--partner-accent);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    z-index: 2;
+}
+
+.finance-cta__hint i {
+    font-size: 0.7rem;
+}
+
+.finance-cta__hint-close {
+    background: none;
+    border: 0;
+    color: rgba(255, 255, 255, 0.75);
+    padding: 0 0 0 4px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.finance-cta__hint-close:hover {
+    color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .finance-cta--pulse { animation: none; }
 }
 
 .finance-cta__header {
