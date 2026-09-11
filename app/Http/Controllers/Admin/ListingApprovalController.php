@@ -103,4 +103,71 @@ class ListingApprovalController extends Controller
 
         return back()->with('success', "'{$listing->name}' returned to partner with feedback.");
     }
+
+    /**
+     * Sprint 19 — bulk approve. Accepts an array of listing IDs and
+     * approves each one, firing a ListingModerationNotification per
+     * publisher so no partner is silently updated. Ignores IDs that
+     * aren't partner-authored + pending — a race between two admins
+     * shouldn't produce a 500.
+     */
+    public function bulkApprove(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1|max:200',
+            'ids.*' => 'integer',
+        ]);
+
+        $listings = Listing::query()
+            ->whereIn('id', $validated['ids'])
+            ->where('publisher_type', User::class)
+            ->whereIn('moderation_status', ['pending', 'draft', 'rejected'])
+            ->get();
+
+        foreach ($listings as $listing) {
+            $listing->update([
+                'moderation_status' => 'approved',
+                'is_active' => true,
+            ]);
+            $listing->publisher?->notify(new ListingModerationNotification($listing, 'approved'));
+        }
+
+        $n = $listings->count();
+
+        return back()->with('success', "Approved {$n} listing".($n === 1 ? '' : 's').'.');
+    }
+
+    /**
+     * Sprint 19 — bulk reject. Notes are required and applied to every
+     * listing in the batch (one round of feedback covers a themed set
+     * of returns; per-listing notes are still done via the single
+     * reject endpoint).
+     */
+    public function bulkReject(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1|max:200',
+            'ids.*' => 'integer',
+            'notes' => 'required|string|max:2000',
+        ]);
+
+        $listings = Listing::query()
+            ->whereIn('id', $validated['ids'])
+            ->where('publisher_type', User::class)
+            ->whereIn('moderation_status', ['pending', 'draft', 'approved'])
+            ->get();
+
+        foreach ($listings as $listing) {
+            $listing->update([
+                'moderation_status' => 'rejected',
+                'moderation_notes' => $validated['notes'],
+                'is_active' => false,
+            ]);
+            $listing->publisher?->notify(new ListingModerationNotification($listing, 'rejected'));
+        }
+
+        $n = $listings->count();
+
+        return back()->with('success', "Returned {$n} listing".($n === 1 ? '' : 's').' with feedback.');
+    }
 }

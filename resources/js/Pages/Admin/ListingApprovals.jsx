@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
@@ -7,16 +7,37 @@ import { formatMoney } from '@/lib/utils';
 
 /**
  * Admin approval queue for partner-authored listings — Sprint 10.
+ * Sprint 19 added checkbox selection + bulk approve/reject actions.
  *
  * Fanned by moderation_status. Pending listings show inline
- * approve/reject actions; rejected requires a note (goes to
- * partner as moderation_notes).
+ * approve/reject; rejected requires a note. Selecting one or more
+ * rows exposes a bulk action bar at the top.
  */
 export default function ListingApprovals({ listings = [], filter_status, counts }) {
-    const [rejecting, setRejecting] = useState(null); // listing.id
+    const [rejecting, setRejecting] = useState(null); // single-row reject modal
     const [rejectNotes, setRejectNotes] = useState('');
+    const [selected, setSelected] = useState(() => new Set());
+    const [bulkReject, setBulkReject] = useState(false); // bulk reject modal open
+    const [bulkNotes, setBulkNotes] = useState('');
+
+    const listingIds = useMemo(() => listings.map((l) => l.id), [listings]);
+    const allSelected = listingIds.length > 0 && selected.size === listingIds.length;
+    const anySelected = selected.size > 0;
+
+    const toggle = (id) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    };
+    const toggleAll = () => {
+        setSelected(allSelected ? new Set() : new Set(listingIds));
+    };
+    const clearSelection = () => setSelected(new Set());
 
     const switchFilter = (status) => {
+        clearSelection();
         router.get(route('admin.listing-approvals.index', { status }), {}, { preserveScroll: true });
     };
 
@@ -38,6 +59,36 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
             },
         );
     };
+
+    const bulkApprove = () => {
+        if (!anySelected) return;
+        if (!confirm(`Approve ${selected.size} listing${selected.size === 1 ? '' : 's'}?`)) return;
+        router.post(
+            route('admin.listing-approvals.bulk-approve'),
+            { ids: Array.from(selected) },
+            { preserveScroll: true, onSuccess: clearSelection },
+        );
+    };
+
+    const submitBulkReject = () => {
+        if (!anySelected || !bulkNotes.trim()) return;
+        router.post(
+            route('admin.listing-approvals.bulk-reject'),
+            { ids: Array.from(selected), notes: bulkNotes },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    clearSelection();
+                    setBulkReject(false);
+                    setBulkNotes('');
+                },
+            },
+        );
+    };
+
+    // Bulk actions only make sense against pending/draft/rejected buckets —
+    // approving what's already approved is a no-op; hide the bar there.
+    const bulkAllowed = filter_status !== 'approved';
 
     return (
         <AdminLayout title="Listing approvals">
@@ -64,6 +115,42 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
                 ))}
             </div>
 
+            {bulkAllowed && listings.length > 0 && (
+                <div className="bulk-action-bar">
+                    <label className="bulk-action-bar__select-all">
+                        <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={toggleAll}
+                        />
+                        <span>
+                            {anySelected
+                                ? `${selected.size} of ${listings.length} selected`
+                                : 'Select all in view'}
+                        </span>
+                    </label>
+
+                    {anySelected && (
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-success btn-sm" onClick={bulkApprove}>
+                                <i className="fas fa-check me-1"></i>
+                                Approve {selected.size}
+                            </button>
+                            <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => setBulkReject(true)}
+                            >
+                                <i className="fas fa-undo me-1"></i>
+                                Return {selected.size} with feedback
+                            </button>
+                            <button className="btn btn-link btn-sm text-white-50" onClick={clearSelection}>
+                                Clear
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {listings.length === 0 ? (
                 <div className="content-card p-4">
                     <div className="empty-state">
@@ -76,22 +163,33 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
                 <div className="row g-3">
                     {listings.map((l) => (
                         <div key={l.id} className="col-lg-6">
-                            <div className="content-card p-3 h-100">
-                                <div className="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div className="d-flex align-items-center gap-2 mb-1">
-                                            <h4 className="mb-0" style={{ fontSize: '1.05rem' }}>{l.name}</h4>
-                                            <TournamentPill tournamentId={l.tournament_id} shortName={l.tournament_name} />
-                                        </div>
-                                        <div className="text-white-50 small">
-                                            By <strong>{l.publisher_name}</strong>
-                                            {l.publisher_verified && (
-                                                <i className="fas fa-check-circle text-success ms-1" title="Verified partner"></i>
-                                            )}
-                                            {' · '}{l.publisher_email}
+                            <div className={`content-card p-3 h-100 approval-card${selected.has(l.id) ? ' is-selected' : ''}`}>
+                                <div className="d-flex justify-content-between align-items-start gap-2">
+                                    <div className="d-flex gap-2 flex-grow-1">
+                                        {bulkAllowed && (
+                                            <input
+                                                type="checkbox"
+                                                className="approval-card__check"
+                                                checked={selected.has(l.id)}
+                                                onChange={() => toggle(l.id)}
+                                                aria-label={`Select ${l.name}`}
+                                            />
+                                        )}
+                                        <div>
+                                            <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                <h4 className="mb-0 approval-card__name">{l.name}</h4>
+                                                <TournamentPill tournamentId={l.tournament_id} shortName={l.tournament_name} />
+                                            </div>
+                                            <div className="text-white-50 small">
+                                                By <strong>{l.publisher_name}</strong>
+                                                {l.publisher_verified && (
+                                                    <i className="fas fa-check-circle text-success ms-1" title="Verified partner"></i>
+                                                )}
+                                                {' · '}{l.publisher_email}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="text-end">
+                                    <div className="text-end flex-shrink-0">
                                         <div className="fw-bold">{formatMoney(l.base_price)}</div>
                                         <div className="text-white-50 small">{l.nights}n • {l.flight_class}</div>
                                     </div>
@@ -147,38 +245,53 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
             )}
 
             {rejecting && (
-                <div
-                    className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                    style={{ background: 'rgba(0,0,0,0.7)', zIndex: 1050 }}
-                    onClick={() => setRejecting(null)}
-                >
-                    <div
-                        className="p-4"
-                        style={{ background: '#1a1a1a', borderRadius: 16, width: 'min(540px, 92vw)' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h4 className="text-white">Return "{rejecting.name}" to {rejecting.publisher_name}</h4>
-                        <p className="text-white-50 small">
-                            The partner will see this note in the Publish tab and can edit + resubmit.
-                        </p>
-                        <textarea
-                            className="form-control"
-                            rows={4}
-                            value={rejectNotes}
-                            onChange={(e) => setRejectNotes(e.target.value)}
-                            placeholder="What needs to change before this listing goes live?"
-                        />
-                        <div className="d-flex justify-content-end gap-2 mt-3">
-                            <button className="btn btn-outline-secondary" onClick={() => setRejecting(null)}>
-                                Cancel
-                            </button>
-                            <button className="btn btn-danger" onClick={submitReject} disabled={!rejectNotes.trim()}>
-                                Send feedback
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <RejectModal
+                    title={`Return "${rejecting.name}" to ${rejecting.publisher_name}`}
+                    notes={rejectNotes}
+                    onChange={setRejectNotes}
+                    onCancel={() => setRejecting(null)}
+                    onSubmit={submitReject}
+                />
+            )}
+
+            {bulkReject && (
+                <RejectModal
+                    title={`Return ${selected.size} listing${selected.size === 1 ? '' : 's'} with feedback`}
+                    subtitle="Every partner in the batch will see this note on their listing."
+                    notes={bulkNotes}
+                    onChange={setBulkNotes}
+                    onCancel={() => setBulkReject(false)}
+                    onSubmit={submitBulkReject}
+                />
             )}
         </AdminLayout>
+    );
+}
+
+function RejectModal({ title, subtitle, notes, onChange, onCancel, onSubmit }) {
+    return (
+        <div className="approval-modal-overlay" onClick={onCancel}>
+            <div className="approval-modal" onClick={(e) => e.stopPropagation()}>
+                <h4 className="text-white">{title}</h4>
+                <p className="text-white-50 small">
+                    {subtitle || 'The partner will see this note in the Publish tab and can edit + resubmit.'}
+                </p>
+                <textarea
+                    className="form-control"
+                    rows={4}
+                    value={notes}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="What needs to change before this listing goes live?"
+                />
+                <div className="d-flex justify-content-end gap-2 mt-3">
+                    <button className="btn btn-outline-secondary" onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button className="btn btn-danger" onClick={onSubmit} disabled={!notes.trim()}>
+                        Send feedback
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }
