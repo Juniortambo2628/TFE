@@ -176,7 +176,9 @@ class PackageController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'hero_image' => 'nullable|string',
-            'hero_image_file' => 'nullable|image|max:5120',
+            // Sprint 22 — mirrors the tightening on Partner/ListingController;
+            // SVG uploads are stored XSS-capable under the same origin.
+            'hero_image_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:5120',
             'base_price' => 'required|numeric|min:0',
             'currency' => 'required|string|max:8',
             'included_match_ids' => 'nullable|array',

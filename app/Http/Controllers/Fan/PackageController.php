@@ -24,6 +24,17 @@ class PackageController extends Controller
 
     public function show(Listing $package)
     {
+        // Sprint 22 — only expose approved + active listings on the
+        // fan-facing detail surface. Route model binding pulls by ID
+        // without status filtering, which previously let fans (or a
+        // scripted account) walk /fan/packages/{id} and read draft or
+        // rejected partner-authored listings before admin review.
+        // 404 rather than 403 so we don't confirm the ID exists.
+        abort_if(
+            ($package->moderation_status && $package->moderation_status !== 'approved') || ! $package->is_active,
+            404,
+        );
+
         $package->load('publisher.partnerProfile');
 
         // If the package's tournament isn't the one the fan is viewing
