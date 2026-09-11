@@ -29,7 +29,7 @@
 }
 
 .active-loan-tile__eyebrow {
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.1em;
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.6);
@@ -93,7 +93,7 @@
 
 .active-loan-tile__partner-label {
     font-size: 0.65rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.1em;
     color: rgba(255, 255, 255, 0.55);
 }
@@ -129,7 +129,7 @@
     gap: 0.5rem;
     color: rgba(255, 255, 255, 0.4);
     font-size: 0.75rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.06em;
 }
 

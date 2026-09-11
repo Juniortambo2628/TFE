@@ -949,7 +949,7 @@
 .profile-preview-stat .stat-label {
     font-size: 0.75rem;
     color: #a0a0a0;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
 }
 

@@ -75,7 +75,7 @@
     font-size: 0.8rem;
     font-weight: 500;
     color: #a0a0a0;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 1px;
 }
 
@@ -148,7 +148,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: #a0a0a0;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .match-time {
@@ -362,7 +362,7 @@
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 0.75rem;
-    text-transform: uppercase;
+    text-transform: none;
     font-weight: bold;
 }
 
@@ -410,7 +410,7 @@
     border-radius: 4px;
     font-size: 0.7rem;
     font-weight: bold;
-    text-transform: uppercase;
+    text-transform: none;
     background: rgba(220, 20, 60, 0.8);
     color: white;
 }

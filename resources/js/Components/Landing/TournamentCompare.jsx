@@ -79,7 +79,7 @@ export default function TournamentCompare() {
                                             fontSize: '0.65rem',
                                             padding: '4px 10px',
                                             borderRadius: 999,
-                                            textTransform: 'uppercase',
+                                            textTransform: 'none',
                                             fontWeight: 700,
                                         }}
                                     >

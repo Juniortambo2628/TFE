@@ -100,22 +100,28 @@
     color: #a0a0a0;
 }
 
-/* NEW: Dashboard Content Card (Dark Theme) */
+/* Sprint 32 — glass card, matches .content-card. Was an opaque #1a1d21
+   dark card that read as heavier than the sibling fan cards; now it
+   uses the same subtle gradient + border so the surface is consistent
+   across admin, partner, and fan dashboards. */
 .dashboard-content-card {
-    background: #1a1d21;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     color: #fff;
     overflow: hidden;
     height: 100%;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .dashboard-content-card .card-header {
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: transparent;
+    /* Sprint 32 — no divider so the card reads as a continuous slab. */
+    border-bottom: 0;
     color: #fff;
-    padding: 1.25rem;
+    padding: 1.25rem 1.25rem 0.75rem;
 }
 
 .dashboard-content-card .card-body {
@@ -370,7 +376,7 @@
 .card-title-gaming {
     font-size: 1.1rem;
     font-weight: 800;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 1px;
     margin: 0;
     color: #fff;
@@ -585,7 +591,7 @@
 
 .match-card-stage {
     font-size: 0.7rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 1px;
     color: #fff;
     font-weight: 600;

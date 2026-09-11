@@ -10,6 +10,7 @@ import FanTutorial from '@/Components/Fan/FanTutorial';
 import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
 import ActiveLoanTile from '@/Components/Fan/ActiveLoanTile';
+import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { formatMoney } from '@/lib/utils';
 
 export default function Dashboard({ auth, activeBudget, activeLoan = null, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
@@ -236,7 +237,7 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                 
                 <StatCard 
                     label="Active Bookings"
-                    value={`${stats.bookings} ${stats.bookings === 1 ? 'BOOKING' : 'BOOKINGS'}`}
+                    value={`${stats.bookings} ${stats.bookings === 1 ? 'Booking' : 'Bookings'}`}
                     icon="fa-ticket-alt"
                     variant="red"
                     subtext="Confirmed"
@@ -244,7 +245,7 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                 
                 <StatCard
                     label="Joined Tribes"
-                    value={`${stats.joined_tribes_count || 0} ${stats.joined_tribes_count === 1 ? 'COMMUNITY' : 'COMMUNITIES'}`}
+                    value={`${stats.joined_tribes_count || 0} ${stats.joined_tribes_count === 1 ? 'Community' : 'Communities'}`}
                     icon="fa-users"
                     variant="blue"
                     subtext="Active Communities"
@@ -289,46 +290,18 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                             <i className="fas fa-bolt"></i>
                             <h3>Quick Actions</h3>
                         </div>
-                        <div className="quick-actions-grid p-2">
-                            <Link id="qa-wallet" href={route('fan.payments')} className="fan-card-premium glow-red dash-quick-action-card">
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming accent-fan"><i className="fas fa-credit-card"></i></div>
-                                    <span className="card-title-gaming">My Wallet</span>
-                                </div>
-                            </Link>
-                            <Link id="qa-travel" href={route('fan.journey')} className="fan-card-premium glow-blue dash-quick-action-card">
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming" style={{ color: 'var(--fan-cyan)' }}><i className="fas fa-plane"></i></div>
-                                    <span className="card-title-gaming">Travel Info</span>
-                                </div>
-                            </Link>
-                             <Link id="qa-store" href={route('fan.store')} className="fan-card-premium glow-red dash-quick-action-card">
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming accent-fan"><i className="fas fa-tshirt"></i></div>
-                                    <span className="card-title-gaming">Fan Store</span>
-                                </div>
-                            </Link>
-                            {!isConcluded && (<>
-                             <Link id="qa-predict" href={route('fan.predict-win')} className="fan-card-premium glow-blue dash-quick-action-card">
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming" style={{ color: 'var(--fan-cyan)' }}><i className="fas fa-futbol"></i></div>
-                                    <span className="card-title-gaming">Predict & Win</span>
-                                </div>
-                            </Link>
-                             <Link id="qa-events" href={route('fan.events')} className="fan-card-premium glow-red dash-quick-action-card">
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming accent-fan"><i className="fas fa-calendar"></i></div>
-                                    <span className="card-title-gaming">Events</span>
-                                </div>
-                            </Link>
-                              <Link id="qa-budget" href={route('fan.budget-calculator')} className="fan-card-premium glow-blue dash-quick-action-card">
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming" style={{ color: 'var(--fan-cyan)' }}><i className="fas fa-calculator"></i></div>
-                                    <span className="card-title-gaming">Budget Calc</span>
-                                </div>
-                            </Link>
-                            </>)}
-                        </div>
+                        <QuickActionsGrid
+                            actions={[
+                                { id: 'qa-wallet',  label: 'My Wallet',  icon: 'fa-credit-card', href: route('fan.payments') },
+                                { id: 'qa-travel',  label: 'Travel Info', icon: 'fa-plane',       href: route('fan.journey') },
+                                { id: 'qa-store',   label: 'Fan Store',   icon: 'fa-tshirt',      href: route('fan.store') },
+                                ...(!isConcluded ? [
+                                    { id: 'qa-predict', label: 'Predict & Win', icon: 'fa-futbol',    href: route('fan.predict-win') },
+                                    { id: 'qa-events',  label: 'Events',        icon: 'fa-calendar',  href: route('fan.events') },
+                                    { id: 'qa-budget',  label: 'Budget Calc',   icon: 'fa-calculator', href: route('fan.budget-calculator') },
+                                ] : []),
+                            ]}
+                        />
                         
                         {/* Vertical Ad Placeholder in Sidebar/Quick Actions Column */}
                         <div className="mt-4">

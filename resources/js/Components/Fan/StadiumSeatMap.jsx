@@ -97,7 +97,7 @@ export default function StadiumSeatMap({
                         fill="rgba(255,255,255,0.85)"
                         fontSize="12"
                         fontWeight="700"
-                        style={{ textTransform: 'uppercase', letterSpacing: '1.5px' }}
+                        style={{ textTransform: 'none', letterSpacing: '1.5px' }}
                     >
                         {truncate(stadiumName, 22)}
                     </text>

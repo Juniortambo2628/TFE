@@ -224,7 +224,7 @@
 .pref-section-title {
     color: #9ca3af;
     font-size: 0.8rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
     margin-bottom: 10px;
     font-weight: 600;
@@ -337,7 +337,7 @@
 .duration-label {
     font-size: 0.7rem;
     color: #6b7280;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .pref-duration-presets {
@@ -407,7 +407,7 @@
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 12px;
-    text-transform: uppercase;
+    text-transform: none;
 }
 .addon-toggle.on {
     background: rgba(16, 185, 129, 0.15);

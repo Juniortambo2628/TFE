@@ -14,10 +14,13 @@
     margin: 0;
 }
 
-/* Content Cards Enhancements */
+/* Sprint 32 — align with the glass card used site-wide (was an opaque
+   #1a1d21 which made the profile cards feel heavier than the rest). */
 .content-card {
-    background: #1a1d21; /* Ensure consistent card background */
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .profile-info-card {

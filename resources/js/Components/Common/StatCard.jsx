@@ -98,8 +98,7 @@ export default function StatCard({
                     fontSize: '0.8rem',
                     fontWeight: 500,
                     color: '#a0a0a0',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
+                    letterSpacing: '0.4px',
                 }}>{label}</span>
                 {subtext && <span className="stat-subtext" style={{ fontSize: '0.75rem', color: '#666' }}>{subtext}</span>}
             </div>

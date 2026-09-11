@@ -48,7 +48,7 @@
 .stat-label {
     font-size: 0.85rem;
     color: #a0a0a0;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 1px;
     margin-bottom: 4px;
 }
@@ -261,7 +261,7 @@
     color: #a0a0a0;
     margin-bottom: 15px;
     font-size: 0.9rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 1px;
 }
 

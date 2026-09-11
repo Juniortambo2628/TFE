@@ -46,7 +46,11 @@ export default function AppSidebar({
             className={`border-r`}
             style={{ borderColor: `${accentColor}4d` }}
         >
-            <SidebarHeader className="p-4">
+            {/* Sprint 32 — sidebar spans inset-y-0 on desktop but the
+                fixed 60px header sits on top of it, clipping the avatar.
+                Add top padding equal to the header height on desktop
+                only (mobile renders as a slide-over so it doesn't need it). */}
+            <SidebarHeader className="p-4 md:pt-[76px]">
                 <div
                     className="flex flex-col items-center gap-3 rounded-xl p-5"
                     style={{
@@ -69,7 +73,7 @@ export default function AppSidebar({
                     </div>
                     <div className="text-center">
                         <h4 className="m-0 text-white text-base font-semibold leading-tight">{user.name}</h4>
-                        <div className="text-[10px] uppercase tracking-[0.2em] mt-1 font-bold" style={{ color: accentColor }}>
+                        <div className="text-[11px] tracking-[0.05em] mt-1 font-semibold" style={{ color: accentColor }}>
                             {roleLabel}
                         </div>
                     </div>

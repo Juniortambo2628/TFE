@@ -82,7 +82,7 @@
 }
 
 .finance-cta__eyebrow {
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.12em;
     font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.55);
@@ -137,7 +137,7 @@
 }
 
 .finance-cta__label {
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.1em;
     font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.55);

@@ -96,7 +96,7 @@
     margin: 0;
     line-height: 1.1;
     letter-spacing: -0.02em;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .landing-section .section-description {
@@ -224,7 +224,7 @@
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.02em;
 }
 
@@ -249,7 +249,7 @@
     border-radius: 9999px;
     font-size: 0.7rem;
     font-weight: 600;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
 }
 
@@ -265,7 +265,7 @@
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
     opacity: 0;
     transform: translateY(8px);
@@ -473,7 +473,7 @@
     border-radius: 9999px;
     font-size: 0.72rem;
     font-weight: 600;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
 }
 
@@ -483,7 +483,7 @@
     font-weight: 700;
     margin: 0;
     line-height: 1.15;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: -0.01em;
 }
 
@@ -499,7 +499,7 @@
     gap: 1.5rem;
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.8rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
     margin-top: -0.25rem;
 }

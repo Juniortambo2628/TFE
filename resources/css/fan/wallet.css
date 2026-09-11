@@ -72,7 +72,7 @@
 .wallet-card-holder {
     font-size: 0.8rem;
     color: rgba(255,255,255,0.7);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 1px;
 }
 
@@ -173,7 +173,7 @@
 
 .transaction-status {
     font-size: 0.7rem;
-    text-transform: uppercase;
+    text-transform: none;
     font-weight: 700;
     letter-spacing: 0.5px;
     padding: 2px 6px;

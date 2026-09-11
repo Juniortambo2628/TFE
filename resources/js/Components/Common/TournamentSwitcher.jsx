@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTournament } from '@/Context/TournamentContext';
+// Sprint 32 — the landing switcher CSS was only bundled with the
+// public Header. Import it here so the dashboard variant can reuse the
+// same design instead of the earlier inline-styled variant.
+import '../../../css/tournament-switcher.css';
 
 const STATUS_COLORS = {
     ongoing: { bg: 'rgba(34,197,94,0.3)', color: '#4ade80', label: 'LIVE' },
@@ -52,131 +56,51 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
     const status = tournament?.status || 'upcoming';
     const statusStyle = STATUS_COLORS[status] || STATUS_COLORS.upcoming;
 
-    if (isLanding) {
-        return (
-            <div className="tournament-switcher" ref={ref}>
-                <button
-                    className="tournament-switcher-trigger"
-                    onClick={() => setOpen(!open)}
-                    aria-expanded={open}
-                    aria-haspopup="true"
-                    type="button"
-                >
-                    <span className="tournament-switcher-icon">
-                        <iconify-icon icon="lucide:trophy"></iconify-icon>
-                    </span>
-                    <span className="tournament-switcher-label">{tournament?.short_name || 'Tournament'}</span>
-                    <span className={`tournament-switcher-status status-${status}`}>
-                        {tournament?.status || ''}
-                    </span>
-                    <iconify-icon icon="lucide:chevron-down" className="tournament-switcher-chevron"></iconify-icon>
-                </button>
-
-                {open && (
-                    <ul className="tournament-switcher-menu" role="menu">
-                        {tournamentList.map((item) => (
-                            <li key={item.id} role="none">
-                                <button
-                                    className={`tournament-switcher-item${isActive?.(item.id) ? ' active' : ''}`}
-                                    onClick={() => handleSwitch(item.id)}
-                                    role="menuitem"
-                                    type="button"
-                                >
-                                    <div className="tournament-switcher-item-name">
-                                        <strong>{item.name}</strong>
-                                        <small>
-                                            {item.hosts?.length > 0 ? `Hosted by ${item.hosts.join(', ')}` : ''}
-                                        </small>
-                                    </div>
-                                    <span className={`tournament-switcher-item-status status-${item.status}`}>
-                                        {item.status}
-                                    </span>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
-        );
-    }
-
-    // Dashboard variant
+    // Sprint 32 — dashboard variant used to be its own inline-styled pill
+    // that felt off next to the polished landing one. Both variants now
+    // render the same landing markup + styles for cross-role consistency.
     return (
-        <div className="fan-tournament-switcher" ref={ref} style={{ position: 'relative' }}>
+        <div className="tournament-switcher" ref={ref}>
             <button
-                className="fan-tournament-trigger"
+                className="tournament-switcher-trigger"
                 onClick={() => setOpen(!open)}
-                style={{
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: '8px', padding: '6px 14px', color: '#fff',
-                    fontSize: '0.85rem', cursor: 'pointer', backdropFilter: 'blur(10px)',
-                }}
+                aria-expanded={open}
+                aria-haspopup="true"
+                type="button"
             >
-                <i className="fas fa-trophy" style={{ color: '#dc2626', fontSize: '0.8rem' }}></i>
-                <span style={{ fontWeight: 600 }}>{tournament?.short_name || tournament?.name}</span>
-                <span style={{
-                    fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px',
-                    background: statusStyle.bg, color: statusStyle.color,
-                    textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px',
-                }}>
-                    {statusStyle.label}
+                <span className="tournament-switcher-icon">
+                    <iconify-icon icon="lucide:trophy"></iconify-icon>
                 </span>
-                <i className="fas fa-chevron-down" style={{
-                    fontSize: '0.65rem', transition: 'transform 0.2s',
-                    transform: open ? 'rotate(180deg)' : 'rotate(0)',
-                }}></i>
+                <span className="tournament-switcher-label">{tournament?.short_name || 'Tournament'}</span>
+                <span className={`tournament-switcher-status status-${status}`}>
+                    {tournament?.status || ''}
+                </span>
+                <iconify-icon icon="lucide:chevron-down" className="tournament-switcher-chevron"></iconify-icon>
             </button>
 
             {open && (
-                <div style={{
-                    position: 'absolute', top: '100%', right: 0, marginTop: '6px',
-                    background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '10px', padding: '6px', minWidth: '260px',
-                    zIndex: 1000, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                }}>
-                    {tournamentList.map((t) => {
-                        const tStatus = STATUS_COLORS[t.status] || STATUS_COLORS.upcoming;
-                        const active = t.id === tournament?.id;
-                        return (
+                <ul className="tournament-switcher-menu" role="menu">
+                    {tournamentList.map((item) => (
+                        <li key={item.id} role="none">
                             <button
-                                key={t.id}
-                                onClick={() => handleSwitch(t.id)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '10px',
-                                    width: '100%', padding: '10px 12px', border: 'none',
-                                    borderRadius: '8px',
-                                    background: active ? 'rgba(220,38,38,0.15)' : 'transparent',
-                                    color: active ? '#ef4444' : '#e5e7eb',
-                                    fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left',
-                                    transition: 'background 0.15s',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!active) e.currentTarget.style.background = 'transparent';
-                                }}
+                                className={`tournament-switcher-item${isActive?.(item.id) ? ' active' : ''}`}
+                                onClick={() => handleSwitch(item.id)}
+                                role="menuitem"
+                                type="button"
                             >
-                                <i className={`fas ${active ? 'fa-check-circle' : 'fa-circle'}`}
-                                   style={{ fontSize: '0.7rem', flexShrink: 0 }}></i>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontWeight: 600 }}>{t.short_name || t.name}</div>
-                                    <div style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '2px' }}>
-                                        {t.hosts?.join(', ')}
-                                    </div>
+                                <div className="tournament-switcher-item-name">
+                                    <strong>{item.name}</strong>
+                                    <small>
+                                        {item.hosts?.length > 0 ? `Hosted by ${item.hosts.join(', ')}` : ''}
+                                    </small>
                                 </div>
-                                <span style={{
-                                    fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px',
-                                    background: tStatus.bg, color: tStatus.color,
-                                    fontWeight: 700, textTransform: 'uppercase', flexShrink: 0,
-                                }}>
-                                    {tStatus.label}
+                                <span className={`tournament-switcher-item-status status-${item.status}`}>
+                                    {item.status}
                                 </span>
                             </button>
-                        );
-                    })}
-                </div>
+                        </li>
+                    ))}
+                </ul>
             )}
         </div>
     );
