@@ -224,6 +224,9 @@ class BudgetController extends Controller
             'package_type' => $listing ? $listing->name : 'Custom Itinerary',
             'status' => 'pending_payment',
             'total_amount' => $budget->partner_cost > 0 ? $budget->partner_cost : $budget->total_cost,
+            // Sprint 29 — carry the currency the fan built the plan in
+            // so Journey + Wallet render the same amount they confirmed.
+            'currency' => $budget->currency ?? 'USD',
             'amount_paid' => 0,
             'booking_date' => now(),
             'expires_at' => now()->addHours(48),

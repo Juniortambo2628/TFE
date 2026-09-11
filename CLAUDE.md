@@ -328,5 +328,10 @@ tests/
 | 22     | Security review fixes (SVG upload + Fan/PackageController gate) |
 | 23     | Currency default + partner_type labels + hub eyebrow polish |
 | 24     | Node currency test + docs refresh                    |
+| 25     | Admin loan applications: finance-partner column + filter |
+| 26     | Admin `/admin/partners/{user}` live hub preview      |
+| 27     | Fan onboarding hint on the Finance CTA               |
+| 28     | Multicurrency Budget Calculator (USD, EUR, GBP, KES, ZAR, NGN, XOF) |
+| 29     | Budget currency propagates to Booking + Journey render |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.

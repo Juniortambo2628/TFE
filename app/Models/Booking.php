@@ -17,6 +17,7 @@ class Booking extends Model
         'package_type',
         'status',
         'total_amount',
+        'currency',
         'amount_paid',
         'booking_date',
         'flight_info',
