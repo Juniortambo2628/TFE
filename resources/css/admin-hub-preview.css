@@ -1,0 +1,184 @@
+/**
+ * Admin hub live preview — Sprint 26.
+ *
+ * Reads --partner-accent from the containing element so the pane
+ * re-brands as admin changes theme_accent.
+ */
+
+/* Two-column layout for /admin/partners/{user}: form on the left,
+   sticky preview on the right. CSS Grid because Bootstrap's grid
+   isn't reliably loaded on admin surfaces. Stacks on narrow. */
+.partner-edit-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 1100px) {
+    .partner-edit-grid {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+}
+
+.hub-preview {
+    --partner-accent: #dc143c;
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    overflow: hidden;
+    color: #fff;
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.hub-preview__label {
+    padding: 0.5rem 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.hub-preview__label i {
+    color: var(--partner-accent);
+}
+
+/* ── Hero ────────────────────────────────────────────────────── */
+
+.hub-preview__hero {
+    min-height: 160px;
+    display: flex;
+    align-items: flex-end;
+    background-color: #111;
+}
+
+.hub-preview__hero-inner {
+    padding: 1rem 1.1rem;
+    width: 100%;
+}
+
+.hub-preview__logo {
+    height: 32px;
+    width: 32px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 3px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.hub-preview__eyebrow {
+    text-transform: uppercase;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.hub-preview__name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+    color: #fff;
+}
+
+.hub-preview__tagline {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0.35rem 0 0;
+    line-height: 1.4;
+}
+
+.hub-preview__verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 3px 8px;
+    background: rgba(16, 185, 129, 0.18);
+    color: #10b981;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+/* ── Stats band ─────────────────────────────────────────────── */
+
+.hub-preview__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 0.6rem;
+    padding: 0.9rem 1.1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.hub-preview__stat {
+    text-align: center;
+}
+
+.hub-preview__stat-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--partner-accent);
+    line-height: 1.1;
+}
+
+.hub-preview__stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 0.2rem;
+}
+
+/* ── About ──────────────────────────────────────────────────── */
+
+.hub-preview__about,
+.hub-preview__tags {
+    padding: 0.9rem 1.1rem;
+}
+
+.hub-preview__section-label {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 0.4rem;
+}
+
+.hub-preview__about p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Service tags ───────────────────────────────────────────── */
+
+.hub-preview__tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.hub-preview__tag {
+    padding: 0.25rem 0.65rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--partner-accent);
+    border-radius: 999px;
+    font-size: 0.75rem;
+}
