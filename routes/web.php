@@ -41,6 +41,7 @@ use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Partner\ListingController;
+use App\Http\Controllers\Partner\LoanReviewController;
 use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
@@ -364,6 +365,12 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
 
     // Sprint 10 — Measure tab: per-partner analytics.
     Route::get('/analytics', [App\Http\Controllers\Partner\AnalyticsController::class, 'index'])->name('analytics');
+
+    // Sprint 14 — finance-partner loan review. Only reachable by
+    // finance_partner users; controller enforces ownership. Distinct
+    // path prefix so it never collides with /requests/{budget}.
+    Route::get('/loans/{loanApplication}', [LoanReviewController::class, 'show'])->name('loans.show');
+    Route::put('/loans/{loanApplication}', [LoanReviewController::class, 'update'])->name('loans.update');
 
     // Communication/Messages Routes
     Route::get('/messages', [App\Http\Controllers\Partner\CommunicationController::class, 'index'])->name('messages');

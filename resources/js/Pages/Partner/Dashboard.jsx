@@ -6,41 +6,46 @@ import StatCard from '@/Components/Common/StatCard';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
-export default function Dashboard({ requests, stats }) {
+export default function Dashboard({ requests, stats, variant = 'travel' }) {
     const { auth } = usePage().props;
     const { tournament } = useTournament();
     const tournamentLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
+    const isFinance = variant === 'finance';
 
     return (
         <PartnerLayout title="Partner Dashboard">
             <DashboardHero
                 role="partner"
                 title={`Welcome, ${auth.user.name.split(' ')[0]}!`}
-                subtitle={`Manage travel requests and help fans plan their ${tournamentLabel} journey.`}
+                subtitle={isFinance
+                    ? 'Review loan applications routed to your desk and disburse trip financing.'
+                    : `Manage travel requests and help fans plan their ${tournamentLabel} journey.`}
             />
 
             <div className="summary-cards-grid">
                 <StatCard
-                    label="Pending Requests"
+                    label={isFinance ? 'Pending Applications' : 'Pending Requests'}
                     value={stats?.pending || 0}
                     icon="fa-inbox"
                     variant="amber"
-                    subtext="Awaiting review"
+                    subtext={isFinance ? 'Awaiting underwriting' : 'Awaiting review'}
                 />
                 <StatCard
-                    label="Approved"
+                    label={isFinance ? 'Approved' : 'Approved'}
                     value={stats?.approved || 0}
                     icon="fa-check-circle"
                     variant="blue"
-                    subtext="This month"
+                    subtext={isFinance ? 'Ready to disburse' : 'This month'}
                 />
-                <StatCard
-                    label="Modified"
-                    value={stats?.modified || 0}
-                    icon="fa-edit"
-                    variant="amber"
-                    subtext="Updated quotes"
-                />
+                {!isFinance && (
+                    <StatCard
+                        label="Modified"
+                        value={stats?.modified || 0}
+                        icon="fa-edit"
+                        variant="amber"
+                        subtext="Updated quotes"
+                    />
+                )}
                 <StatCard
                     label="Rejected"
                     value={stats?.rejected || 0}
@@ -49,11 +54,11 @@ export default function Dashboard({ requests, stats }) {
                     subtext="Declined"
                 />
                 <StatCard
-                    label="Total Revenue"
+                    label={isFinance ? 'Total Disbursed' : 'Total Revenue'}
                     value={formatMoney(stats?.total_revenue || 0)}
                     icon="fa-coins"
                     variant="blue"
-                    subtext="From approved quotes"
+                    subtext={isFinance ? 'Across approved loans' : 'From approved quotes'}
                 />
             </div>
 
@@ -87,7 +92,7 @@ export default function Dashboard({ requests, stats }) {
                     <div className="card-header d-flex justify-content-between align-items-center">
                         <div className="d-flex align-items-center gap-2">
                             <i className="fas fa-list"></i>
-                            <h3>Recent travel requests</h3>
+                            <h3>{isFinance ? 'Recent applications' : 'Recent travel requests'}</h3>
                         </div>
                         <Link href={route('partner.requests')} className="card-header-link">
                             View all →
@@ -96,13 +101,17 @@ export default function Dashboard({ requests, stats }) {
                     <div className="activity-list">
                         {requests && requests.length > 0 ? (
                             requests.slice(0, 5).map((req) => (
-                                <RequestRow key={req.id} req={req} />
+                                <RequestRow key={req.id} req={req} isFinance={isFinance} />
                             ))
                         ) : (
                             <div className="empty-state">
                                 <i className="fas fa-inbox"></i>
-                                <h4>No requests yet</h4>
-                                <p>Travel requests from fans will appear here.</p>
+                                <h4>{isFinance ? 'No applications yet' : 'No requests yet'}</h4>
+                                <p>
+                                    {isFinance
+                                        ? 'Loan applications from fans will appear here.'
+                                        : 'Travel requests from fans will appear here.'}
+                                </p>
                             </div>
                         )}
                     </div>
@@ -112,16 +121,21 @@ export default function Dashboard({ requests, stats }) {
     );
 }
 
-function RequestRow({ req }) {
+function RequestRow({ req, isFinance = false }) {
+    const href = isFinance
+        ? route('partner.loans.show', req.id)
+        : route('partner.requests.show', req.id);
     return (
-        <Link href={route('partner.requests.show', req.id)} className="activity-item">
+        <Link href={href} className="activity-item">
             <div className="activity-icon">
-                <i className="fas fa-suitcase"></i>
+                <i className={`fas ${isFinance ? 'fa-hand-holding-usd' : 'fa-suitcase'}`}></i>
             </div>
             <div className="activity-info">
                 <div className="activity-title">{req.reference_id}</div>
                 <div className="activity-label">
-                    {req.match_count} matches · {req.accommodation_level}
+                    {isFinance
+                        ? (req.applicant_name || 'Applicant') + ' · ' + (req.purpose || 'Trip financing')
+                        : `${req.match_count} matches · ${req.accommodation_level}`}
                 </div>
             </div>
             <div className="activity-meta">

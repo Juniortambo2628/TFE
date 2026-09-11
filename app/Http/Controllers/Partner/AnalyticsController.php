@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
 use App\Models\Listing;
+use App\Models\LoanApplication;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Measure tab — per-partner analytics. Same tile shape as the admin
@@ -22,6 +24,10 @@ class AnalyticsController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+
+        if ($user->partner_type === 'finance_partner') {
+            return $this->indexFinance($user);
+        }
 
         $listings = Listing::query()
             ->publishedBy(User::class, $user->id)
@@ -102,6 +108,74 @@ class AnalyticsController extends Controller
         return Inertia::render('Partner/Analytics', [
             'tiles' => $tiles,
             'has_listings' => ! empty($listingIds),
+        ]);
+    }
+
+    /**
+     * Finance-partner Measure tab: loan volume, approval rate, avg
+     * disbursement, avg interest. Reads the same tile shape so the page
+     * component doesn't need a separate branch.
+     */
+    protected function indexFinance(User $user): Response
+    {
+        $base = LoanApplication::query()->forPartner($user->id);
+        $total = (clone $base)->count();
+        $approved = (clone $base)->where('status', 'APPROVED');
+        $approvedCount = (clone $approved)->count();
+        $disbursed = (clone $approved)->sum('amount');
+        $avgRate = (clone $approved)->avg('interest_rate');
+        $avgAmount = (clone $approved)->avg('amount');
+        $approvalPct = $total > 0 ? (int) round(($approvedCount / $total) * 100) : 0;
+
+        $tiles = [
+            [
+                'label' => 'Applications',
+                'value' => $total,
+                'sub' => $approvedCount.' approved',
+                'accent' => 'blue',
+                'icon' => 'fa-file-invoice-dollar',
+            ],
+            [
+                'label' => 'Total Disbursed',
+                'value' => '$'.number_format((float) $disbursed),
+                'sub' => 'Across approved loans',
+                'accent' => 'green',
+                'icon' => 'fa-coins',
+            ],
+            [
+                'label' => 'Approval Rate',
+                'value' => $approvalPct.'%',
+                'sub' => 'Approved / total',
+                'accent' => 'amber',
+                'icon' => 'fa-check-circle',
+            ],
+            [
+                'label' => 'Avg Loan Size',
+                'value' => $avgAmount ? '$'.number_format((float) $avgAmount) : '—',
+                'sub' => 'Per approved application',
+                'accent' => 'purple',
+                'icon' => 'fa-hand-holding-usd',
+            ],
+            [
+                'label' => 'Avg Interest',
+                'value' => $avgRate ? number_format((float) $avgRate, 2).'%' : '—',
+                'sub' => 'Weighted across loans',
+                'accent' => 'blue',
+                'icon' => 'fa-percent',
+            ],
+            [
+                'label' => 'Pending Queue',
+                'value' => (clone $base)->where('status', 'PENDING')->count(),
+                'sub' => 'Awaiting decision',
+                'accent' => 'amber',
+                'icon' => 'fa-inbox',
+            ],
+        ];
+
+        return Inertia::render('Partner/Analytics', [
+            'tiles' => $tiles,
+            'has_listings' => $total > 0,
+            'variant' => 'finance',
         ]);
     }
 

@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\FavoriteMatch;
 use App\Models\Listing;
+use App\Models\PartnerProfile;
 use App\Services\FixtureService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
@@ -124,6 +125,28 @@ class BudgetController extends Controller
                 ];
             });
 
+        // Sprint 14 — finance partners the fan can use to finance
+        // whichever budget they build. Only public + verified partners
+        // whose partner_type is finance_partner. Empty list is fine —
+        // the CTA just doesn't render.
+        $financePartners = PartnerProfile::query()
+            ->public()
+            ->whereHas('user', fn ($u) => $u
+                ->where('is_partner', true)
+                ->where('partner_type', 'finance_partner'))
+            ->with('user')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->user_id,
+                'slug' => $p->slug,
+                'display_name' => $p->display_name,
+                'tagline' => $p->tagline,
+                'logo_url' => $p->logo_url,
+                'theme_accent' => $p->theme_accent,
+                'verified' => $p->user->verification_status === 'verified',
+            ])
+            ->values();
+
         return Inertia::render('Fan/BudgetCalculator', [
             'savedBudgets' => $savedBudgets,
             'budgetToEdit' => $budgetToEdit,
@@ -131,6 +154,7 @@ class BudgetController extends Controller
             'tournamentId' => $tournamentId,
             'tournamentPricing' => $pricing,
             'packages' => $packages,
+            'financePartners' => $financePartners,
             // Defer the heavy fixture bundle — page renders immediately,
             // Inertia fetches this in a background partial reload.
             'fixtureBundle' => Inertia::defer($fixtureBundle),

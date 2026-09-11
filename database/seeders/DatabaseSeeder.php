@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             WorldCupSeeder::class,
             PackageSeeder::class,
             DemoPartnerSeeder::class,
+            DemoFinancePartnerSeeder::class,
         ]);
     }
 }

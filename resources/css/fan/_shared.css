@@ -2,6 +2,9 @@
    gets the "Powered by" chip/strip styles without a per-page import. */
 @import "./powered-by.css";
 
+/* Sprint 14 — finance-partner CTA on the BudgetCalculator result view. */
+@import "./finance-cta.css";
+
 /* ==========================================================================
    FAN _SHARED — extracted primitives for the fan dashboard.
    Purpose: give the recurring "glass card" / "summary grid" / "card header"

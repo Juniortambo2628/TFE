@@ -2,8 +2,20 @@ import React, { useState, useRef } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { useForm, Link, router } from '@inertiajs/react';
 import { formatMoney } from '@/lib/utils';
+import LoanReviewPanel from '@/Components/Partner/LoanReviewPanel';
 
-export default function RequestView({ budget }) {
+export default function RequestView({ budget, variant = 'travel', loan = null }) {
+    // Sprint 14 — finance-partner variant renders a completely different
+    // panel (approve/reject/disburse a loan), reusing PartnerLayout so
+    // header/sidebar stay consistent.
+    if (variant === 'finance' && loan) {
+        return (
+            <PartnerLayout title="Loan application">
+                <LoanReviewPanel loan={loan} />
+            </PartnerLayout>
+        );
+    }
+
     const fileInputRef = useRef(null);
     const [attachedFile, setAttachedFile] = useState(null);
 

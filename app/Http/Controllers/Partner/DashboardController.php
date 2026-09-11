@@ -5,14 +5,23 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
 use App\Models\Listing;
+use App\Models\LoanApplication;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        // Sprint 14 — finance partners see a loan-shaped Convert queue,
+        // not a travel-brief-shaped one. Everything else about the
+        // partner surface stays the same.
+        if ($request->user()->partner_type === 'finance_partner') {
+            return $this->indexFinance($request);
+        }
+
         $scoped = $this->baseQuery($request);
 
         $stats = [
@@ -29,6 +38,60 @@ class DashboardController extends Controller
             'requests' => $requests,
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * Finance-partner variant of the dashboard: shows loan applications
+     * routed to this partner, not travel-briefs. Same page component,
+     * different props — see Partner/Dashboard.jsx.
+     */
+    protected function indexFinance(Request $request)
+    {
+        $partnerId = $request->user()->id;
+        $base = LoanApplication::query()->forPartner($partnerId);
+
+        $stats = [
+            'pending' => (clone $base)->where('status', 'PENDING')->count(),
+            'approved' => (clone $base)->where('status', 'APPROVED')->count(),
+            'modified' => 0, // shape-parity with travel partner stats
+            'rejected' => (clone $base)->where('status', 'REJECTED')->count(),
+            'total_revenue' => (clone $base)->where('status', 'APPROVED')->sum('amount') ?: 0,
+        ];
+
+        $requests = $this->loanRequestsData($partnerId);
+
+        return Inertia::render('Partner/Dashboard', [
+            'requests' => $requests,
+            'stats' => $stats,
+            'variant' => 'finance',
+        ]);
+    }
+
+    protected function loanRequestsData(int $partnerId): Collection
+    {
+        return LoanApplication::query()
+            ->forPartner($partnerId)
+            ->with(['user.profile', 'budget'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (LoanApplication $l) {
+                return [
+                    'id' => $l->id,
+                    'reference_id' => 'LOAN-'.str_pad($l->id, 6, '0', STR_PAD_LEFT),
+                    'created_at' => $l->created_at->format('Y-m-d H:i'),
+                    'total_cost' => (float) $l->amount,
+                    'partner_cost' => (float) $l->amount,
+                    'status' => strtolower($l->status),
+                    'accommodation_level' => $l->purpose ?: 'General financing',
+                    'flight_class' => null,
+                    'nights' => null,
+                    'match_count' => 0,
+                    'matches' => [],
+                    'applicant_name' => $l->user?->name,
+                    'purpose' => $l->purpose,
+                    'interest_rate' => $l->interest_rate,
+                ];
+            });
     }
 
     public function show(Budget $budget)
@@ -88,6 +151,13 @@ class DashboardController extends Controller
 
     public function requests(Request $request)
     {
+        if ($request->user()->partner_type === 'finance_partner') {
+            return Inertia::render('Partner/Requests', [
+                'requests' => $this->loanRequestsData($request->user()->id),
+                'variant' => 'finance',
+            ]);
+        }
+
         $data = $this->getRequestsData($request);
 
         return Inertia::render('Partner/Requests', [
