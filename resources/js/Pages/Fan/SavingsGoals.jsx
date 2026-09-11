@@ -3,12 +3,15 @@ import { Head, router } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
+import { SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
 import { useTournament } from '@/Context/TournamentContext';
 
 export default function SavingsGoals({ auth, goals }) {
     const { tournament } = useTournament();
     const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ name: '', target_amount: '', target_date: '' });
+    // Sprint 30 — a goal saves for one specific currency; a fan planning
+    // a EUR trip should see their target in EUR, not the platform default.
+    const [form, setForm] = useState({ name: '', target_amount: '', target_date: '', currency: 'USD' });
     const [processing, setProcessing] = useState(false);
 
     const submit = (e) => {
@@ -17,7 +20,7 @@ export default function SavingsGoals({ auth, goals }) {
         router.post(route('fan.savings-goals.store'), form, {
             onFinish: () => setProcessing(false),
             onSuccess: () => {
-                setForm({ name: '', target_amount: '', target_date: '' });
+                setForm({ name: '', target_amount: '', target_date: '', currency: 'USD' });
                 setShowForm(false);
             },
         });
@@ -31,6 +34,10 @@ export default function SavingsGoals({ auth, goals }) {
 
     const totalSaved = goals.reduce((sum, g) => sum + parseFloat(g.current_amount || 0), 0);
     const totalTarget = goals.reduce((sum, g) => sum + parseFloat(g.target_amount || 0), 0);
+    // The aggregate tiles sum across every goal; when the fan mixes
+    // currencies the sum is only meaningful once they agree, so we
+    // label the totals in whichever currency their goals use most.
+    const primaryCurrency = goals?.[0]?.currency || 'USD';
 
     return (
         <FanLayout user={auth.user} header="Savings Goals">
@@ -49,11 +56,11 @@ export default function SavingsGoals({ auth, goals }) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
                             <span className="text-white/60 text-sm">Total Saved</span>
-                            <h2 className="text-2xl font-bold text-white mt-1">{formatMoney(totalSaved)}</h2>
+                            <h2 className="text-2xl font-bold text-white mt-1">{formatMoney(totalSaved, primaryCurrency)}</h2>
                         </div>
                         <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
                             <span className="text-white/60 text-sm">Total Target</span>
-                            <h2 className="text-2xl font-bold text-white mt-1">{formatMoney(totalTarget)}</h2>
+                            <h2 className="text-2xl font-bold text-white mt-1">{formatMoney(totalTarget, primaryCurrency)}</h2>
                         </div>
                         <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
                             <span className="text-white/60 text-sm">Goals</span>
@@ -79,11 +86,22 @@ export default function SavingsGoals({ auth, goals }) {
                                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
                                         placeholder={`e.g. ${tournament?.short_name || 'Tournament'} Tickets Fund`} required />
                                 </div>
-                                <div>
-                                    <label className="block text-white/60 text-sm mb-1">Target Amount (₦)</label>
-                                    <input type="number" value={form.target_amount} onChange={e => setForm({ ...form, target_amount: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        placeholder="e.g. 500000" required min="1000" />
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="col-span-2">
+                                        <label className="block text-white/60 text-sm mb-1">Target Amount</label>
+                                        <input type="number" value={form.target_amount} onChange={e => setForm({ ...form, target_amount: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
+                                            placeholder="e.g. 5000" required min="1000" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-white/60 text-sm mb-1">Currency</label>
+                                        <select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500">
+                                            {SUPPORTED_CURRENCIES.map(c => (
+                                                <option key={c.code} value={c.code}>{c.code}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-white/60 text-sm mb-1">Target Date (optional)</label>
@@ -129,8 +147,8 @@ export default function SavingsGoals({ auth, goals }) {
                                             </button>
                                         </div>
                                         <div className="flex justify-between items-end mb-2">
-                                            <span className="text-white font-bold">{formatMoney(goal.current_amount)}</span>
-                                            <span className="text-white/40 text-xs">of {formatMoney(goal.target_amount)}</span>
+                                            <span className="text-white font-bold">{formatMoney(goal.current_amount, goal.currency || 'USD')}</span>
+                                            <span className="text-white/40 text-xs">of {formatMoney(goal.target_amount, goal.currency || 'USD')}</span>
                                         </div>
                                         <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                                             <div className="h-full bg-blue-500 rounded-full transition-all duration-500"

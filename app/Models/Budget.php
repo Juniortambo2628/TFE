@@ -16,6 +16,7 @@ class Budget extends Model
         'listing_id',
         'name',
         'total_cost',
+        'currency',
         'match_ids',
         'accommodation_level',
         'flight_class',

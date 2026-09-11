@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoanApplication;
+use App\Models\PartnerProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,12 +15,83 @@ class LoanApplicationController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $loans = LoanApplication::where('user_id', $user->id)
+
+        // Hydrate each loan with its finance-partner brand block + budget
+        // summary so the fan's "My financing" view can show who
+        // underwrote what, and link back to that partner's hub.
+        $loans = LoanApplication::query()
+            ->where('user_id', $user->id)
+            ->with(['financePartner.partnerProfile', 'budget'])
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->map(function (LoanApplication $l) {
+                $partner = $l->financePartner;
+                $profile = $partner?->partnerProfile;
+
+                return [
+                    'id' => $l->id,
+                    'reference_id' => 'LOAN-'.str_pad($l->id, 6, '0', STR_PAD_LEFT),
+                    'amount' => (float) $l->amount,
+                    'purpose' => $l->purpose,
+                    'notes' => $l->notes,
+                    'status' => $l->status,
+                    'interest_rate' => $l->interest_rate,
+                    'created_at' => $l->created_at?->toIso8601String(),
+                    'updated_at' => $l->updated_at?->toIso8601String(),
+                    'partner' => $profile ? [
+                        'slug' => $profile->slug,
+                        'display_name' => $profile->display_name,
+                        'logo_url' => $profile->logo_url,
+                        'theme_accent' => $profile->theme_accent,
+                        'verified' => $partner->verification_status === 'verified',
+                    ] : null,
+                    'budget' => $l->budget ? [
+                        'id' => $l->budget->id,
+                        'reference_id' => 'REQ-'.str_pad($l->budget->id, 6, '0', STR_PAD_LEFT),
+                        'total_cost' => (float) $l->budget->total_cost,
+                        // Sprint 30 — the linked budget can be in a currency
+                        // other than USD (Sprint 28); ship the code so the
+                        // "Attached to REQ-…" line renders in the currency
+                        // the fan built it in, not the platform default.
+                        'currency' => $l->budget->currency ?? 'USD',
+                        'nights' => $l->budget->nights,
+                    ] : null,
+                ];
+            });
+
+        // Public finance partners the fan can direct-apply to when
+        // they don't have a budget-attached path — mirrors the
+        // BudgetCalculator payload shape.
+        $financePartners = PartnerProfile::query()
+            ->public()
+            ->whereHas('user', fn ($u) => $u
+                ->where('is_partner', true)
+                ->where('partner_type', 'finance_partner'))
+            ->with('user')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->user_id,
+                'slug' => $p->slug,
+                'display_name' => $p->display_name,
+                'tagline' => $p->tagline,
+                'logo_url' => $p->logo_url,
+                'theme_accent' => $p->theme_accent,
+                'verified' => $p->user->verification_status === 'verified',
+            ])
+            ->values();
+
+        // Roll-up tiles for the hero row.
+        $stats = [
+            'total' => $loans->count(),
+            'pending' => $loans->where('status', 'PENDING')->count(),
+            'approved_amount' => $loans->whereIn('status', ['APPROVED', 'DISBURSED'])->sum('amount'),
+            'disbursed_amount' => $loans->where('status', 'DISBURSED')->sum('amount'),
+        ];
 
         return Inertia::render('Fan/LoanApplications', [
             'loans' => $loans,
+            'financePartners' => $financePartners,
+            'stats' => $stats,
             'auth' => ['user' => $user],
         ]);
     }

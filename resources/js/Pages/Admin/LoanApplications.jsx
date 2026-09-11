@@ -2,100 +2,115 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StatCard from '@/Components/Common/StatCard';
-import { Head, router, usePage } from '@inertiajs/react';
+import PoweredByBadge from '@/Components/Common/PoweredByBadge';
+import { Head, router } from '@inertiajs/react';
 import { toast } from 'sonner';
+import { formatMoney } from '@/lib/utils';
 
-export default function LoanApplications({ loans, stats }) {
-    const { auth } = usePage().props;
+/**
+ * Admin oversight for every loan application on the platform.
+ * Sprint 25 additions:
+ *  - Partner column showing the finance partner brand (Powered-by chip).
+ *  - Filter chip row (All / by status / by partner / Unrouted).
+ *  - Currency via formatMoney (USD, matches every other admin surface).
+ */
+export default function LoanApplications({ loans, stats, finance_partners = [], filters = {} }) {
     const [processingId, setProcessingId] = useState(null);
 
     const updateStatus = (id, newStatus) => {
-        if (confirm(`Are you sure you want to change status to ${newStatus}?`)) {
-            setProcessingId(id);
-            router.put(route('admin.loan-applications.update', id), {
-                status: newStatus
-            }, {
-                onSuccess: () => {
-                    toast.success(`Loan application ${newStatus.toLowerCase()} successfully`);
-                    setProcessingId(null);
-                },
-                onError: () => {
-                    toast.error('Failed to update status');
-                    setProcessingId(null);
-                }
-            });
-        }
+        if (!confirm(`Change status to ${newStatus}?`)) return;
+        setProcessingId(id);
+        router.put(route('admin.loan-applications.update', id), { status: newStatus }, {
+            preserveScroll: true,
+            onSuccess: () => { toast.success(`Loan ${newStatus.toLowerCase()}`); setProcessingId(null); },
+            onError: () => { toast.error('Failed to update status'); setProcessingId(null); },
+        });
     };
 
-    const breadcrumbs = [
-        { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
-        { label: 'Loan Applications' }
-    ];
+    const routeLoan = (id, partnerId) => {
+        router.put(route('admin.loan-applications.update', id), {
+            status: loans.data.find((l) => l.id === id)?.status || 'PENDING',
+            finance_partner_id: partnerId || null,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => toast.success(partnerId ? 'Routed to partner' : 'Routing cleared'),
+        });
+    };
+
+    const switchFilter = (patch) => {
+        const next = { ...filters, ...patch };
+        Object.keys(next).forEach((k) => (next[k] == null || next[k] === '') && delete next[k]);
+        router.get(route('admin.loan-applications'), next, { preserveScroll: true });
+    };
 
     return (
         <AdminLayout title="Loan Applications">
             <Head title="Loan Applications" />
 
-            <DashboardHero role="admin" 
+            <DashboardHero
+                role="admin"
                 title="Loan Applications"
-                subtitle="Review and manage fan loan requests."
-                breadcrumbs={breadcrumbs}
+                subtitle="Every fan loan request across finance partners."
+                breadcrumbs={[
+                    { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
+                    { label: 'Loan Applications' },
+                ]}
             />
 
-            <div className="admin-visual-cards mb-4 mt-4" style={{ overflow: 'visible', flexWrap: 'wrap' }}>
-                <StatCard 
-                    type="visual"
-                    label="Total Applications" 
-                    value={stats.total} 
-                    icon="fas fa-file-invoice-dollar"
-                    bgType="dashboard"
-                    settingsKey="bg_card_loans_total"
-                    image="/assets/images/bgimage05.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Pending Review" 
-                    value={stats.pending} 
-                    icon="fas fa-clock"
-                    bgType="dashboard"
-                    settingsKey="bg_card_loans_pending"
-                    image="/assets/images/bgimage06.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Approved" 
-                    value={stats.approved} 
-                    icon="fas fa-check-circle"
-                    bgType="dashboard"
-                    settingsKey="bg_card_loans_approved"
-                    image="/assets/images/bgimage07.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Approved Amount" 
-                    value={`KES ${new Intl.NumberFormat().format(stats.total_amount)}`} 
-                    icon="fas fa-coins"
-                    bgType="dashboard"
-                    settingsKey="bg_card_loans_amount"
-                    image="/assets/images/bgimage08.jpg"
-                    className="flex-grow-1"
-                />
+            <div className="summary-cards-grid">
+                <StatCard label="Total Applications" value={stats.total} icon="fa-file-invoice-dollar" variant="blue"
+                    subtext={`${stats.unrouted} unrouted`} />
+                <StatCard label="Pending Review" value={stats.pending} icon="fa-clock" variant="amber"
+                    subtext="Awaiting decision" />
+                <StatCard label="Approved" value={stats.approved} icon="fa-check-circle" variant="blue"
+                    subtext={`${stats.disbursed} disbursed`} />
+                <StatCard label="Approved Amount" value={formatMoney(stats.total_amount)} icon="fa-coins" variant="red"
+                    subtext="Across all partners" />
             </div>
 
-            <div className="admin-card-dark">
-                <div className="card-header">
-                    <h3><i className="fas fa-list"></i> Applications List</h3>
+            {/* Filter chip row */}
+            <div className="content-card mt-4 p-3">
+                <div className="d-flex flex-wrap gap-2 align-items-center">
+                    <span className="text-white-50 small text-uppercase me-2" style={{ letterSpacing: '0.08em' }}>Status</span>
+                    <FilterChip active={!filters.status} onClick={() => switchFilter({ status: null })}>All</FilterChip>
+                    {['PENDING', 'APPROVED', 'REJECTED', 'DISBURSED'].map((s) => (
+                        <FilterChip key={s} active={filters.status === s}
+                            onClick={() => switchFilter({ status: s })}>
+                            {s}
+                        </FilterChip>
+                    ))}
                 </div>
-                <div className="card-body p-0">
-                    <table className="admin-table-dark">
+                <div className="d-flex flex-wrap gap-2 align-items-center mt-2">
+                    <span className="text-white-50 small text-uppercase me-2" style={{ letterSpacing: '0.08em' }}>Partner</span>
+                    <FilterChip active={!filters.finance_partner_id}
+                        onClick={() => switchFilter({ finance_partner_id: null })}>All</FilterChip>
+                    <FilterChip active={filters.finance_partner_id === 'unrouted'}
+                        onClick={() => switchFilter({ finance_partner_id: 'unrouted' })}>Unrouted</FilterChip>
+                    {finance_partners.map((p) => (
+                        <FilterChip key={p.id} active={String(filters.finance_partner_id) === String(p.id)}
+                            onClick={() => switchFilter({ finance_partner_id: p.id })}
+                            accent={p.theme_accent}>
+                            {p.display_name}
+                        </FilterChip>
+                    ))}
+                </div>
+            </div>
+
+            {/* Applications table */}
+            <div className="content-card mt-4">
+                <div className="card-header d-flex align-items-center gap-2">
+                    <i className="fas fa-list"></i>
+                    <h3>Applications</h3>
+                </div>
+                <div className="table-responsive p-2">
+                    <table className="table table-dark align-middle mb-0">
                         <thead>
                             <tr>
+                                <th>Reference</th>
                                 <th>Applicant</th>
                                 <th>Amount</th>
-                                <th>Budget/Plan</th>
+                                <th>Partner</th>
+                                <th>Budget</th>
                                 <th>Date</th>
                                 <th>Status</th>
                                 <th className="text-end">Actions</th>
@@ -104,55 +119,61 @@ export default function LoanApplications({ loans, stats }) {
                         <tbody>
                             {loans.data.map((loan) => (
                                 <tr key={loan.id}>
+                                    <td className="text-white-50 small">{loan.reference_id}</td>
                                     <td>
                                         <div className="fw-semibold text-white">{loan.user_name}</div>
+                                        {loan.user_email && <div className="text-white-50 small">{loan.user_email}</div>}
                                     </td>
                                     <td>
-                                        <div className="text-white">KES {new Intl.NumberFormat().format(loan.amount)}</div>
-                                        <small className="text-white opacity-50">{loan.interest_rate}% Interest</small>
+                                        <div className="text-white fw-semibold">{formatMoney(loan.amount)}</div>
+                                        {loan.interest_rate != null && (
+                                            <small className="text-white-50">{Number(loan.interest_rate).toFixed(2)}% interest</small>
+                                        )}
                                     </td>
                                     <td>
-                                        <div className="text-white opacity-75">{loan.budget_name}</div>
+                                        {loan.partner ? (
+                                            <PoweredByBadge publisher={loan.partner} variant="chip" />
+                                        ) : (
+                                            <UnroutedPicker loan={loan} partners={finance_partners} onRoute={routeLoan} />
+                                        )}
                                     </td>
-                                    <td className="text-white opacity-75">
-                                        {loan.created_at}
-                                    </td>
+                                    <td className="text-white-50">{loan.budget_reference || '—'}</td>
+                                    <td className="text-white-50">{loan.created_at}</td>
                                     <td>
-                                        <span className={`admin-badge admin-badge-${
-                                            loan.status === 'APPROVED' ? 'green' : 
-                                            loan.status === 'REJECTED' ? 'red' : 
-                                            'amber'}`}>
+                                        <span className={`badge bg-${
+                                            loan.status === 'APPROVED' ? 'success' :
+                                            loan.status === 'REJECTED' ? 'danger' :
+                                            loan.status === 'DISBURSED' ? 'primary' : 'warning'
+                                        }`}>
                                             {loan.status}
                                         </span>
                                     </td>
                                     <td className="text-end">
                                         {loan.status === 'PENDING' && (
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <button 
+                                            <div className="btn-group btn-group-sm">
+                                                <button className="btn btn-outline-success"
                                                     onClick={() => updateStatus(loan.id, 'APPROVED')}
-                                                    disabled={processingId === loan.id}
-                                                    className="btn-admin-outline btn-admin-sm text-success border-success/30"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button 
+                                                    disabled={processingId === loan.id}>Approve</button>
+                                                <button className="btn btn-outline-danger"
                                                     onClick={() => updateStatus(loan.id, 'REJECTED')}
-                                                    disabled={processingId === loan.id}
-                                                    className="btn-admin-outline btn-admin-sm text-danger border-danger/30"
-                                                >
-                                                    Reject
-                                                </button>
+                                                    disabled={processingId === loan.id}>Reject</button>
                                             </div>
+                                        )}
+                                        {loan.status === 'APPROVED' && (
+                                            <button className="btn btn-outline-primary btn-sm"
+                                                onClick={() => updateStatus(loan.id, 'DISBURSED')}
+                                                disabled={processingId === loan.id}>Mark disbursed</button>
                                         )}
                                     </td>
                                 </tr>
                             ))}
                             {loans.data.length === 0 && (
                                 <tr>
-                                    <td colSpan="6">
-                                        <div className="admin-empty-state">
+                                    <td colSpan="8">
+                                        <div className="empty-state">
                                             <i className="fas fa-hand-holding-usd"></i>
-                                            <h4>No loan applications found.</h4>
+                                            <h4>No loan applications match</h4>
+                                            <p>Try widening the filters above.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -162,5 +183,37 @@ export default function LoanApplications({ loans, stats }) {
                 </div>
             </div>
         </AdminLayout>
+    );
+}
+
+function FilterChip({ children, active, onClick, accent }) {
+    const style = active && accent ? { background: accent, borderColor: accent, color: '#fff' } : undefined;
+    return (
+        <button
+            type="button"
+            className={`btn btn-sm ${active ? 'btn-warning' : 'btn-outline-secondary'}`}
+            onClick={onClick}
+            style={style}
+        >
+            {children}
+        </button>
+    );
+}
+
+function UnroutedPicker({ loan, partners, onRoute }) {
+    if (!partners.length) {
+        return <span className="text-white-50 small">— unrouted —</span>;
+    }
+    return (
+        <select
+            className="form-select form-select-sm"
+            defaultValue=""
+            onChange={(e) => e.target.value && onRoute(loan.id, e.target.value)}
+        >
+            <option value="" disabled>Route to…</option>
+            {partners.map((p) => (
+                <option key={p.id} value={p.id}>{p.display_name}</option>
+            ))}
+        </select>
     );
 }

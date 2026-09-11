@@ -271,9 +271,15 @@ export default function PartnerHub({ profile, listings = [] }) {
     );
 }
 
+// Strip the trailing "_partner" (finance_partner, event_organiser also
+// lands here as "Event Organiser") before title-casing so the eyebrow
+// "Official {type} Partner" doesn't produce "Official Finance Partner
+// Partner" for finance_partner.
 function formatPartnerType(t) {
     if (!t) return '';
-    return t.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    return t.replace(/_partner$/i, '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
 /**

@@ -11,6 +11,8 @@ import '../../css/fan/fan-dashboard-header.css';
 import '../../css/fan/dashboard-header-extras.css';
 import '../../css/fan/dashboard-hero.css';
 import '../../css/admin-theme.css';
+import '../../css/admin-approvals.css';
+import '../../css/admin-hub-preview.css';
 
 /**
  * AdminLayout — now a thin wrapper around RoleLayout so the admin

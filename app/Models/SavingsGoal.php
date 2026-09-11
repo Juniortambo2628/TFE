@@ -18,6 +18,7 @@ class SavingsGoal extends Model
         'name',
         'target_amount',
         'current_amount',
+        'currency',
         'target_date',
         'status',
     ];

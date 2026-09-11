@@ -1,6 +1,7 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import HubPreview from '@/Components/Admin/HubPreview';
 import { Link, useForm } from '@inertiajs/react';
 
 /**
@@ -71,9 +72,10 @@ export default function PartnerEdit({ auth, partner, profile, partner_types = {}
             />
 
             <form onSubmit={submit}>
-                <div className="row g-4">
-                    {/* Left: user-side controls */}
-                    <div className="col-lg-4">
+                <div className="partner-edit-grid">
+                    {/* Left column: user-side controls + branded hub content.
+                        Right column: sticky live preview (Sprint 26). */}
+                    <div>
                         <div className="admin-card-dark">
                             <div className="card-header">
                                 <h3><i className="fas fa-user-shield"></i> Partner controls</h3>
@@ -132,11 +134,8 @@ export default function PartnerEdit({ auth, partner, profile, partner_types = {}
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Right: hub content */}
-                    <div className="col-lg-8">
-                        <div className="admin-card-dark">
+                        <div className="admin-card-dark mt-4">
                             <div className="card-header">
                                 <h3><i className="fas fa-store"></i> Branded hub content</h3>
                             </div>
@@ -241,6 +240,16 @@ export default function PartnerEdit({ auth, partner, profile, partner_types = {}
                             </div>
                         </div>
                     </div>
+
+                    {/* Right column — sticky live preview. */}
+                    <div>
+                        <HubPreview
+                            data={data}
+                            partnerName={partner.name}
+                            isVerified={data.verification_status === 'verified'}
+                            partnerTypeLabel={partnerTypeLabelFor(data.partner_type, partner_types)}
+                        />
+                    </div>
                 </div>
 
                 <div className="mt-4 d-flex gap-2">
@@ -260,6 +269,18 @@ export default function PartnerEdit({ auth, partner, profile, partner_types = {}
             </form>
         </AdminLayout>
     );
+}
+
+// Reproduce the PartnerHub.jsx eyebrow rule: strip trailing `_partner`
+// before title-casing so `finance_partner` doesn't become
+// "Finance Partner Partner" once the eyebrow appends " Partner".
+function partnerTypeLabelFor(type, partnerTypes) {
+    if (!type) return 'Partner';
+    const canonical = partnerTypes[type] || type
+        .replace(/_partner$/i, '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (m) => m.toUpperCase());
+    return canonical.replace(/\s*Partner\s*$/i, '') + ' Partner';
 }
 
 function linesToArray(text) {

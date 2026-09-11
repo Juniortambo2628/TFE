@@ -15,6 +15,27 @@ import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
  * .dashboard-header element. There are no inline styles.
  */
 
+// Partner badge is contextual: a finance_partner sees "Finance Partner",
+// a travel_agent sees "Travel Partner", other types fall back to the
+// title-cased partner_type. Non-partner roles keep their base label.
+const PARTNER_TYPE_LABEL = {
+    travel_agent: 'Travel Partner',
+    finance_partner: 'Finance Partner',
+    airline: 'Airline Partner',
+    hotel_provider: 'Hospitality Partner',
+    destination: 'Destination Partner',
+    club: 'Club Partner',
+    federation: 'Federation Partner',
+    event_organiser: 'Event Organiser',
+    sponsor: 'Sponsor',
+};
+
+function resolveRoleLabel(role, base, user) {
+    if (role !== 'partner') return base;
+    const type = user?.partner_type;
+    return PARTNER_TYPE_LABEL[type] || base;
+}
+
 const ROLE_CONFIG = {
     fan: {
         routePrefix: 'fan',
@@ -48,7 +69,10 @@ const ROLE_CONFIG = {
     },
     partner: {
         routePrefix: 'partner',
-        roleBadge: { label: 'Travel Partner', icon: 'fas fa-handshake' },
+        // Base label — the actual role badge is derived from
+        // user.partner_type below so finance partners see "Finance
+        // Partner" rather than the hard-coded "Travel Partner".
+        roleBadge: { label: 'Partner', icon: 'fas fa-handshake' },
         navLinks: [],
         profileLinks: [
             { label: 'Dashboard', icon: 'fas fa-home', route: 'partner.dashboard' },
@@ -137,7 +161,7 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                 {config.roleBadge && (
                     <span className="dash-badge">
                         <i className={config.roleBadge.icon}></i>
-                        {config.roleBadge.label}
+                        {resolveRoleLabel(role, config.roleBadge.label, user)}
                     </span>
                 )}
 

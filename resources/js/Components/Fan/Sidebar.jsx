@@ -12,6 +12,7 @@ export default function FanSidebar({ user }) {
         { label: 'Match Schedule', icon: 'fas fa-calendar-check', route: 'fan.match-schedule', path: '/fan/match-schedule' },
         { label: 'Messages', icon: 'fas fa-comments', route: 'fan.communication', path: '/fan/communication' },
         { label: 'Payments', icon: 'fas fa-credit-card', route: 'fan.payments', path: '/fan/payments' },
+        { label: 'Financing', icon: 'fas fa-hand-holding-usd', route: 'fan.loan-applications', path: '/fan/loan-applications' },
         { label: 'Security', icon: 'fas fa-shield-alt', route: 'fan.security', path: '/fan/security' },
         { label: 'Contact Support', icon: 'fas fa-headset', route: 'fan.contact', path: '/fan/contact' },
         { label: 'Social', icon: 'fas fa-users', route: 'fan.feed', path: '/fan/feed', mobileOnly: true },

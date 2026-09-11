@@ -9,9 +9,10 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import FanTutorial from '@/Components/Fan/FanTutorial';
 import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
+import ActiveLoanTile from '@/Components/Fan/ActiveLoanTile';
 import { formatMoney } from '@/lib/utils';
 
-export default function Dashboard({ auth, activeBudget, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
+export default function Dashboard({ auth, activeBudget, activeLoan = null, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
     const { tournament, switchTournament } = useTournament();
 
     const tutorialSteps = [
@@ -241,7 +242,7 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                     subtext="Confirmed"
                 />
                 
-                <StatCard 
+                <StatCard
                     label="Joined Tribes"
                     value={`${stats.joined_tribes_count || 0} ${stats.joined_tribes_count === 1 ? 'COMMUNITY' : 'COMMUNITIES'}`}
                     icon="fa-users"
@@ -249,6 +250,10 @@ export default function Dashboard({ auth, activeBudget, stats, recentPayments, r
                     subtext="Active Communities"
                 />
             </div>
+
+            {/* Sprint 16 — active-loan tile. Only renders when the fan has
+                an in-flight application; falls back gracefully otherwise. */}
+            {activeLoan && <ActiveLoanTile loan={activeLoan} />}
 
                 {/* Suggested Matches Section */}
                 {(() => {

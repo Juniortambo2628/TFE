@@ -2,23 +2,43 @@ import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import StatCard from '@/Components/Common/StatCard';
+import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
-export default function LoanApplications({ auth, loans }) {
+/**
+ * Fan-side "My Financing" surface — Sprint 15.
+ *
+ * Shows a fan every loan application they've submitted, who
+ * underwrote it, the current status with a timeline chip, and the
+ * interest terms once approved. New applications route to a
+ * finance partner from the picker; without any finance partner
+ * available the CTA is disabled and the empty state explains why.
+ */
+export default function LoanApplications({ auth, loans = [], financePartners = [], stats = {} }) {
     const { tournament } = useTournament();
-    const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ amount: '', purpose: '', notes: '' });
+    const hasPartners = financePartners.length > 0;
+    const [expanded, setExpanded] = useState(false);
+    const [form, setForm] = useState({
+        amount: '',
+        purpose: '',
+        notes: '',
+        finance_partner_id: financePartners[0]?.id || '',
+    });
     const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const submit = (e) => {
         e.preventDefault();
         setProcessing(true);
+        setErrors({});
         router.post(route('fan.loan-applications.store'), form, {
             onFinish: () => setProcessing(false),
+            onError: (errs) => setErrors(errs),
             onSuccess: () => {
-                setForm({ amount: '', purpose: '', notes: '' });
-                setShowForm(false);
+                setForm({ amount: '', purpose: '', notes: '', finance_partner_id: financePartners[0]?.id || '' });
+                setExpanded(false);
             },
         });
     };
@@ -29,107 +49,282 @@ export default function LoanApplications({ auth, loans }) {
         }
     };
 
-    const statusColor = (status) => {
-        switch (status) {
-            case 'PENDING': return 'bg-yellow-500/10 text-yellow-500';
-            case 'APPROVED': return 'bg-green-500/10 text-green-500';
-            case 'REJECTED': return 'bg-red-500/10 text-red-500';
-            case 'DISBURSED': return 'bg-blue-500/10 text-blue-500';
-            default: return 'bg-white/10 text-white/60';
-        }
-    };
+    return (
+        <FanLayout title="Financing">
+            <Head title="Financing" />
+
+            <DashboardHero
+                role="fan"
+                title="My financing"
+                subtitle={`Track loan applications you've submitted for your ${tournament?.short_name || 'tournament'} trip.`}
+                breadcrumbs={[
+                    { label: 'Wallet', href: route('fan.wallet') },
+                    { label: 'Financing' },
+                ]}
+            />
+
+            <div className="summary-cards-grid">
+                <StatCard
+                    label="Applications"
+                    value={stats.total ?? 0}
+                    icon="fa-file-invoice-dollar"
+                    variant="red"
+                    subtext={`${stats.pending ?? 0} pending`}
+                />
+                <StatCard
+                    label="Approved"
+                    value={formatMoney(stats.approved_amount ?? 0, 'USD')}
+                    icon="fa-check-circle"
+                    variant="blue"
+                    subtext="Underwritten so far"
+                />
+                <StatCard
+                    label="Disbursed"
+                    value={formatMoney(stats.disbursed_amount ?? 0, 'USD')}
+                    icon="fa-hand-holding-usd"
+                    variant="blue"
+                    subtext="Landed in your account"
+                />
+                <StatCard
+                    label="Partners available"
+                    value={financePartners.length}
+                    icon="fa-university"
+                    variant="red"
+                    subtext="Verified finance partners"
+                />
+            </div>
+
+            <div className="content-card mt-4 p-4">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                    <div className="d-flex align-items-center gap-2">
+                        <i className="fas fa-hand-holding-usd"></i>
+                        <h3>Apply for financing</h3>
+                    </div>
+                    {!expanded && (
+                        <button
+                            onClick={() => setExpanded(true)}
+                            disabled={!hasPartners}
+                            className="btn btn-warning"
+                        >
+                            <i className="fas fa-plus me-2"></i>
+                            New application
+                        </button>
+                    )}
+                </div>
+
+                {!hasPartners && !expanded && (
+                    <p className="text-white-50 mt-3 mb-0">
+                        No finance partners are onboarded yet — check back soon or apply through the
+                        Budget Calculator once a partner is available for your tournament.
+                    </p>
+                )}
+
+                {expanded && (
+                    <form onSubmit={submit} className="mt-3">
+                        {financePartners.length > 1 && (
+                            <div className="mb-3">
+                                <div className="text-white-50 small text-uppercase mb-2" style={{ letterSpacing: '0.08em' }}>
+                                    Route to
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {financePartners.map((p) => (
+                                        <button
+                                            type="button"
+                                            key={p.id}
+                                            onClick={() => setForm({ ...form, finance_partner_id: p.id })}
+                                            className={`fan-partner-chip${form.finance_partner_id === p.id ? ' is-active' : ''}`}
+                                            style={{ '--partner-accent': p.theme_accent || '#0072CE' }}
+                                        >
+                                            {p.logo_url ? (
+                                                <img src={p.logo_url} alt={p.display_name} />
+                                            ) : (
+                                                <span className="fan-partner-chip__fallback">{p.display_name.charAt(0)}</span>
+                                            )}
+                                            <span>{p.display_name}</span>
+                                            {p.verified && <i className="fas fa-check-circle text-success"></i>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <label className="form-label text-white-50">Amount (USD)</label>
+                                <input
+                                    type="number"
+                                    min="1000"
+                                    value={form.amount}
+                                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                                    className="form-control"
+                                    placeholder="e.g. 3500"
+                                    required
+                                />
+                                {errors.amount && <div className="text-danger small mt-1">{errors.amount}</div>}
+                            </div>
+                            <div className="col-md-8">
+                                <label className="form-label text-white-50">Purpose</label>
+                                <input
+                                    type="text"
+                                    value={form.purpose}
+                                    onChange={(e) => setForm({ ...form, purpose: e.target.value })}
+                                    className="form-control"
+                                    placeholder={`e.g. ${tournament?.short_name || 'Tournament'} travel funding`}
+                                    required
+                                />
+                                {errors.purpose && <div className="text-danger small mt-1">{errors.purpose}</div>}
+                            </div>
+                            <div className="col-12">
+                                <label className="form-label text-white-50">Additional notes (optional)</label>
+                                <textarea
+                                    value={form.notes}
+                                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="Anything the underwriter should know?"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button
+                                type="button"
+                                onClick={() => setExpanded(false)}
+                                className="btn btn-outline-secondary"
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" disabled={processing || !form.finance_partner_id} className="btn btn-warning">
+                                <i className="fas fa-paper-plane me-2"></i>
+                                {processing ? 'Submitting…' : 'Submit application'}
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </div>
+
+            <div className="content-card mt-4 p-4">
+                <div className="card-header d-flex align-items-center gap-2">
+                    <i className="fas fa-list-check"></i>
+                    <h3>My applications</h3>
+                </div>
+
+                {loans.length === 0 ? (
+                    <FinancingEmptyState hasPartners={hasPartners} />
+                ) : (
+                    <div className="loan-list mt-3">
+                        {loans.map((loan) => <LoanRow key={loan.id} loan={loan} onWithdraw={withdraw} />)}
+                    </div>
+                )}
+            </div>
+        </FanLayout>
+    );
+}
+
+function FinancingEmptyState({ hasPartners }) {
+    if (!hasPartners) {
+        return (
+            <div className="empty-state financing-empty">
+                <i className="fas fa-university"></i>
+                <h4>No finance partners onboarded yet</h4>
+                <p>
+                    We're bringing verified banks and lenders onto the platform. As soon as one
+                    is available for your tournament, you'll see them here and on the budget
+                    calculator.
+                </p>
+            </div>
+        );
+    }
 
     return (
-        <FanLayout user={auth.user} header="Loan Applications">
-            <Head title="Loan Applications" />
+        <div className="financing-empty financing-empty--pitch">
+            <div className="financing-empty__glyph">
+                <i className="fas fa-hand-holding-usd"></i>
+            </div>
+            <div className="financing-empty__body">
+                <h4>Finance the whole trip in one step</h4>
+                <p>
+                    Build your itinerary in the budget calculator — matches, hotels, flights —
+                    then apply for financing against the total, right on the results screen.
+                    Underwriters see the full picture and can decide faster.
+                </p>
+                <div className="financing-empty__actions">
+                    <Link href={route('fan.budget-calculator')} className="btn btn-warning">
+                        <i className="fas fa-calculator me-2"></i>
+                        Open the budget calculator
+                    </Link>
+                    <span className="financing-empty__or">or apply directly above</span>
+                </div>
+            </div>
+        </div>
+    );
+}
 
-            <div className="pb-12">
-                <DashboardHero role="fan"
-                    title="Loan Applications"
-                    subtitle={`Apply for funding for your ${tournament?.short_name || 'tournament'} trip.`}
-                    breadcrumbs={[{ label: 'Wallet', href: route('fan.wallet') }, { label: 'Loans' }]}
-                    bgImage="/assets/img/fan/backgrounds/payments_hero.png"
-                />
+const STAGES = ['PENDING', 'APPROVED', 'DISBURSED'];
 
-                <div className="container px-4 mx-auto -mt-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-white">My Applications</h2>
-                        <button onClick={() => setShowForm(!showForm)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
-                            <i className="fas fa-plus mr-2"></i>New Application
+function LoanRow({ loan, onWithdraw }) {
+    const activeIdx = STAGES.indexOf(loan.status);
+    const rejected = loan.status === 'REJECTED';
+
+    return (
+        <div className="loan-row">
+            <div className="loan-row__head">
+                <div>
+                    <div className="loan-row__ref">{loan.reference_id}</div>
+                    <div className="loan-row__amount">{formatMoney(loan.amount, 'USD')}</div>
+                    {loan.purpose && <div className="loan-row__purpose">{loan.purpose}</div>}
+                </div>
+                <div className="loan-row__meta">
+                    <span className={`loan-status loan-status--${loan.status.toLowerCase()}`}>{loan.status}</span>
+                    {loan.status === 'PENDING' && (
+                        <button className="btn btn-sm btn-link text-danger p-0" onClick={() => onWithdraw(loan.id)}>
+                            Withdraw
                         </button>
-                    </div>
-
-                    {showForm && (
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 mb-8">
-                            <h3 className="text-lg font-bold text-white mb-4">Apply for Funding</h3>
-                            <form onSubmit={submit} className="space-y-4">
-                                <div>
-                                    <label className="block text-white/60 text-sm mb-1">Amount (₦)</label>
-                                    <input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        placeholder="e.g. 200000" required min="1000" />
-                                </div>
-                                <div>
-                                    <label className="block text-white/60 text-sm mb-1">Purpose</label>
-                                    <input type="text" value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        placeholder={`e.g. ${tournament?.short_name || 'Tournament'} travel funding`} required />
-                                </div>
-                                <div>
-                                    <label className="block text-white/60 text-sm mb-1">Additional Notes (optional)</label>
-                                    <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        rows="3" placeholder="Any additional information..." />
-                                </div>
-                                <div className="flex gap-3">
-                                    <button type="submit" disabled={processing}
-                                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-                                        {processing ? 'Submitting...' : 'Submit Application'}
-                                    </button>
-                                    <button type="button" onClick={() => setShowForm(false)}
-                                        className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    )}
-
-                    {loans.length === 0 ? (
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-12 text-center">
-                            <i className="fas fa-file-invoice-dollar text-4xl text-white/20 mb-4"></i>
-                            <p className="text-white/60">No loan applications yet.</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {loans.map(loan => (
-                                <div key={loan.id} className="bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <p className="text-white font-semibold text-lg">{formatMoney(loan.amount)}</p>
-                                            <p className="text-white/60 text-sm mt-1">{loan.purpose}</p>
-                                            {loan.notes && <p className="text-white/40 text-xs mt-1">{loan.notes}</p>}
-                                            <p className="text-white/40 text-xs mt-2">Applied {new Date(loan.created_at).toLocaleDateString()}</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColor(loan.status)}`}>
-                                                {loan.status}
-                                            </span>
-                                            {loan.status === 'PENDING' && (
-                                                <button onClick={() => withdraw(loan.id)}
-                                                    className="text-red-400 hover:text-red-300 text-sm">
-                                                    <i className="fas fa-times"></i>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
                     )}
                 </div>
             </div>
-        </FanLayout>
+
+            {loan.partner && (
+                <div className="loan-row__partner">
+                    <PoweredByBadge publisher={loan.partner} variant="chip" />
+                </div>
+            )}
+
+            {!rejected && (
+                <div className="loan-timeline">
+                    {STAGES.map((stage, i) => (
+                        <div
+                            key={stage}
+                            className={`loan-timeline__step${i <= activeIdx ? ' is-done' : ''}${i === activeIdx ? ' is-current' : ''}`}
+                        >
+                            <span className="loan-timeline__dot"></span>
+                            <span className="loan-timeline__label">{stage}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <div className="loan-row__facts">
+                {loan.budget && (
+                    <span>
+                        <i className="fas fa-file-invoice me-1"></i>
+                        Attached to {loan.budget.reference_id} (
+                        {formatMoney(loan.budget.total_cost, loan.budget.currency || 'USD')}
+                        {loan.budget.nights ? ` · ${loan.budget.nights} nights` : ''}
+                        )
+                    </span>
+                )}
+                {loan.interest_rate != null && (
+                    <span><i className="fas fa-percent me-1"></i>{Number(loan.interest_rate).toFixed(2)}% interest</span>
+                )}
+                <span><i className="far fa-calendar me-1"></i>Applied {new Date(loan.created_at).toLocaleDateString()}</span>
+            </div>
+
+            {loan.notes && (
+                <div className="loan-row__notes">
+                    <strong>Notes:</strong> {loan.notes}
+                </div>
+            )}
+        </div>
     );
 }

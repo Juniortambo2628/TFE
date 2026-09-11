@@ -5,6 +5,12 @@
 /* Sprint 14 — finance-partner CTA on the BudgetCalculator result view. */
 @import "./finance-cta.css";
 
+/* Sprint 15 — fan "My Financing" surface. */
+@import "./loan-applications.css";
+
+/* Sprint 16 — active-loan tile on the Fan Dashboard. */
+@import "./active-loan-tile.css";
+
 /* ==========================================================================
    FAN _SHARED — extracted primitives for the fan dashboard.
    Purpose: give the recurring "glass card" / "summary grid" / "card header"

@@ -1,0 +1,292 @@
+/**
+ * Fan "My Financing" surface — Sprint 15.
+ *
+ * Loan row layout with a compact status timeline. Each row optionally
+ * shows the partner brand via PoweredByBadge (chip variant).
+ * Sprint 21 added the warm empty state below.
+ */
+
+/* ── Empty state variants ────────────────────────────────────── */
+
+.financing-empty {
+    padding: 2rem 1.5rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.financing-empty i {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.financing-empty--pitch {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.75rem 1.5rem;
+    background:
+        linear-gradient(135deg, rgba(0, 114, 206, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border: 1px solid rgba(0, 114, 206, 0.35);
+    border-radius: 16px;
+    text-align: left;
+}
+
+.financing-empty__glyph {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: rgba(0, 114, 206, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+    font-size: 1.6rem;
+}
+
+.financing-empty__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.financing-empty__body h4 {
+    color: #fff;
+    font-size: 1.15rem;
+    margin: 0 0 0.35rem;
+}
+
+.financing-empty__body p {
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.55;
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+    max-width: 600px;
+}
+
+.financing-empty__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.financing-empty__or {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+    .financing-empty--pitch { flex-direction: column; text-align: center; }
+    .financing-empty__actions { justify-content: center; }
+}
+
+.loan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.loan-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+}
+
+.loan-row__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.loan-row__ref {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.loan-row__amount {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin-top: 0.15rem;
+}
+
+.loan-row__purpose {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.25rem;
+}
+
+.loan-row__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.loan-row__partner {
+    display: flex;
+}
+
+/* ── Status pill ─────────────────────────────────────────────── */
+
+.loan-status {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.loan-status--pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+.loan-status--approved {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+.loan-status--disbursed {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+.loan-status--rejected {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* ── Compact status timeline ─────────────────────────────────── */
+
+.loan-timeline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.25rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+}
+
+.loan-timeline__step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+}
+
+.loan-timeline__step + .loan-timeline__step {
+    position: relative;
+}
+
+.loan-timeline__step + .loan-timeline__step::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    margin-right: 0.25rem;
+}
+
+.loan-timeline__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid transparent;
+}
+
+.loan-timeline__step.is-done {
+    color: rgba(16, 185, 129, 0.9);
+}
+
+.loan-timeline__step.is-done .loan-timeline__dot {
+    background: #10b981;
+}
+
+.loan-timeline__step.is-current {
+    color: #fff;
+}
+
+.loan-timeline__step.is-current .loan-timeline__dot {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+
+/* ── Facts row (budget + interest + date) ────────────────────── */
+
+.loan-row__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.8rem;
+}
+
+.loan-row__notes {
+    padding: 0.6rem 0.75rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* ── Partner picker chip on the form ─────────────────────────── */
+
+.fan-partner-chip {
+    --partner-accent: #0072CE;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fan-partner-chip img,
+.fan-partner-chip__fallback {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: #fff;
+    object-fit: contain;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--partner-accent);
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
+.fan-partner-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.fan-partner-chip.is-active {
+    background: color-mix(in srgb, var(--partner-accent) 20%, transparent);
+    border-color: var(--partner-accent);
+}

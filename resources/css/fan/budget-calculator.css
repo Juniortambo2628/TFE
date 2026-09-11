@@ -59,6 +59,36 @@
     color: #dc143c;
 }
 
+/* Sprint 28 — the multicurrency picker sits inside the hero stats
+   band so it reads as a first-class dimension of the estimate. Match
+   the surrounding stat-value height so the row stays aligned. */
+.hero-stat-item.currency-picker {
+    align-items: stretch;
+}
+
+.calc-currency-select {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #fff;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 190px;
+}
+
+.calc-currency-select:focus {
+    outline: none;
+    border-color: #dc143c;
+    box-shadow: 0 0 0 2px rgba(220, 20, 60, 0.25);
+}
+
+.calc-currency-select option {
+    background: #111;
+    color: #fff;
+}
+
 .btn-hero-action {
     background: rgba(220, 20, 60, 0.1);
     color: #dc143c;

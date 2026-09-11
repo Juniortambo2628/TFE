@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getExchangeRate, getSpendingTiers, getVisaCosts, getInsuranceDaily, getMerchandisePerMatch } from '@/Data/BudgetPricingData';
+import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getRateForCurrency, getSpendingTiers, getVisaCosts, getInsuranceDaily, getMerchandisePerMatch, SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
+import { formatMoney } from '@/lib/utils';
 import MatchCard from '@/Components/Fan/MatchCard';
 import FlightSelector from '@/Components/Fan/FlightSelector';
 import HotelSelector from '@/Components/Fan/HotelSelector';
@@ -45,7 +46,12 @@ export default function BudgetCalculator({
     const fixturesLoading = !fixtureBundle;
     const { tournament } = useTournament();
     const tournamentPricing = rawPricing;
-    const [usdToKes, setUsdToKes] = useState(getExchangeRate(tournamentPricing));
+    // Sprint 28 — fan-selected display currency. USD is the platform
+    // baseline and the currency the calculator engine computes in;
+    // `estimatedCost` and every `breakdown` value are stored in
+    // whatever `currency` says. Change the picker → recompute.
+    const [currency, setCurrency] = useState(budgetToEdit?.currency || 'USD');
+    const rate = getRateForCurrency(tournamentPricing, currency);
     // Wizard State — start at step 0 (package picker) so fans see the
     // fast-path prepacked options before building custom. budgetToEdit
     // and the ?match= deep link skip past it (handled below).
@@ -381,16 +387,22 @@ export default function BudgetCalculator({
             .then(res => {
                 if (res.data?.success && res.data.data) {
                     const d = res.data.data;
-                    setUsdToKes(d.summary.exchange_rate);
-                    const kesBreakdown = {};
+                    // The server still speaks KES. Round-trip through USD so
+                    // the fan's currency pick controls the display —
+                    // usd = kes_value / server_kes_rate; display = usd * our_rate.
+                    const serverKesRate = d.summary.exchange_rate || 1;
+                    const targetRate = getRateForCurrency(tournamentPricing, currency);
+                    const convert = (kes) => (kes / serverKesRate) * targetRate;
+                    const displayBreakdown = {};
                     Object.entries(d.breakdown).forEach(([key, val]) => {
-                        kesBreakdown[key] = val.kes;
+                        displayBreakdown[key] = convert(val.kes);
                     });
-                    setBreakdown(kesBreakdown);
-                    setEstimatedCost(d.summary.total_kes);
+                    const displayTotal = convert(d.summary.total_kes);
+                    setBreakdown(displayBreakdown);
+                    setEstimatedCost(displayTotal);
                     setLoading(false);
                     setShowResults(true);
-                    trackUsage(apiParams.match_count, d.summary.total_kes);
+                    trackUsage(apiParams.match_count, displayTotal);
                 } else {
                     throw new Error('API returned failure');
                 }
@@ -408,7 +420,9 @@ export default function BudgetCalculator({
         const BASE_COSTS = getDailyCosts(tournamentPricing);
         const TICKET_PRICES = getTicketPrices(tournamentPricing);
         const ACCOMMODATION_FACTORS = getAccommodationFactors(tournamentPricing);
-        const EXCHANGE_RATE = getExchangeRate(tournamentPricing);
+        // The engine computes in USD; the fan's currency pick converts
+        // once at the end. See Sprint 28.
+        const RATE = getRateForCurrency(tournamentPricing, currency);
         const SPENDING_TIERS = getSpendingTiers(tournamentPricing);
         const VISA_COSTS = getVisaCosts(tournamentPricing);
         const INSURANCE_DAILY = getInsuranceDaily(tournamentPricing);
@@ -486,24 +500,23 @@ export default function BudgetCalculator({
         const merchCost = MERCH_PER_MATCH * matchCount;
         const perPersonUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost + insuranceCost + merchCost;
         const totalGroupUSD = (perPersonUSD * travelGroupSize) + visaCost;
-        const totalKES = totalGroupUSD * EXCHANGE_RATE;
+        const totalDisplay = totalGroupUSD * RATE;
 
-        setUsdToKes(EXCHANGE_RATE);
         setBreakdown({
-            match_tickets: totalTicketCost * travelGroupSize * EXCHANGE_RATE,
-            flights: flightCost * travelGroupSize * EXCHANGE_RATE,
-            accommodation: accommodationCost * travelGroupSize * EXCHANGE_RATE,
-            food_and_drink: foodCost * travelGroupSize * EXCHANGE_RATE,
-            local_transport: transportCost * travelGroupSize * EXCHANGE_RATE,
-            insurance: insuranceCost * travelGroupSize * EXCHANGE_RATE,
-            visa: visaCost * EXCHANGE_RATE,
-            merchandise: merchCost * travelGroupSize * EXCHANGE_RATE,
-            miscellaneous: miscCost * travelGroupSize * EXCHANGE_RATE,
+            match_tickets: totalTicketCost * travelGroupSize * RATE,
+            flights: flightCost * travelGroupSize * RATE,
+            accommodation: accommodationCost * travelGroupSize * RATE,
+            food_and_drink: foodCost * travelGroupSize * RATE,
+            local_transport: transportCost * travelGroupSize * RATE,
+            insurance: insuranceCost * travelGroupSize * RATE,
+            visa: visaCost * RATE,
+            merchandise: merchCost * travelGroupSize * RATE,
+            miscellaneous: miscCost * travelGroupSize * RATE,
         });
-        setEstimatedCost(totalKES);
+        setEstimatedCost(totalDisplay);
         setLoading(false);
         setShowResults(true);
-        trackUsage(matchCount, totalKES);
+        trackUsage(matchCount, totalDisplay);
     };
 
     const trackUsage = (matchCount, costKes) => {
@@ -537,6 +550,11 @@ export default function BudgetCalculator({
             id: budgetToEdit ? budgetToEdit.id : null,
             name: name,
             total_cost: estimatedCost,
+            // Sprint 28 — everything in `breakdown` and `total_cost` is
+            // expressed in this currency, so downstream surfaces (saved
+            // itineraries, loan applications, admin queue) can display
+            // the same amount the fan saw at Save time.
+            currency: currency,
             match_ids: selectedMatchIds,
             accommodation_level: accommodation,
             flight_class: flightClass,
@@ -639,6 +657,9 @@ export default function BudgetCalculator({
     // Load saved budget
     const loadBudget = (budget) => {
         setEstimatedCost(Number(budget.total_cost));
+        // Sprint 28 — restore the currency the saved budget was built in
+        // so the reopened plan matches the amount the fan saved.
+        if (budget.currency) setCurrency(budget.currency);
         setSelectedMatchIds(budget.match_ids || []);
         setAccommodation(budget.accommodation_level);
         setFlightClass(budget.flight_class);
@@ -735,7 +756,7 @@ export default function BudgetCalculator({
                                                 <div>
                                                     <div className="item-title">{budget.name}</div>
                                                     <div className="item-meta">
-                                                        KES {formatNumber(budget.total_cost)} • {budget.nights} Nights
+                                                        {formatMoney(budget.total_cost, budget.currency || 'USD')} • {budget.nights} Nights
                                                     </div>
                                                 </div>
                                                 <span className={`badge ${
@@ -770,7 +791,7 @@ export default function BudgetCalculator({
                                 </p>
                                 {savedBudgets.find(b => b.is_active).partner_cost && (
                                     <div className="mt-2 text-warning font-bold">
-                                        Partner Estimate: KES {formatNumber(savedBudgets.find(b => b.is_active).partner_cost)}
+                                        Partner Estimate: {formatMoney(savedBudgets.find(b => b.is_active).partner_cost, savedBudgets.find(b => b.is_active).currency || currency)}
                                     </div>
                                 )}
                             </div>
@@ -788,7 +809,7 @@ export default function BudgetCalculator({
                     <div className="hero-stats dash-flex dash-gap-xl">
                         <div className="hero-stat-item">
                             <span className="stat-label">Estimated Cost</span>
-                            <span className="stat-value">KES {formatNumber(estimatedCost)}</span>
+                            <span className="stat-value">{formatMoney(estimatedCost, currency)}</span>
                         </div>
                         <div className="hero-stat-item">
                             <span className="stat-label">Matches</span>
@@ -797,6 +818,37 @@ export default function BudgetCalculator({
                         <div className="hero-stat-item">
                             <span className="stat-label">Days</span>
                             <span className="stat-value">{nights}</span>
+                        </div>
+                        <div className="hero-stat-item currency-picker">
+                            <label htmlFor="calc-currency" className="stat-label">Currency</label>
+                            <select
+                                id="calc-currency"
+                                className="calc-currency-select"
+                                value={currency}
+                                onChange={(e) => {
+                                    const next = e.target.value;
+                                    const oldRate = getRateForCurrency(tournamentPricing, currency) || 1;
+                                    const newRate = getRateForCurrency(tournamentPricing, next);
+                                    // Re-scale the already-computed total + breakdown so switching
+                                    // currency updates the display without re-running the wizard.
+                                    // (Recalculate() only runs when the fan hits Calculate; the
+                                    // picker should stay live between calculations too.)
+                                    const scale = newRate / oldRate;
+                                    setEstimatedCost((c) => c * scale);
+                                    setBreakdown((b) => {
+                                        const out = {};
+                                        for (const k of Object.keys(b || {})) out[k] = (b[k] || 0) * scale;
+                                        return out;
+                                    });
+                                    setCurrency(next);
+                                }}
+                            >
+                                {SUPPORTED_CURRENCIES.map((c) => (
+                                    <option key={c.code} value={c.code}>
+                                        {c.code} — {c.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                 </DashboardHero>
@@ -1186,15 +1238,15 @@ export default function BudgetCalculator({
                                         <i className="fas fa-certificate me-2"></i>PARTNER REVISED PROPOSAL
                                     </div>
                                     <h2 className="text-yellow-500 mb-1" style={{ fontSize: '2.5rem', fontWeight: '800' }}>
-                                        KES {formatNumber(budgetToEdit.partner_cost)}
+                                        {formatMoney(budgetToEdit.partner_cost, budgetToEdit.currency || currency)}
                                     </h2>
                                     <p className="text-white-50 small">
-                                        Your Estimate: <span className="text-decoration-line-through">KES {formatNumber(estimatedCost)}</span>
+                                        Your Estimate: <span className="text-decoration-line-through">{formatMoney(estimatedCost, currency)}</span>
                                     </p>
                                 </div>
                             ) : (
                                 <>
-                                    <h2>KES {formatNumber(estimatedCost)}</h2>
+                                    <h2>{formatMoney(estimatedCost, currency)}</h2>
                                     <p>Estimated total for {selectedMatchIds.length} matches, {nights} days</p>
                                 </>
                             )}
@@ -1235,7 +1287,7 @@ export default function BudgetCalculator({
                                             <i className={`fas ${cat.icon}`}></i> {cat.label}
                                         </div>
                                         <div className="accordion-right">
-                                            <div className="accordion-cost">KES {formatNumber(breakdown[cat.key] || 0)}</div>
+                                            <div className="accordion-cost">{formatMoney(breakdown[cat.key] || 0, currency)}</div>
                                             <i className={`fas fa-chevron-down accordion-icon ${activeAccordion === cat.key ? 'rotated' : ''}`}></i>
                                         </div>
                                     </div>
@@ -1249,19 +1301,23 @@ export default function BudgetCalculator({
                         </div>
 
                         <CostScenarioChart
-                            currentTotalKes={estimatedCost}
+                            currentTotal={estimatedCost}
                             matchCount={selectedMatchIds.length || 1}
                             nights={nights}
                             accommodation={accommodation}
                             pricing={tournamentPricing}
+                            currency={currency}
                         />
 
                         {/* Sprint 14 — finance-partner CTA. Only renders
                             when there is at least one verified public
                             finance partner AND the running total is > 0. */}
+                        {/* Loans are stored in USD on the backend, so convert
+                            the display total back to USD before the finance
+                            partner sees a suggested amount. */}
                         <FinanceThisTrip
                             financePartners={financePartners}
-                            budgetTotal={estimatedCost}
+                            budgetTotal={estimatedCost / (rate || 1)}
                             budgetId={savedBudgets.find((b) => b.is_active)?.id || null}
                         />
 

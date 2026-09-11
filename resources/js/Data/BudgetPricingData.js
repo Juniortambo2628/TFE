@@ -4,11 +4,16 @@
  * Transforms tournament-scoped pricing from the backend (config/tournaments.php)
  * into the shapes the calculator components expect. Falls back to WC2026 defaults
  * if the tournament has no pricing data.
+ *
+ * Sprint 28 — currency is picked at display time. The calculator engine
+ * still computes every line item in USD (the platform baseline); we
+ * convert once at render using EXCHANGE_RATES below. A tournament
+ * config may override any rate via `pricing.exchange_rates`.
  */
 
 const FALLBACK = {
     currency: 'USD',
-    exchange_rate: 130,
+    exchange_rate: 130, // legacy: kept so old callers of getExchangeRate() still resolve KES
     surge_rates: {
         'Group Stage': 1.0, 'Round of 32': 1.1, 'Round of 16': 1.15,
         'Quarter-finals': 1.25, 'Semi-finals': 1.5, 'Third Place': 1.2, 'Final': 2.0,
@@ -35,6 +40,30 @@ const FALLBACK = {
         hostel: 0.4, airbnb: 0.8, '3_star': 1.0, '4_star': 1.6, '5_star': 2.5, resort: 3.5,
     },
 };
+
+// USD is the base — one dollar is worth this many units of each
+// listed currency. Static reference rates good enough for a planning
+// tool; a tournament config can override with pricing.exchange_rates.
+export const EXCHANGE_RATES = {
+    USD: 1,
+    EUR: 0.92,
+    GBP: 0.79,
+    KES: 130,
+    ZAR: 18.5,
+    NGN: 1600,
+    XOF: 605, // West African CFA
+};
+
+// Every currency the picker shows. Order determines the picker order.
+export const SUPPORTED_CURRENCIES = [
+    { code: 'USD', label: 'US Dollar', symbol: '$' },
+    { code: 'EUR', label: 'Euro', symbol: '€' },
+    { code: 'GBP', label: 'Pound Sterling', symbol: '£' },
+    { code: 'KES', label: 'Kenyan Shilling', symbol: 'KSh' },
+    { code: 'ZAR', label: 'South African Rand', symbol: 'R' },
+    { code: 'NGN', label: 'Nigerian Naira', symbol: '₦' },
+    { code: 'XOF', label: 'CFA Franc (BCEAO)', symbol: 'CFA' },
+];
 
 function merge(base, override) {
     if (!override || typeof override !== 'object') return { ...base };
@@ -88,9 +117,30 @@ export function getAccommodationFactors(pricing) {
     return pricing?.accommodation || FALLBACK.accommodation;
 }
 
-/** Get the exchange rate to KES. */
+/**
+ * Legacy USD→KES rate helper.
+ *
+ * Kept so tournament configs that ship a single `exchange_rate` still
+ * hydrate KES correctly. New code should use `getRateForCurrency`.
+ */
 export function getExchangeRate(pricing) {
     return pricing?.exchange_rate ?? FALLBACK.exchange_rate;
+}
+
+/**
+ * How many units of `currency` one USD is worth for this tournament.
+ * A tournament may override individual rates via
+ * `pricing.exchange_rates[CODE]`; otherwise falls back to the static
+ * EXCHANGE_RATES table. Unknown code → 1 (treat as USD) so a bad
+ * upstream never zeroes the display.
+ */
+export function getRateForCurrency(pricing, currency = 'USD') {
+    const code = (currency || 'USD').toUpperCase();
+    const override = pricing?.exchange_rates?.[code];
+    if (override && Number.isFinite(Number(override))) {
+        return Number(override);
+    }
+    return EXCHANGE_RATES[code] ?? 1;
 }
 
 /** Get spending tier multipliers. */

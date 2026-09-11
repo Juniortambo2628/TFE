@@ -6,11 +6,20 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
 import WeatherCard from '@/Components/Fan/WeatherCard';
+import { formatMoney } from '@/lib/utils';
 
 export default function Journey({ auth, paymentData, activeBudget, weather = undefined }) {
     const { tournament } = useTournament();
     const { totalBookings, totalPaid, totalDue, bookings, paymentSchedules } = paymentData;
     const progress = totalPaid + totalDue > 0 ? Math.round((totalPaid / (totalPaid + totalDue)) * 100) : 0;
+    // Sprint 29 — the aggregate tiles (Total Paid / Pending) sum across
+    // every booking; if a fan has bookings in different currencies the
+    // sum is only meaningful when they all agree, so we display the
+    // most-common currency and fall back to the active budget's or USD.
+    const primaryCurrency =
+        bookings?.[0]?.currency ||
+        activeBudget?.currency ||
+        'USD';
 
     const [timeLeft, setTimeLeft] = React.useState({});
     const [itineraryToConfirm, setItineraryToConfirm] = React.useState(null);
@@ -80,7 +89,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                 <i className="fas fa-credit-card"></i>
                             </div>
                             <h3 className="card-title-gaming">Total Paid</h3>
-                            <div className="card-value-gaming">KES {new Intl.NumberFormat().format(totalPaid)}</div>
+                            <div className="card-value-gaming">{formatMoney(totalPaid, primaryCurrency)}</div>
                             <div className="text-white-50 small mt-1">{paymentData.paymentsCount} payments</div>
                         </div>
                     </div>
@@ -91,7 +100,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                 <i className="fas fa-clock"></i>
                             </div>
                             <h3 className="card-title-gaming">Pending</h3>
-                            <div className="card-value-gaming">KES {new Intl.NumberFormat().format(totalDue)}</div>
+                            <div className="card-value-gaming">{formatMoney(totalDue, primaryCurrency)}</div>
                             <div className="text-white-50 small mt-1">{paymentSchedules.length} installments</div>
                         </div>
                     </div>
@@ -126,7 +135,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                              <div className="row g-4 text-center">
                                 <div className="col-md-4">
                                      <span className="d-block text-white-50 small text-uppercase">Estimated Budget</span>
-                                     <span className="h4 fw-bold text-white">KES {new Intl.NumberFormat().format(activeBudget.total_cost)}</span>
+                                     <span className="h4 fw-bold text-white">{formatMoney(activeBudget.total_cost, activeBudget.currency || 'USD')}</span>
                                 </div>
                                 <div className="col-md-4 border-start border-end border-secondary">
                                      <span className="d-block text-white-50 small text-uppercase">Matches Planned</span>
@@ -185,8 +194,8 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                                 </span>
                                             </div>
                                             <div className="text-end">
-                                                <div className="fw-bold text-white">KES {new Intl.NumberFormat().format(booking.total_amount)}</div>
-                                                <small className="text-success fw-bold">Paid: KES {new Intl.NumberFormat().format(booking.amount_paid)}</small>
+                                                <div className="fw-bold text-white">{formatMoney(booking.total_amount, booking.currency || primaryCurrency)}</div>
+                                                <small className="text-success fw-bold">Paid: {formatMoney(booking.amount_paid, booking.currency || primaryCurrency)}</small>
                                             </div>
                                         </div>
                                         
@@ -245,7 +254,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                             <small className="text-white-50">Payment #{schedule.payment_number} • Due: {schedule.due_date}</small>
                                         </div>
                                         <div className="text-end">
-                                            <div className="fw-bold mb-1">KES {new Intl.NumberFormat().format(schedule.amount)}</div>
+                                            <div className="fw-bold mb-1">{formatMoney(schedule.amount, schedule.currency || primaryCurrency)}</div>
                                             {schedule.status === 'pending' ? (
                                                 <Link href={route('fan.payments', { amount: schedule.amount, description: schedule.description })} className="btn btn-sm btn-success">Pay Now</Link>
                                             ) : (
