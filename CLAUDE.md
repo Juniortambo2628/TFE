@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 18. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 24. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -41,7 +41,8 @@ php artisan migrate --force --seed  # demo data + credentials below
 
 # Quality gate before every commit
 ./vendor/bin/pint --dirty
-./vendor/bin/phpunit
+./vendor/bin/phpunit    # PHP: 170+ tests
+npm run test:js         # JS unit tests (Node's built-in --test runner, no framework)
 ```
 
 Windows/WAMP first-run: `start-dev.bat` (or `.ps1`) handles composer install +
@@ -57,6 +58,7 @@ in production.
 | System admin    | `admin@tfe.com`     | password | Full admin surface                 |
 | Travel partner  | `partner@tfe.com`   | password | Serengeti Sports Travel            |
 | Finance partner | `finance@tfe.com`   | password | Ecobank Fan Finance, blue #0072CE  |
+| Demo fan        | `fan@tfe.com`       | password | Seeded ad-hoc; use for shots       |
 
 Public hubs to demo: `/partners/serengeti-sports-travel`,
 `/partners/ecobank-fan-finance`, and the directory at `/partners`.
@@ -142,6 +144,34 @@ Fan side: `FinanceThisTrip` CTA on `BudgetCalculator` step 3 (Sprint 14),
 polished `/fan/loan-applications` (Sprint 15), `ActiveLoanTile` on the fan
 dashboard (Sprint 16).
 
+### Partner-type labels (Sprint 23)
+
+The dashboard header badge, sidebar caption, and public-hub eyebrow all
+adapt to the logged-in partner's `partner_type`. The mapping lives in
+two places (keep them in sync):
+
+- `resources/js/Components/Common/DashboardHeader.jsx` — `PARTNER_TYPE_LABEL`
+  map + `resolveRoleLabel(role, base, user)` helper.
+- `resources/js/Components/Partner/Sidebar.jsx` — same map, keyed by
+  `user.partner_type`.
+- `resources/js/Pages/PartnerHub.jsx` — `formatPartnerType()` strips a
+  trailing `_partner` before title-casing so the eyebrow
+  `Official {type} Partner` doesn't produce `Official Finance Partner Partner`
+  for `finance_partner`.
+
+### Currency (Sprint 23)
+
+Every listing, budget, and loan on the platform is USD. The default in
+`resources/js/lib/utils.js`:
+
+```js
+export function formatMoney(amount, currency = 'USD') { … }
+```
+
+is the single source of truth — 74 downstream callers rely on it. The
+one exception is `Fan/Payments.jsx`, which passes the transaction's own
+recorded currency. Guarded by `tests/JS/currency.test.mjs`.
+
 ### Notifications
 
 All notifications use `via: ['database']` only (SMTP not configured; adding
@@ -220,7 +250,9 @@ database/
 tests/
   Feature/Fan/…  Partner/…  Admin/…  # role-scoped
   Feature/…                          # cross-role (PartnersDirectoryTest, PublisherSummaryTest,
-                                     #   FinancePartnerTest, ApprovalNotificationsTest)
+                                     #   FinancePartnerTest, ApprovalNotificationsTest,
+                                     #   SecurityHardeningTest)
+  JS/currency.test.mjs               # Node --test runner, no framework
 ```
 
 ## Testing conventions
@@ -249,6 +281,16 @@ tests/
   up — the approval flow currently 500s if you do.
 - Never bare-type `Package` in a controller — the legacy alias only helps
   route model binding, not PHP type resolution inside a namespaced file.
+- Never accept SVG in an `image` file validator — Laravel's `image` rule
+  includes SVG and same-origin storage makes it a stored-XSS vector.
+  Explicit `mimes:jpg,jpeg,png,webp` on every uploader (Sprint 22).
+- Never flip `formatMoney`'s default without a deliberate audit — 74 callers
+  read the default currency, only one passes explicit `USD`/`KES`. The
+  `tests/JS/currency.test.mjs` guard fails loudly if the default drifts.
+- Never hard-code a partner label — a `finance_partner` account seeing
+  "TRAVEL PARTNER" in the header is embarrassing on demo day. Read from
+  `PARTNER_TYPE_LABEL` in both `DashboardHeader.jsx` and
+  `Partner/Sidebar.jsx` (Sprint 23).
 
 ## Sprint log (very short)
 
@@ -270,5 +312,12 @@ tests/
 | 15     | Fan "My Financing" surface                           |
 | 16     | Active-loan tile on the fan dashboard                |
 | 17     | Notifications on approvals + loan decisions          |
+| 18     | CLAUDE.md + README refresh                           |
+| 19     | Bulk approve/reject on admin listing queue           |
+| 20     | Sprint-19 review fixes + KES → USD polish            |
+| 21     | Queue notifications (ShouldQueue) + Financing empty state |
+| 22     | Security review fixes (SVG upload + Fan/PackageController gate) |
+| 23     | Currency default + partner_type labels + hub eyebrow polish |
+| 24     | Node currency test + docs refresh                    |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.

@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:js": "node --test tests/JS/*.test.mjs"
     },
     "devDependencies": {
         "@fullhuman/postcss-purgecss": "^8.0.0",

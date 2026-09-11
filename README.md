@@ -33,7 +33,8 @@ Public partner directory: http://localhost:8000/partners
 
 ```bash
 ./vendor/bin/pint --dirty     # format
-./vendor/bin/phpunit          # 149 tests
+./vendor/bin/phpunit          # 165 feature tests
+npm run test:js               # currency default guard (Node --test)
 ```
 
 ## Contributing
