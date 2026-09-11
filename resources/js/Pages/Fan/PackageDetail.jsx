@@ -5,6 +5,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import CapacityBar from '@/Components/Common/CapacityBar';
+import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 
 /**
  * Fan-facing package detail page.
@@ -37,7 +38,11 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
                         { label: pkg.name },
                     ]}
                     bgImage={pkg.hero_image || '/assets/img/fan/backgrounds/gaming_hero.png'}
-                />
+                >
+                    {pkg.publisher && (
+                        <PoweredByBadge publisher={pkg.publisher} variant="strip" />
+                    )}
+                </DashboardHero>
 
                 <div className="row g-4 mt-2">
                     {/* Left column — description + matches */}

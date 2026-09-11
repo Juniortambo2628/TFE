@@ -36,7 +36,7 @@ class PackageController extends Controller
         // current tournament slice (or "all" when no filter).
         $analytics = $this->analyticsFor($packages);
 
-        $packagesForView = $packages->map(function (Package $p) {
+        $packagesForView = $packages->map(function (Listing $p) {
             $config = config("tournaments.tournaments.{$p->tournament_id}");
 
             return [
@@ -137,12 +137,12 @@ class PackageController extends Controller
 
         $validated['created_by'] = $request->user()->id;
 
-        Package::create($validated);
+        Listing::create($validated);
 
         return back()->with('success', 'Package created successfully');
     }
 
-    public function update(Request $request, Package $package)
+    public function update(Request $request, Listing $package)
     {
         $validated = $this->validateRequest($request, $package);
 
@@ -157,7 +157,7 @@ class PackageController extends Controller
         return back()->with('success', 'Package updated successfully');
     }
 
-    public function destroy(Package $package)
+    public function destroy(Listing $package)
     {
         $package->delete();
 
@@ -167,7 +167,7 @@ class PackageController extends Controller
     /**
      * Shared validation for store + update.
      */
-    private function validateRequest(Request $request, ?Package $package = null): array
+    private function validateRequest(Request $request, ?Listing $package = null): array
     {
         $tournamentIds = array_keys(config('tournaments.tournaments', []));
 

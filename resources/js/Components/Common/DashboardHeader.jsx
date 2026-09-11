@@ -5,10 +5,18 @@ import HeaderDropdown from './HeaderDropdown';
 import { useSidebar } from '@/Components/ui/sidebar';
 import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 
+/**
+ * DashboardHeader — one header for every dashboard role.
+ *
+ * The role only decides content (which nav pills, which role badge,
+ * which mark-all-read behaviour); every visual concern — accent
+ * colour, spacing, tokens — lives in fan-dashboard-header.css and
+ * dashboard-header-extras.css and is scoped via `data-role` on the
+ * .dashboard-header element. There are no inline styles.
+ */
+
 const ROLE_CONFIG = {
     fan: {
-        accentColor: '#e31b23',
-        avatarBg: '#333',
         routePrefix: 'fan',
         roleBadge: null,
         navLinks: [
@@ -26,8 +34,6 @@ const ROLE_CONFIG = {
         useMarkAllButton: true,
     },
     admin: {
-        accentColor: '#3b82f6',
-        avatarBg: '#3b82f6',
         routePrefix: 'admin',
         roleBadge: { label: 'System Admin', icon: 'fas fa-shield-alt' },
         navLinks: [],
@@ -41,8 +47,6 @@ const ROLE_CONFIG = {
         useMarkAllButton: false,
     },
     partner: {
-        accentColor: '#d97706',
-        avatarBg: '#d97706',
         routePrefix: 'partner',
         roleBadge: { label: 'Travel Partner', icon: 'fas fa-handshake' },
         navLinks: [],
@@ -58,51 +62,46 @@ const ROLE_CONFIG = {
     },
 };
 
-function NotificationItem({ notif, accentColor }) {
+function NotificationItem({ notif }) {
     return (
         <div className="dash-activity-item">
-            <div className="dash-activity-icon" style={{ background: `${accentColor}1a`, color: accentColor }}>
+            <div className="dash-activity-icon">
                 <i className={notif.data?.icon || 'fas fa-info-circle'}></i>
             </div>
             <div className="dash-activity-info">
                 <div className="dash-activity-title">{notif.data?.title || 'Notification'}</div>
                 <div className="dash-activity-label">{notif.data?.body || ''}</div>
-                <small style={{ color: 'var(--text-dim)' }}>{new Date(notif.created_at).toLocaleString()}</small>
+                <small className="dash-activity-timestamp">
+                    {new Date(notif.created_at).toLocaleString()}
+                </small>
             </div>
         </div>
     );
 }
 
-function MessageItem({ msg, accentColor, href }) {
+function MessageItem({ msg, href }) {
     return (
-        <Link
-            href={href}
-            className="dash-activity-item text-decoration-none"
-        >
-            <div className="dash-avatar dash-avatar-sm" style={{ background: `${accentColor}1a`, color: accentColor }}>
+        <Link href={href} className="dash-activity-item">
+            <div className="dash-avatar dash-avatar-sm">
                 {msg.sender?.name?.charAt(0) || 'U'}
             </div>
             <div className="dash-activity-info">
                 <div className="dash-activity-title">{msg.sender?.name || 'User'}</div>
-                <div className="dash-activity-label" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {msg.body || msg.subject}
-                </div>
+                <div className="dash-activity-label">{msg.body || msg.subject}</div>
             </div>
-            <small style={{ color: 'var(--text-dim)', flexShrink: 0 }}>
+            <small className="dash-activity-timestamp">
                 {new Date(msg.created_at).toLocaleDateString()}
             </small>
         </Link>
     );
 }
 
-export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSidebar, extraActions }) {
+export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSidebar }) {
     const config = ROLE_CONFIG[role];
     const { dropdowns, toggleDropdown, closeAllDropdowns } = useHeaderLogic();
     const { auth, assetUrl: pageAssetUrl } = usePage().props;
     const { toggleSidebar: toggleShadcnSidebar } = useSidebar();
     const baseUrl = assetUrl || pageAssetUrl || '';
-    const prefix = config.routePrefix;
-
     const doToggleSidebar = toggleSidebar || toggleShadcnSidebar;
 
     const notifications = auth?.notifications || [];
@@ -111,7 +110,7 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
     const unreadMessages = auth?.unreadMessagesCount || 0;
 
     const markAllRead = (type) => {
-        const routeName = config.markReadRoute(type);
+        const routeName = config.markReadRoute?.(type);
         if (!routeName) return;
         router.post(route(routeName), {}, {
             preserveScroll: true,
@@ -120,33 +119,24 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
     };
 
     return (
-        <div className="dashboard-header">
+        <div className="dashboard-header" data-role={role}>
             <button
                 className="dashboard-hamburger"
                 id="dashboardHamburger"
                 onClick={(e) => { e.stopPropagation(); doToggleSidebar(); }}
+                aria-label="Toggle sidebar"
             >
                 <i className="fas fa-bars"></i>
             </button>
 
             <div className="dashboard-title">
-                <img
-                    src={`${baseUrl}assets/img/logo/TFE-logo.png`}
-                    alt="TFE Logo"
-                    style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
-                />
+                <img src={`${baseUrl}assets/img/logo/TFE-logo.png`} alt="TFE Logo" />
             </div>
 
-            {/* Desktop nav area */}
-            <div className="d-none d-lg-flex align-items-center gap-2 ms-4 me-auto">
+            <div className="dashboard-header-nav">
                 {config.roleBadge && (
-                    <span className="dash-badge" style={{
-                        background: `${config.accentColor}33`,
-                        color: config.accentColor,
-                        border: `1px solid ${config.accentColor}`,
-                        padding: 'var(--space-xs) var(--space-md)',
-                    }}>
-                        <i className={`${config.roleBadge.icon} me-2`}></i>
+                    <span className="dash-badge">
+                        <i className={config.roleBadge.icon}></i>
                         {config.roleBadge.label}
                     </span>
                 )}
@@ -156,27 +146,23 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                         key={link.route}
                         id={`nav-link-${link.label.toLowerCase()}`}
                         href={route(link.route)}
-                        className="text-white text-decoration-none d-flex align-items-center gap-2"
+                        className="dashboard-header-nav__link"
                     >
-                        <i className={`${link.icon} text-white-50`}></i>
-                        <span className="fw-medium">{link.label}</span>
+                        <i className={link.icon}></i>
+                        <span>{link.label}</span>
                     </Link>
                 ))}
-
-                {extraActions}
             </div>
 
-            <div className="dashboard-header-actions d-flex align-items-center gap-3">
-                {/* Tournament Switcher (fan role only) */}
+            <div className="dashboard-header-actions">
                 {role === 'fan' && <FanTournamentSwitcher variant="dashboard" />}
 
-                {/* Notifications */}
-                <div style={{ position: 'relative' }}>
+                <div className="dashboard-header-item">
                     <button
                         id="header-notifications-btn"
                         className="dash-btn-icon"
-                        style={{ background: `${config.accentColor}1a` }}
                         onClick={(e) => toggleDropdown('notifications', e)}
+                        aria-label="Notifications"
                     >
                         <i className="fas fa-bell"></i>
                         {unreadNotifications > 0 && (
@@ -192,15 +178,15 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                                 : `${unreadNotifications} new`
                         }
                         footer={!config.useMarkAllButton ? (
-                            <Link href={route(config.messagesLink)} className="d-block text-center p-3 text-decoration-none" style={{ color: config.accentColor }}>
-                                View All Notifications <i className="fas fa-arrow-right ms-1"></i>
+                            <Link href={route(config.messagesLink)} className="dashboard-dropdown-footer-link">
+                                View All Notifications <i className="fas fa-arrow-right"></i>
                             </Link>
                         ) : null}
                     >
                         {notifications.length > 0 ? (
-                            notifications.map((n, i) => <NotificationItem key={i} notif={n} accentColor={config.accentColor} />)
+                            notifications.map((n, i) => <NotificationItem key={i} notif={n} />)
                         ) : (
-                            <div className="dash-empty" style={{ padding: 'var(--space-xl)' }}>
+                            <div className="dash-empty">
                                 <i className="fas fa-bell-slash"></i>
                                 <p>No new notifications</p>
                             </div>
@@ -208,13 +194,12 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                     </HeaderDropdown>
                 </div>
 
-                {/* Messages */}
-                <div style={{ position: 'relative' }}>
+                <div className="dashboard-header-item">
                     <button
                         id="header-messages-btn"
                         className="dash-btn-icon"
-                        style={{ background: `${config.accentColor}1a` }}
                         onClick={(e) => toggleDropdown('messages', e)}
+                        aria-label="Messages"
                     >
                         <i className="fas fa-envelope"></i>
                         {unreadMessages > 0 && (
@@ -230,17 +215,17 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                                 : `${unreadMessages} new`
                         }
                         footer={
-                            <Link href={route(config.messagesLink)} className="d-block text-center p-3 text-decoration-none" style={{ color: config.accentColor }}>
-                                View All Messages <i className="fas fa-arrow-right ms-1"></i>
+                            <Link href={route(config.messagesLink)} className="dashboard-dropdown-footer-link">
+                                View All Messages <i className="fas fa-arrow-right"></i>
                             </Link>
                         }
                     >
                         {messages.length > 0 ? (
                             messages.map((m, i) => (
-                                <MessageItem key={i} msg={m} accentColor={config.accentColor} href={route(config.messagesLink)} />
+                                <MessageItem key={i} msg={m} href={route(config.messagesLink)} />
                             ))
                         ) : (
-                            <div className="dash-empty" style={{ padding: 'var(--space-xl)' }}>
+                            <div className="dash-empty">
                                 <i className="fas fa-envelope-open"></i>
                                 <p>No recent messages</p>
                             </div>
@@ -248,23 +233,19 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                     </HeaderDropdown>
                 </div>
 
-                {/* User Profile */}
                 <div
                     id="header-user-profile"
                     className="dashboard-user-profile"
-                    style={{ position: 'relative' }}
                     onClick={(e) => toggleDropdown('user', e)}
                 >
-                    <div className="user-avatar" style={{ flexShrink: 0 }}>
-                        <div className="dash-avatar dash-avatar-sm" style={{ background: config.avatarBg }}>
-                            {user?.name?.charAt(0) || 'U'}
-                        </div>
+                    <div className="user-avatar">
+                        {user?.name?.charAt(0) || 'U'}
                     </div>
                     <span className="user-name">{user?.name}</span>
                     <i className="fas fa-chevron-down chevron"></i>
 
                     {dropdowns.user && (
-                        <div style={{ position: 'absolute', top: 'calc(100% + 10px)', right: 0, zIndex: 'var(--z-dropdown)' }}>
+                        <div className="dashboard-dropdown-anchor">
                             <div className="dashboard-dropdown-header">
                                 <div className="user-info">
                                     <div className="user-name">{user?.name}</div>
@@ -278,7 +259,7 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                                 </Link>
                             ))}
                             <div className="dashboard-dropdown-divider"></div>
-                            <Link href={route('logout')} method="post" as="button" className="dashboard-dropdown-item w-100 text-start">
+                            <Link href={route('logout')} method="post" as="button" className="dashboard-dropdown-item dashboard-dropdown-item--logout">
                                 <i className="fas fa-sign-out-alt"></i> Logout
                             </Link>
                         </div>

@@ -1,0 +1,269 @@
+/**
+ * Extends fan-dashboard-header.css with the .dash-* classes the shared
+ * DashboardHeader component now uses (they used to be styled inline).
+ *
+ * Role accent is exposed as --dash-accent on the .dashboard-header
+ * element via `data-role`. Every accented surface reads from that var
+ * so admin, fan and partner headers use one styling contract.
+ */
+
+.dashboard-header {
+    --dash-accent: #e31b23;
+    --dash-accent-tint: color-mix(in srgb, var(--dash-accent) 10%, transparent);
+    --dash-accent-strong: color-mix(in srgb, var(--dash-accent) 20%, transparent);
+}
+
+.dashboard-header[data-role="admin"] {
+    --dash-accent: #3b82f6;
+}
+
+.dashboard-header[data-role="partner"] {
+    --dash-accent: #d97706;
+}
+
+/* Icon-only round button (bell, envelope) */
+.dash-btn-icon {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--dash-accent-tint);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.dash-btn-icon:hover {
+    background: var(--dash-accent-strong);
+    border-color: color-mix(in srgb, var(--dash-accent) 40%, transparent);
+    transform: translateY(-1px);
+}
+
+.dash-btn-icon i {
+    font-size: 15px;
+}
+
+/* Badge pill (role label — "System Admin", "Travel Partner") */
+.dash-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: var(--dash-accent-strong);
+    color: var(--dash-accent);
+    border: 1px solid color-mix(in srgb, var(--dash-accent) 40%, transparent);
+    white-space: nowrap;
+}
+
+/* Unread count on notification / message buttons */
+.dash-badge-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--dash-accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Avatar circle used in header + dropdown items */
+.dash-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--dash-accent);
+    color: #fff;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.dash-avatar-sm {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+/* Dropdown activity/message row */
+.dash-activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s ease;
+}
+
+.dash-activity-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.dash-activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dash-accent-tint);
+    color: var(--dash-accent);
+    flex-shrink: 0;
+}
+
+.dash-activity-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-activity-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.dash-activity-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dash-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dash-empty i {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+/* Dropdown wrapper positioned by JSX — this class replaces the ad-hoc
+   `position: absolute; top: calc(100% + 10px); right: 0;` inline style
+   that used to sit on the user-profile dropdown. */
+.dashboard-dropdown-anchor {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 1001;
+    min-width: 240px;
+    background: rgba(20, 20, 20, 0.98);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 8px 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Wrapper around a dropdown-trigger button so its menu anchors correctly */
+.dashboard-header-item {
+    position: relative;
+}
+
+/* Desktop-only nav strip between role badge and header actions */
+.dashboard-header-nav {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-left: 1rem;
+    margin-right: auto;
+    flex: 1;
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .dashboard-header-nav {
+        display: flex;
+    }
+}
+
+.dashboard-header-nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.dashboard-header-nav__link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.dashboard-header-nav__link i {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Global reset — the shared header should not depend on the caller
+   inlining `flex-shrink: 0` on user-avatar. */
+.dashboard-user-profile .user-avatar {
+    flex-shrink: 0;
+}
+
+/* Small timestamp under dropdown activity rows */
+.dash-activity-timestamp {
+    display: block;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* Dropdown "View all" footer link */
+.dashboard-dropdown-footer-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    color: var(--dash-accent);
+    text-decoration: none;
+    font-weight: 500;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-dropdown-footer-link:hover {
+    color: var(--dash-accent);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard-dropdown-item--logout {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #ef4444;
+}
+
+.dashboard-dropdown-item--logout:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+}

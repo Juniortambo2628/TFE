@@ -20,6 +20,7 @@ export default function Header() {
         { label: 'About TFE', href: '#about' },
         { label: 'Features', href: '#features' },
         { label: 'Services', href: '#services' },
+        { label: 'Partners', href: route('partners.index') },
         { label: 'News', href: '#news' },
         { label: 'Contact', href: '#contact' },
     ];

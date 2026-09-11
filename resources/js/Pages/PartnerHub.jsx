@@ -169,6 +169,12 @@ export default function PartnerHub({ profile, listings = [] }) {
                     </section>
                 )}
 
+                {/* How we support the sports ecosystem (deck p.8) */}
+                <HowWeSupportStrip accent={accent} />
+
+                {/* How it works — end-to-end pipeline (deck p.9) */}
+                <HowItWorksPipeline accent={accent} />
+
                 {/* Published listings */}
                 <section className="py-5" style={{ background: 'rgba(20,20,20,0.4)' }}>
                     <div className="container">
@@ -268,4 +274,132 @@ export default function PartnerHub({ profile, listings = [] }) {
 function formatPartnerType(t) {
     if (!t) return '';
     return t.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+/**
+ * "How we support the sports ecosystem" — three pillars mapping to the
+ * partner-side dashboard tabs (Publish / Convert / Measure). Style is
+ * intentionally quiet so it doesn't compete with the partner's brand.
+ */
+function HowWeSupportStrip({ accent }) {
+    const pillars = [
+        {
+            icon: 'fa-tags',
+            title: 'Publish',
+            body: 'Package experiences fans actually want — matches, stays, transfers — and put them in front of every buyer on the platform.',
+        },
+        {
+            icon: 'fa-handshake',
+            title: 'Convert',
+            body: 'Fans submit briefs against your listings. You quote, they book. No cold pipeline to chase.',
+        },
+        {
+            icon: 'fa-chart-line',
+            title: 'Measure',
+            body: 'Track sell-through, turnaround and revenue per listing. Iterate on what wins.',
+        },
+    ];
+
+    return (
+        <section className="py-5">
+            <div className="container">
+                <h2 className="text-white fw-bold mb-4">How we support the sports ecosystem</h2>
+                <div className="row g-4">
+                    {pillars.map((p, i) => (
+                        <div key={i} className="col-md-4">
+                            <div
+                                className="h-100 p-4"
+                                style={{
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    borderRadius: 16,
+                                }}
+                            >
+                                <div
+                                    className="d-inline-flex align-items-center justify-content-center mb-3"
+                                    style={{
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 10,
+                                        background: `${accent}22`,
+                                        color: accent,
+                                        fontSize: '1.1rem',
+                                    }}
+                                >
+                                    <i className={`fas ${p.icon}`}></i>
+                                </div>
+                                <h3 className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>
+                                    {p.title}
+                                </h3>
+                                <p className="text-white-50 small mb-0" style={{ lineHeight: 1.6 }}>
+                                    {p.body}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/**
+ * "How it works" — the fan-to-delivery pipeline as a four-step strip.
+ * Each step is numbered and connected by a hair line so the whole flow
+ * reads as one journey. Renders horizontally on md+ and stacks below.
+ */
+function HowItWorksPipeline({ accent }) {
+    const steps = [
+        { n: 1, title: 'Fan brief', body: 'Fan picks matches and preferences in the calculator.' },
+        { n: 2, title: 'Partner quote', body: 'You review the brief and return a priced quote.' },
+        { n: 3, title: 'Payment', body: 'Fan pays; funds land against the confirmed booking.' },
+        { n: 4, title: 'Delivery', body: 'You deliver the trip; feedback rolls back to metrics.' },
+    ];
+
+    return (
+        <section className="py-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div className="container">
+                <h2 className="text-white fw-bold mb-4">How it works</h2>
+                <div className="row g-3 g-md-0 align-items-stretch">
+                    {steps.map((s, i) => (
+                        <div key={s.n} className="col-md-3 position-relative">
+                            <div className="d-flex align-items-start gap-3 pe-md-3">
+                                <div
+                                    className="flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                    style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: '50%',
+                                        background: accent,
+                                        color: '#fff',
+                                        fontSize: '0.95rem',
+                                    }}
+                                >
+                                    {s.n}
+                                </div>
+                                <div>
+                                    <div className="text-white fw-bold">{s.title}</div>
+                                    <div className="text-white-50 small" style={{ lineHeight: 1.5 }}>
+                                        {s.body}
+                                    </div>
+                                </div>
+                            </div>
+                            {i < steps.length - 1 && (
+                                <div
+                                    className="d-none d-md-block position-absolute"
+                                    style={{
+                                        top: 18,
+                                        right: -6,
+                                        width: 12,
+                                        height: 1,
+                                        background: 'rgba(255,255,255,0.2)',
+                                    }}
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
 }

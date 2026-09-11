@@ -1,0 +1,116 @@
+/**
+ * PoweredByBadge — chip (compact) + strip (hero credit) variants for
+ * partner cross-linking on fan-facing listings.
+ *
+ * Uses --partner-accent so each partner's brand color tints their own
+ * badge. All fan-facing surfaces load this via _shared.css.
+ */
+
+.powered-by {
+    --partner-accent: #dc143c;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.powered-by:hover {
+    transform: translateY(-1px);
+    color: inherit;
+}
+
+.powered-by__logo {
+    height: 22px;
+    width: 22px;
+    background: #fff;
+    border-radius: 6px;
+    padding: 2px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.powered-by__logo--fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--partner-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 0;
+}
+
+.powered-by__label {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    min-width: 0;
+}
+
+.powered-by__prefix {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.powered-by__name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.powered-by__verified {
+    color: #10b981;
+    font-size: 0.75rem;
+}
+
+/* ── Chip variant — fits inside a package card footer ────────────── */
+
+.powered-by--chip {
+    padding: 4px 10px 4px 4px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    max-width: 100%;
+}
+
+.powered-by--chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--partner-accent);
+}
+
+/* ── Strip variant — sits under the hero title on PackageDetail ── */
+
+.powered-by--strip {
+    padding: 8px 14px 8px 8px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+    gap: 0.75rem;
+}
+
+.powered-by--strip .powered-by__logo,
+.powered-by--strip .powered-by__logo--fallback {
+    height: 32px;
+    width: 32px;
+    border-radius: 8px;
+}
+
+.powered-by--strip .powered-by__name {
+    font-size: 0.95rem;
+}
+
+.powered-by--strip:hover {
+    background: rgba(0, 0, 0, 0.55);
+    border-color: var(--partner-accent);
+}

@@ -9,6 +9,7 @@ import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
 import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
+import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -21,6 +22,7 @@ import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 export default function BudgetCalculator({
     auth,
     savedBudgets: initialBudgets = [],
+    financePartners = [],
     budgetToEdit = null,
     tournamentPricing: rawPricing = {},
     tournamentId: initialTournamentId = '',
@@ -1252,6 +1254,15 @@ export default function BudgetCalculator({
                             nights={nights}
                             accommodation={accommodation}
                             pricing={tournamentPricing}
+                        />
+
+                        {/* Sprint 14 — finance-partner CTA. Only renders
+                            when there is at least one verified public
+                            finance partner AND the running total is > 0. */}
+                        <FinanceThisTrip
+                            financePartners={financePartners}
+                            budgetTotal={estimatedCost}
+                            budgetId={savedBudgets.find((b) => b.is_active)?.id || null}
                         />
 
                         {/* Multi-city venue map — pins every tournament venue,

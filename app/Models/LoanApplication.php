@@ -14,6 +14,7 @@ class LoanApplication extends Model
     protected $fillable = [
         'user_id',
         'budget_id',
+        'finance_partner_id',
         'amount',
         'purpose',
         'status',
@@ -29,5 +30,24 @@ class LoanApplication extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function budget()
+    {
+        return $this->belongsTo(Budget::class);
+    }
+
+    /**
+     * The finance partner routed to service this application. Nullable
+     * for legacy rows and admin-owned applications with no routing.
+     */
+    public function financePartner()
+    {
+        return $this->belongsTo(User::class, 'finance_partner_id');
+    }
+
+    public function scopeForPartner($query, int $partnerId)
+    {
+        return $query->where('finance_partner_id', $partnerId);
     }
 }

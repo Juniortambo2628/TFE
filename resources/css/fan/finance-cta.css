@@ -1,0 +1,201 @@
+/**
+ * FinanceThisTrip — CTA card shown on the BudgetCalculator result step
+ * so a fan can finance the budget via a partner.
+ *
+ * --partner-accent is set inline from the picked partner's theme_accent
+ * so the CTA visually re-brands as the fan picks between finance
+ * partners.
+ */
+
+.finance-cta {
+    --partner-accent: #0072CE;
+    margin-top: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--partner-accent) 18%, transparent) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border: 1px solid color-mix(in srgb, var(--partner-accent) 40%, transparent);
+    border-radius: 16px;
+    color: #fff;
+}
+
+.finance-cta__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.finance-cta__lead {
+    flex: 1;
+    min-width: 240px;
+}
+
+.finance-cta__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.finance-cta__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0.2rem 0 0.35rem;
+}
+
+.finance-cta__body {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+    margin: 0;
+    max-width: 520px;
+}
+
+.finance-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 999px;
+    background: var(--partner-accent);
+    border: 0;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.finance-cta__btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+}
+
+.finance-cta__btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Expanded form ─────────────────────────────────────────────── */
+
+.finance-cta__form {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.finance-cta__label {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 0.5rem;
+}
+
+.finance-cta__partner-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.finance-cta__partner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.finance-cta__partner img,
+.finance-cta__partner-fallback {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: #fff;
+    object-fit: contain;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--partner-accent);
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
+.finance-cta__partner:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.finance-cta__partner.is-active {
+    background: color-mix(in srgb, var(--partner-accent) 20%, transparent);
+    border-color: var(--partner-accent);
+}
+
+.finance-cta__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+
+.finance-cta__grid label,
+.finance-cta__notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.finance-cta__grid input,
+.finance-cta__notes textarea {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.finance-cta__grid input:focus,
+.finance-cta__notes textarea:focus {
+    border-color: var(--partner-accent);
+}
+
+.finance-cta__grid em {
+    color: #f87171;
+    font-size: 0.75rem;
+    font-style: normal;
+}
+
+.finance-cta__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.finance-cta__cancel {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: 999px;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.finance-cta__cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}

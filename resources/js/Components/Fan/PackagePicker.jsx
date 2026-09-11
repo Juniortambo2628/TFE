@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
 import CapacityBar from '@/Components/Common/CapacityBar';
+import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 
 /**
  * PackagePicker — Step-0 chooser in the BudgetCalculator wizard.
@@ -115,6 +116,12 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                         pct={pkg.availability_pct}
                                         className="mb-3"
                                     />
+
+                                    {pkg.publisher && (
+                                        <div className="mb-3">
+                                            <PoweredByBadge publisher={pkg.publisher} variant="chip" />
+                                        </div>
+                                    )}
 
                                     <div className="d-flex align-items-center justify-content-between gap-2">
                                         <span className={`fw-semibold ${soldOut ? 'text-white-50' : 'text-danger'}`}>

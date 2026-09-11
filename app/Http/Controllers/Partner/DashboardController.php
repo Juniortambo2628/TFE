@@ -4,27 +4,94 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
+use App\Models\Listing;
+use App\Models\LoanApplication;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Sprint 14 — finance partners see a loan-shaped Convert queue,
+        // not a travel-brief-shaped one. Everything else about the
+        // partner surface stays the same.
+        if ($request->user()->partner_type === 'finance_partner') {
+            return $this->indexFinance($request);
+        }
+
+        $scoped = $this->baseQuery($request);
+
         $stats = [
-            'pending' => Budget::where('is_active', true)->where('partner_status', 'pending')->count(),
-            'approved' => Budget::where('is_active', true)->where('partner_status', 'approved')->count(),
-            'modified' => Budget::where('is_active', true)->where('partner_status', 'modified')->count(),
-            'rejected' => Budget::where('is_active', true)->where('partner_status', 'rejected')->count(),
-            'total_revenue' => Budget::where('is_active', true)->where('partner_status', 'approved')->sum('partner_cost') ?: 0,
+            'pending' => (clone $scoped)->where('partner_status', 'pending')->count(),
+            'approved' => (clone $scoped)->where('partner_status', 'approved')->count(),
+            'modified' => (clone $scoped)->where('partner_status', 'modified')->count(),
+            'rejected' => (clone $scoped)->where('partner_status', 'rejected')->count(),
+            'total_revenue' => (clone $scoped)->where('partner_status', 'approved')->sum('partner_cost') ?: 0,
         ];
 
-        $requests = $this->getRequestsData();
+        $requests = $this->getRequestsData($request);
 
         return Inertia::render('Partner/Dashboard', [
             'requests' => $requests,
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * Finance-partner variant of the dashboard: shows loan applications
+     * routed to this partner, not travel-briefs. Same page component,
+     * different props — see Partner/Dashboard.jsx.
+     */
+    protected function indexFinance(Request $request)
+    {
+        $partnerId = $request->user()->id;
+        $base = LoanApplication::query()->forPartner($partnerId);
+
+        $stats = [
+            'pending' => (clone $base)->where('status', 'PENDING')->count(),
+            'approved' => (clone $base)->where('status', 'APPROVED')->count(),
+            'modified' => 0, // shape-parity with travel partner stats
+            'rejected' => (clone $base)->where('status', 'REJECTED')->count(),
+            'total_revenue' => (clone $base)->where('status', 'APPROVED')->sum('amount') ?: 0,
+        ];
+
+        $requests = $this->loanRequestsData($partnerId);
+
+        return Inertia::render('Partner/Dashboard', [
+            'requests' => $requests,
+            'stats' => $stats,
+            'variant' => 'finance',
+        ]);
+    }
+
+    protected function loanRequestsData(int $partnerId): Collection
+    {
+        return LoanApplication::query()
+            ->forPartner($partnerId)
+            ->with(['user.profile', 'budget'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (LoanApplication $l) {
+                return [
+                    'id' => $l->id,
+                    'reference_id' => 'LOAN-'.str_pad($l->id, 6, '0', STR_PAD_LEFT),
+                    'created_at' => $l->created_at->format('Y-m-d H:i'),
+                    'total_cost' => (float) $l->amount,
+                    'partner_cost' => (float) $l->amount,
+                    'status' => strtolower($l->status),
+                    'accommodation_level' => $l->purpose ?: 'General financing',
+                    'flight_class' => null,
+                    'nights' => null,
+                    'match_count' => 0,
+                    'matches' => [],
+                    'applicant_name' => $l->user?->name,
+                    'purpose' => $l->purpose,
+                    'interest_rate' => $l->interest_rate,
+                ];
+            });
     }
 
     public function show(Budget $budget)
@@ -82,19 +149,49 @@ class DashboardController extends Controller
         return back()->with('success', 'Request updated successfully.');
     }
 
-    public function requests()
+    public function requests(Request $request)
     {
-        $data = $this->getRequestsData();
+        if ($request->user()->partner_type === 'finance_partner') {
+            return Inertia::render('Partner/Requests', [
+                'requests' => $this->loanRequestsData($request->user()->id),
+                'variant' => 'finance',
+            ]);
+        }
+
+        $data = $this->getRequestsData($request);
 
         return Inertia::render('Partner/Requests', [
             'requests' => $data,
         ]);
     }
 
-    private function getRequestsData()
+    /**
+     * Scope helper — Sprint 10 pivot. If the partner has published one
+     * or more listings, only budgets whose fan picked one of those
+     * listings show up in their queue. If not (legacy partners with no
+     * published inventory yet), fall through to the historical global
+     * queue so nothing goes dark mid-transition.
+     */
+    private function baseQuery(Request $request)
     {
-        return Budget::with('user.profile')
-            ->where('is_active', true)
+        $partnerId = $request->user()->id;
+        $listingIds = Listing::query()
+            ->publishedBy(User::class, $partnerId)
+            ->pluck('id');
+
+        $q = Budget::query()->where('is_active', true);
+
+        if ($listingIds->isNotEmpty()) {
+            $q->whereIn('listing_id', $listingIds);
+        }
+
+        return $q;
+    }
+
+    private function getRequestsData(Request $request)
+    {
+        return $this->baseQuery($request)
+            ->with('user.profile')
             ->whereIn('partner_status', ['pending', 'modified', 'approved', 'rejected'])
             ->orderBy('created_at', 'desc')
             ->get()

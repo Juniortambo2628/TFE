@@ -13,8 +13,18 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        <!-- Landing page layout, grids, component styles -->
-        <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
+        {{-- Landing template styles bleed into dashboard pages (body
+             background, huge TFE watermark, flat hero cards) — only load
+             on public/marketing pages, not on Fan/Admin/Partner dashboards. --}}
+        @php
+            $component = $page['component'] ?? '';
+            $isDashboard = str_starts_with($component, 'Fan/')
+                || str_starts_with($component, 'Admin/')
+                || str_starts_with($component, 'Partner/');
+        @endphp
+        @unless ($isDashboard)
+            <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/styles.css') }}">
+        @endunless
 
         <!-- Scripts -->
         @routes

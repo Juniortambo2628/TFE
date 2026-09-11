@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Listing;
 use App\Services\FixtureService;
 use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;
@@ -21,8 +22,10 @@ class PackageController extends Controller
 {
     use ResolvesTournament;
 
-    public function show(Package $package)
+    public function show(Listing $package)
     {
+        $package->load('publisher.partnerProfile');
+
         // If the package's tournament isn't the one the fan is viewing
         // right now, silently swap context to it so the whole page
         // (Hero, TournamentSwitcher, everything else) matches. This is
@@ -77,6 +80,7 @@ class PackageController extends Controller
                 'is_sold_out' => $package->is_sold_out,
                 'is_featured' => $package->is_featured,
                 'tournament_id' => $package->tournament_id,
+                'publisher' => $package->publisherSummary(),
             ],
             'tournamentSummary' => [
                 'id' => $tournament['id'],
