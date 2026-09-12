@@ -34,7 +34,7 @@ export default function FanFooter() {
                 </div>
 
                 <div className="footer-section footer-actions">
-                    <a href="mailto:support@wctfe.com" className="btn btn--primary support-btn">
+                    <a href="mailto:support@wctfe.com" className="tfe-btn tfe-btn--filled">
                         <i className="fas fa-headset"></i>
                         <span>Get Support</span>
                     </a>

@@ -34,7 +34,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
     return (
         <div className="searchable-select-wrapper position-relative" ref={wrapperRef}>
             <div 
-                className="form-control pill-input d-flex align-items-center justify-content-between cursor-pointer" 
+                className="tfe-input d-flex align-items-center justify-content-between cursor-pointer"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {selectedOption ? (
@@ -55,7 +55,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
                     <div className="p-2 border-bottom border-secondary sticky-top bg-dark">
                         <input 
                             type="text" 
-                            className="form-control form-control-sm pill-input bg-black text-white border-secondary" 
+                            className="tfe-input tfe-input--sm"
                             placeholder="Search..." 
                             value={search} 
                             onChange={(e) => setSearch(e.target.value)}

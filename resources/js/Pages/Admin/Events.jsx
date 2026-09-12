@@ -196,10 +196,10 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                             <div className="row g-3 bounce-in">
                                 <div className="col-12">
                                     <div className="admin-form-group">
-                                        <label className="form-label">Event Title *</label>
+                                        <label className="tfe-form-label">Event Title *</label>
                                         <input 
                                             type="text" 
-                                            className="form-control" 
+                                            className="tfe-input" 
                                             placeholder="e.g., Match Day Meetup" 
                                             value={data.title} 
                                             onChange={e => setData('title', e.target.value)} 
@@ -211,10 +211,10 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                 </div>
                                 <div className="col-md-6">
                                     <div className="admin-form-group">
-                                        <label className="form-label">Date *</label>
+                                        <label className="tfe-form-label">Date *</label>
                                         <input 
                                             type="date" 
-                                            className="form-control" 
+                                            className="tfe-input" 
                                             value={data.date} 
                                             onChange={e => setData('date', e.target.value)} 
                                             required 
@@ -225,9 +225,9 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                 </div>
                                 <div className="col-md-6">
                                     <div className="admin-form-group">
-                                        <label className="form-label">Type</label>
+                                        <label className="tfe-form-label">Type</label>
                                         <select 
-                                            className="form-select" 
+                                            className="tfe-select" 
                                             value={data.type} 
                                             onChange={e => setData('type', e.target.value)}
                                             disabled={isViewOnly}
@@ -242,10 +242,10 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                 </div>
                                 <div className="col-12">
                                     <div className="admin-form-group">
-                                        <label className="form-label">Location</label>
+                                        <label className="tfe-form-label">Location</label>
                                         <input 
                                             type="text" 
-                                            className="form-control" 
+                                            className="tfe-input" 
                                             placeholder="e.g., Nairobi, Kenya" 
                                             value={data.location} 
                                             onChange={e => setData('location', e.target.value)} 
@@ -255,9 +255,9 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                 </div>
                                 <div className="col-12">
                                     <div className="admin-form-group">
-                                        <label className="form-label">Description</label>
+                                        <label className="tfe-form-label">Description</label>
                                         <textarea 
-                                            className="form-control" 
+                                            className="tfe-input" 
                                             placeholder="Describe the event..." 
                                             rows={4}
                                             value={data.description} 
@@ -272,7 +272,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                         {activeTab === 'media' && (
                             <div className="bounce-in">
                                 <div className="admin-form-group mb-4">
-                                    <label className="form-label">Event Banner Image</label>
+                                    <label className="tfe-form-label">Event Banner Image</label>
                                     <div className="mb-3">
                                         {eventToEdit?.image_url && !imageFiles.length && (
                                             <div className="position-relative mb-3 rounded-4 overflow-hidden shadow-sm" style={{ height: '180px' }}>

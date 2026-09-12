@@ -258,14 +258,14 @@ export default function Events({ auth, events, userRsvps = [] }) {
                             </div>
 
                             <div className="mb-4">
-                                <h4 className="form-label">Description</h4>
+                                <h4 className="tfe-form-label">Description</h4>
                                 <p className="text-white-50" style={{ lineHeight: '1.6' }}>
                                     {selectedEvent.description || 'No detailed description available for this event.'}
                                 </p>
                             </div>
 
                             <div className="mb-4">
-                                <h4 className="form-label">Registration</h4>
+                                <h4 className="tfe-form-label">Registration</h4>
                                 <p className="text-white-50 text-sm mb-3">
                                     {isRsvped(selectedEvent.id) 
                                         ? 'You are currently registered for this event. We look forward to seeing you there!' 
@@ -304,7 +304,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
                     {activeTab === 'location' && (
                         <>
                             <div className="mb-4">
-                                <h4 className="form-label">Venue / Location</h4>
+                                <h4 className="tfe-form-label">Venue / Location</h4>
                                 <div className="d-flex align-items-center gap-3 text-white">
                                     <div className="bg-white/10 p-3 rounded-circle" style={{ width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <i className="fas fa-map-marker-alt text-primary fa-lg"></i>

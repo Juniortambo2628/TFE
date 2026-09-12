@@ -175,10 +175,10 @@ export default function Prizes({ auth, prizes = [] }) {
                     <div className="row g-3">
                         <div className="col-md-4">
                             <div className="admin-form-group">
-                                <label className="form-label">Position *</label>
+                                <label className="tfe-form-label">Position *</label>
                                 <input 
                                     type="number" 
-                                    className="form-control" 
+                                    className="tfe-input" 
                                     value={data.position} 
                                     onChange={e => setData('position', e.target.value)} 
                                     required 
@@ -188,10 +188,10 @@ export default function Prizes({ auth, prizes = [] }) {
                         </div>
                         <div className="col-md-8">
                             <div className="admin-form-group">
-                                <label className="form-label">Prize Name *</label>
+                                <label className="tfe-form-label">Prize Name *</label>
                                 <input 
                                     type="text" 
-                                    className="form-control" 
+                                    className="tfe-input" 
                                     placeholder="e.g. Winner Trophy + Cash" 
                                     value={data.name} 
                                     onChange={e => setData('name', e.target.value)} 
@@ -201,10 +201,10 @@ export default function Prizes({ auth, prizes = [] }) {
                         </div>
                         <div className="col-md-6">
                             <div className="admin-form-group">
-                                <label className="form-label">Value (KES) *</label>
+                                <label className="tfe-form-label">Value (KES) *</label>
                                 <input 
                                     type="number" 
-                                    className="form-control" 
+                                    className="tfe-input" 
                                     value={data.value} 
                                     onChange={e => setData('value', e.target.value)} 
                                     required 
@@ -213,7 +213,7 @@ export default function Prizes({ auth, prizes = [] }) {
                         </div>
                         <div className="col-md-6">
                             <div className="admin-form-group">
-                                <label className="form-label">Status</label>
+                                <label className="tfe-form-label">Status</label>
                                 <div className="form-check form-switch mt-2">
                                     <input 
                                         className="form-check-input" 
@@ -230,9 +230,9 @@ export default function Prizes({ auth, prizes = [] }) {
                         </div>
                         <div className="col-12">
                             <div className="admin-form-group">
-                                <label className="form-label">Description</label>
+                                <label className="tfe-form-label">Description</label>
                                 <textarea 
-                                    className="form-control" 
+                                    className="tfe-input" 
                                     rows={3}
                                     value={data.description}
                                     onChange={e => setData('description', e.target.value)}

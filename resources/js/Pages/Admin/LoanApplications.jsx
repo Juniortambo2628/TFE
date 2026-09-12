@@ -209,7 +209,7 @@ function UnroutedPicker({ loan, partners, onRoute }) {
     }
     return (
         <select
-            className="form-select form-select-sm"
+            className="tfe-select tfe-select--sm"
             defaultValue=""
             onChange={(e) => e.target.value && onRoute(loan.id, e.target.value)}
         >

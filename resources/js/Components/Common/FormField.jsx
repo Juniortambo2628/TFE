@@ -28,14 +28,14 @@ export default function FormField({
     children,
     ...inputProps
 }) {
-    const inputClasses = `form-control pill-input ${error ? 'is-invalid' : ''} ${className}`.trim();
+    const inputClasses = `tfe-input ${className}`.trim();
 
     return (
-        <div className="mb-3">
+        <div className="tfe-form-field mb-3">
             {label && (
-                <label className="form-label text-white-50 small mb-1">
+                <label className="tfe-form-label">
                     {label}
-                    {required && <span className="text-danger ms-1">*</span>}
+                    {required && <span className="ms-1" style={{ color: '#fca5a5' }}>*</span>}
                 </label>
             )}
             {children || (
@@ -51,7 +51,7 @@ export default function FormField({
                 />
             )}
             {error && (
-                <span className="text-danger small d-block mt-1">{error}</span>
+                <span className="tfe-form-error">{error}</span>
             )}
         </div>
     );

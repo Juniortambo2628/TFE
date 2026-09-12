@@ -270,7 +270,7 @@ export default function Register() {
                                 <div className="social-login-section mb-4 text-center">
                                     <p className="text-white-50 small mb-3">Quick Register with Social Account</p>
                                     <div className="d-flex justify-content-center gap-3">
-                                        <a href={route('social.redirect', 'google')} className="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2 py-2" style={{borderRadius: '50px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)'}}>
+                                        <a href={route('social.redirect', 'google')} className="tfe-btn w-100">
                                             <i className="fab fa-google text-danger"></i>
                                             <span className="text-white">Sign up with Google</span>
                                         </a>
