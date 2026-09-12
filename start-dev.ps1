@@ -1,4 +1,8 @@
 # TFE Development Server Starter
+# Dev uses QUEUE_CONNECTION=sync (see .env.example) so notifications
+# fire inline and no worker is needed here. Prod is different — see
+# CLAUDE.md > "Production queue worker" for the supervisor and Windows
+# Task Scheduler recipes.
 Write-Host ""
 Write-Host "  ================================" -ForegroundColor Cyan
 Write-Host "   TFE Development Environment" -ForegroundColor Cyan

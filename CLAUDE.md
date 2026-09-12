@@ -203,7 +203,8 @@ doesn't block the request on 200 sequential DB inserts.
 - **Dev** (`.env.example`): `QUEUE_CONNECTION=sync` — notifications fire
   inline, no worker needed.
 - **Prod**: `QUEUE_CONNECTION=database` + a running `php artisan queue:work`
-  so the fan-out actually processes.
+  so the fan-out actually processes. See **Production queue worker** below
+  for a supervisor recipe and its Windows equivalent.
 
 Shape read by `DashboardHeader.jsx`:
 
@@ -228,6 +229,260 @@ Current notifications:
 `HandleInertiaRequests` exposes `auth.notifications` (last 5) + `auth.unreadNotificationsCount`
 to every page as lazy Inertia props. The bell dropdown in `DashboardHeader.jsx`
 reads them directly.
+
+## Production queue worker
+
+`QUEUE_CONNECTION=database` on prod means every `ShouldQueue`
+notification (`ListingModerationNotification`, `BudgetResponseNotification`,
+`LoanStatusNotification`, plus anything future) is pushed to the
+`jobs` MySQL table and waits for a worker to drain it. Without a
+worker the table grows forever and fans never see the in-app bell
+update.
+
+### Linux / production (supervisor)
+
+Install supervisor once:
+
+```bash
+sudo apt-get install -y supervisor
+```
+
+Add `/etc/supervisor/conf.d/tfe-worker.conf`:
+
+```ini
+[program:tfe-queue-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/tfe/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/tfe/worker.log
+stopwaitsecs=3600
+```
+
+Notes:
+- `numprocs=2` — two workers is plenty for TFE's notification volume;
+  bump only if bulk moderation of hundreds of listings backs up the queue.
+- `--max-time=3600` and `stopwaitsecs=3600` — Laravel workers hold DB
+  connections open; recycle every hour so long-running memory /
+  connection leaks self-heal.
+- Log path: create it (`sudo mkdir -p /var/log/tfe && sudo chown www-data:www-data /var/log/tfe`)
+  before starting supervisor or it silently fails.
+
+Then:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start tfe-queue-worker:*
+sudo supervisorctl status
+```
+
+After every deploy that touches queued jobs, restart the workers so
+they pick up new code:
+
+```bash
+php artisan queue:restart
+```
+
+### cPanel shared hosting (cron worker)
+
+Shared cPanel plans can't run supervisor, but they always run cron.
+Two entries in **cPanel → Cron Jobs** cover the scheduler and the
+queue worker:
+
+```
+* * * * * cd $HOME/tfe && /usr/bin/php artisan schedule:run   >> /dev/null 2>&1
+* * * * * cd $HOME/tfe && /usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+```
+
+- `--stop-when-empty` lets the worker exit cleanly once the queue is
+  drained.
+- `--max-time=55` guarantees it exits before the next minute-tick so
+  we never overlap workers.
+- `cron` respawns it in the following minute, so it feels like a
+  daemon without needing one.
+
+Deploy step is `bash deploy/cpanel-deploy.sh` in the cPanel Terminal —
+it runs `storage:link`, migrations, `config:cache`, `route:cache`,
+`view:cache`, and `queue:restart`. Idempotent, safe to re-run.
+
+Live-bell via Reverb is **not viable on shared hosting** — it needs a
+persistent PHP process + WebSocket upgrade support, both of which
+shared cPanel almost never allows. The Sprint 35 client code stays
+harmless (empty `VITE_REVERB_APP_KEY` short-circuits Echo), so the
+bell just fills on page navigation instead. For a live-bell on
+cPanel, sign up for **hosted Pusher** (free tier: 100 concurrent
+connections, 200k msgs/day) — the app already speaks the Pusher
+protocol, so you only need to flip `BROADCAST_CONNECTION=pusher`
+and fill the `PUSHER_*` block.
+
+### Windows / WAMP prod (Task Scheduler)
+
+WAMP hosts don't ship supervisor. Two options in order of preference:
+
+1. **Winsw / NSSM** — wrap `php artisan queue:work` as a Windows
+   service. Winsw is a single XML config; NSSM is a `nssm install`
+   wizard. Either survives reboots and auto-restarts on crash.
+
+2. **Task Scheduler** — create a task that runs at server startup:
+   - Program: `C:\wamp64\bin\php\php8.3\php.exe`
+   - Arguments: `artisan queue:work --sleep=3 --tries=3 --max-time=3600`
+   - Start in: `C:\wamp64\www\TFE`
+   - Trigger: **At startup**
+   - Settings: **Restart if the task fails**, every 1 minute, up to 999 attempts.
+
+   Add a second task on the same trigger for `queue:restart` — or a
+   scheduled `php artisan queue:restart` after every deploy — so
+   new code lands after each push.
+
+### Health check
+
+- `SELECT COUNT(*) FROM jobs WHERE reserved_at IS NULL` — should
+  hover near 0. If it climbs, the worker's dead.
+- `SELECT * FROM failed_jobs ORDER BY id DESC LIMIT 20` — reasons a
+  job actually failed. `php artisan queue:retry all` re-queues them.
+
+### If you can't run a worker at all
+
+Flip the .env back to `QUEUE_CONNECTION=sync`. Notifications
+serialize inside the request that triggered them; a bulk moderation
+of 200 listings will take ~30s to submit but every fan gets the bell
+update. This is what dev uses.
+
+## Real-time broadcast (Sprint 35)
+
+Live-bell notifications ship via **Laravel Reverb** (Pusher-protocol,
+self-hosted, no third-party bill). All three approval notifications
+(`ListingModerationNotification`, `BudgetResponseNotification`,
+`LoanStatusNotification`) list `broadcast` alongside `database` in
+their `via()` array; the client picks them up on the private user
+channel and pushes them into the bell dropdown + fires a toast.
+
+### Why Reverb, not Pusher
+
+Reverb ships in the Laravel 11+ core, speaks the exact Pusher wire
+protocol (`pusher-js` on the client is unchanged), and runs alongside
+PHP-FPM on your own box — no per-connection quota, no monthly bill.
+Swap to hosted Pusher by setting `BROADCAST_CONNECTION=pusher` and
+supplying the `PUSHER_*` env vars; nothing else in the app changes.
+
+### Fresh install / redeploy
+
+1. **Server-side install** — done once:
+   ```bash
+   composer require laravel/reverb
+   php artisan reverb:install    # publishes config/reverb.php + channels.php
+   ```
+2. **Client packages** — done once:
+   ```bash
+   npm install --legacy-peer-deps laravel-echo pusher-js
+   ```
+3. **Env vars** — set on the prod server:
+   ```
+   BROADCAST_CONNECTION=reverb
+   REVERB_APP_ID=<generate uuid>
+   REVERB_APP_KEY=<random 20+ chars>
+   REVERB_APP_SECRET=<random 40+ chars>
+   REVERB_HOST=tfe.okjtech.co.ke
+   REVERB_PORT=443
+   REVERB_SCHEME=https
+
+   VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+   VITE_REVERB_HOST="${REVERB_HOST}"
+   VITE_REVERB_PORT="${REVERB_PORT}"
+   VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+   ```
+   Empty `VITE_REVERB_APP_KEY` on the build short-circuits Echo, so
+   dev + tests without a running Reverb server pay zero cost and
+   never open a phantom WebSocket.
+
+### Running the Reverb server
+
+Reverb is a long-running PHP process. Same supervisor pattern as the
+queue worker (see **Production queue worker** above):
+
+```ini
+[program:tfe-reverb]
+process_name=%(program_name)s
+command=php /var/www/tfe/artisan reverb:start --host=0.0.0.0 --port=8080
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/log/tfe/reverb.log
+stopwaitsecs=10
+```
+
+Numprocs stays at 1 — Reverb's whole model is one process holding
+many sockets; scaling is horizontal (multiple boxes behind a
+load-balancer with sticky sessions), not multi-process on one box.
+
+### Nginx front (TLS termination + WebSocket upgrade)
+
+Reverb listens plain HTTP on `:8080`; nginx handles TLS and proxies
+`/app/**` (the WebSocket path pusher-js uses) into it:
+
+```nginx
+location /app/ {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 60m;
+    proxy_send_timeout 60m;
+}
+```
+
+Do NOT proxy anything else at `/app/` unless you rename Reverb's
+prefix — it collides with any app route under the same segment.
+
+### Channel auth
+
+`routes/channels.php` ships one callback out of the box:
+
+```php
+Broadcast::channel('App.Models.User.{id}', fn ($user, $id) => (int) $user->id === (int) $id);
+```
+
+That's what Laravel's `Notifiable` trait broadcasts to when a
+notification lists `broadcast` in `via()`, and it's exactly what
+`DashboardHeader.jsx` subscribes to. Add channels here for anything
+new (`Broadcast::channel('tribe.{id}', …)` for live tribe posts, etc.).
+
+### Client side
+
+`resources/js/bootstrap.js` wires `window.Echo` lazily — only when
+`VITE_REVERB_APP_KEY` is set on the build. `DashboardHeader.jsx`
+subscribes on mount and pushes each `notification` payload onto the
+bell dropdown state; a sonner toast fires alongside the bell so the
+user sees the update even when the dropdown is closed.
+
+### Health check
+
+- `curl https://tfe.okjtech.co.ke/app/<REVERB_APP_KEY>` should
+  return a JSON handshake, not a 502.
+- Browser devtools → Network → WS → the connection stays open with
+  a green `101 Switching Protocols`.
+- Send a fake notification from tinker:
+  ```php
+  $u = App\Models\User::find(1);
+  $u->notify(new App\Notifications\ListingModerationNotification(
+      App\Models\Listing::first(), 'approved'
+  ));
+  ```
+  The bell on the fan's browser should update within ~200ms.
+
+### If Reverb is down
+
+`BROADCAST_CONNECTION=log` is the safe fallback — broadcasts land in
+`storage/logs/laravel.log` instead of a WebSocket. Notifications
+still hit the `database` channel so the bell dropdown fills on the
+next page navigation. No user-visible break, just no live updates.
 
 ## Directory conventions
 

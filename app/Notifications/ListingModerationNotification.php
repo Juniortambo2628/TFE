@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Listing;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
@@ -27,7 +28,20 @@ class ListingModerationNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        // Sprint 35 — broadcast alongside database so the fan/partner
+        // bell dropdown updates without a page refresh when Reverb is
+        // reachable. The `broadcast` channel is a no-op with
+        // BROADCAST_CONNECTION=log (dev default) so nothing changes for
+        // tests / local envs without a Reverb server.
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        // Echo the same payload the bell dropdown reads from the DB —
+        // the client can drop it straight into local state without a
+        // second fetch.
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 
     public function toArray(object $notifiable): array

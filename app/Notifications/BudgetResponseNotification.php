@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Budget;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
@@ -22,7 +23,14 @@ class BudgetResponseNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        // Sprint 35 — broadcast alongside database so the bell updates
+        // live when Reverb is reachable; no-op with BROADCAST_CONNECTION=log.
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 
     public function toArray(object $notifiable): array

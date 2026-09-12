@@ -82,9 +82,13 @@ export default function AppSidebar({
 
             <SidebarContent className="no-scrollbar">
                 {/* Sprint 33 — rendered as `.tfe-sidebar-nav-item` pills.
-                    Item look (padding, radius, gradient active chip)
-                    lives in primitives.css so every sidebar has the
-                    same rhythm and a repaint only touches tokens. */}
+                    Sprint 34 — drop the shadcn SidebarMenuButton wrapper
+                    entirely; its cva ships a big Tailwind utility bag
+                    (flex, gap, rounded-md, p-2, hover states) that was
+                    winning against .tfe-sidebar-nav-item because
+                    Tailwind's compiled CSS sits after primitives.css
+                    in the cascade. Rendering the Link directly gives
+                    our tokens sole ownership of the item's look. */}
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-1 px-2">
@@ -95,30 +99,29 @@ export default function AppSidebar({
                                         key={item.route}
                                         className={item.mobileOnly ? 'md:hidden' : ''}
                                     >
-                                        <SidebarMenuButton asChild isActive={active} size="lg" className="p-0 h-auto bg-transparent hover:bg-transparent data-[active=true]:bg-transparent">
-                                            <Link
-                                                id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                                                href={route(item.route)}
-                                                onClick={handleLinkClick}
-                                                className={`tfe-sidebar-nav-item${active ? ' is-active' : ''}`}
-                                            >
-                                                <i className={item.icon} />
-                                                <span>{item.label}</span>
-                                                {active && showActiveDot && (
-                                                    <span
-                                                        className="ml-auto"
-                                                        style={{
-                                                            width: 6,
-                                                            height: 6,
-                                                            borderRadius: '50%',
-                                                            background: accentColor,
-                                                            boxShadow: `0 0 8px ${accentColor}80`,
-                                                            display: 'inline-block',
-                                                        }}
-                                                    />
-                                                )}
-                                            </Link>
-                                        </SidebarMenuButton>
+                                        <Link
+                                            id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                            href={route(item.route)}
+                                            onClick={handleLinkClick}
+                                            data-active={active}
+                                            className={`tfe-sidebar-nav-item${active ? ' is-active' : ''}`}
+                                        >
+                                            <i className={item.icon} />
+                                            <span>{item.label}</span>
+                                            {active && showActiveDot && (
+                                                <span
+                                                    className="ml-auto"
+                                                    style={{
+                                                        width: 6,
+                                                        height: 6,
+                                                        borderRadius: '50%',
+                                                        background: accentColor,
+                                                        boxShadow: `0 0 8px ${accentColor}80`,
+                                                        display: 'inline-block',
+                                                    }}
+                                                />
+                                            )}
+                                        </Link>
                                     </SidebarMenuItem>
                                 );
                             })}

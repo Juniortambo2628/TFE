@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\LoanApplication;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -22,10 +23,17 @@ class LoanStatusNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        // Database only — the mail channel isn't configured in this
-        // environment yet; adding it back only fires SMTP errors in the
-        // approval flow. In-app dropdown is the source of truth for now.
-        return ['database'];
+        // Database + broadcast — mail stays off (SMTP path is a
+        // known-500 in the approval flow until we've re-verified it,
+        // see CLAUDE.md). Broadcast is a no-op with
+        // BROADCAST_CONNECTION=log so tests / local envs without
+        // Reverb don't need any extra setup.
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 
     public function toMail(object $notifiable): MailMessage
