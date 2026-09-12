@@ -1,17 +1,44 @@
 import React from 'react';
 import { usePage } from '@inertiajs/react';
+import PillBadge from '@/Components/Common/PillBadge';
 
 /**
- * StatCard - Unified stat card component for the entire platform.
- * Supports:
- * - Basic stats with consistent branding
- * - Visual cards with background images (Admin style)
- * - Flexible accent colors
+ * StatCard — the pastel-washed stat tile used on every dashboard hero
+ * row (Sprint 33). Renders a token-driven `.tfe-tile` with a big
+ * display number, a subtle label, an optional icon and an optional
+ * trend / status pill.
  *
- * Sprint 10: the inline "edit background" overlay was dropped along
- * with the admin Customize-UI system. Backgrounds still come through
- * settingsKey/bgType — just edit them on the Settings page.
+ * Sprint 33 goals it addresses:
+ *   - Cross-role consistency: fan/admin/partner all use the same
+ *     tile now, differentiated only by the `accent` prop.
+ *   - No inline styles for colors or spacing — everything lives in
+ *     resources/css/design-tokens.css + primitives.css.
+ *   - Backward-compatible with prior call sites that passed
+ *     `variant` (red/blue/amber/green/purple/cyan). The
+ *     backend-controlled `type="visual"` background-image variant is
+ *     still supported for admin content that carries a hero image.
+ *
+ * Props (new):
+ *   label, value, subtext, icon
+ *   accent   one of: red rose blue cyan teal amber violet graph
+ *   pill     { label, variant } — small status chip in the top-right
+ *
+ * Legacy prop `variant` still works; it maps to `accent` internally
+ * so admin/partner pages keep rendering while we roll the visual
+ * refresh out.
  */
+const VARIANT_TO_ACCENT = {
+    red: 'red',
+    blue: 'blue',
+    cyan: 'cyan',
+    amber: 'amber',
+    green: 'teal',
+    purple: 'violet',
+    rose: 'rose',
+    teal: 'teal',
+    graph: 'graph',
+};
+
 export default function StatCard({
     label,
     value,
@@ -20,15 +47,19 @@ export default function StatCard({
     image,
     bgType,
     settingsKey,
-    variant = 'red', // red, blue, amber, etc.
-    type = 'standard', // 'standard' (SummaryCard style) or 'visual' (AdminStatCard style)
+    variant,
+    accent,
+    pill,
+    type = 'standard',
     className = '',
 }) {
     const { adminSettings = {} } = usePage().props;
 
-    // Visual card logic (background images)
-    const displayImage = (settingsKey && adminSettings[settingsKey]) 
-        || (bgType && adminSettings[`bg_card_${bgType}`]) 
+    // Visual card variant is unchanged: an admin-configured hero image
+    // wrapped in the same tile chrome. Kept for compatibility with the
+    // /admin/users page and any other visual-card call site.
+    const displayImage = (settingsKey && adminSettings[settingsKey])
+        || (bgType && adminSettings[`bg_card_${bgType}`])
         || image;
 
     if (type === 'visual') {
@@ -36,71 +67,44 @@ export default function StatCard({
             backgroundImage: `url(${displayImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-        } : {};
+        } : undefined;
 
         return (
-            <div
-                className={`visual-card ${displayImage ? '' : 'all-events'} ${className}`}
-                style={{ ...cardStyle, position: 'relative', overflow: 'hidden' }}
-            >
-                {displayImage && <div className="visual-card-overlay"></div>}
-
-                <div className="visual-card-content">
-                    <div className="d-flex align-items-center gap-2 mb-1">
-                        {icon && <i className={`${icon}`} style={{ opacity: 0.8, fontSize: '0.8rem' }}></i>}
-                        <div className="visual-card-subtitle">{label}</div>
-                    </div>
-                    <div className="visual-card-title">{value}</div>
+            <div className={`tfe-tile ${className}`} style={cardStyle}>
+                <div className="tfe-tile__head">
+                    {icon && (
+                        <div className="tfe-tile__icon">
+                            <i className={`fas ${icon}`}></i>
+                        </div>
+                    )}
+                    {pill && <PillBadge {...pill} />}
+                </div>
+                <div>
+                    <div className="tfe-tile__value">{value}</div>
+                    <div className="tfe-tile__label">{label}</div>
+                    {subtext && <div className="tfe-tile__subtext">{subtext}</div>}
                 </div>
             </div>
         );
     }
 
-    // Standard Stat Card (Fan/Partner style)
-    const activeColor = variant === 'red' ? '#dc143c' : (variant === 'amber' ? '#ffbf00' : '#4f46e5');
+    const resolvedAccent = accent || VARIANT_TO_ACCENT[variant] || 'red';
+    const iconClass = icon?.startsWith('fa') ? icon : (icon ? `fa-${icon}` : '');
 
     return (
-        <div className={`stat-card ${className}`} style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            background: `linear-gradient(135deg, ${activeColor}26 0%, rgba(0, 0, 0, 0.4) 100%)`,
-            border: `1px solid ${activeColor}4d`,
-            borderRadius: '16px',
-            padding: '16px 24px',
-            minWidth: '140px',
-            transition: 'all 0.3s ease',
-        }}>
-            <div style={{
-                width: '48px',
-                height: '48px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: `${activeColor}33`,
-                borderRadius: '12px',
-                color: activeColor,
-                fontSize: '1.25rem',
-                flexShrink: 0,
-                border: `1px solid ${activeColor}4d`,
-            }}>
-                <i className={`fas ${icon}`}></i>
+        <div className={`tfe-tile tfe-tile--${resolvedAccent} ${className}`}>
+            <div className="tfe-tile__head">
+                {icon && (
+                    <div className="tfe-tile__icon">
+                        <i className={`fas ${iconClass}`}></i>
+                    </div>
+                )}
+                {pill && <PillBadge {...pill} />}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span className="stat-value" style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 800,
-                    color: '#ffffff',
-                    lineHeight: 1,
-                    textShadow: `0 2px 10px ${activeColor}4d`,
-                }}>{value}</span>
-                <span className="stat-label" style={{
-                    fontSize: '0.8rem',
-                    fontWeight: 500,
-                    color: '#a0a0a0',
-                    letterSpacing: '0.4px',
-                }}>{label}</span>
-                {subtext && <span className="stat-subtext" style={{ fontSize: '0.75rem', color: '#666' }}>{subtext}</span>}
+            <div>
+                <div className="tfe-tile__value">{value}</div>
+                <div className="tfe-tile__label">{label}</div>
+                {subtext && <div className="tfe-tile__subtext">{subtext}</div>}
             </div>
         </div>
     );

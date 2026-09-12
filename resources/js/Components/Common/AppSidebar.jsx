@@ -81,53 +81,47 @@ export default function AppSidebar({
             </SidebarHeader>
 
             <SidebarContent className="no-scrollbar">
+                {/* Sprint 33 — rendered as `.tfe-sidebar-nav-item` pills.
+                    Item look (padding, radius, gradient active chip)
+                    lives in primitives.css so every sidebar has the
+                    same rhythm and a repaint only touches tokens. */}
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarMenu>
-                            {menuItems.map((item) => (
-                                <SidebarMenuItem
-                                    key={item.route}
-                                    className={item.mobileOnly ? "md:hidden" : ""}
-                                >
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={isUrlActive(item.path)}
-                                        size="lg"
-                                        style={isUrlActive(item.path) ? { 
-                                            background: `${accentColor}26`, 
-                                            color: accentColor,
-                                            borderLeft: `3px solid ${accentColor}`,
-                                            borderRadius: 0
-                                        } : {}}
-                                        className={!isUrlActive(item.path) ? "text-white/70 hover:text-white hover:!bg-white/5" : ""}
+                        <SidebarMenu className="gap-1 px-2">
+                            {menuItems.map((item) => {
+                                const active = isUrlActive(item.path);
+                                return (
+                                    <SidebarMenuItem
+                                        key={item.route}
+                                        className={item.mobileOnly ? 'md:hidden' : ''}
                                     >
-                                        <Link
-                                            id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                                            href={route(item.route)}
-                                            onClick={handleLinkClick}
-                                        >
-                                            <i className={`${item.icon} w-5 text-center`} style={isUrlActive(item.path) ? { color: accentColor } : {}} />
-                                            <span>{item.label}</span>
-                                            
-                                            {/* Active Indicator (Dot or subtle highlight) */}
-                                            {isUrlActive(item.path) && showActiveDot && (
-                                                <span
-                                                    className="ml-auto"
-                                                    style={{
-                                                        width: '8px',
-                                                        height: '8px',
-                                                        backgroundColor: accentColor,
-                                                        borderRadius: '50%',
-                                                        boxShadow: `0 0 8px ${accentColor}80`,
-                                                        display: 'inline-block',
-                                                        flexShrink: 0,
-                                                    }}
-                                                />
-                                            )}
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
+                                        <SidebarMenuButton asChild isActive={active} size="lg" className="p-0 h-auto bg-transparent hover:bg-transparent data-[active=true]:bg-transparent">
+                                            <Link
+                                                id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                                href={route(item.route)}
+                                                onClick={handleLinkClick}
+                                                className={`tfe-sidebar-nav-item${active ? ' is-active' : ''}`}
+                                            >
+                                                <i className={item.icon} />
+                                                <span>{item.label}</span>
+                                                {active && showActiveDot && (
+                                                    <span
+                                                        className="ml-auto"
+                                                        style={{
+                                                            width: 6,
+                                                            height: 6,
+                                                            borderRadius: '50%',
+                                                            background: accentColor,
+                                                            boxShadow: `0 0 8px ${accentColor}80`,
+                                                            display: 'inline-block',
+                                                        }}
+                                                    />
+                                                )}
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                );
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

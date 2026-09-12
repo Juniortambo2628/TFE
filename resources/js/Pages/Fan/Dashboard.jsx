@@ -11,7 +11,21 @@ import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
 import ActiveLoanTile from '@/Components/Fan/ActiveLoanTile';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
+import ContentCard from '@/Components/Common/ContentCard';
+import PillBadge from '@/Components/Common/PillBadge';
 import { formatMoney } from '@/lib/utils';
+
+// Sprint 33 — map partner_status onto a PillBadge variant so the
+// Planned Budget tile can show status inline instead of stacking it
+// as subtext.
+function pillForPartnerStatus(status) {
+    if (!status) return { label: 'Pending', variant: 'pending' };
+    const s = status.toLowerCase();
+    if (s === 'approved') return { label: 'Approved', variant: 'approved' };
+    if (s === 'modified') return { label: 'Modified', variant: 'info' };
+    if (s === 'rejected') return { label: 'Rejected', variant: 'rejected' };
+    return { label: 'Pending', variant: 'pending' };
+}
 
 export default function Dashboard({ auth, activeBudget, activeLoan = null, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
     const { tournament, switchTournament } = useTournament();
@@ -172,83 +186,62 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                 bgImage="/assets/img/fan/backgrounds/stadium_hero.png"
             />
 
-            {/* Concluded Tournament Banner */}
+            {/* Concluded tournament nudge — token-driven, matches the new
+                slab treatment used elsewhere on the dashboard. */}
             {isConcluded && nextActiveTournament && (
-                <div style={{
-                    background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(59,130,246,0.15))',
-                    border: '1px solid rgba(34,197,94,0.3)',
-                    borderRadius: '12px',
-                    padding: '16px 20px',
-                    marginBottom: '1.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <i className="fas fa-calendar-check" style={{ color: '#4ade80', fontSize: '1.2rem' }}></i>
-                        <div>
-                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>
-                                Ready for the next tournament?
-                            </div>
-                            <div style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                                {nextActiveTournament.name} is {nextActiveTournament.start_date ? `coming up` : 'next'} — start planning now.
-                            </div>
-                        </div>
+                <ContentCard
+                    className="mb-4"
+                    title="Ready for the next tournament?"
+                    subtitle={`${nextActiveTournament.name} is next — start planning now.`}
+                    action={
+                        <button
+                            type="button"
+                            onClick={() => switchTournament(nextActiveTournament.id, '/fan/dashboard')}
+                            className="tfe-quick-action"
+                            style={{ padding: '8px 14px' }}
+                        >
+                            <span className="tfe-quick-action__label">Switch to {nextActiveTournament.short_name || nextActiveTournament.name}</span>
+                        </button>
+                    }
+                >
+                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.82rem' }}>
+                        Your current tournament has concluded. Jump into the next one to keep planning.
                     </div>
-                    <button
-                        onClick={() => switchTournament(nextActiveTournament.id, '/fan/dashboard')}
-                        style={{
-                            background: '#22c55e',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '8px 16px',
-                            fontWeight: 600,
-                            fontSize: '0.85rem',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                        }}
-                    >
-                        <i className="fas fa-arrow-right me-1"></i>
-                        Switch to {nextActiveTournament.name}
-                    </button>
-                </div>
+                </ContentCard>
             )}
 
             {/* Summary Cards */}
-            <div className="summary-cards-grid">
-                <StatCard 
+            <div className="tfe-stat-grid">
+                <StatCard
                     label="Planned Budget"
-                    value={activeBudget ? formatMoney(activeBudget.total_cost) : 'KES 0'}
+                    value={activeBudget ? formatMoney(activeBudget.total_cost, activeBudget.currency || 'USD') : formatMoney(0, 'USD')}
                     icon="fa-wallet"
-                    variant="red"
-                    subtext={activeBudget ? activeBudget.partner_status : 'Pending'}
+                    accent="red"
+                    pill={pillForPartnerStatus(activeBudget?.partner_status)}
                 />
-                
-                <StatCard 
+
+                <StatCard
                     label="Total Paid"
                     value={formatMoney(stats.paid)}
                     icon="fa-credit-card"
-                    variant="blue"
+                    accent="teal"
                     subtext={`${stats.payments_count} transactions`}
                 />
-                
-                <StatCard 
+
+                <StatCard
                     label="Active Bookings"
-                    value={`${stats.bookings} ${stats.bookings === 1 ? 'Booking' : 'Bookings'}`}
+                    value={stats.bookings}
                     icon="fa-ticket-alt"
-                    variant="red"
-                    subtext="Confirmed"
+                    accent="amber"
+                    subtext={stats.bookings === 1 ? '1 confirmed trip' : `${stats.bookings} confirmed trips`}
                 />
-                
+
                 <StatCard
                     label="Joined Tribes"
-                    value={`${stats.joined_tribes_count || 0} ${stats.joined_tribes_count === 1 ? 'Community' : 'Communities'}`}
+                    value={stats.joined_tribes_count || 0}
                     icon="fa-users"
-                    variant="blue"
-                    subtext="Active Communities"
+                    accent="violet"
+                    subtext="Active communities"
                 />
             </div>
 
@@ -285,11 +278,7 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                 {/* Content Cards Grid */}
                 <div className="content-cards-grid mt-4">
                     {/* Quick Actions */}
-                    <div id="quick-actions-card" className="content-card quick-actions-card">
-                        <div className="card-header">
-                            <i className="fas fa-bolt"></i>
-                            <h3>Quick Actions</h3>
-                        </div>
+                    <ContentCard id="quick-actions-card" title="Quick Actions">
                         <QuickActionsGrid
                             actions={[
                                 { id: 'qa-wallet',  label: 'My Wallet',  icon: 'fa-credit-card', href: route('fan.payments') },
@@ -302,19 +291,20 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                                 ] : []),
                             ]}
                         />
-                        
-                        {/* Vertical Ad Placeholder in Sidebar/Quick Actions Column */}
-                        <div className="mt-4">
+                        <div className="tfe-slab__body" style={{ paddingTop: 0 }}>
                             <AdPlaceholder position="vertical" />
                         </div>
-                    </div>
+                    </ContentCard>
 
                     {/* Recent Activity */}
-                    <div className="content-card activity-card">
-                        <div className="card-header">
-                            <i className="fas fa-clock"></i>
-                            <h3>Recent Activity</h3>
-                        </div>
+                    <ContentCard
+                        title="Recent Activity"
+                        action={
+                            <Link href={route('fan.activities')} className="tfe-pill tfe-pill--info" style={{ textDecoration: 'none' }}>
+                                View all →
+                            </Link>
+                        }
+                    >
                         <div className="activity-list">
                             {activities && activities.length > 0 ? (
                                 activities.map(activity => (
@@ -340,18 +330,14 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                                 </div>
                             )}
                         </div>
-                        <Link href={route('fan.activities')} className="btn-fan-custom btn-fan-custom-sm w-100 mt-2">
-                            <i className="fas fa-eye"></i>
-                            <span>View All Activity</span>
-                        </Link>
-                    </div>
+                    </ContentCard>
 
-                     {/* Payment History Card (New) */}
-                    <div className="content-card payments-list-card mt-3">
-                         <div className="card-header">
-                            <i className="fas fa-history"></i>
-                            <h3>Payment History</h3>
-                        </div>
+                    {/* Payment History */}
+                    <ContentCard
+                        className="mt-3"
+                        title="Payment History"
+                        subtitle={recentPayments?.length ? `${recentPayments.length} recent payments` : null}
+                    >
                         <div className="payments-list">
                              {recentPayments && recentPayments.length > 0 ? (
                                  recentPayments.map(payment => (
@@ -374,7 +360,7 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </ContentCard>
                 </div>
 
                 {/* Horizontal Ad Placeholder */}
