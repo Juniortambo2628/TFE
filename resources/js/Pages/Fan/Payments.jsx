@@ -303,8 +303,8 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                             </div>
                             
                             <div>
-                                <label className="form-label">Card Holder Email</label>
-                                <input type="email" className="form-control" placeholder="user@example.com" defaultValue={auth.user.email} />
+                                <label className="tfe-form-label">Card Holder Email</label>
+                                <input type="email" className="tfe-input" placeholder="user@example.com" defaultValue={auth.user.email} />
                             </div>
                             
                             <div className="modal-footer">
@@ -326,10 +326,10 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                                 </div>
                             </div>
                             <div>
-                                <label className="form-label">Phone Number</label>
+                                <label className="tfe-form-label">Phone Number</label>
                                 <input 
                                     type="text" 
-                                    className="form-control" 
+                                    className="tfe-input" 
                                     placeholder="2547..." 
                                     value={methodData.phone_number} 
                                     onChange={e => setMethodData('phone_number', e.target.value)} 
@@ -358,12 +358,12 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                 <form onSubmit={handlePayment}>
                     <div className="space-y-4 mb-4">
                         <div>
-                            <label className="form-label">Amount (KES)</label>
+                            <label className="tfe-form-label">Amount (KES)</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-3 text-gray-500">KES</span>
                                 <input 
                                     type="number" 
-                                    className="form-control pl-16 text-lg font-bold text-right" 
+                                    className="tfe-input pl-16 text-lg font-bold text-right" 
                                     placeholder="0.00" 
                                     value={payData.amount} 
                                     onChange={e => setPayData('amount', e.target.value)} 
@@ -372,17 +372,17 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                             </div>
                         </div>
                         <div>
-                            <label className="form-label">Payment Method</label>
-                            <select className="form-select" value={payData.method} onChange={e => setPayData('method', e.target.value)}>
+                            <label className="tfe-form-label">Payment Method</label>
+                            <select className="tfe-select" value={payData.method} onChange={e => setPayData('method', e.target.value)}>
                                 <option value="mpesa">M-Pesa</option>
                                 <option value="card" disabled={!paymentMethods.some(m => m.type === 'card')}>Credit/Debit Card</option>
                             </select>
                         </div>
                         <div>
-                            <label className="form-label">Description (Optional)</label>
+                            <label className="tfe-form-label">Description (Optional)</label>
                             <input 
                                 type="text" 
-                                className="form-control" 
+                                className="tfe-input" 
                                 placeholder="e.g. Ticket Purchase" 
                                 value={payData.description} 
                                 onChange={e => setPayData('description', e.target.value)} 

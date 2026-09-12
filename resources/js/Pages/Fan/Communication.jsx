@@ -152,7 +152,7 @@ export default function Communication({ auth, announcements, messages }) {
                                                 <div className="message-actions">
                                                     {!message.is_read && (
                                                         <button 
-                                                            className="btn btn-sm btn-outline-primary me-2"
+                                                            className="tfe-btn tfe-btn--sm me-2"
                                                             onClick={(e) => { e.stopPropagation(); handleMarkRead(message.id); }}
                                                             title="Mark as read"
                                                         >
@@ -160,7 +160,7 @@ export default function Communication({ auth, announcements, messages }) {
                                                         </button>
                                                     )}
                                                     <button 
-                                                        className="btn btn-sm btn-outline-danger"
+                                                        className="tfe-btn tfe-btn--sm"
                                                         onClick={(e) => { e.stopPropagation(); setMessageToDelete(message.id); }}
                                                         title="Delete message"
                                                     >
@@ -199,7 +199,7 @@ export default function Communication({ auth, announcements, messages }) {
                     <div className="dash-modal" onClick={e => e.stopPropagation()}>
                         <div className="p-4 border-bottom border-secondary d-flex justify-content-between align-items-center">
                             <h5 className="m-0 text-white">{selectedMessage.subject}</h5>
-                            <button className="btn btn-link text-white text-decoration-none" onClick={() => setSelectedMessage(null)}>
+                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setSelectedMessage(null)}>
                                 <i className="fas fa-times fa-lg"></i>
                             </button>
                         </div>
@@ -314,14 +314,14 @@ export default function Communication({ auth, announcements, messages }) {
                         </div>
                          <div className="p-3 border-top border-secondary text-end bg-dark">
                             {!selectedMessage.is_read && (
-                                <button className="btn btn-primary me-2" onClick={() => {
+                                <button type="button" className="tfe-btn tfe-btn--filled me-2" onClick={() => {
                                     handleMarkRead(selectedMessage.id);
                                     setSelectedMessage({...selectedMessage, is_read: true});
                                 }}>
                                     Mark as Read
                                 </button>
                             )}
-                            <button className="btn btn-secondary" onClick={() => setSelectedMessage(null)}>Close</button>
+                            <button type="button" className="tfe-btn" onClick={() => setSelectedMessage(null)}>Close</button>
                          </div>
                     </div>
                 </div>

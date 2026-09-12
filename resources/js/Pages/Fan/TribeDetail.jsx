@@ -194,13 +194,13 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                     <form onSubmit={handleCreatePost}>
                                         <input
                                             type="text"
-                                            className="form-control bg-dark text-white border-secondary mb-2"
+                                            className="tfe-textarea mb-2"
                                             placeholder="Discussion title (optional)"
                                             value={postForm.data.title}
                                             onChange={e => postForm.setData('title', e.target.value)}
                                         />
                                         <textarea
-                                            className="form-control bg-dark text-white border-secondary mb-2"
+                                            className="tfe-textarea mb-2"
                                             placeholder="What's on your mind?"
                                             rows={3}
                                             value={postForm.data.content}
@@ -208,8 +208,8 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                             required
                                         ></textarea>
                                         <div className="d-flex gap-2">
-                                            <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPostForm(false)}>Cancel</button>
-                                            <button type="submit" className="btn btn-primary" disabled={postForm.processing}>
+                                            <button type="button" className="tfe-btn" onClick={() => setShowPostForm(false)}>Cancel</button>
+                                            <button type="submit" className="tfe-btn tfe-btn--filled" disabled={postForm.processing}>
                                                 <i className="fas fa-paper-plane me-1"></i> Post
                                             </button>
                                         </div>
@@ -254,18 +254,18 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                                     <div className="d-flex gap-2">
                                                         <input
                                                             type="text"
-                                                            className="form-control form-control-sm bg-dark text-white border-secondary"
+                                                            className="tfe-input tfe-input--sm"
                                                             placeholder="Write a reply..."
                                                             value={replyForm.data.content}
                                                             onChange={e => replyForm.setData('content', e.target.value)}
                                                             required
                                                         />
-                                                        <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setReplyingTo(null)}>Cancel</button>
-                                                        <button type="submit" className="btn btn-sm btn-primary" disabled={replyForm.processing}>Reply</button>
+                                                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setReplyingTo(null)}>Cancel</button>
+                                                        <button type="submit" className="tfe-btn tfe-btn--sm tfe-btn--filled" disabled={replyForm.processing}>Reply</button>
                                                     </div>
                                                 </form>
                                             ) : (
-                                                <button className="btn btn-link btn-sm text-white-50 p-0 mt-2" onClick={() => setReplyingTo(post.id)}>
+                                                <button type="button" className="tfe-btn tfe-btn--sm mt-2" onClick={() => setReplyingTo(post.id)}>
                                                     <i className="fas fa-reply me-1"></i> Reply
                                                 </button>
                                             )
@@ -301,7 +301,7 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                         <div className="d-flex align-items-center gap-2">
                                             {tribe.is_admin && tribe.creator.id !== member.id && (
                                                 <button 
-                                                    className="btn btn-link btn-sm p-0 text-white-50"
+                                                    className="tfe-btn tfe-btn--sm"
                                                     onClick={() => handleToggleRole(member.id)}
                                                     title={member.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
                                                 >
@@ -333,28 +333,28 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                         {editTab === 'info' && (
                             <>
                                 <div className="mb-3">
-                                    <label className="form-label">Tribe Name</label>
+                                    <label className="tfe-form-label">Tribe Name</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input"
                                         value={editForm.data.name}
                                         onChange={e => editForm.setData('name', e.target.value)}
                                         required 
                                     />
                                 </div>
                                 <div className="mb-3">
-                                    <label className="form-label">Description</label>
+                                    <label className="tfe-form-label">Description</label>
                                     <textarea 
-                                        className="form-control" 
+                                        className="tfe-input"
                                         value={editForm.data.description}
                                         onChange={e => editForm.setData('description', e.target.value)}
                                         rows="4"
                                     ></textarea>
                                 </div>
                                 <div className="mb-3">
-                                    <label className="form-label">Privacy</label>
+                                    <label className="tfe-form-label">Privacy</label>
                                     <select 
-                                        className="form-select"
+                                        className="tfe-select"
                                         value={editForm.data.privacy}
                                         onChange={e => editForm.setData('privacy', e.target.value)}
                                     >
@@ -371,7 +371,7 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                 {/* Current banner preview */}
                                 {tribe.banner && bannerFiles.length === 0 && (
                                     <div className="mb-3">
-                                        <label className="form-label">Current Cover</label>
+                                        <label className="tfe-form-label">Current Cover</label>
                                         <div style={{ borderRadius: 10, overflow: 'hidden', maxHeight: 180 }}>
                                             <img 
                                                 src={tribe.banner} 
@@ -382,7 +382,7 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                     </div>
                                 )}
                                 <div className="mb-3">
-                                    <label className="form-label">Upload New Cover</label>
+                                    <label className="tfe-form-label">Upload New Cover</label>
                                     <FilePondUploader
                                         files={bannerFiles}
                                         onUpdateFiles={setBannerFiles}

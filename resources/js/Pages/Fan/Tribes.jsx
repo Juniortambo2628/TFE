@@ -254,10 +254,10 @@ export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cr
                         <div className="modal-body">
                             <form onSubmit={handleCreate}>
                                 <div className="mb-4">
-                                    <label className="form-label">Tribe Name</label>
+                                    <label className="tfe-form-label">Tribe Name</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input"
                                         value={newTribeData.name}
                                         onChange={e => setNewTribeData({...newTribeData, name: e.target.value})}
                                         placeholder="e.g. Kenya Ultras"
@@ -265,9 +265,9 @@ export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cr
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="form-label">Description</label>
+                                    <label className="tfe-form-label">Description</label>
                                     <textarea 
-                                        className="form-control" 
+                                        className="tfe-input"
                                         value={newTribeData.description}
                                         onChange={e => setNewTribeData({...newTribeData, description: e.target.value})}
                                         rows="3"
@@ -275,9 +275,9 @@ export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cr
                                     ></textarea>
                                 </div>
                                 <div className="mb-4">
-                                    <label className="form-label">Privacy</label>
+                                    <label className="tfe-form-label">Privacy</label>
                                     <select 
-                                        className="form-select"
+                                        className="tfe-select"
                                         value={newTribeData.privacy}
                                         onChange={e => setNewTribeData({...newTribeData, privacy: e.target.value})}
                                     >
