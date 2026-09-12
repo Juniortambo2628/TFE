@@ -306,8 +306,25 @@ queue worker:
   daemon without needing one.
 
 Deploy step is `bash deploy/cpanel-deploy.sh` in the cPanel Terminal —
-it runs `storage:link`, migrations, `config:cache`, `route:cache`,
-`view:cache`, and `queue:restart`. Idempotent, safe to re-run.
+it runs migrations, `config:cache`, `route:cache`, `view:cache`, and
+`queue:restart`. Idempotent, safe to re-run.
+
+**Do not run `php artisan storage:link` on cPanel.** cPanel disables
+PHP's `exec()` in `disable_functions`, and Laravel's `storage:link`
+shells out on some code paths — so it errors with `Call to undefined
+function Illuminate\Filesystem\exec()`. Use `ln -s` directly instead;
+the GitHub Actions `post-deploy.sh` already does this. If you ever
+need to recreate the symlinks manually:
+
+```bash
+# Frontend — this is what serves /storage/*.jpg to browsers.
+[ -L /home/zhpebukm/public_html/storage ] || \
+  ln -s /home/zhpebukm/tfe-core/storage/app/public /home/zhpebukm/public_html/storage
+
+# Backend — public_path('storage/…') resolution for internal reads.
+[ -L /home/zhpebukm/tfe-core/public/storage ] || \
+  ln -s /home/zhpebukm/tfe-core/storage/app/public /home/zhpebukm/tfe-core/public/storage
+```
 
 Live-bell via Reverb is **not viable on shared hosting** — it needs a
 persistent PHP process + WebSocket upgrade support, both of which

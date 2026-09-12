@@ -67,14 +67,37 @@ php artisan view:cache
 php artisan event:cache 2>/dev/null || true
 
 # ─────────────────────────────────────────────
-# 6. STORAGE SYMLINK (frontend → backend storage)
+# 6. STORAGE SYMLINKS (manual — `storage:link` is unusable on cPanel)
 # ─────────────────────────────────────────────
-echo "─── Storage symlink ───"
+# cPanel disables PHP's exec() in disable_functions, so
+# `php artisan storage:link` errors with "Call to undefined function
+# Illuminate\Filesystem\exec()". `ln -s` does the same job without
+# needing exec().
+#
+# We create TWO symlinks:
+#   1. Frontend: public_html/storage → tfe-core/storage/app/public
+#      This is what serves /storage/*.jpg to browsers.
+#   2. Backend: tfe-core/public/storage → tfe-core/storage/app/public
+#      Some third-party packages use public_path('storage/...') to
+#      resolve paths internally; without this they 404 even though the
+#      frontend URL works.
+echo "─── Frontend storage symlink ───"
 if [ -L "$FRONTEND_PATH/storage" ]; then
   echo "Symlink already exists at $FRONTEND_PATH/storage, skipping"
 else
   ln -s "$BACKEND_PATH/storage/app/public" "$FRONTEND_PATH/storage"
   echo "Created symlink: $FRONTEND_PATH/storage -> $BACKEND_PATH/storage/app/public"
+fi
+
+echo "─── Backend storage symlink ───"
+mkdir -p "$BACKEND_PATH/public"
+if [ -L "$BACKEND_PATH/public/storage" ]; then
+  echo "Symlink already exists at $BACKEND_PATH/public/storage, skipping"
+elif [ -e "$BACKEND_PATH/public/storage" ]; then
+  echo "WARNING: $BACKEND_PATH/public/storage exists but is not a symlink; leaving alone"
+else
+  ln -s "$BACKEND_PATH/storage/app/public" "$BACKEND_PATH/public/storage"
+  echo "Created symlink: $BACKEND_PATH/public/storage -> $BACKEND_PATH/storage/app/public"
 fi
 
 # ─────────────────────────────────────────────

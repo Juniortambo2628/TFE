@@ -27,10 +27,10 @@ echo "─── PHP version ───"
 PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
 PHP_MAJOR=$(php -r 'echo PHP_MAJOR_VERSION;')
 PHP_MINOR=$(php -r 'echo PHP_MINOR_VERSION;')
-if [ "$PHP_MAJOR" -gt 8 ] || ([ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -ge 2 ]); then
-  echo "OK: PHP $PHP_VERSION (>= 8.2 required)"
+if [ "$PHP_MAJOR" -gt 8 ] || ([ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -ge 3 ]); then
+  echo "OK: PHP $PHP_VERSION (>= 8.3 required)"
 else
-  echo "FAIL: PHP $PHP_VERSION detected, but 8.2+ is required"
+  echo "FAIL: PHP $PHP_VERSION detected, but 8.3+ is required"
   FAIL=1
 fi
 
@@ -66,19 +66,25 @@ else
 fi
 
 echo ""
-echo "─── Storage symlink ───"
-if [ -L "$FRONTEND_PATH/storage" ]; then
-  TARGET=$(readlink -f "$FRONTEND_PATH/storage")
-  if [ -d "$TARGET" ]; then
-    echo "OK: storage symlink resolves to $TARGET"
+echo "─── Storage symlinks ───"
+verify_symlink() {
+  local link="$1"
+  if [ -L "$link" ]; then
+    local target
+    target=$(readlink -f "$link")
+    if [ -d "$target" ]; then
+      echo "OK: $link -> $target"
+    else
+      echo "BROKEN SYMLINK: $link -> $target does not exist"
+      FAIL=1
+    fi
   else
-    echo "BROKEN SYMLINK: $FRONTEND_PATH/storage -> $TARGET does not exist"
+    echo "MISSING: symlink at $link"
     FAIL=1
   fi
-else
-  echo "MISSING: storage symlink at $FRONTEND_PATH/storage"
-  FAIL=1
-fi
+}
+verify_symlink "$FRONTEND_PATH/storage"
+verify_symlink "$BACKEND_PATH/public/storage"
 
 echo ""
 echo "─── Write permissions ───"
