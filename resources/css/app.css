@@ -1,4 +1,5 @@
 @import './design-tokens.css';
+@import './primitives.css';
 @import './dashboard-shared.css';
 
 @layer base {
@@ -282,7 +283,7 @@ body.modal-open {
     padding-right: var(--scrollbar-width, 0px);
 }
 
-/* Generic .tfe-scroll class — applies the same subtle scrollbar to any container */
+/* Generic .tfe-scroll class ï¿½ applies the same subtle scrollbar to any container */
 .tfe-scroll {
     scrollbar-width: thin;
     scrollbar-color: rgba(220, 20, 60, 0.4) transparent;

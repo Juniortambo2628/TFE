@@ -1,0 +1,278 @@
+/* ==========================================================================
+   PRIMITIVES  —  the small set of visual bricks every dashboard reuses.
+
+   All values come from design-tokens.css; a repaint should only need
+   to change tokens, never these rules. New pages should reach for
+   .tfe-tile / .tfe-slab / .tfe-pill instead of writing new card CSS.
+   ========================================================================== */
+
+/* ── Stat tile ────────────────────────────────────────────────────────── */
+
+.tfe-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 132px;
+    padding: var(--tile-padding);
+    border-radius: var(--tile-radius);
+    background: var(--tile-wash-red);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: var(--tile-shadow);
+    color: var(--text-primary);
+    overflow: hidden;
+    transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+
+.tfe-tile:hover {
+    transform: translateY(var(--lift-y));
+    box-shadow: var(--tile-shadow-hover);
+}
+
+/* Accent variants — the JSX picks one, everything else is identical. */
+.tfe-tile--red    { background: var(--tile-wash-red); }
+.tfe-tile--rose   { background: var(--tile-wash-rose); }
+.tfe-tile--blue   { background: var(--tile-wash-blue); }
+.tfe-tile--cyan   { background: var(--tile-wash-cyan); }
+.tfe-tile--teal   { background: var(--tile-wash-teal); }
+.tfe-tile--amber  { background: var(--tile-wash-amber); }
+.tfe-tile--violet { background: var(--tile-wash-violet); }
+.tfe-tile--graph  { background: var(--tile-wash-graph); }
+
+.tfe-tile__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.tfe-tile__icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    flex-shrink: 0;
+}
+
+.tfe-tile__value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: var(--number-font-weight);
+    letter-spacing: var(--number-letter-spacing);
+    line-height: 1.05;
+    color: #fff;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    margin: 0;
+}
+
+.tfe-tile__label {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    font-weight: var(--label-font-weight);
+    letter-spacing: var(--label-letter-spacing);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.tfe-tile__subtext {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Content slab ─────────────────────────────────────────────────────── */
+
+.tfe-slab {
+    background: var(--slab-bg);
+    backdrop-filter: var(--slab-blur);
+    -webkit-backdrop-filter: var(--slab-blur);
+    border: var(--slab-border);
+    border-radius: var(--slab-radius);
+    box-shadow: var(--slab-shadow);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+.tfe-slab__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px 4px;
+}
+
+.tfe-slab__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.005em;
+}
+
+.tfe-slab__title-sub {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 500;
+}
+
+.tfe-slab__body {
+    padding: 16px 22px 22px;
+}
+
+.tfe-slab__body--flush {
+    padding: 0;
+}
+
+/* ── Pill badge ──────────────────────────────────────────────────────── */
+
+.tfe-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: var(--pill-padding);
+    border-radius: var(--pill-radius);
+    font-size: var(--pill-font-size);
+    font-weight: var(--pill-font-weight);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.tfe-pill--live      { background: var(--pill-live-bg);      color: var(--pill-live-fg); }
+.tfe-pill--upcoming  { background: var(--pill-upcoming-bg);  color: var(--pill-upcoming-fg); }
+.tfe-pill--concluded { background: var(--pill-concluded-bg); color: var(--pill-concluded-fg); }
+.tfe-pill--pending   { background: var(--pill-pending-bg);   color: var(--pill-pending-fg); }
+.tfe-pill--approved  { background: var(--pill-approved-bg);  color: var(--pill-approved-fg); }
+.tfe-pill--rejected  { background: var(--pill-rejected-bg);  color: var(--pill-rejected-fg); }
+.tfe-pill--info      { background: var(--pill-info-bg);      color: var(--pill-info-fg); }
+
+/* A "dot" prefix for pills, matches the Syncop ref. */
+.tfe-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+    flex-shrink: 0;
+}
+
+/* ── Sidebar item restyle ────────────────────────────────────────────── */
+
+.tfe-sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: var(--sidebar-item-padding);
+    border-radius: var(--sidebar-item-radius);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+}
+
+.tfe-sidebar-nav-item:hover {
+    background: var(--sidebar-item-hover-bg);
+    color: #fff;
+}
+
+.tfe-sidebar-nav-item.is-active {
+    background: var(--sidebar-item-active-bg);
+    border: var(--sidebar-item-active-border);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(220, 20, 60, 0.15);
+}
+
+.tfe-sidebar-nav-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.tfe-sidebar-nav-item.is-active i {
+    color: var(--accent);
+}
+
+/* ── Quick-action tile (pill-shaped, matches Ref B / C) ──────────────── */
+
+.tfe-quick-action {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.18), rgba(20, 12, 14, 0.6));
+    border: 1px solid rgba(220, 20, 60, 0.25);
+    color: #fff;
+    text-decoration: none;
+    transition: transform var(--dur) var(--ease-out),
+                box-shadow var(--dur) var(--ease-out),
+                background var(--dur) var(--ease-out);
+    overflow: hidden;
+}
+
+.tfe-quick-action:hover {
+    transform: translateY(var(--lift-y));
+    box-shadow: 0 18px 32px rgba(220, 20, 60, 0.2);
+    color: #fff;
+}
+
+.tfe-quick-action__icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(220, 20, 60, 0.28);
+    color: #ffd7db;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.tfe-quick-action__label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: -0.005em;
+}
+
+/* Grid the tiles live in — auto-fit so anywhere from 2 to 6 works. */
+.tfe-quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 6px 22px 22px;
+}
+
+/* ── Stat grid ────────────────────────────────────────────────────────── */
+
+.tfe-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+/* ── Motion respect ──────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .tfe-tile,
+    .tfe-quick-action,
+    .tfe-sidebar-nav-item {
+        transition: none;
+    }
+    .tfe-tile:hover,
+    .tfe-quick-action:hover {
+        transform: none;
+    }
+}
