@@ -5,6 +5,7 @@ import Footer from '@/Components/Footer';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import TournamentPill from '@/Components/Common/TournamentPill';
 import { TournamentProvider } from '@/Context/TournamentContext';
+import '../../css/partner-hub.css';
 
 /**
  * PartnerHub — public /partners/{slug} page.
@@ -61,16 +62,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                                 </h1>
                             </div>
                             {profile?.verification_status === 'verified' && (
-                                <span
-                                    className="ms-auto d-inline-flex align-items-center gap-1 px-3 py-1"
-                                    style={{
-                                        background: 'rgba(16,185,129,0.15)',
-                                        color: '#10b981',
-                                        borderRadius: 999,
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                    }}
-                                >
+                                <span className="tfe-pill tfe-pill--approved ms-auto">
                                     <i className="fas fa-check-circle"></i>
                                     Verified partner
                                 </span>
@@ -109,21 +101,23 @@ export default function PartnerHub({ profile, listings = [] }) {
                     </div>
                 </section>
 
-                {/* Stats band */}
+                {/* Stats band — .tfe-tile primitive so it matches the
+                    admin/fan/partner dashboards. Cycles through the
+                    variant palette; the partner accent still bleeds
+                    through via --partner-accent on the wrapper. */}
                 {profile?.stats && profile.stats.length > 0 && (
-                    <section className="py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <section className="py-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
                         <div className="container">
-                            <div className="row g-3 text-center">
-                                {profile.stats.map((stat, idx) => (
-                                    <div key={idx} className="col-6 col-md-3">
-                                        <div className="fw-bold" style={{ fontSize: '2rem', color: accent }}>
-                                            {stat.value}
+                            <div className="tfe-stat-grid" style={{ '--partner-accent': accent }}>
+                                {profile.stats.map((stat, idx) => {
+                                    const variant = ['red', 'amber', 'teal', 'violet'][idx % 4];
+                                    return (
+                                        <div key={idx} className={`tfe-tile tfe-tile--${variant}`}>
+                                            <div className="tfe-tile__value">{stat.value}</div>
+                                            <div className="tfe-tile__label">{stat.label}</div>
                                         </div>
-                                        <div className="text-white-50 small text-uppercase" style={{ letterSpacing: '1px' }}>
-                                            {stat.label}
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </section>
@@ -149,13 +143,11 @@ export default function PartnerHub({ profile, listings = [] }) {
                                             {profile.service_tags.map((tag, idx) => (
                                                 <span
                                                     key={idx}
-                                                    className="px-3 py-2"
+                                                    className="tfe-pill"
                                                     style={{
                                                         background: 'rgba(255,255,255,0.05)',
                                                         border: `1px solid ${accent}`,
                                                         color: '#fff',
-                                                        borderRadius: 999,
-                                                        fontSize: '0.85rem',
                                                     }}
                                                 >
                                                     {tag}
@@ -200,27 +192,17 @@ export default function PartnerHub({ profile, listings = [] }) {
                                     <div key={l.id} className="col-md-6 col-lg-4">
                                         <Link
                                             href={route('fan.packages.show', l.id)}
-                                            className="text-decoration-none d-block h-100"
-                                            style={{
-                                                background: 'rgba(20,20,20,0.6)',
-                                                border: '1px solid rgba(255,255,255,0.06)',
-                                                borderRadius: 16,
-                                                overflow: 'hidden',
-                                                transition: 'transform 200ms, border-color 200ms',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(-3px)';
-                                                e.currentTarget.style.borderColor = accent;
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                                            }}
+                                            className="tfe-slab partner-hub-listing text-decoration-none d-block h-100"
+                                            style={{ '--partner-accent': accent }}
                                         >
                                             {l.hero_image && (
-                                                <img src={l.hero_image} alt={l.name} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
+                                                <img
+                                                    src={l.hero_image}
+                                                    alt={l.name}
+                                                    className="partner-hub-listing__hero"
+                                                />
                                             )}
-                                            <div className="p-4">
+                                            <div className="tfe-slab__body">
                                                 <div className="d-flex justify-content-between align-items-start mb-2">
                                                     <div>
                                                         <h4 className="text-white mb-1" style={{ fontSize: '1.05rem' }}>
@@ -313,33 +295,28 @@ function HowWeSupportStrip({ accent }) {
                 <div className="row g-4">
                     {pillars.map((p, i) => (
                         <div key={i} className="col-md-4">
-                            <div
-                                className="h-100 p-4"
-                                style={{
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(255,255,255,0.07)',
-                                    borderRadius: 16,
-                                }}
-                            >
-                                <div
-                                    className="d-inline-flex align-items-center justify-content-center mb-3"
-                                    style={{
-                                        width: 44,
-                                        height: 44,
-                                        borderRadius: 10,
-                                        background: `${accent}22`,
-                                        color: accent,
-                                        fontSize: '1.1rem',
-                                    }}
-                                >
-                                    <i className={`fas ${p.icon}`}></i>
+                            <div className="tfe-slab h-100">
+                                <div className="tfe-slab__body">
+                                    <div
+                                        className="d-inline-flex align-items-center justify-content-center mb-3"
+                                        style={{
+                                            width: 44,
+                                            height: 44,
+                                            borderRadius: 10,
+                                            background: `${accent}22`,
+                                            color: accent,
+                                            fontSize: '1.1rem',
+                                        }}
+                                    >
+                                        <i className={`fas ${p.icon}`}></i>
+                                    </div>
+                                    <h3 className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>
+                                        {p.title}
+                                    </h3>
+                                    <p className="text-white-50 small mb-0" style={{ lineHeight: 1.6 }}>
+                                        {p.body}
+                                    </p>
                                 </div>
-                                <h3 className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>
-                                    {p.title}
-                                </h3>
-                                <p className="text-white-50 small mb-0" style={{ lineHeight: 1.6 }}>
-                                    {p.body}
-                                </p>
                             </div>
                         </div>
                     ))}
