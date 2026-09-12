@@ -102,11 +102,12 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                     </div>
                     {!expanded && (
                         <button
+                            type="button"
                             onClick={() => setExpanded(true)}
                             disabled={!hasPartners}
-                            className="btn btn-warning"
+                            className="tfe-btn tfe-btn--filled"
                         >
-                            <i className="fas fa-plus me-2"></i>
+                            <i className="fas fa-plus" />
                             New application
                         </button>
                     )}
@@ -150,36 +151,36 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
 
                         <div className="row g-3">
                             <div className="col-md-4">
-                                <label className="form-label text-white-50">Amount (USD)</label>
+                                <label className="tfe-form-label">Amount (USD)</label>
                                 <input
                                     type="number"
                                     min="1000"
                                     value={form.amount}
                                     onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                                    className="form-control"
+                                    className="tfe-input"
                                     placeholder="e.g. 3500"
                                     required
                                 />
                                 {errors.amount && <div className="text-danger small mt-1">{errors.amount}</div>}
                             </div>
                             <div className="col-md-8">
-                                <label className="form-label text-white-50">Purpose</label>
+                                <label className="tfe-form-label">Purpose</label>
                                 <input
                                     type="text"
                                     value={form.purpose}
                                     onChange={(e) => setForm({ ...form, purpose: e.target.value })}
-                                    className="form-control"
+                                    className="tfe-input"
                                     placeholder={`e.g. ${tournament?.short_name || 'Tournament'} travel funding`}
                                     required
                                 />
                                 {errors.purpose && <div className="text-danger small mt-1">{errors.purpose}</div>}
                             </div>
                             <div className="col-12">
-                                <label className="form-label text-white-50">Additional notes (optional)</label>
+                                <label className="tfe-form-label">Additional notes (optional)</label>
                                 <textarea
                                     value={form.notes}
                                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                    className="form-control"
+                                    className="tfe-input"
                                     rows="2"
                                     placeholder="Anything the underwriter should know?"
                                 />
@@ -190,11 +191,11 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                             <button
                                 type="button"
                                 onClick={() => setExpanded(false)}
-                                className="btn btn-outline-secondary"
+                                className="tfe-btn"
                             >
                                 Cancel
                             </button>
-                            <button type="submit" disabled={processing || !form.finance_partner_id} className="btn btn-warning">
+                            <button type="submit" disabled={processing || !form.finance_partner_id} className="tfe-btn tfe-btn--filled">
                                 <i className="fas fa-paper-plane me-2"></i>
                                 {processing ? 'Submitting…' : 'Submit application'}
                             </button>
@@ -249,7 +250,7 @@ function FinancingEmptyState({ hasPartners }) {
                     Underwriters see the full picture and can decide faster.
                 </p>
                 <div className="financing-empty__actions">
-                    <Link href={route('fan.budget-calculator')} className="btn btn-warning">
+                    <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled">
                         <i className="fas fa-calculator me-2"></i>
                         Open the budget calculator
                     </Link>
@@ -277,7 +278,7 @@ function LoanRow({ loan, onWithdraw }) {
                 <div className="loan-row__meta">
                     <span className={`loan-status loan-status--${loan.status.toLowerCase()}`}>{loan.status}</span>
                     {loan.status === 'PENDING' && (
-                        <button className="btn btn-sm btn-link text-danger p-0" onClick={() => onWithdraw(loan.id)}>
+                        <button className="tfe-btn tfe-btn--sm" onClick={() => onWithdraw(loan.id)}>
                             Withdraw
                         </button>
                     )}

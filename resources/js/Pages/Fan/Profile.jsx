@@ -310,7 +310,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                     {showAvatarCreator && (
                         <div className="avatar-creator-modal-overlay">
                             <div className="d-flex justify-content-end p-3">
-                                <button className="btn btn-sm btn-close-avatar" onClick={() => setShowAvatarCreator(false)}>
+                                <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Close" onClick={() => setShowAvatarCreator(false)}>
                                     <i className="fas fa-times me-2"></i> Close
                                 </button>
                             </div>
@@ -489,20 +489,20 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                             {editProfileTab === 'personal' && (
                                 <div className="space-y-4 bounce-in">
                                     <div className="mb-3">
-                                        <label className="form-label">Full Name</label>
+                                        <label className="tfe-form-label">Full Name</label>
                                         <input 
                                             type="text" 
-                                            className="form-control" 
+                                            className="tfe-input"
                                             value={editForm.name}
                                             onChange={e => setEditForm({...editForm, name: e.target.value})}
                                             required 
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label">Email Address</label>
+                                        <label className="tfe-form-label">Email Address</label>
                                         <input 
                                             type="email" 
-                                            className="form-control" 
+                                            className="tfe-input"
                                             value={editForm.email}
                                             disabled
                                             title="Email cannot be changed"
@@ -510,7 +510,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label">Country</label>
+                                        <label className="tfe-form-label">Country</label>
                                         <SearchableSelect
                                             options={countries}
                                             value={editForm.country}
@@ -522,17 +522,17 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                     </div>
                                     <div className="d-flex gap-3">
                                         <div className="flex-fill">
-                                            <label className="form-label">Date of Birth</label>
+                                            <label className="tfe-form-label">Date of Birth</label>
                                             <input 
                                                 type="date" 
-                                                className="form-control" 
+                                                className="tfe-input"
                                                 value={editForm.date_of_birth}
                                                 onChange={e => setEditForm({...editForm, date_of_birth: e.target.value})}
                                                 style={{ colorScheme: 'dark' }}
                                             />
                                         </div>
                                         <div className="flex-fill">
-                                            <label className="form-label">Phone Number</label>
+                                            <label className="tfe-form-label">Phone Number</label>
                                             <div className="d-flex gap-2">
                                                 <div style={{width: '110px'}}>
                                                     <SearchableSelect
@@ -563,7 +563,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                                 </div>
                                                 <input 
                                                     type="tel" 
-                                                    className="form-control" 
+                                                    className="tfe-input"
                                                     value={editForm.phone}
                                                     onChange={e => setEditForm({...editForm, phone: e.target.value})}
                                                     placeholder="123 456 789"
@@ -576,7 +576,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
 
                             {editProfileTab === 'team' && (
                                 <div className="space-y-4 bounce-in">
-                                    <label className="form-label mb-3">Supporting Team</label>
+                                    <label className="tfe-form-label mb-3">Supporting Team</label>
                                     <div className="team-grid no-scrollbar dash-team-grid">
                                         {teams.map(team => (
                                             <div
@@ -599,9 +599,9 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                             {editProfileTab === 'bio' && (
                                 <div className="space-y-4 bounce-in">
                                     <div className="mb-3 mt-3">
-                                        <label className="form-label">Bio / About You</label>
+                                        <label className="tfe-form-label">Bio / About You</label>
                                         <textarea 
-                                            className="form-control"
+                                            className="tfe-textarea"
                                             rows={8}
                                             value={editForm.bio}
                                             onChange={e => setEditForm({...editForm, bio: e.target.value})}
@@ -616,7 +616,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                     {/* Current cover preview */}
                                     {editForm.cover_image && coverFiles.length === 0 && (
                                         <div className="mb-3">
-                                            <label className="form-label">Current Cover</label>
+                                            <label className="tfe-form-label">Current Cover</label>
                                             <div style={{ borderRadius: 10, overflow: 'hidden', maxHeight: 180 }}>
                                                 <img 
                                                     src={editForm.cover_image} 
@@ -627,7 +627,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                         </div>
                                     )}
                                     <div className="mb-3">
-                                        <label className="form-label">Upload New Cover</label>
+                                        <label className="tfe-form-label">Upload New Cover</label>
                                         <FilePondUploader
                                             files={coverFiles}
                                             onUpdateFiles={setCoverFiles}

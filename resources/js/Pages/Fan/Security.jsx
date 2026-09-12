@@ -222,18 +222,18 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
                             {showPassForm && (
                                 <form onSubmit={handlePasswordChange} className="mt-4 p-4 glass-card border border-secondary border-opacity-25 rounded-3">
                                     <div className="mb-3">
-                                        <label className="form-label text-white-50 small">Current Password</label>
-                                        <input type="password" className="form-control bg-dark text-white border-secondary border-opacity-50" value={passData.current_password} onChange={e => setPassData('current_password', e.target.value)} required />
+                                        <label className="tfe-form-label">Current Password</label>
+                                        <input type="password" className="tfe-input" value={passData.current_password} onChange={e => setPassData('current_password', e.target.value)} required />
                                         {passErrors.current_password && <div className="text-danger small mt-1">{passErrors.current_password}</div>}
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label text-white-50 small">New Password</label>
-                                        <input type="password" className="form-control bg-dark text-white border-secondary border-opacity-50" value={passData.password} onChange={e => setPassData('password', e.target.value)} required />
+                                        <label className="tfe-form-label">New Password</label>
+                                        <input type="password" className="tfe-input" value={passData.password} onChange={e => setPassData('password', e.target.value)} required />
                                         {passErrors.password && <div className="text-danger small mt-1">{passErrors.password}</div>}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="form-label text-white-50 small">Confirm New Password</label>
-                                        <input type="password" className="form-control bg-dark text-white border-secondary border-opacity-50" value={passData.password_confirmation} onChange={e => setPassData('password_confirmation', e.target.value)} required />
+                                        <label className="tfe-form-label">Confirm New Password</label>
+                                        <input type="password" className="tfe-input" value={passData.password_confirmation} onChange={e => setPassData('password_confirmation', e.target.value)} required />
                                     </div>
                                     <div className="d-flex gap-2 justify-content-end">
                                         <button type="button" className="btn-fan-custom btn-fan-custom-sm opacity-75" onClick={() => setShowPassForm(false)}>Cancel</button>

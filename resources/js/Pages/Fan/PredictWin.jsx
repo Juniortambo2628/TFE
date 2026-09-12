@@ -143,7 +143,7 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                                         <label className="text-white-50 small d-block mb-2">{selectedMatch.home_team}</label>
                                         <input 
                                             type="number" 
-                                            className="form-control bg-dark text-white text-center border-secondary"
+                                            className="tfe-input text-center"
                                             style={{width: '80px'}}
                                             min="0"
                                             value={prediction.home_score}
@@ -155,7 +155,7 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                                         <label className="text-white-50 small d-block mb-2">{selectedMatch.away_team}</label>
                                         <input 
                                             type="number" 
-                                            className="form-control bg-dark text-white text-center border-secondary"
+                                            className="tfe-input text-center"
                                             style={{width: '80px'}}
                                             min="0"
                                             value={prediction.away_score}
@@ -164,10 +164,10 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                                     </div>
                                 </div>
 
-                                <button className="btn btn-primary w-100" onClick={submitPrediction}>
+                                <button type="button" className="tfe-btn tfe-btn--filled w-100" onClick={submitPrediction}>
                                     <i className="fas fa-paper-plane me-2"></i>Submit Prediction
                                 </button>
-                                <button className="btn btn-outline-secondary w-100 mt-2" onClick={() => setSelectedMatch(null)}>
+                                <button type="button" className="tfe-btn w-100 mt-2" onClick={() => setSelectedMatch(null)}>
                                     Cancel
                                 </button>
                             </div>

@@ -105,7 +105,9 @@ export default function FanStore({ auth, products, categories }) {
                         {categories.map(cat => (
                             <button 
                                 key={cat}
-                                className={`btn btn-sm ${activeCategory === cat ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                type="button"
+                                aria-pressed={activeCategory === cat}
+                                className={`tfe-btn tfe-btn--sm${activeCategory === cat ? ' is-active' : ''}`}
                                 onClick={() => setActiveCategory(cat)}
                             >
                                 {cat}
@@ -130,7 +132,7 @@ export default function FanStore({ auth, products, categories }) {
                                         <span className="h5 mb-0 text-danger">KES {new Intl.NumberFormat().format(product.price)}</span>
                                         {product.in_stock ? (
                                             <button 
-                                                className="btn btn-primary btn-sm"
+                                                className="tfe-btn tfe-btn--sm tfe-btn--filled"
                                                 onClick={() => addToCart(product)}
                                             >
                                                 <i className="fas fa-cart-plus me-1"></i> Add
@@ -175,7 +177,7 @@ export default function FanStore({ auth, products, categories }) {
                             <span className="h5 text-white mb-0">Total</span>
                             <span className="h4 text-danger mb-0">KES {new Intl.NumberFormat().format(cartTotal)}</span>
                         </div>
-                        <button className="btn btn-primary w-100 mt-3" onClick={() => toast.info('Checkout coming soon!')}>
+                        <button type="button" className="tfe-btn tfe-btn--filled w-100 mt-3" onClick={() => toast.info('Checkout coming soon!')}>
                             <i className="fas fa-credit-card me-2"></i>Proceed to Checkout
                         </button>
                     </div>
