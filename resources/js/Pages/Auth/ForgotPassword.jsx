@@ -40,7 +40,7 @@ export default function ForgotPassword({ status }) {
 
                         <form onSubmit={submit}>
                             <div className="form-group">
-                                <label className="form-label" htmlFor="email">
+                                <label className="tfe-form-label" htmlFor="email">
                                     <i className="fas fa-envelope"></i> Email Address
                                 </label>
                                 <input
@@ -48,7 +48,7 @@ export default function ForgotPassword({ status }) {
                                     type="email"
                                     name="email"
                                     value={data.email}
-                                    className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                                    className="tfe-input"
                                     autoFocus
                                     onChange={(e) => setData('email', e.target.value)}
                                     required

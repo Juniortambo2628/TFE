@@ -80,7 +80,7 @@ export default function Login({ status, canResetPassword }) {
 
                         <form onSubmit={submit}>
                             <div className="form-group">
-                                <label className="form-label" htmlFor="email">
+                                <label className="tfe-form-label" htmlFor="email">
                                     <i className="fas fa-envelope"></i> Email Address
                                 </label>
                                 <input
@@ -88,16 +88,16 @@ export default function Login({ status, canResetPassword }) {
                                     type="email"
                                     name="email"
                                     value={data.email}
-                                    className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                                    className="tfe-input"
                                     autoComplete="username"
                                     onChange={(e) => setData('email', e.target.value)}
                                     required
                                 />
-                                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
+                                {errors.email && <div className="tfe-form-error">{errors.email}</div>}
                             </div>
 
                             <div className="form-group password-row">
-                                <label className="form-label" htmlFor="password">
+                                <label className="tfe-form-label" htmlFor="password">
                                     <i className="fas fa-lock"></i> Password
                                 </label>
                                 <input
@@ -105,12 +105,12 @@ export default function Login({ status, canResetPassword }) {
                                     type="password"
                                     name="password"
                                     value={data.password}
-                                    className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                                    className="tfe-input"
                                     autoComplete="current-password"
                                     onChange={(e) => setData('password', e.target.value)}
                                     required
                                 />
-                                {errors.password && <div className="invalid-feedback d-block">{errors.password}</div>}
+                                {errors.password && <div className="tfe-form-error">{errors.password}</div>}
                                 
                                 <div style={{ textAlign: 'right', marginTop: '8px' }}>
                                     {canResetPassword && (

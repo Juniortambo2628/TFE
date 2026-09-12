@@ -291,17 +291,17 @@ export default function Register() {
                                     </h3>
                                     <div className="row g-3">
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">First Name <span className="text-danger">*</span></label>
-                                            <input type="text" className="form-control pill-input" value={data.first_name} onChange={e => handleInputChange('first_name', e.target.value)} required />
+                                            <label className="tfe-form-label">First Name <span className="text-danger">*</span></label>
+                                            <input type="text" className="tfe-input" value={data.first_name} onChange={e => handleInputChange('first_name', e.target.value)} required />
                                             {errors.first_name && <div className="invalid-feedback d-block">{errors.first_name}</div>}
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">Last Name <span className="text-danger">*</span></label>
-                                            <input type="text" className="form-control pill-input" value={data.last_name} onChange={e => handleInputChange('last_name', e.target.value)} required />
+                                            <label className="tfe-form-label">Last Name <span className="text-danger">*</span></label>
+                                            <input type="text" className="tfe-input" value={data.last_name} onChange={e => handleInputChange('last_name', e.target.value)} required />
                                             {errors.last_name && <div className="invalid-feedback d-block">{errors.last_name}</div>}
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label d-flex align-items-center text-white">
+                                            <label className="tfe-form-label d-flex align-items-center">
                                                 Email Address <span className="text-danger me-1">*</span>
                                                 <ValidationIcon state={validationState.email} loading={emailCheckLoading} />
                                                 {validationState.email === 'taken' && <span className="text-danger small ms-2">Email already taken</span>}
@@ -309,7 +309,7 @@ export default function Register() {
                                             <div className="position-relative">
                                                 <input 
                                                     type="email" 
-                                                    className={`form-control pill-input ${validationState.email === 'taken' ? 'is-invalid' : ''}`}
+                                                    className={`tfe-input ${validationState.email === 'taken' ? 'is-invalid' : ''}`}
                                                     value={data.email} 
                                                     onChange={e => handleInputChange('email', e.target.value)} 
                                                     required 
@@ -336,7 +336,7 @@ export default function Register() {
                                             {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">Phone Number <span className="text-danger">*</span></label>
+                                            <label className="tfe-form-label">Phone Number <span className="text-danger">*</span></label>
                                             <div className="input-group">
                                                 <div style={{width: '140px'}} className="me-2 text-white">
                                                     <SearchableSelect
@@ -367,7 +367,7 @@ export default function Register() {
                                                 </div>
                                                 <input 
                                                     type="tel" 
-                                                    className="form-control pill-input" 
+                                                    className="tfe-input" 
                                                     value={data.phone} 
                                                     onChange={e => handleInputChange('phone', e.target.value)} 
                                                     required 
@@ -376,7 +376,7 @@ export default function Register() {
                                             </div>
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">Country <span className="text-danger">*</span></label>
+                                            <label className="tfe-form-label">Country <span className="text-danger">*</span></label>
                                             <div className="text-white">
                                                 <SearchableSelect
                                                     options={countries}
@@ -390,19 +390,19 @@ export default function Register() {
                                             </div>
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">Date of Birth <span className="text-danger">*</span></label>
-                                            <input type="date" className="form-control pill-input" value={data.date_of_birth} onChange={e => handleInputChange('date_of_birth', e.target.value)} required />
+                                            <label className="tfe-form-label">Date of Birth <span className="text-danger">*</span></label>
+                                            <input type="date" className="tfe-input" value={data.date_of_birth} onChange={e => handleInputChange('date_of_birth', e.target.value)} required />
                                             {errors.date_of_birth && <div className="invalid-feedback d-block">{errors.date_of_birth}</div>}
                                         </div>
                                         <div className="col-12 mt-4"><hr className="border-secondary" /></div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">Password <span className="text-danger">*</span></label>
-                                            <input type="password" className="form-control pill-input" value={data.password} onChange={e => setData('password', e.target.value)} required />
+                                            <label className="tfe-form-label">Password <span className="text-danger">*</span></label>
+                                            <input type="password" className="tfe-input" value={data.password} onChange={e => setData('password', e.target.value)} required />
                                             {errors.password && <div className="invalid-feedback d-block">{errors.password}</div>}
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label text-white">Confirm Password <span className="text-danger">*</span></label>
-                                            <input type="password" className="form-control pill-input" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} required />
+                                            <label className="tfe-form-label">Confirm Password <span className="text-danger">*</span></label>
+                                            <input type="password" className="tfe-input" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} required />
                                             {errors.password_confirmation && <div className="invalid-feedback d-block">{errors.password_confirmation}</div>}
                                         </div>
                                     </div>
@@ -415,7 +415,7 @@ export default function Register() {
                                     <h3 className="mb-5 font-standard-section-pill">
                                         <i className="fas fa-flag me-2"></i>Team Support
                                     </h3>
-                                    <label className="form-label mb-3 text-white">Which team will you be supporting? <span className="text-danger">*</span></label>
+                                    <label className="tfe-form-label mb-3">Which team will you be supporting? <span className="text-danger">*</span></label>
                                     <div className="team-grid dash-team-grid">
                                         {teams.map(team => (
                                             <div 
@@ -476,18 +476,18 @@ export default function Register() {
 
                             <div className="registration-bottom-controls mt-4 pt-3 border-top border-secondary">
                                 {currentStep > 1 ? (
-                                    <button type="button" className="btn btn-outline-light btn-control" onClick={prevStep}>
+                                    <button type="button" className="tfe-btn" onClick={prevStep}>
                                         <i className="fas fa-arrow-left me-2"></i> Back
                                     </button>
                                 ) : (
                                     <div></div>
                                 )}
                                 {currentStep < totalSteps ? (
-                                    <button type="button" className="btn btn-danger btn-control btn-next px-5" onClick={nextStep}>
+                                    <button type="button" className="tfe-btn tfe-btn--filled px-5" onClick={nextStep}>
                                         Next <i className="fas fa-arrow-right ms-2"></i>
                                     </button>
                                 ) : (
-                                    <button type="submit" className="btn btn-success btn-control btn-next px-5" disabled={processing}>
+                                    <button type="submit" className="tfe-btn tfe-btn--filled px-5" disabled={processing}>
                                         {processing ? 'Creating Account...' : 'Complete Registration'}
                                     </button>
                                 )}

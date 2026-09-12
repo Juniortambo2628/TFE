@@ -61,49 +61,52 @@ export default function LoanReviewPanel({ loan }) {
 
                 <div className="row g-3 mt-2">
                     <div className="col-md-4">
-                        <label className="form-label text-white-50">Interest rate (%)</label>
+                        <label className="tfe-form-label">Interest rate (%)</label>
                         <input
                             type="number"
                             step="0.01"
                             value={rate}
                             onChange={(e) => setRate(e.target.value)}
-                            className="form-control"
+                            className="tfe-input"
                             placeholder="e.g. 12.5"
                         />
                     </div>
                     <div className="col-md-8">
-                        <label className="form-label text-white-50">Notes for the applicant</label>
+                        <label className="tfe-form-label">Notes for the applicant</label>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="form-control"
+                            className="tfe-textarea"
                             rows={2}
                             placeholder="Reasoning, disbursement terms, or next steps."
                         />
                     </div>
                 </div>
 
-                <div className="d-flex gap-2 mt-3">
+                <div className="d-flex gap-2 mt-3 flex-wrap">
                     <button
+                        type="button"
                         onClick={() => decide('APPROVED')}
                         disabled={busy || loan.status === 'approved'}
-                        className="btn btn-success"
+                        className="tfe-btn tfe-btn--filled"
                     >
-                        <i className="fas fa-check me-2"></i> Approve
+                        <i className="fas fa-check" /> Approve
                     </button>
                     <button
+                        type="button"
                         onClick={() => decide('DISBURSED')}
                         disabled={busy || loan.status !== 'approved'}
-                        className="btn btn-primary"
+                        className="tfe-btn tfe-btn--filled"
                     >
-                        <i className="fas fa-paper-plane me-2"></i> Mark disbursed
+                        <i className="fas fa-paper-plane" /> Mark disbursed
                     </button>
                     <button
+                        type="button"
                         onClick={() => decide('REJECTED')}
                         disabled={busy || loan.status === 'rejected'}
-                        className="btn btn-outline-danger"
+                        className="tfe-btn"
                     >
-                        <i className="fas fa-times me-2"></i> Reject
+                        <i className="fas fa-times" /> Reject
                     </button>
                 </div>
             </div>

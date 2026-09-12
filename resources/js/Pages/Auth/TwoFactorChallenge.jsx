@@ -38,12 +38,12 @@ export default function TwoFactorChallenge() {
 
                         <form onSubmit={submit}>
                             <div className="form-group mb-4 text-center">
-                                <label className="form-label d-block text-center mb-3">Verification Code</label>
+                                <label className="tfe-form-label d-block text-center mb-3">Verification Code</label>
                                 <input
                                     type="text"
                                     name="code"
                                     value={data.code}
-                                    className="form-control text-center fs-3"
+                                    className="tfe-input text-center fs-3"
                                     placeholder="000000"
                                     style={{ letterSpacing: '8px', fontWeight: 'bold' }}
                                     maxLength="6"

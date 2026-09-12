@@ -446,7 +446,9 @@ export default function Packages({ auth, packages = [], tournaments = [], filter
                                         type="button"
                                         key={v}
                                         onClick={() => toggleVenue(v)}
-                                        className={`btn btn-sm ${data.included_venues.includes(v) ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                        type="button"
+                                        aria-pressed={data.included_venues.includes(v)}
+                                        className={`tfe-btn tfe-btn--sm${data.included_venues.includes(v) ? ' is-active' : ''}`}
                                     >
                                         {v}
                                     </button>
@@ -457,7 +459,7 @@ export default function Packages({ auth, packages = [], tournaments = [], filter
 
                     <div className="mt-4 pt-3 border-top border-white border-opacity-10 d-flex justify-content-end gap-2">
                         <button type="button" className="btn-admin-outline" onClick={closeForm}>Cancel</button>
-                        <button type="submit" className="btn btn-primary" disabled={processing}>
+                        <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing}>
                             {editing ? 'Save Changes' : 'Create Package'}
                         </button>
                     </div>

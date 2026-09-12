@@ -181,7 +181,7 @@ export default function Tribes({ auth, tribes = { data: [] }, tournaments = [] }
                         <button type="button" className="btn-admin-outline" onClick={closeReassign}>
                             Cancel
                         </button>
-                        <button type="submit" className="btn btn-primary" disabled={processing}>
+                        <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing}>
                             Save
                         </button>
                     </div>
