@@ -528,6 +528,21 @@ new card / table / list CSS:
   `.tfe-empty__icon`, `.tfe-empty__title`, `.tfe-empty__body`,
   optional `.tfe-empty__action`. Compact inline variant:
   `.tfe-empty--inline`.
+- **`.tfe-btn`** (Sprint 40) — the ONE button pattern. Two variants
+  only: default (dark glass pill with white ink) or `--filled`
+  (solid white pill with black ink, reserved for the single
+  strongest CTA per surface). Sizes: default / `--sm` / `--lg`.
+  Icon-only round: `--icon`. Toggle-on: add `is-active` or
+  `aria-pressed="true"` (inverts to filled). **No colourful button
+  variants** — category colour belongs on `.tfe-pill`, not on
+  buttons. Case is title-case at the callsite; the primitive
+  never `text-transform`s.
+- **`.tfe-input`, `.tfe-select`, `.tfe-textarea`** (Sprint 40) —
+  the shared form field family. Same tokens as `.tfe-btn` so a
+  form and its submit share visual weight. Size modifier `--sm`
+  for inline filter rows. Helpers: `.tfe-form-label`,
+  `.tfe-form-help`, `.tfe-form-error`, `.tfe-form-field` (vertical
+  stack, standard 16px gap between fields).
 
 ### PurgeCSS safelist gotcha
 
