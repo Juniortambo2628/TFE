@@ -291,6 +291,121 @@ a.tfe-sidebar-nav-item.is-active {
     margin-bottom: 24px;
 }
 
+/* ── Table ───────────────────────────────────────────────────────────── */
+
+/* .tfe-table — the shared table treatment for any role. Mirrors
+   .admin-table-dark (which stays as-is for the admin surface) but
+   reads from the shared design tokens so partner + fan tables land
+   in the same visual language. Wrap in .table-responsive when the
+   table can overflow horizontally on mobile. */
+.tfe-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-primary);
+}
+
+.tfe-table thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.06em;
+    text-transform: none;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+}
+
+.tfe-table tbody tr {
+    transition: background var(--dur-fast) var(--ease-out);
+}
+
+.tfe-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.tfe-table tbody td {
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+}
+
+.tfe-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Compact variant — dashboard cards where vertical space is scarce. */
+.tfe-table--compact thead th,
+.tfe-table--compact tbody td {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+
+/* .tfe-empty — shared empty-state block: circular icon chip, title,
+   optional body copy, optional CTA. Works inside a .tfe-slab, inside
+   a table cell (colSpan), or standalone. */
+.tfe-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.tfe-empty__icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+.tfe-empty__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.005em;
+}
+
+.tfe-empty__body {
+    margin: 0;
+    max-width: 420px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.tfe-empty__action {
+    margin-top: 8px;
+}
+
+/* Compact inline variant — sits inside a card body row. */
+.tfe-empty--inline {
+    padding: 20px 16px;
+    gap: 6px;
+}
+
+.tfe-empty--inline .tfe-empty__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
 /* ── Motion respect ──────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
