@@ -5,6 +5,11 @@ echo  ================================
 echo   TFE Development Environment
 echo  ================================
 echo.
+:: Dev uses QUEUE_CONNECTION=sync (see .env.example) so notifications
+:: fire inline and no worker is needed here. Prod is different —
+:: see CLAUDE.md > "Production queue worker" for the supervisor +
+:: Windows Task Scheduler recipes.
+
 
 :: Check if WAMP is running
 tasklist /FI "IMAGENAME eq wampmanager.exe" 2>NUL | find /I "wampmanager.exe" >NUL

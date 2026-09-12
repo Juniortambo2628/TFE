@@ -203,7 +203,8 @@ doesn't block the request on 200 sequential DB inserts.
 - **Dev** (`.env.example`): `QUEUE_CONNECTION=sync` — notifications fire
   inline, no worker needed.
 - **Prod**: `QUEUE_CONNECTION=database` + a running `php artisan queue:work`
-  so the fan-out actually processes.
+  so the fan-out actually processes. See **Production queue worker** below
+  for a supervisor recipe and its Windows equivalent.
 
 Shape read by `DashboardHeader.jsx`:
 
@@ -228,6 +229,96 @@ Current notifications:
 `HandleInertiaRequests` exposes `auth.notifications` (last 5) + `auth.unreadNotificationsCount`
 to every page as lazy Inertia props. The bell dropdown in `DashboardHeader.jsx`
 reads them directly.
+
+## Production queue worker
+
+`QUEUE_CONNECTION=database` on prod means every `ShouldQueue`
+notification (`ListingModerationNotification`, `BudgetResponseNotification`,
+`LoanStatusNotification`, plus anything future) is pushed to the
+`jobs` MySQL table and waits for a worker to drain it. Without a
+worker the table grows forever and fans never see the in-app bell
+update.
+
+### Linux / production (supervisor)
+
+Install supervisor once:
+
+```bash
+sudo apt-get install -y supervisor
+```
+
+Add `/etc/supervisor/conf.d/tfe-worker.conf`:
+
+```ini
+[program:tfe-queue-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/tfe/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/tfe/worker.log
+stopwaitsecs=3600
+```
+
+Notes:
+- `numprocs=2` — two workers is plenty for TFE's notification volume;
+  bump only if bulk moderation of hundreds of listings backs up the queue.
+- `--max-time=3600` and `stopwaitsecs=3600` — Laravel workers hold DB
+  connections open; recycle every hour so long-running memory /
+  connection leaks self-heal.
+- Log path: create it (`sudo mkdir -p /var/log/tfe && sudo chown www-data:www-data /var/log/tfe`)
+  before starting supervisor or it silently fails.
+
+Then:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start tfe-queue-worker:*
+sudo supervisorctl status
+```
+
+After every deploy that touches queued jobs, restart the workers so
+they pick up new code:
+
+```bash
+php artisan queue:restart
+```
+
+### Windows / WAMP prod (Task Scheduler)
+
+WAMP hosts don't ship supervisor. Two options in order of preference:
+
+1. **Winsw / NSSM** — wrap `php artisan queue:work` as a Windows
+   service. Winsw is a single XML config; NSSM is a `nssm install`
+   wizard. Either survives reboots and auto-restarts on crash.
+
+2. **Task Scheduler** — create a task that runs at server startup:
+   - Program: `C:\wamp64\bin\php\php8.3\php.exe`
+   - Arguments: `artisan queue:work --sleep=3 --tries=3 --max-time=3600`
+   - Start in: `C:\wamp64\www\TFE`
+   - Trigger: **At startup**
+   - Settings: **Restart if the task fails**, every 1 minute, up to 999 attempts.
+
+   Add a second task on the same trigger for `queue:restart` — or a
+   scheduled `php artisan queue:restart` after every deploy — so
+   new code lands after each push.
+
+### Health check
+
+- `SELECT COUNT(*) FROM jobs WHERE reserved_at IS NULL` — should
+  hover near 0. If it climbs, the worker's dead.
+- `SELECT * FROM failed_jobs ORDER BY id DESC LIMIT 20` — reasons a
+  job actually failed. `php artisan queue:retry all` re-queues them.
+
+### If you can't run a worker at all
+
+Flip the .env back to `QUEUE_CONNECTION=sync`. Notifications
+serialize inside the request that triggered them; a bulk moderation
+of 200 listings will take ~30s to submit but every fan gets the bell
+update. This is what dev uses.
 
 ## Directory conventions
 
