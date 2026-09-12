@@ -85,4 +85,13 @@ find "$BACKEND_PATH/vendor" -type d -exec chmod 755 {} +
 find "$BACKEND_PATH/vendor" -type f -exec chmod 644 {} +
 find "$BACKEND_PATH/storage" "$BACKEND_PATH/bootstrap/cache" -type d -exec chmod 775 {} +
 
+# ─────────────────────────────────────────────
+# 8. RESTART QUEUE WORKER
+# ─────────────────────────────────────────────
+# The cPanel cron worker respawns every minute; queue:restart signals
+# any currently-running worker to exit at its next iteration so new
+# code lands without waiting for --max-time=55 to time it out.
+echo "─── Signalling queue workers to restart ───"
+php artisan queue:restart
+
 echo "─── Post-deploy complete ───"
