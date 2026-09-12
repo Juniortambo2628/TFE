@@ -32,10 +32,7 @@ export default function Header() {
         React.createElement('div', { className: 'container' },
             React.createElement('div', { className: 'header-wrapper d-flex align-items-center justify-content-between position-relative' },
                 React.createElement('div', { className: 'logo' },
-                    React.createElement(Link, { href: '/', className: 'logo-white' },
-                        React.createElement('img', { src: logo, alt: 'TFE Logo', className: 'img-fluid tfe-logo-img', style: { maxHeight: '70px' } })
-                    ),
-                    React.createElement(Link, { href: '/', className: 'logo-dark' },
+                    React.createElement(Link, { href: '/', className: 'tfe-logo-link' },
                         React.createElement('img', { src: logo, alt: 'TFE Logo', className: 'img-fluid tfe-logo-img', style: { maxHeight: '70px' } })
                     )
                 ),

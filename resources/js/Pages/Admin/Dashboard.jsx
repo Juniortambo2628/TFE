@@ -77,7 +77,7 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                     actions={[
                         { id: 'ad-users',     label: 'Users',      icon: 'fa-users',           href: route('admin.users') },
                         { id: 'ad-partners',  label: 'Partners',   icon: 'fa-handshake',       href: route('admin.partners.index') },
-                        { id: 'ad-approvals', label: 'Approvals',  icon: 'fa-clipboard-check', href: route('admin.listing-approvals') },
+                        { id: 'ad-approvals', label: 'Approvals',  icon: 'fa-clipboard-check', href: route('admin.listing-approvals.index') },
                         { id: 'ad-payments',  label: 'Payments',   icon: 'fa-credit-card',     href: route('admin.payments') },
                         { id: 'ad-analytics', label: 'Analytics',  icon: 'fa-chart-line',      href: route('admin.analytics') },
                         { id: 'ad-settings',  label: 'Settings',   icon: 'fa-cog',             href: route('admin.settings') },
