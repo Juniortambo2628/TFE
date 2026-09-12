@@ -287,6 +287,38 @@ they pick up new code:
 php artisan queue:restart
 ```
 
+### cPanel shared hosting (cron worker)
+
+Shared cPanel plans can't run supervisor, but they always run cron.
+Two entries in **cPanel → Cron Jobs** cover the scheduler and the
+queue worker:
+
+```
+* * * * * cd $HOME/tfe && /usr/bin/php artisan schedule:run   >> /dev/null 2>&1
+* * * * * cd $HOME/tfe && /usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+```
+
+- `--stop-when-empty` lets the worker exit cleanly once the queue is
+  drained.
+- `--max-time=55` guarantees it exits before the next minute-tick so
+  we never overlap workers.
+- `cron` respawns it in the following minute, so it feels like a
+  daemon without needing one.
+
+Deploy step is `bash deploy/cpanel-deploy.sh` in the cPanel Terminal —
+it runs `storage:link`, migrations, `config:cache`, `route:cache`,
+`view:cache`, and `queue:restart`. Idempotent, safe to re-run.
+
+Live-bell via Reverb is **not viable on shared hosting** — it needs a
+persistent PHP process + WebSocket upgrade support, both of which
+shared cPanel almost never allows. The Sprint 35 client code stays
+harmless (empty `VITE_REVERB_APP_KEY` short-circuits Echo), so the
+bell just fills on page navigation instead. For a live-bell on
+cPanel, sign up for **hosted Pusher** (free tier: 100 concurrent
+connections, 200k msgs/day) — the app already speaks the Pusher
+protocol, so you only need to flip `BROADCAST_CONNECTION=pusher`
+and fill the `PUSHER_*` block.
+
 ### Windows / WAMP prod (Task Scheduler)
 
 WAMP hosts don't ship supervisor. Two options in order of preference:
