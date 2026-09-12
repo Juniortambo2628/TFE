@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import useHeaderLogic from '@/Hooks/useHeaderLogic';
 import HeaderDropdown from './HeaderDropdown';
 import { useSidebar } from '@/Components/ui/sidebar';
 import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
+import { toast } from 'sonner';
 
 /**
  * DashboardHeader — one header for every dashboard role.
@@ -128,8 +129,40 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
     const baseUrl = assetUrl || pageAssetUrl || '';
     const doToggleSidebar = toggleSidebar || toggleShadcnSidebar;
 
-    const notifications = auth?.notifications || [];
-    const unreadNotifications = auth?.unreadNotificationsCount || 0;
+    // Sprint 35 — start from the server-rendered notifications, then
+    // let a Reverb subscription push new ones onto the head of the
+    // list as they broadcast. Falls back to the plain server payload
+    // when Echo isn't configured on the build.
+    const [liveNotifications, setLiveNotifications] = useState(auth?.notifications || []);
+    const [liveUnread, setLiveUnread] = useState(auth?.unreadNotificationsCount || 0);
+
+    useEffect(() => {
+        // Keep local state in sync when Inertia replaces the page
+        // props (nav / partial reload); the server truth wins.
+        setLiveNotifications(auth?.notifications || []);
+        setLiveUnread(auth?.unreadNotificationsCount || 0);
+    }, [auth?.notifications, auth?.unreadNotificationsCount]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.Echo || !user?.id) return;
+        const channel = window.Echo.private(`App.Models.User.${user.id}`);
+        const handler = (payload) => {
+            // Notifiable::notify broadcasts payload as { id, type, data, … }
+            const data = payload?.data || payload;
+            setLiveNotifications((prev) => [data, ...prev].slice(0, 5));
+            setLiveUnread((n) => n + 1);
+            if (data?.title) {
+                toast(data.title, { description: data.body });
+            }
+        };
+        channel.notification(handler);
+        return () => {
+            window.Echo.leave(`private-App.Models.User.${user.id}`);
+        };
+    }, [user?.id]);
+
+    const notifications = liveNotifications;
+    const unreadNotifications = liveUnread;
     const messages = auth?.messages || [];
     const unreadMessages = auth?.unreadMessagesCount || 0;
 
