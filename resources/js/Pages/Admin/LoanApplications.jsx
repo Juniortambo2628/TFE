@@ -150,17 +150,17 @@ export default function LoanApplications({ loans, stats, finance_partners = [], 
                                     </td>
                                     <td className="text-end">
                                         {loan.status === 'PENDING' && (
-                                            <div className="btn-group btn-group-sm">
-                                                <button className="btn btn-outline-success"
+                                            <div className="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                                <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled"
                                                     onClick={() => updateStatus(loan.id, 'APPROVED')}
                                                     disabled={processingId === loan.id}>Approve</button>
-                                                <button className="btn btn-outline-danger"
+                                                <button type="button" className="tfe-btn tfe-btn--sm"
                                                     onClick={() => updateStatus(loan.id, 'REJECTED')}
                                                     disabled={processingId === loan.id}>Reject</button>
                                             </div>
                                         )}
                                         {loan.status === 'APPROVED' && (
-                                            <button className="btn btn-outline-primary btn-sm"
+                                            <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled"
                                                 onClick={() => updateStatus(loan.id, 'DISBURSED')}
                                                 disabled={processingId === loan.id}>Mark disbursed</button>
                                         )}
@@ -170,10 +170,10 @@ export default function LoanApplications({ loans, stats, finance_partners = [], 
                             {loans.data.length === 0 && (
                                 <tr>
                                     <td colSpan="8">
-                                        <div className="empty-state">
-                                            <i className="fas fa-hand-holding-usd"></i>
-                                            <h4>No loan applications match</h4>
-                                            <p>Try widening the filters above.</p>
+                                        <div className="tfe-empty">
+                                            <div className="tfe-empty__icon"><i className="fas fa-hand-holding-usd" /></div>
+                                            <h4 className="tfe-empty__title">No loan applications match</h4>
+                                            <p className="tfe-empty__body">Try widening the filters above.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -186,14 +186,17 @@ export default function LoanApplications({ loans, stats, finance_partners = [], 
     );
 }
 
-function FilterChip({ children, active, onClick, accent }) {
-    const style = active && accent ? { background: accent, borderColor: accent, color: '#fff' } : undefined;
+function FilterChip({ children, active, onClick }) {
+    // Sprint 40 — glass pill, inverts to filled white when active.
+    // Dropped the per-partner accent tint so the chip row reads as one
+    // group at a glance (finance partners are already differentiated
+    // in the column left of the chip row).
     return (
         <button
             type="button"
-            className={`btn btn-sm ${active ? 'btn-warning' : 'btn-outline-secondary'}`}
+            className={`tfe-btn tfe-btn--sm${active ? ' is-active' : ''}`}
+            aria-pressed={active}
             onClick={onClick}
-            style={style}
         >
             {children}
         </button>
