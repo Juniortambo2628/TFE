@@ -154,6 +154,20 @@
 .tfe-pill--rejected  { background: var(--pill-rejected-bg);  color: var(--pill-rejected-fg); }
 .tfe-pill--info      { background: var(--pill-info-bg);      color: var(--pill-info-fg); }
 
+/* Pills used as anchors (view-all links, filter chips) — force
+   text-decoration off and keep the token colour even after Bootstrap /
+   Tailwind link resets run. Sprint 34 fix for the "View all →" link
+   on card headers rendering unstyled. */
+a.tfe-pill,
+a.tfe-pill:hover,
+a.tfe-pill:focus,
+a.tfe-pill:visited {
+    text-decoration: none;
+}
+a.tfe-pill:hover {
+    filter: brightness(1.15);
+}
+
 /* A "dot" prefix for pills, matches the Syncop ref. */
 .tfe-pill__dot {
     width: 6px;
@@ -166,28 +180,41 @@
 
 /* ── Sidebar item restyle ────────────────────────────────────────────── */
 
-.tfe-sidebar-nav-item {
-    display: flex;
+/* Sprint 34 — anchor-scoped selectors + !important on the properties
+   shadcn/Tailwind's SidebarMenuButton cva likes to override (padding,
+   background, text-decoration, colour). The extra specificity is not
+   pretty but it stops the primitive drifting the moment someone puts
+   this link inside a shadcn wrapper again. */
+.tfe-sidebar-nav-item,
+a.tfe-sidebar-nav-item,
+a.tfe-sidebar-nav-item:visited {
+    display: flex !important;
     align-items: center;
     gap: 10px;
-    padding: var(--sidebar-item-padding);
-    border-radius: var(--sidebar-item-radius);
-    color: rgba(255, 255, 255, 0.7);
+    width: 100%;
+    padding: var(--sidebar-item-padding) !important;
+    border-radius: var(--sidebar-item-radius) !important;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.72) !important;
     font-weight: 500;
-    text-decoration: none;
+    font-size: 0.9rem;
+    text-decoration: none !important;
     transition: background var(--dur-fast) var(--ease-out),
                 color var(--dur-fast) var(--ease-out);
+    box-sizing: border-box;
 }
 
-.tfe-sidebar-nav-item:hover {
-    background: var(--sidebar-item-hover-bg);
-    color: #fff;
+.tfe-sidebar-nav-item:hover,
+a.tfe-sidebar-nav-item:hover {
+    background: var(--sidebar-item-hover-bg) !important;
+    color: #fff !important;
 }
 
-.tfe-sidebar-nav-item.is-active {
-    background: var(--sidebar-item-active-bg);
+.tfe-sidebar-nav-item.is-active,
+a.tfe-sidebar-nav-item.is-active {
+    background: var(--sidebar-item-active-bg) !important;
     border: var(--sidebar-item-active-border);
-    color: #fff;
+    color: #fff !important;
     box-shadow: 0 8px 20px rgba(220, 20, 60, 0.15);
 }
 
@@ -196,6 +223,7 @@
     text-align: center;
     font-size: 0.95rem;
     flex-shrink: 0;
+    color: inherit;
 }
 
 .tfe-sidebar-nav-item.is-active i {
