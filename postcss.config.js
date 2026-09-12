@@ -82,7 +82,7 @@ if (process.env.NODE_ENV === 'production') {
                     /^dash-/,          // dashboard-header-extras.css (.dash-btn-icon, .dash-badge, .dash-avatar, .dash-activity-*, .dash-empty)
                     /^dashboard-/,     // dashboard-header, dashboard-hero, dashboard-user-profile, dashboard-dropdown-*, dashboard-title
                     /^user-/,          // user-avatar, user-name, user-info, user-email
-                    /^partner-/,       // partner-summary-cards, partner-stat-card, partner-*
+                    /^partner/,        // partner-* AND partners-* (partners-index-hero, partners-index-chip, partner-card__*)
                     /^admin-/,         // admin-theme, admin-approvals, admin-hub-preview classes
                     /^fan-/,           // fan-* utility classes across resources/css/fan/
                     /^content-/,       // content-card, content-card--*
