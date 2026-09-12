@@ -30,17 +30,30 @@ export default function Analytics({ tiles, has_listings }) {
                 </div>
             )}
 
-            <div className="partner-summary-cards mt-4">
-                {tiles.map((t, i) => (
-                    <div key={i} className="partner-stat-card" data-accent={t.accent}>
-                        <div className="stat-icon">
-                            <i className={`fas ${t.icon}`}></i>
+            {/* Sprint 36 — .tfe-tile primitive. Map the old `accent`
+                strings onto the tile variants so incoming data still
+                colours the tiles consistently. */}
+            <div className="tfe-stat-grid mt-4">
+                {tiles.map((t, i) => {
+                    const variant = ({
+                        blue: 'blue', green: 'teal', teal: 'teal', cyan: 'cyan',
+                        amber: 'amber', yellow: 'amber',
+                        red: 'red', rose: 'rose',
+                        violet: 'violet', purple: 'violet',
+                    })[t.accent] || 'red';
+                    return (
+                        <div key={i} className={`tfe-tile tfe-tile--${variant}`}>
+                            <div className="tfe-tile__head">
+                                <div className="tfe-tile__icon">
+                                    <i className={`fas ${t.icon}`} />
+                                </div>
+                            </div>
+                            <div className="tfe-tile__value">{t.value}</div>
+                            <div className="tfe-tile__label">{t.label}</div>
+                            {t.sub && <div className="tfe-tile__subtext">{t.sub}</div>}
                         </div>
-                        <div className="stat-value">{t.value}</div>
-                        <div className="stat-label">{t.label}</div>
-                        <div className="stat-change neutral">{t.sub}</div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </PartnerLayout>
     );

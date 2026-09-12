@@ -130,36 +130,27 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
                     </div>
                 </div>
 
-                {/* Summary Cards */}
-                <div className="partner-summary-cards">
-                    <div className="partner-stat-card" data-accent="blue">
-                        <div className="stat-icon">
-                            <i className="fas fa-futbol"></i>
+                {/* Summary Cards — Sprint 36 tile primitive */}
+                <div className="tfe-stat-grid">
+                    {[
+                        { icon: 'fa-futbol', value: budget.match_ids?.length || 0, label: 'Matches',       variant: 'blue' },
+                        { icon: 'fa-bed',    value: budget.nights || 0,           label: 'Nights',        variant: 'violet' },
+                        { icon: 'fa-star',   value: budget.accommodation_level,   label: 'Accommodation', variant: 'teal', capitalize: true },
+                        { icon: 'fa-plane',  value: budget.flight_class,          label: 'Flight Class',  variant: 'amber', capitalize: true },
+                    ].map((t, i) => (
+                        <div key={i} className={`tfe-tile tfe-tile--${t.variant}`}>
+                            <div className="tfe-tile__head">
+                                <div className="tfe-tile__icon"><i className={`fas ${t.icon}`} /></div>
+                            </div>
+                            <div
+                                className="tfe-tile__value"
+                                style={t.capitalize ? { textTransform: 'capitalize' } : undefined}
+                            >
+                                {t.value}
+                            </div>
+                            <div className="tfe-tile__label">{t.label}</div>
                         </div>
-                        <div className="stat-value">{budget.match_ids?.length || 0}</div>
-                        <div className="stat-label">Matches</div>
-                    </div>
-                    <div className="partner-stat-card" data-accent="purple">
-                        <div className="stat-icon">
-                            <i className="fas fa-bed"></i>
-                        </div>
-                        <div className="stat-value">{budget.nights || 0}</div>
-                        <div className="stat-label">Nights</div>
-                    </div>
-                    <div className="partner-stat-card" data-accent="green">
-                        <div className="stat-icon">
-                            <i className="fas fa-star"></i>
-                        </div>
-                        <div className="stat-value capitalize">{budget.accommodation_level}</div>
-                        <div className="stat-label">Accommodation</div>
-                    </div>
-                    <div className="partner-stat-card" data-accent="yellow">
-                        <div className="stat-icon">
-                            <i className="fas fa-plane"></i>
-                        </div>
-                        <div className="stat-value capitalize">{budget.flight_class}</div>
-                        <div className="stat-label">Flight Class</div>
-                    </div>
+                    ))}
                 </div>
 
                 {/* Cost Breakdown Card */}
