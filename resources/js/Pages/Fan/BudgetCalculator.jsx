@@ -900,7 +900,7 @@ export default function BudgetCalculator({
                         </div>
                         <button
                             type="button"
-                            className="btn btn-sm btn-outline-light"
+                            className="tfe-btn tfe-btn--sm"
                             onClick={() => { setSelectedPackage(null); setWizardStep(0); }}
                         >
                             Change starting point
@@ -1332,10 +1332,10 @@ export default function BudgetCalculator({
                         </div>
 
                         <div className="d-flex gap-3 mt-4">
-                            <button className="btn btn-outline-secondary flex-fill" onClick={resetWizard}>
+                            <button type="button" className="tfe-btn flex-fill" onClick={resetWizard}>
                                 <i className="fas fa-redo me-2"></i>Start Over
                             </button>
-                            <button className="btn btn-outline-info flex-fill" onClick={() => setShowItinerary(true)}
+                            <button type="button" className="tfe-btn flex-fill" onClick={() => setShowItinerary(true)}
                                 style={{ borderColor: '#3b82f6', color: '#3b82f6' }}>
                                 <i className="fas fa-file-alt me-2"></i>View Itinerary
                             </button>
@@ -1555,7 +1555,7 @@ export default function BudgetCalculator({
                             <p className="text-white-50 mb-3 small">Please provide a name to identify this travel plan in your itineraries.</p>
                             <input 
                                 type="text"
-                                className="form-control bg-dark border-white/10 text-white p-3"
+                                className="tfe-textarea p-3"
                                 style={{ borderRadius: '12px', fontSize: '1rem' }}
                                 value={itineraryName}
                                 onChange={(e) => setItineraryName(e.target.value)}
@@ -1566,7 +1566,7 @@ export default function BudgetCalculator({
                         </div>
                         <div className="modal-footer border-0 pt-0">
                             <button 
-                                className="btn btn-link text-white-50 text-decoration-none me-3" 
+                                className="tfe-btn tfe-btn--sm me-3"
                                 onClick={() => setShowNamingModal(false)}
                             >
                                 Cancel

@@ -254,7 +254,7 @@ export default function Products({ auth, products, stats }) {
                         </div>
                         <div className="col-md-6">
                             <div className="admin-form-group">
-                                <label className="form-label">Status</label>
+                                <label className="tfe-form-label">Status</label>
                                 <div className="form-check form-switch mt-2">
                                     <input 
                                         className="form-check-input" 
@@ -271,9 +271,9 @@ export default function Products({ auth, products, stats }) {
                         </div>
                         <div className="col-12">
                             <div className="admin-form-group">
-                                <label className="form-label">Description</label>
+                                <label className="tfe-form-label">Description</label>
                                 <textarea 
-                                    className="form-control" 
+                                    className="tfe-input" 
                                     rows={3}
                                     value={data.description}
                                     onChange={e => setData('description', e.target.value)}
@@ -282,7 +282,7 @@ export default function Products({ auth, products, stats }) {
                         </div>
                         <div className="col-12">
                             <div className="admin-form-group">
-                                <label className="form-label">Product Image</label>
+                                <label className="tfe-form-label">Product Image</label>
                                 <FilePondUploader 
                                     files={imageFiles}
                                     onUpdateFiles={(files) => {

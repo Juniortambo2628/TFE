@@ -56,10 +56,10 @@ export default function Profile({ auth, status }) {
                         <div className="card-body">
                             <form onSubmit={handleProfileUpdate}>
                                 <div className="admin-form-group">
-                                    <label className="form-label">Full Name</label>
+                                    <label className="tfe-form-label">Full Name</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={profileData.name} 
                                         onChange={e => setProfileData('name', e.target.value)} 
                                         required 
@@ -68,10 +68,10 @@ export default function Profile({ auth, status }) {
                                 </div>
 
                                 <div className="admin-form-group">
-                                    <label className="form-label">Email Address</label>
+                                    <label className="tfe-form-label">Email Address</label>
                                     <input 
                                         type="email" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={profileData.email} 
                                         onChange={e => setProfileData('email', e.target.value)} 
                                         required 
@@ -80,10 +80,10 @@ export default function Profile({ auth, status }) {
                                 </div>
 
                                 <div className="admin-form-group">
-                                    <label className="form-label">Phone Number</label>
+                                    <label className="tfe-form-label">Phone Number</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={profileData.phone} 
                                         onChange={e => setProfileData('phone', e.target.value)} 
                                     />
@@ -109,10 +109,10 @@ export default function Profile({ auth, status }) {
                         <div className="card-body">
                             <form onSubmit={handlePasswordUpdate}>
                                 <div className="admin-form-group">
-                                    <label className="form-label">Current Password</label>
+                                    <label className="tfe-form-label">Current Password</label>
                                     <input 
                                         type="password" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={passwordData.current_password} 
                                         onChange={e => setPasswordData('current_password', e.target.value)} 
                                         required 
@@ -121,10 +121,10 @@ export default function Profile({ auth, status }) {
                                 </div>
 
                                 <div className="admin-form-group">
-                                    <label className="form-label">New Password</label>
+                                    <label className="tfe-form-label">New Password</label>
                                     <input 
                                         type="password" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={passwordData.password} 
                                         onChange={e => setPasswordData('password', e.target.value)} 
                                         required 
@@ -133,10 +133,10 @@ export default function Profile({ auth, status }) {
                                 </div>
 
                                 <div className="admin-form-group">
-                                    <label className="form-label">Confirm New Password</label>
+                                    <label className="tfe-form-label">Confirm New Password</label>
                                     <input 
                                         type="password" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={passwordData.password_confirmation} 
                                         onChange={e => setPasswordData('password_confirmation', e.target.value)} 
                                         required 

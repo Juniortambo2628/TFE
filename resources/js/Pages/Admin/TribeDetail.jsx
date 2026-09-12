@@ -101,10 +101,10 @@ export default function TribeDetail({ auth, tribe }) {
                             {editing ? (
                                 <form onSubmit={handleUpdate}>
                                     <div className="mb-3">
-                                        <label className="form-label text-white">Name</label>
+                                        <label className="tfe-form-label">Name</label>
                                         <input
                                             type="text"
-                                            className="form-control bg-dark text-white border-secondary"
+                                            className="tfe-input"
                                             value={editForm.data.name}
                                             onChange={(e) => editForm.setData('name', e.target.value)}
                                             required
@@ -112,18 +112,18 @@ export default function TribeDetail({ auth, tribe }) {
                                         {editForm.errors.name && <div className="text-danger small mt-1">{editForm.errors.name}</div>}
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label text-white">Description</label>
+                                        <label className="tfe-form-label">Description</label>
                                         <textarea
-                                            className="form-control bg-dark text-white border-secondary"
+                                            className="tfe-input"
                                             rows={3}
                                             value={editForm.data.description}
                                             onChange={(e) => editForm.setData('description', e.target.value)}
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label text-white">Privacy</label>
+                                        <label className="tfe-form-label">Privacy</label>
                                         <select
-                                            className="form-select bg-dark text-white border-secondary"
+                                            className="tfe-select"
                                             value={editForm.data.privacy}
                                             onChange={(e) => editForm.setData('privacy', e.target.value)}
                                         >

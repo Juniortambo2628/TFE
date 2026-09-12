@@ -147,10 +147,10 @@ export default function Ads({ auth, ads = { data: [] } }) {
                         <div className="row g-3 bounce-in">
                             <div className="col-12">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Title *</label>
+                                    <label className="tfe-form-label">Title *</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={data.title} 
                                         onChange={e => setData('title', e.target.value)} 
                                         required 
@@ -159,10 +159,10 @@ export default function Ads({ auth, ads = { data: [] } }) {
                             </div>
                             <div className="col-md-6">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Partner Name</label>
+                                    <label className="tfe-form-label">Partner Name</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={data.partner_name} 
                                         onChange={e => setData('partner_name', e.target.value)} 
                                     />
@@ -170,9 +170,9 @@ export default function Ads({ auth, ads = { data: [] } }) {
                             </div>
                             <div className="col-md-6">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Ad Type</label>
+                                    <label className="tfe-form-label">Ad Type</label>
                                     <select 
-                                        className="form-select bg-dark text-white border-secondary"
+                                        className="tfe-select"
                                         value={data.ad_type}
                                         onChange={e => setData('ad_type', e.target.value)}
                                     >
@@ -184,10 +184,10 @@ export default function Ads({ auth, ads = { data: [] } }) {
                             </div>
                             <div className="col-12">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Link URL</label>
+                                    <label className="tfe-form-label">Link URL</label>
                                     <input 
                                         type="url" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={data.link_url} 
                                         onChange={e => setData('link_url', e.target.value)} 
                                         placeholder="https://..."
@@ -196,9 +196,9 @@ export default function Ads({ auth, ads = { data: [] } }) {
                             </div>
                             <div className="col-12">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Description</label>
+                                    <label className="tfe-form-label">Description</label>
                                     <textarea 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         rows={3} 
                                         value={data.description} 
                                         onChange={e => setData('description', e.target.value)} 

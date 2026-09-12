@@ -156,10 +156,10 @@ export default function News({ auth, news = { data: [] } }) {
                         <div className="row g-3 bounce-in">
                             <div className="col-12">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Title *</label>
+                                    <label className="tfe-form-label">Title *</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={data.title} 
                                         onChange={e => setData('title', e.target.value)} 
                                         required 
@@ -169,10 +169,10 @@ export default function News({ auth, news = { data: [] } }) {
                             </div>
                             <div className="col-12">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Category</label>
+                                    <label className="tfe-form-label">Category</label>
                                     <input 
                                         type="text" 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         value={data.category} 
                                         onChange={e => setData('category', e.target.value)} 
                                         disabled={isViewOnly}
@@ -181,9 +181,9 @@ export default function News({ auth, news = { data: [] } }) {
                             </div>
                             <div className="col-12">
                                 <div className="admin-form-group">
-                                    <label className="form-label">Content *</label>
+                                    <label className="tfe-form-label">Content *</label>
                                     <textarea 
-                                        className="form-control" 
+                                        className="tfe-input" 
                                         rows={6} 
                                         value={data.content} 
                                         onChange={e => setData('content', e.target.value)} 
