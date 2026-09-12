@@ -45,13 +45,23 @@ export default function Listings({ listings = [], tournaments = [], status_count
                 subtitle="Author your own listings. Admin approves before they go public."
             />
 
-            <div className="partner-summary-cards mt-4">
-                {['draft', 'pending', 'approved', 'rejected'].map((k) => (
-                    <div key={k} className="partner-stat-card" data-accent={
-                        k === 'approved' ? 'green' : k === 'rejected' ? 'red' : k === 'pending' ? 'amber' : 'blue'
-                    }>
-                        <div className="stat-value">{status_counts?.[k] || 0}</div>
-                        <div className="stat-label text-capitalize">{k}</div>
+            {/* Sprint 36 — migrated onto .tfe-tile to match the fan
+                dashboard reference impl. The variant washes are chosen
+                to echo the row's moderation semantics (blue = draft,
+                amber = pending, teal = approved, rose = rejected). */}
+            <div className="tfe-stat-grid mt-4">
+                {[
+                    { key: 'draft',    label: 'Draft',    variant: 'blue',  icon: 'fas fa-file' },
+                    { key: 'pending',  label: 'Pending',  variant: 'amber', icon: 'fas fa-hourglass-half' },
+                    { key: 'approved', label: 'Approved', variant: 'teal',  icon: 'fas fa-check-circle' },
+                    { key: 'rejected', label: 'Rejected', variant: 'rose',  icon: 'fas fa-times-circle' },
+                ].map(({ key, label, variant, icon }) => (
+                    <div key={key} className={`tfe-tile tfe-tile--${variant}`}>
+                        <div className="tfe-tile__head">
+                            <div className="tfe-tile__icon"><i className={icon} /></div>
+                        </div>
+                        <div className="tfe-tile__value">{status_counts?.[key] || 0}</div>
+                        <div className="tfe-tile__label">{label}</div>
                     </div>
                 ))}
             </div>
