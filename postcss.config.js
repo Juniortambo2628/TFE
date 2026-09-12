@@ -96,6 +96,21 @@ if (process.env.NODE_ENV === 'production') {
                     /^loan-/,          // loan-application-*, ActiveLoanTile classes
                     /^powered-by/,     // PoweredByBadge classes
                     /^chevron/,        // chevron helper on dropdowns
+                    /^glow-/,          // gaming/premium accent glow — glow-red, glow-blue, glow-crimson (fan pages)
+                    /^hero-/,          // hero-stat-*, hero-stat-box, hero-stat-item (dashboard heroes)
+                    /^profile-/,       // profile-preview-*, profile-*
+                    /^tribe-/,         // tribe cards, tribe detail, tribe-header
+                    /^publisher/,      // publisherSummary rendered classes
+                    /^avatar/,         // avatar classes
+                    /^empty-/,         // empty-state variants
+                    /^wizard-/,        // BudgetCalculator step wizard
+                    /^map-/,           // ItineraryMap, StadiumSeatMap classes
+                    /^seat-/,          // StadiumSeatMap seat blocks
+                    /^weather-/,       // WeatherCard
+                    /^compare-/,       // TournamentCompare widget
+                    /^cost-/,          // CostScenarioChart
+                    /^savings-/,       // SavingsGoals page
+                    /^booking-/,       // Booking details/history
                 ],
                 deep: [
                     /-(enter|leave)(-(active|from|to))?$/,
