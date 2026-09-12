@@ -18,14 +18,16 @@ export default function Analytics({ tiles, has_listings }) {
             />
 
             {!has_listings && (
-                <div className="content-card mt-4 p-4">
-                    <div className="empty-state">
-                        <i className="fas fa-chart-line"></i>
-                        <h4>No data yet</h4>
-                        <p>Publish your first listing to start collecting metrics.</p>
-                        <Link href={route('partner.listings.index')} className="btn btn-primary mt-2">
-                            <i className="fas fa-plus me-1"></i> Publish a listing
-                        </Link>
+                <div className="tfe-slab mt-4">
+                    <div className="tfe-slab__body">
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-chart-line" /></div>
+                            <h4 className="tfe-empty__title">No data yet</h4>
+                            <p className="tfe-empty__body">Publish your first listing to start collecting metrics.</p>
+                            <Link href={route('partner.listings.index')} className="btn btn-primary tfe-empty__action">
+                                <i className="fas fa-plus me-1"></i> Publish a listing
+                            </Link>
+                        </div>
                     </div>
                 </div>
             )}

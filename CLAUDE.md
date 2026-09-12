@@ -501,6 +501,45 @@ user sees the update even when the dropdown is closed.
 still hit the `database` channel so the bell dropdown fills on the
 next page navigation. No user-visible break, just no live updates.
 
+## Primitives (Sprint 33 + 39)
+
+Hand-written CSS classes live in `resources/css/primitives.css`, tokens
+in `resources/css/design-tokens.css`. Reach for these before writing
+new card / table / list CSS:
+
+- **`.tfe-tile`** — the stat tile with gradient wash + optional icon.
+  Variants: `--red / --rose / --blue / --cyan / --teal / --amber /
+  --violet / --graph`. Layout children: `.tfe-tile__head`,
+  `.tfe-tile__icon`, `.tfe-tile__value`, `.tfe-tile__label`,
+  `.tfe-tile__subtext`. Grid wrapper: `.tfe-stat-grid`.
+- **`.tfe-slab`** — glass content card. Layout: `.tfe-slab__header`,
+  `.tfe-slab__title`, `.tfe-slab__title-sub`, `.tfe-slab__body`
+  (add `--flush` for zero padding).
+- **`.tfe-pill`** — chip / badge. Variants: `--live / --upcoming /
+  --concluded / --pending / --approved / --rejected / --info`.
+  Use `a.tfe-pill` when it's a link.
+- **`.tfe-sidebar-nav-item`** — sidebar link (used by AppSidebar).
+- **`.tfe-quick-action`** — Quick Actions grid tile (used by
+  QuickActionsGrid). Wrapper: `.tfe-quick-actions-grid`.
+- **`.tfe-table`** (Sprint 39) — the shared table treatment. Wrap
+  in `.table-responsive` on mobile. Add `--compact` for
+  dashboard-embedded tables.
+- **`.tfe-empty`** (Sprint 39) — empty-state block: circular
+  `.tfe-empty__icon`, `.tfe-empty__title`, `.tfe-empty__body`,
+  optional `.tfe-empty__action`. Compact inline variant:
+  `.tfe-empty--inline`.
+
+### PurgeCSS safelist gotcha
+
+`postcss.config.js` runs `@fullhuman/postcss-purgecss` in prod
+builds only. Its default extractor mangles JSX template literals,
+so any class used via ``` `foo-${bar}` ``` gets stripped from prod
+CSS while surviving in dev. The safelist covers every custom class
+prefix in `resources/css/` (see `postcss.config.js`). If you add a
+new prefix, add it to the safelist — a class-name pattern that
+only appears inside template literals will silently vanish on prod
+otherwise.
+
 ## Directory conventions
 
 ```

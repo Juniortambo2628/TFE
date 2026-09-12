@@ -91,14 +91,14 @@ export default function Listings({ listings = [], tournaments = [], status_count
 
                 <div className="p-3">
                     {filtered.length === 0 ? (
-                        <div className="empty-state">
-                            <i className="fas fa-box-open"></i>
-                            <h4>Nothing here yet</h4>
-                            <p>Draft your first listing to start selling on the platform.</p>
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-box-open" /></div>
+                            <h4 className="tfe-empty__title">Nothing here yet</h4>
+                            <p className="tfe-empty__body">Draft your first listing to start selling on the platform.</p>
                         </div>
                     ) : (
                         <div className="table-responsive">
-                            <table className="table table-dark table-hover align-middle">
+                            <table className="tfe-table">
                                 <thead>
                                     <tr>
                                         <th>Listing</th>
