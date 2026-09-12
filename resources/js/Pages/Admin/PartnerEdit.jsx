@@ -258,7 +258,7 @@ export default function PartnerEdit({ auth, partner, profile, partner_types = {}
                     </Link>
                     <button
                         type="submit"
-                        className="btn btn-primary"
+                        className="tfe-btn tfe-btn--filled"
                         disabled={processing}
                         style={{ marginLeft: 'auto' }}
                     >
