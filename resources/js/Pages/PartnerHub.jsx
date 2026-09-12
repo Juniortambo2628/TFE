@@ -79,8 +79,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                             {profile?.contact_email && (
                                 <a
                                     href={`mailto:${profile.contact_email}`}
-                                    className="btn btn-lg"
-                                    style={{ background: accent, color: '#fff', border: 'none', borderRadius: 999, padding: '10px 24px' }}
+                                    className="tfe-btn tfe-btn--filled tfe-btn--lg"
                                 >
                                     Contact us
                                 </a>
@@ -90,11 +89,10 @@ export default function PartnerHub({ profile, listings = [] }) {
                                     href={profile.website_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn btn-lg btn-outline-light"
-                                    style={{ borderRadius: 999, padding: '10px 24px' }}
+                                    className="tfe-btn tfe-btn--lg"
                                 >
                                     Visit website
-                                    <i className="fas fa-external-link-alt ms-2" style={{ fontSize: '0.75rem' }}></i>
+                                    <i className="fas fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
                                 </a>
                             )}
                         </div>
@@ -141,15 +139,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                                         </h3>
                                         <div className="d-flex flex-wrap gap-2">
                                             {profile.service_tags.map((tag, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className="tfe-pill"
-                                                    style={{
-                                                        background: 'rgba(255,255,255,0.05)',
-                                                        border: `1px solid ${accent}`,
-                                                        color: '#fff',
-                                                    }}
-                                                >
+                                                <span key={idx} className="tfe-pill tfe-pill--info">
                                                     {tag}
                                                 </span>
                                             ))}

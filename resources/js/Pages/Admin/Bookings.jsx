@@ -119,10 +119,10 @@ export default function Bookings({ auth, bookings, stats }) {
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="d-flex gap-2">
-                                                <select 
-                                                    className="form-select form-select-sm bg-dark text-white border-secondary"
-                                                    style={{ fontSize: '0.75rem', width: 'auto' }}
+                                            <div className="d-flex gap-2 align-items-center">
+                                                <select
+                                                    className="tfe-select tfe-select--sm"
+                                                    style={{ width: 'auto' }}
                                                     value={booking.status}
                                                     onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
                                                 >
@@ -131,8 +131,13 @@ export default function Bookings({ auth, bookings, stats }) {
                                                     <option value="completed">Complete</option>
                                                     <option value="cancelled">Cancel</option>
                                                 </select>
-                                                <button className="btn-admin-icon" title="Delete" onClick={() => setBookingToDelete(booking.id)}>
-                                                    <i className="fas fa-trash text-danger"></i>
+                                                <button
+                                                    type="button"
+                                                    className="tfe-btn tfe-btn--sm tfe-btn--icon"
+                                                    aria-label="Delete booking"
+                                                    onClick={() => setBookingToDelete(booking.id)}
+                                                >
+                                                    <i className="fas fa-trash" />
                                                 </button>
                                             </div>
                                         </td>
@@ -140,10 +145,10 @@ export default function Bookings({ auth, bookings, stats }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-5">
-                                        <div className="admin-empty-state">
-                                            <i className="fas fa-calendar-times opacity-20 fa-3x mb-3"></i>
-                                            <h4>No bookings found</h4>
+                                    <td colSpan="6">
+                                        <div className="tfe-empty">
+                                            <div className="tfe-empty__icon"><i className="fas fa-calendar-times" /></div>
+                                            <h4 className="tfe-empty__title">No bookings found</h4>
                                         </div>
                                     </td>
                                 </tr>

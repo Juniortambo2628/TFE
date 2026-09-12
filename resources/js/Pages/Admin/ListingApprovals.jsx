@@ -127,10 +127,12 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
                 ].map((f) => (
                     <button
                         key={f.k}
-                        className={`btn btn-sm ${filter_status === f.k ? 'btn-warning' : 'btn-outline-secondary'}`}
+                        type="button"
+                        className={`tfe-btn tfe-btn--sm${filter_status === f.k ? ' is-active' : ''}`}
+                        aria-pressed={filter_status === f.k}
                         onClick={() => switchFilter(f.k)}
                     >
-                        {f.label} <span className="badge bg-dark ms-1">{counts?.[f.k] || 0}</span>
+                        {f.label} <span className="tfe-pill" style={{ padding: '2px 8px', fontSize: '0.68rem' }}>{counts?.[f.k] || 0}</span>
                     </button>
                 ))}
             </div>
@@ -151,23 +153,24 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
                     </label>
 
                     {anySelected && (
-                        <div className="d-flex gap-2">
+                        <div className="d-flex gap-2 flex-wrap">
                             {canBulkApprove && (
-                                <button className="btn btn-success btn-sm" onClick={bulkApprove}>
-                                    <i className="fas fa-check me-1"></i>
+                                <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={bulkApprove}>
+                                    <i className="fas fa-check" />
                                     Approve {selected.size}
                                 </button>
                             )}
                             {canBulkReject && (
                                 <button
-                                    className="btn btn-outline-danger btn-sm"
+                                    type="button"
+                                    className="tfe-btn tfe-btn--sm"
                                     onClick={() => setBulkReject(true)}
                                 >
-                                    <i className="fas fa-undo me-1"></i>
+                                    <i className="fas fa-undo" />
                                     Return {selected.size} with feedback
                                 </button>
                             )}
-                            <button className="btn btn-link btn-sm text-white-50" onClick={clearSelection}>
+                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={clearSelection}>
                                 Clear
                             </button>
                         </div>
@@ -176,11 +179,13 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
             )}
 
             {listings.length === 0 ? (
-                <div className="content-card p-4">
-                    <div className="empty-state">
-                        <i className="fas fa-clipboard-check"></i>
-                        <h4>Nothing in this bucket</h4>
-                        <p>No partner-authored listings match this filter.</p>
+                <div className="tfe-slab">
+                    <div className="tfe-slab__body">
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-clipboard-check" /></div>
+                            <h4 className="tfe-empty__title">Nothing in this bucket</h4>
+                            <p className="tfe-empty__body">No partner-authored listings match this filter.</p>
+                        </div>
                     </div>
                 </div>
             ) : (
@@ -241,18 +246,19 @@ export default function ListingApprovals({ listings = [], filter_status, counts 
                                 )}
 
                                 {filter_status === 'pending' && (
-                                    <div className="d-flex gap-2 mt-3">
-                                        <button className="btn btn-success btn-sm" onClick={() => approve(l)}>
-                                            <i className="fas fa-check me-1"></i> Approve & publish
+                                    <div className="d-flex gap-2 mt-3 flex-wrap">
+                                        <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={() => approve(l)}>
+                                            <i className="fas fa-check" /> Approve & publish
                                         </button>
                                         <button
-                                            className="btn btn-outline-danger btn-sm"
+                                            type="button"
+                                            className="tfe-btn tfe-btn--sm"
                                             onClick={() => {
                                                 setRejecting(l);
                                                 setRejectNotes(l.moderation_notes || '');
                                             }}
                                         >
-                                            <i className="fas fa-undo me-1"></i> Return with feedback
+                                            <i className="fas fa-undo" /> Return with feedback
                                         </button>
                                     </div>
                                 )}
@@ -301,17 +307,17 @@ function RejectModal({ title, subtitle, notes, onChange, onCancel, onSubmit }) {
                     {subtitle || 'The partner will see this note in the Publish tab and can edit + resubmit.'}
                 </p>
                 <textarea
-                    className="form-control"
+                    className="tfe-textarea"
                     rows={4}
                     value={notes}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="What needs to change before this listing goes live?"
                 />
                 <div className="d-flex justify-content-end gap-2 mt-3">
-                    <button className="btn btn-outline-secondary" onClick={onCancel}>
+                    <button type="button" className="tfe-btn" onClick={onCancel}>
                         Cancel
                     </button>
-                    <button className="btn btn-danger" onClick={onSubmit} disabled={!notes.trim()}>
+                    <button type="button" className="tfe-btn tfe-btn--filled" onClick={onSubmit} disabled={!notes.trim()}>
                         Send feedback
                     </button>
                 </div>

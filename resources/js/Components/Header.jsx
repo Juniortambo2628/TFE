@@ -45,19 +45,17 @@ export default function Header() {
                     ),
                     React.createElement(Link, {
                         href: route('login'),
-                        className: 'btn-glass-pill btn-glass-pill-sm d-none d-lg-inline-flex',
-                        style: { background: '#e31b23', borderColor: '#e31b23' },
+                        className: 'tfe-btn tfe-btn--filled d-none d-lg-inline-flex',
                     },
                         React.createElement('span', null, 'Sign In'),
-                        React.createElement('iconify-icon', { icon: 'lucide:arrow-up-right', className: 'btn-icon' })
+                        React.createElement('iconify-icon', { icon: 'lucide:arrow-up-right' })
                     ),
                     React.createElement(Link, {
                         href: route('register'),
-                        className: 'btn-glass-pill btn-glass-pill-sm d-lg-none',
-                        style: { background: '#e31b23', borderColor: '#e31b23' },
+                        className: 'tfe-btn tfe-btn--filled d-lg-none',
                     },
                         React.createElement('span', null, 'Begin Journey'),
-                        React.createElement('iconify-icon', { icon: 'lucide:arrow-up-right', className: 'btn-icon' })
+                        React.createElement('iconify-icon', { icon: 'lucide:arrow-up-right' })
                     ),
                     React.createElement('button', {
                         className: 'navbar-toggler btn-pill-crimson d-none',

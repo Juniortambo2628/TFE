@@ -129,17 +129,17 @@ export default function BookingDetail({ auth, booking }) {
                             <h3><i className="fas fa-cog me-2"></i> Actions</h3>
                         </div>
                         <div className="card-body d-flex flex-column gap-2">
-                            <button className="btn btn-sm btn-outline-success" onClick={() => handleStatusUpdate('confirmed')}>
+                            <button className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={() => handleStatusUpdate('confirmed')}>
                                 <i className="fas fa-check me-1"></i> Mark Confirmed
                             </button>
-                            <button className="btn btn-sm btn-outline-primary" onClick={() => handleStatusUpdate('completed')}>
+                            <button className="tfe-btn tfe-btn--sm" onClick={() => handleStatusUpdate('completed')}>
                                 <i className="fas fa-flag-checkered me-1"></i> Mark Completed
                             </button>
-                            <button className="btn btn-sm btn-outline-danger" onClick={() => handleStatusUpdate('cancelled')}>
+                            <button className="tfe-btn tfe-btn--sm" onClick={() => handleStatusUpdate('cancelled')}>
                                 <i className="fas fa-times me-1"></i> Cancel Booking
                             </button>
                             <hr className="border-secondary my-2" />
-                            <Link href={route('admin.bookings.index')} className="btn btn-sm btn-outline-light">
+                            <Link href={route('admin.bookings.index')} className="tfe-btn tfe-btn--sm">
                                 <i className="fas fa-arrow-left me-1"></i> Back to Bookings
                             </Link>
                         </div>
