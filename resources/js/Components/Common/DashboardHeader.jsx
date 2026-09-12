@@ -145,10 +145,15 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
 
     useEffect(() => {
         if (typeof window === 'undefined' || !window.Echo || !user?.id) return;
-        const channel = window.Echo.private(`App.Models.User.${user.id}`);
+        let channel;
+        try {
+            channel = window.Echo.private(`App.Models.User.${user.id}`);
+        } catch (_e) {
+            return;
+        }
         const handler = (payload) => {
             // Notifiable::notify broadcasts payload as { id, type, data, … }
-            const data = payload?.data || payload;
+            const data = payload?.data || payload || {};
             setLiveNotifications((prev) => [data, ...prev].slice(0, 5));
             setLiveUnread((n) => n + 1);
             if (data?.title) {
@@ -157,7 +162,11 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
         };
         channel.notification(handler);
         return () => {
-            window.Echo.leave(`private-App.Models.User.${user.id}`);
+            try {
+                window.Echo.leave(`private-App.Models.User.${user.id}`);
+            } catch (_e) {
+                /* transport already torn down */
+            }
         };
     }, [user?.id]);
 

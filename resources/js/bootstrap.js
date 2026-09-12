@@ -4,21 +4,43 @@ window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 /*
- * Sprint 35 — Laravel Echo + Reverb.
+ * Sprint 35 — Laravel Echo, broadcaster-agnostic.
  *
- * Wires a global `window.Echo` instance when a broadcast key is
- * configured on the build. If VITE_REVERB_APP_KEY is empty the whole
- * block short-circuits, which means dev/test builds without a running
- * Reverb server pay zero cost and never open a phantom WebSocket.
+ * We ship the same client for two backends:
  *
- * Reverb speaks the Pusher protocol so pusher-js is the correct
- * client library. Point Echo at your own Reverb host (self-hosted,
- * free) or swap `broadcaster: 'reverb'` for `'pusher'` and supply
- * VITE_PUSHER_APP_KEY / VITE_PUSHER_APP_CLUSTER instead if you'd
- * rather use hosted Pusher.
+ *   - Self-hosted Reverb (VITE_REVERB_APP_KEY set) — Pusher-protocol,
+ *     free, needs a long-lived PHP process. Ideal on a VPS you control.
+ *   - Hosted Pusher (VITE_PUSHER_APP_KEY set) — cPanel-safe, free tier
+ *     covers 100 concurrent + 200k msgs/day. Requires PUSHER_APP_CLUSTER.
+ *
+ * Whichever key is present on the build gets wired. If neither is set
+ * (dev, tests, hosts that can't run WebSockets) the whole block short-
+ * circuits and window.Echo stays undefined — DashboardHeader guards on
+ * that so live-bell just becomes "fills on page navigation", nothing
+ * throws.
  */
 const reverbKey = import.meta.env.VITE_REVERB_APP_KEY;
-if (reverbKey) {
+const pusherKey = import.meta.env.VITE_PUSHER_APP_KEY;
+
+if (pusherKey) {
+    const [{ default: Echo }, { default: Pusher }] = await Promise.all([
+        import('laravel-echo'),
+        import('pusher-js'),
+    ]);
+    window.Pusher = Pusher;
+    window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: pusherKey,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER ?? 'eu',
+        forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
+        // Optional overrides when running Pusher-compat servers on a
+        // custom host (soketi, etc.). Absent = talk to Pusher's cloud.
+        wsHost: import.meta.env.VITE_PUSHER_HOST || undefined,
+        wsPort: import.meta.env.VITE_PUSHER_PORT || undefined,
+        wssPort: import.meta.env.VITE_PUSHER_PORT || undefined,
+        enabledTransports: ['ws', 'wss'],
+    });
+} else if (reverbKey) {
     const [{ default: Echo }, { default: Pusher }] = await Promise.all([
         import('laravel-echo'),
         import('pusher-js'),
