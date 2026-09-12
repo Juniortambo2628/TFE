@@ -406,16 +406,212 @@ a.tfe-sidebar-nav-item.is-active {
     font-size: 1rem;
 }
 
+/* ── Button (Sprint 40) ──────────────────────────────────────────────── */
+
+/* .tfe-btn — the ONE button pattern for every non-decorative action on
+   the platform. Two variants only:
+     - default (glass): dark translucent pill with white text, hairline
+       border, subtle blur. This is the primary look everywhere.
+     - --filled: solid white pill with black text. Reserved for the
+       single strongest CTA on a surface (max one per page usually).
+   Sizes: default (md), --sm, --lg. No colour variants on purpose —
+   category badges belong on .tfe-pill, not buttons. Case is title-case
+   at the callsite; the primitive does NOT text-transform. */
+.tfe-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: rgba(20, 15, 17, 0.55);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    letter-spacing: 0.005em;
+    text-transform: none;
+    text-decoration: none;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.tfe-btn:hover:not(:disabled),
+.tfe-btn:focus-visible:not(:disabled) {
+    transform: translateY(-1px);
+    background: rgba(35, 25, 28, 0.72);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    outline: none;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
+}
+
+.tfe-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+.tfe-btn:disabled,
+.tfe-btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Filled variant — the one strong CTA. White fill, black ink. */
+.tfe-btn--filled {
+    background: #fff;
+    border-color: #fff;
+    color: #0a0708;
+    box-shadow: 0 6px 18px rgba(255, 255, 255, 0.14);
+}
+
+.tfe-btn--filled:hover:not(:disabled),
+.tfe-btn--filled:focus-visible:not(:disabled) {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.92);
+    color: #0a0708;
+    box-shadow: 0 10px 26px rgba(255, 255, 255, 0.22);
+}
+
+/* Sizes. */
+.tfe-btn--sm { padding: 6px 14px; font-size: 0.78rem; gap: 6px; }
+.tfe-btn--lg { padding: 14px 26px; font-size: 0.95rem; gap: 10px; }
+
+/* Icon-only round variant (delete, close, kebab). */
+.tfe-btn--icon {
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+}
+.tfe-btn--icon.tfe-btn--sm { width: 28px; height: 28px; }
+.tfe-btn--icon.tfe-btn--lg { width: 42px; height: 42px; }
+
+/* Toggle "on" state — used by filter chip rows / segmented controls.
+   Inverts to the filled look so the active choice reads clearly
+   without introducing colour. */
+.tfe-btn.is-active,
+.tfe-btn[aria-pressed="true"] {
+    background: #fff;
+    border-color: #fff;
+    color: #0a0708;
+}
+
+/* ── Form input (Sprint 40) ──────────────────────────────────────────── */
+
+/* .tfe-input — the shared text/number/date/etc. field. Also covers
+   <select> and <textarea>. Reads the same tokens as .tfe-btn so a
+   form + its submit share the same visual weight. */
+.tfe-input,
+.tfe-select,
+.tfe-textarea {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    transition: border-color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.tfe-input:hover,
+.tfe-select:hover,
+.tfe-textarea:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.tfe-input:focus,
+.tfe-select:focus,
+.tfe-textarea:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.32);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.tfe-input::placeholder,
+.tfe-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.tfe-input:disabled,
+.tfe-select:disabled,
+.tfe-textarea:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.tfe-textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+/* <select> needs the caret hint drawn back in (browser default gets
+   killed by the background swap). */
+.tfe-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23ffffff' opacity='0.5'%3E%3Cpath d='M5.516 7.548l4.484 4.484 4.484-4.484-1.061-1.061L10 9.911 6.577 6.487z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px 18px;
+}
+
+/* Size modifier — for inline filter rows where a full-height input
+   would break the alignment. */
+.tfe-input--sm,
+.tfe-select--sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 10px; }
+.tfe-select--sm { padding-right: 32px; background-size: 14px 14px; }
+
+/* Label (optional — matches the muted eyebrow style from .tfe-tile). */
+.tfe-form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.62);
+    margin-bottom: 6px;
+}
+
+/* Help / error text under an input. */
+.tfe-form-help  { font-size: 0.72rem; color: rgba(255, 255, 255, 0.5); margin-top: 4px; }
+.tfe-form-error { font-size: 0.72rem; color: #fca5a5; margin-top: 4px; }
+
+/* Field group — vertical stack with the standard 12px gap the whole
+   platform uses between fields. */
+.tfe-form-field { display: flex; flex-direction: column; }
+.tfe-form-field + .tfe-form-field { margin-top: 16px; }
+
 /* ── Motion respect ──────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
     .tfe-tile,
     .tfe-quick-action,
-    .tfe-sidebar-nav-item {
+    .tfe-sidebar-nav-item,
+    .tfe-btn,
+    .tfe-input,
+    .tfe-select,
+    .tfe-textarea {
         transition: none;
     }
     .tfe-tile:hover,
-    .tfe-quick-action:hover {
+    .tfe-quick-action:hover,
+    .tfe-btn:hover:not(:disabled) {
         transform: none;
     }
 }

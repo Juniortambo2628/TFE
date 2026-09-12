@@ -72,19 +72,24 @@ export default function Listings({ listings = [], tournaments = [], status_count
                         <i className="fas fa-tags me-2" style={{ color: '#d97706' }}></i>
                         <h3 className="mb-0">Your listings</h3>
                     </div>
-                    <div className="d-flex gap-2">
+                    <div className="d-flex gap-2 flex-wrap">
                         {['all', 'draft', 'pending', 'approved', 'rejected'].map((f) => (
                             <button
                                 key={f}
                                 type="button"
-                                className={`btn btn-sm ${filter === f ? 'btn-warning' : 'btn-outline-secondary'}`}
+                                className={`tfe-btn tfe-btn--sm${filter === f ? ' is-active' : ''}`}
+                                aria-pressed={filter === f}
                                 onClick={() => setFilter(f)}
                             >
                                 {f.charAt(0).toUpperCase() + f.slice(1)}
                             </button>
                         ))}
-                        <button className="btn btn-sm btn-primary" onClick={() => setEditing('new')}>
-                            <i className="fas fa-plus me-1"></i> New listing
+                        <button
+                            type="button"
+                            className="tfe-btn tfe-btn--sm tfe-btn--filled"
+                            onClick={() => setEditing('new')}
+                        >
+                            <i className="fas fa-plus" /> New listing
                         </button>
                     </div>
                 </div>
@@ -131,20 +136,22 @@ export default function Listings({ listings = [], tournaments = [], status_count
                                             <td>{statusChip(l.moderation_status)}</td>
                                             <td className="text-white-50 small">{l.updated_at}</td>
                                             <td className="text-end">
-                                                <div className="btn-group btn-group-sm">
-                                                    <button className="btn btn-outline-secondary" onClick={() => setEditing(l.id)}>
+                                                <div className="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                                    <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setEditing(l.id)}>
                                                         Edit
                                                     </button>
                                                     {(l.moderation_status === 'draft' || l.moderation_status === 'rejected') && (
                                                         <button
-                                                            className="btn btn-warning"
+                                                            type="button"
+                                                            className="tfe-btn tfe-btn--sm tfe-btn--filled"
                                                             onClick={() => router.post(route('partner.listings.submit', l.id))}
                                                         >
                                                             Submit
                                                         </button>
                                                     )}
                                                     <button
-                                                        className="btn btn-outline-danger"
+                                                        type="button"
+                                                        className="tfe-btn tfe-btn--sm"
                                                         onClick={() => {
                                                             if (confirm(`Delete "${l.name}"?`)) {
                                                                 router.delete(route('partner.listings.destroy', l.id));
@@ -217,7 +224,14 @@ function ListingFormModal({ listing, tournaments, onClose }) {
             >
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h3 className="text-white mb-0">{isEdit ? 'Edit listing' : 'New listing'}</h3>
-                    <button type="button" className="btn-close btn-close-white" onClick={onClose} />
+                    <button
+                        type="button"
+                        className="tfe-btn tfe-btn--sm tfe-btn--icon"
+                        aria-label="Close"
+                        onClick={onClose}
+                    >
+                        <i className="fas fa-times" />
+                    </button>
                 </div>
 
                 {listing?.moderation_status === 'rejected' && listing?.moderation_notes && (
@@ -229,9 +243,9 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                 <form onSubmit={submit}>
                     <div className="row g-3">
                         <div className="col-md-6">
-                            <label className="form-label text-white-50">Tournament</label>
+                            <label className="tfe-form-label">Tournament</label>
                             <select
-                                className="form-select"
+                                className="tfe-select"
                                 value={data.tournament_id}
                                 onChange={(e) => setData('tournament_id', e.target.value)}
                             >
@@ -239,12 +253,12 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                                     <option key={t.id} value={t.id}>{t.short_name || t.name}</option>
                                 ))}
                             </select>
-                            {errors.tournament_id && <div className="text-danger small">{errors.tournament_id}</div>}
+                            {errors.tournament_id && <div className="tfe-form-error">{errors.tournament_id}</div>}
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label text-white-50">Type</label>
+                            <label className="tfe-form-label">Type</label>
                             <select
-                                className="form-select"
+                                className="tfe-select"
                                 value={data.type}
                                 onChange={(e) => setData('type', e.target.value)}
                             >
@@ -256,20 +270,20 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                         </div>
 
                         <div className="col-12">
-                            <label className="form-label text-white-50">Name</label>
+                            <label className="tfe-form-label">Name</label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                             />
-                            {errors.name && <div className="text-danger small">{errors.name}</div>}
+                            {errors.name && <div className="tfe-form-error">{errors.name}</div>}
                         </div>
 
                         <div className="col-12">
-                            <label className="form-label text-white-50">Description</label>
+                            <label className="tfe-form-label">Description</label>
                             <textarea
-                                className="form-control"
+                                className="tfe-input"
                                 rows={3}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
@@ -277,37 +291,37 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                         </div>
 
                         <div className="col-md-4">
-                            <label className="form-label text-white-50">Base price</label>
+                            <label className="tfe-form-label">Base price</label>
                             <input
                                 type="number"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.base_price}
                                 onChange={(e) => setData('base_price', e.target.value)}
                             />
                         </div>
                         <div className="col-md-2">
-                            <label className="form-label text-white-50">Currency</label>
+                            <label className="tfe-form-label">Currency</label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.currency}
                                 onChange={(e) => setData('currency', e.target.value)}
                             />
                         </div>
                         <div className="col-md-3">
-                            <label className="form-label text-white-50">Nights</label>
+                            <label className="tfe-form-label">Nights</label>
                             <input
                                 type="number"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.nights}
                                 onChange={(e) => setData('nights', e.target.value)}
                             />
                         </div>
                         <div className="col-md-3">
-                            <label className="form-label text-white-50">Capacity</label>
+                            <label className="tfe-form-label">Capacity</label>
                             <input
                                 type="number"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.capacity}
                                 onChange={(e) => setData('capacity', e.target.value)}
                                 placeholder="Unlimited"
@@ -315,9 +329,9 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                         </div>
 
                         <div className="col-md-6">
-                            <label className="form-label text-white-50">Flight class</label>
+                            <label className="tfe-form-label">Flight class</label>
                             <select
-                                className="form-select"
+                                className="tfe-select"
                                 value={data.flight_class}
                                 onChange={(e) => setData('flight_class', e.target.value)}
                             >
@@ -327,10 +341,10 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                             </select>
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label text-white-50">Accommodation</label>
+                            <label className="tfe-form-label">Accommodation</label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.accommodation_level}
                                 onChange={(e) => setData('accommodation_level', e.target.value)}
                                 placeholder="3-star, 5-star, boutique…"
@@ -338,10 +352,10 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                         </div>
 
                         <div className="col-12">
-                            <label className="form-label text-white-50">Hero image URL</label>
+                            <label className="tfe-form-label">Hero image URL</label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="tfe-input"
                                 value={data.hero_image}
                                 onChange={(e) => setData('hero_image', e.target.value)}
                                 placeholder="https://…"
@@ -356,7 +370,7 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                         <div className="d-flex gap-2">
                             <button
                                 type="submit"
-                                className="btn btn-outline-secondary"
+                                className="tfe-btn"
                                 disabled={processing}
                                 onClick={() => setData('moderation_status', 'draft')}
                             >
@@ -364,7 +378,7 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                             </button>
                             <button
                                 type="submit"
-                                className="btn btn-warning"
+                                className="tfe-btn tfe-btn--filled"
                                 disabled={processing}
                                 onClick={() => setData('moderation_status', 'pending')}
                             >

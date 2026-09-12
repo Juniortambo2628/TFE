@@ -24,8 +24,8 @@ export default function Analytics({ tiles, has_listings }) {
                             <div className="tfe-empty__icon"><i className="fas fa-chart-line" /></div>
                             <h4 className="tfe-empty__title">No data yet</h4>
                             <p className="tfe-empty__body">Publish your first listing to start collecting metrics.</p>
-                            <Link href={route('partner.listings.index')} className="btn btn-primary tfe-empty__action">
-                                <i className="fas fa-plus me-1"></i> Publish a listing
+                            <Link href={route('partner.listings.index')} className="tfe-btn tfe-btn--filled tfe-empty__action">
+                                <i className="fas fa-plus" /> Publish a listing
                             </Link>
                         </div>
                     </div>
