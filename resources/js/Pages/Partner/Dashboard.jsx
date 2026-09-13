@@ -2,7 +2,7 @@ import React from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Link, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
@@ -23,45 +23,25 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                     : `Manage travel requests and help fans plan their ${tournamentLabel} journey.`}
             />
 
-            <div className="summary-cards-grid">
-                <StatCard
-                    label={isFinance ? 'Pending Applications' : 'Pending Requests'}
-                    value={stats?.pending || 0}
-                    icon="fa-inbox"
-                    variant="amber"
-                    subtext={isFinance ? 'Awaiting underwriting' : 'Awaiting review'}
-                />
-                <StatCard
-                    label={isFinance ? 'Approved' : 'Approved'}
-                    value={stats?.approved || 0}
-                    icon="fa-check-circle"
-                    variant="blue"
-                    subtext={isFinance ? 'Ready to disburse' : 'This month'}
-                />
-                {!isFinance && (
-                    <StatCard
-                        label="Modified"
-                        value={stats?.modified || 0}
-                        icon="fa-edit"
-                        variant="amber"
-                        subtext="Updated quotes"
-                    />
-                )}
-                <StatCard
-                    label="Rejected"
-                    value={stats?.rejected || 0}
-                    icon="fa-times-circle"
-                    variant="red"
-                    subtext="Declined"
-                />
-                <StatCard
-                    label={isFinance ? 'Total Disbursed' : 'Total Revenue'}
-                    value={formatMoney(stats?.total_revenue || 0)}
-                    icon="fa-coins"
-                    variant="blue"
-                    subtext={isFinance ? 'Across approved loans' : 'From approved quotes'}
-                />
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: isFinance ? 'Pending Applications' : 'Pending Requests',
+                      value: stats?.pending || 0,  icon: 'fa-inbox',        accent: 'amber',
+                      subtext: isFinance ? 'Awaiting underwriting' : 'Awaiting review' },
+                    { label: 'Approved',
+                      value: stats?.approved || 0, icon: 'fa-check-circle', accent: 'blue',
+                      subtext: isFinance ? 'Ready to disburse' : 'This month' },
+                    !isFinance && { label: 'Modified',
+                      value: stats?.modified || 0, icon: 'fa-edit',         accent: 'amber',
+                      subtext: 'Updated quotes' },
+                    { label: 'Rejected',
+                      value: stats?.rejected || 0, icon: 'fa-times-circle', accent: 'red',
+                      subtext: 'Declined' },
+                    { label: isFinance ? 'Total Disbursed' : 'Total Revenue',
+                      value: formatMoney(stats?.total_revenue || 0), icon: 'fa-coins', accent: 'teal',
+                      subtext: isFinance ? 'Across approved loans' : 'From approved quotes' },
+                ]}
+            />
 
             <div className="content-cards-grid mt-4">
                 <div className="content-card quick-actions-card">

@@ -3,6 +3,7 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { useTournament } from '@/Context/TournamentContext';
 
 export default function Contact({ auth }) {
@@ -45,53 +46,14 @@ export default function Contact({ auth }) {
                     bgImage="/assets/img/fan/backgrounds/social_hero.png"
                 />
 
-                {/* Stats Cards */}
-                {/* Stats Cards */}
-                <div className="summary-cards-grid">
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-envelope"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Support Email</h3>
-                            <div className="card-value-gaming" style={{ fontSize: '1.2rem' }}>support@wctfe.com</div>
-                            <div className="text-white-50 small mt-1">24/7 Support</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-phone"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Phone Support</h3>
-                            <div className="card-value-gaming">+254 700 000 000</div>
-                            <div className="text-white-50 small mt-1">Mon-Fri 9AM-6PM</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-comments"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Live Chat</h3>
-                            <div className="card-value-gaming">AVAILABLE</div>
-                            <div className="text-white-50 small mt-1">Instant Support</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-clock"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Response Time</h3>
-                            <div className="card-value-gaming">&lt; 2 HOURS</div>
-                            <div className="text-white-50 small mt-1">Average Time</div>
-                        </div>
-                    </div>
-                </div>
+                <SummaryTiles
+                    items={[
+                        { label: 'Support email',  value: 'support@wctfe.com', icon: 'fa-envelope', accent: 'red',  subtext: '24/7 support' },
+                        { label: 'Phone support',  value: '+254 700 000 000',  icon: 'fa-phone',    accent: 'blue', subtext: 'Mon–Fri 9am–6pm' },
+                        { label: 'Live chat',      value: 'Available',          icon: 'fa-comments', accent: 'teal', subtext: 'Instant support' },
+                        { label: 'Response time',  value: '< 2 hours',          icon: 'fa-clock',    accent: 'rose', subtext: 'Average' },
+                    ]}
+                />
 
                 {/* Two Column Layout */}
                 <div className="content-cards-grid">
