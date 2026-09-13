@@ -120,7 +120,7 @@ export default function HotelSelector({
                             <option value="5">5-Star</option>
                         </select>
                     </div>
-                    <button className="btn-calculate" onClick={searchHotels} disabled={loading}
+                    <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={searchHotels} disabled={loading}
                         style={{ padding: '10px 24px' }}>
                         {loading ? (
                             <><i className="fas fa-spinner fa-spin me-2"></i>Searching hotels...</>

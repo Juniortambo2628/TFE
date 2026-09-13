@@ -138,7 +138,7 @@ export default function FlightSelector({
                             <option value="1">1 Stop or Less</option>
                         </select>
                     </div>
-                    <button className="btn-calculate" onClick={searchFlights} disabled={loading}
+                    <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={searchFlights} disabled={loading}
                         style={{ padding: '10px 24px' }}>
                         {loading ? (
                             <><i className="fas fa-spinner fa-spin me-2"></i>Searching flights...</>

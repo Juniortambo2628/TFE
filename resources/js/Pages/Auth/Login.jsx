@@ -133,7 +133,7 @@ export default function Login({ status, canResetPassword }) {
                             </div>
 
                             <div>
-                                <button type="submit" className="btn-signin" disabled={processing}>
+                                <button type="submit" className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center" disabled={processing}>
                                     ➜ Sign In
                                 </button>
                             </div>
@@ -146,10 +146,10 @@ export default function Login({ status, canResetPassword }) {
                         <div className="divider" aria-hidden="true"><span>OR</span></div>
 
                         <div className="social-row">
-                            <a href={route('social.redirect', 'google')} className="social-btn" id="googleLoginBtn" style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <a href={route('social.redirect', 'google')} className="tfe-btn justify-content-center" id="googleLoginBtn">
                                 <i className="fab fa-google"></i> Sign in with Google
                             </a>
-                            <button onClick={loginWithPasskey} className="social-btn" id="passkeyLoginBtn" type="button">
+                            <button onClick={loginWithPasskey} className="tfe-btn justify-content-center" id="passkeyLoginBtn" type="button">
                                 <i className="fas fa-fingerprint"></i> Sign in with Passkey
                             </button>
                         </div>
