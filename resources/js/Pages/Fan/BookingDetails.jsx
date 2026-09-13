@@ -187,8 +187,7 @@ export default function BookingDetails({ auth, booking, matches }) {
                                     </div>
                                     <button 
                                         onClick={handlePayment}
-                                        className="btn-fan-custom w-100 justify-content-center py-3 mb-3"
-                                        style={{ background: '#dc143c', borderColor: '#dc143c' }}
+                                        className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3"
                                     >
                                         <i className="fas fa-credit-card me-2"></i> Confirm & Pay Now
                                     </button>

@@ -183,19 +183,14 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
                                 type="button"
                                 onClick={useThisPackage}
                                 disabled={soldOut}
-                                className="btn-fan-custom w-100 justify-content-center"
-                                style={{
-                                    background: soldOut ? '#4b5563' : '#dc143c',
-                                    borderColor: soldOut ? '#4b5563' : '#dc143c',
-                                    cursor: soldOut ? 'not-allowed' : 'pointer',
-                                }}
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center"
                             >
-                                <i className={`fas ${soldOut ? 'fa-ban' : 'fa-arrow-right'} me-2`}></i>
+                                <i className={`fas ${soldOut ? 'fa-ban' : 'fa-arrow-right'}`} />
                                 {soldOut ? 'Sold out' : 'Use this package'}
                             </button>
 
-                            <Link href={route('fan.budget-calculator')} className="btn-glass-pill w-100 justify-content-center mt-2">
-                                <i className="fas fa-chevron-left me-2"></i>Back to picker
+                            <Link href={route('fan.budget-calculator')} className="tfe-btn w-100 justify-content-center mt-2">
+                                <i className="fas fa-chevron-left" />Back to picker
                             </Link>
 
                             <div className="mt-3 text-white-50" style={{ fontSize: '0.75rem' }}>

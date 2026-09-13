@@ -954,7 +954,7 @@ export default function BudgetCalculator({
                             </button>
                             
                             <button 
-                                className="btn-calculate"
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg"
                                 onClick={() => {
                                     setFilteredMatches(allFixtures);
                                     setWizardStep(2);
@@ -965,7 +965,7 @@ export default function BudgetCalculator({
                             
                             <button
                                 type="button"
-                                className="btn-calculate"
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg"
                                 onClick={startWithFavorites}
                                 disabled={!favoriteMatches.length}
                                 title={favoriteMatches.length ? 'Use your favorite matches to start the plan' : 'Add favorites in Match Schedule first'}
@@ -976,7 +976,7 @@ export default function BudgetCalculator({
 
                             <button
                                 type="button"
-                                className="btn-calculate"
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg"
                                 style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }}
                                 onClick={() => {
                                     setQuickEstimate(true);
@@ -1018,7 +1018,7 @@ export default function BudgetCalculator({
                         
                         {selectedMatchIds.length > 0 && (
                             <div className="text-center mt-4">
-                                <button className="btn-calculate" onClick={() => setWizardStep(3)}>
+                                <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={() => setWizardStep(3)}>
                                     Continue with {selectedMatchIds.length} matches <i className="fas fa-arrow-right ms-2"></i>
                                 </button>
                             </div>
@@ -1191,7 +1191,7 @@ export default function BudgetCalculator({
                                     )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className="btn-calculate" onClick={calculateBudget} disabled={loading}>
+                                    <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={calculateBudget} disabled={loading}>
                                         {loading ? (
                                             <><i className="fas fa-spinner fa-spin me-2"></i>Calculating...</>
                                         ) : (
@@ -1572,7 +1572,7 @@ export default function BudgetCalculator({
                                 Cancel
                             </button>
                             <button 
-                                className="btn-calculate m-0" 
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg m-0" 
                                 style={{ padding: '12px 30px' }}
                                 onClick={() => itineraryName.trim() && submitSave(itineraryName)}
                                 disabled={!itineraryName.trim() || saving}

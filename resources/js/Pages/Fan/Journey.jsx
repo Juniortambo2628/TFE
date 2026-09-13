@@ -71,50 +71,26 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                     <AdPlaceholder position="horizontal" />
                 </div>
 
-                <div className="summary-cards-grid mb-5">
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-ticket-alt"></i>
+                {/* Sprint 40 polish — migrated to .tfe-tile so the Journey
+                    summary row matches every other dashboard's stat row. The
+                    fan-card-premium glow variant now only lives on truly
+                    branded surfaces (Predict, Store) rather than data tiles. */}
+                <div className="tfe-stat-grid mb-5">
+                    {[
+                        { icon: 'fa-ticket-alt', variant: 'red',    label: 'Active Bookings', value: totalBookings,                          sub: totalBookings > 0 ? 'In Progress' : 'No Bookings' },
+                        { icon: 'fa-credit-card', variant: 'blue',   label: 'Total Paid',      value: formatMoney(totalPaid, primaryCurrency), sub: `${paymentData.paymentsCount} payments` },
+                        { icon: 'fa-clock',       variant: 'rose',   label: 'Pending',         value: formatMoney(totalDue,  primaryCurrency), sub: `${paymentSchedules.length} installments` },
+                        { icon: 'fa-chart-line',  variant: 'teal',   label: 'Progress',        value: `${progress}%`,                          sub: 'On track' },
+                    ].map((t, i) => (
+                        <div key={i} className={`tfe-tile tfe-tile--${t.variant}`}>
+                            <div className="tfe-tile__head">
+                                <div className="tfe-tile__icon"><i className={`fas ${t.icon}`} /></div>
                             </div>
-                            <h3 className="card-title-gaming">Active Bookings</h3>
-                            <div className="card-value-gaming">{totalBookings}</div>
-                            <div className="text-white-50 small mt-1">{totalBookings > 0 ? 'In Progress' : 'No Bookings'}</div>
+                            <div className="tfe-tile__value">{t.value}</div>
+                            <div className="tfe-tile__label">{t.label}</div>
+                            {t.sub && <div className="tfe-tile__subtext">{t.sub}</div>}
                         </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-credit-card"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Total Paid</h3>
-                            <div className="card-value-gaming">{formatMoney(totalPaid, primaryCurrency)}</div>
-                            <div className="text-white-50 small mt-1">{paymentData.paymentsCount} payments</div>
-                        </div>
-                    </div>
-
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-clock"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Pending</h3>
-                            <div className="card-value-gaming">{formatMoney(totalDue, primaryCurrency)}</div>
-                            <div className="text-white-50 small mt-1">{paymentSchedules.length} installments</div>
-                        </div>
-                    </div>
-
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-chart-line"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Progress</h3>
-                            <div className="card-value-gaming">{progress}%</div>
-                            <div className="text-success small mt-1">ON TRACK</div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
                 {/* Planned Journey (Active Budget) */}
@@ -153,8 +129,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                 {(activeBudget.partner_status === 'approved' || activeBudget.partner_status === 'modified') && (
                                     <button 
                                         onClick={() => setItineraryToConfirm(activeBudget.id)}
-                                        className="btn-fan-custom"
-                                        style={{ background: '#dc143c', borderColor: '#dc143c' }}
+                                        className="tfe-btn tfe-btn--filled"
                                     >
                                         <i className="fas fa-check-circle me-2"></i> Confirm & Book
                                     </button>

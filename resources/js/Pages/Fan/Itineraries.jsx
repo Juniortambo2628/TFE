@@ -120,8 +120,7 @@ export default function Itineraries({ itineraries }) {
                                                 {(itinerary.status === 'modified' || itinerary.status === 'approved') && itinerary.is_active && (
                                                     <button 
                                                         onClick={() => setItineraryToConfirm(itinerary.id)}
-                                                        className="btn-fan-custom btn-fan-custom-sm flex-grow-1 justify-content-center"
-                                                        style={{ background: '#dc143c', borderColor: '#dc143c' }}
+                                                        className="tfe-btn tfe-btn--filled tfe-btn--sm flex-grow-1 justify-content-center"
                                                     >
                                                         <i className="fas fa-check-circle me-2"></i> Review & Confirm
                                                     </button>

@@ -258,32 +258,10 @@ export default function FanTutorial({ steps, tutorialId = 'fan_dashboard_tutoria
                                 Back
                             </button>
                         )}
-                         <button 
-                            onClick={handleSkip} 
-                            style={{ 
-                                background: 'transparent', 
-                                border: 'none', 
-                                color: '#888', 
-                                padding: '6px 12px', 
-                                cursor: 'pointer',
-                                fontSize: '12px'
-                            }}
-                        >
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={handleSkip}>
                             Skip
                         </button>
-                        <button 
-                            onClick={handleNext} 
-                            style={{ 
-                                background: '#e31b23', 
-                                border: 'none', 
-                                color: '#fff', 
-                                padding: '6px 16px', 
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 'bold'
-                            }}
-                        >
+                        <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={handleNext}>
                             {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
                         </button>
                     </div>
