@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import MatchCard from '@/Components/Fan/MatchCard';
 import { TEAM_FLAGS } from '@/Data/countryFlags';
 
@@ -90,79 +91,45 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 >
                     {tournament?.start_date && tournament?.end_date && (
-                        <div className="tournament-dates d-flex align-items-center gap-3">
-                            <span className="badge bg-secondary px-3 py-2">
-                                <i className={`fas ${isConcluded ? 'fa-check' : 'fa-play'} text-danger me-2`}></i>
+                        <div className="d-flex align-items-center gap-2">
+                            <span className="tfe-pill tfe-pill--info">
+                                <i className={`fas ${isConcluded ? 'fa-check' : 'fa-play'} me-2`}></i>
                                 {new Date(tournament.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
-                            <span className="text-white-50">to</span>
-                            <span className="badge bg-danger px-3 py-2">
-                                <i className="fas fa-trophy text-white me-2"></i>
+                            <span className="text-white-50 small">to</span>
+                            <span className="tfe-pill tfe-pill--live">
+                                <i className="fas fa-trophy me-2"></i>
                                 {new Date(tournament.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                         </div>
                     )}
                 </DashboardHero>
 
-                {/* Stats Cards */}
-                {/* Summary Cards */}
-                <div className="summary-cards-grid mb-5">
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-futbol"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Matches</h3>
-                            <div className="card-value-gaming">{allFixtures.length}</div>
-                            <div className="text-white-50 small mt-1">{isConcluded ? 'Total Played' : 'Full Fixtures'}</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-users"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Teams</h3>
-                            <div className="card-value-gaming">{teams.length || 48}</div>
-                            <div className="text-white-50 small mt-1">Qualified Nations</div>
-                        </div>
-                    </div>
-
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-star"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Favorites</h3>
-                            <div className="card-value-gaming">{favorites.length}</div>
-                            <div className="text-white-50 small mt-1">Saved Matches</div>
-                        </div>
-                    </div>
-
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-map-marker-alt"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Stadiums</h3>
-                            <div className="card-value-gaming">{allFixtures.length > 0 ? [...new Set(allFixtures.map(m => m.venue))].length : 16}</div>
-                            <div className="text-white-50 small mt-1">Host Venues</div>
-                        </div>
-                    </div>
-                </div>
+                <SummaryTiles
+                    className="mb-5"
+                    items={[
+                        { label: 'Matches',  value: allFixtures.length, icon: 'fa-futbol',         accent: 'red',  subtext: isConcluded ? 'Total played' : 'Full fixtures' },
+                        { label: 'Teams',    value: teams.length || 48, icon: 'fa-users',          accent: 'blue', subtext: 'Qualified nations' },
+                        { label: 'Favorites',value: favorites.length,   icon: 'fa-star',           accent: 'rose', subtext: 'Saved matches' },
+                        { label: 'Stadiums', value: allFixtures.length > 0 ? [...new Set(allFixtures.map(m => m.venue))].length : 16, icon: 'fa-map-marker-alt', accent: 'teal', subtext: 'Host venues' },
+                    ]}
+                />
 
                 {/* Tab Navigation */}
-                <div className="schedule-tabs d-flex flex-wrap gap-2 mb-4">
-                    <button 
+                <div className="d-flex flex-wrap gap-2 mb-4">
+                    <button
+                        type="button"
                         onClick={() => { setActiveTab('groups'); setSelectedGroup(null); }}
-                        className={`btn-glass-pill btn-glass-pill-sm ${activeTab === 'groups' ? 'active-glass' : ''}`}
+                        aria-pressed={activeTab === 'groups'}
+                        className="tfe-btn tfe-btn--sm"
                     >
                         <i className="fas fa-layer-group"></i> Group Stage
                     </button>
-                    <button 
+                    <button
+                        type="button"
                         onClick={() => setActiveTab('knockout')}
-                        className={`btn-glass-pill btn-glass-pill-sm ${activeTab === 'knockout' ? 'active-glass' : ''}`}
+                        aria-pressed={activeTab === 'knockout'}
+                        className="tfe-btn tfe-btn--sm"
                     >
                         <i className="fas fa-trophy"></i> Knockout Rounds
                     </button>
@@ -170,18 +137,22 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
 
                 {/* Group Filters (only for Group Stage) */}
                 {activeTab === 'groups' && (
-                    <div className="group-filter-tabs d-flex flex-wrap gap-2 mb-4">
-                        <button 
+                    <div className="d-flex flex-wrap gap-2 mb-4">
+                        <button
+                            type="button"
                             onClick={() => setSelectedGroup(null)}
-                            className={`btn-glass-pill btn-glass-pill-sm ${selectedGroup === null ? 'active-glass' : ''}`}
+                            aria-pressed={selectedGroup === null}
+                            className="tfe-btn tfe-btn--sm"
                         >
                             All Groups
                         </button>
                         {groups.map(group => (
                             <button
+                                type="button"
                                 key={group}
                                 onClick={() => setSelectedGroup(group)}
-                                className={`btn-glass-pill btn-glass-pill-sm ${selectedGroup === group ? 'active-glass' : ''}`}
+                                aria-pressed={selectedGroup === group}
+                                className="tfe-btn tfe-btn--sm"
                             >
                                 Group {group}
                             </button>
@@ -215,10 +186,10 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
                             </div>
                         ))
                     ) : (
-                        <div className="content-card empty-state">
-                            <i className="fas fa-calendar-times"></i>
-                            <h3>No matches found.</h3>
-                            <p>Try selecting a different filter.</p>
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-calendar-times"></i></div>
+                            <div className="tfe-empty__title">No matches found</div>
+                            <div className="tfe-empty__body">Try selecting a different filter.</div>
                         </div>
                     )}
                 </div>

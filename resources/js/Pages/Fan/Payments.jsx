@@ -8,6 +8,7 @@ import { formatMoney } from '@/lib/utils';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/fan/wallet.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
 
@@ -145,15 +146,23 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                     breadcrumbs={[{ label: 'Payments' }]}
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                     actions={
-                        <div className="flex gap-3">
-                            <button className="btn-fan-custom" onClick={() => setShowMethodModal(true)}>
+                        <div className="d-flex gap-2">
+                            <button type="button" className="tfe-btn" onClick={() => setShowMethodModal(true)}>
                                 <i className="fas fa-plus me-2"></i> Add Method
                             </button>
-                            <button className="btn-fan-custom bg-white/10" onClick={() => setShowPayModal(true)}>
+                            <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => setShowPayModal(true)}>
                                 <i className="fas fa-paper-plane me-2"></i> Send / Pay
                             </button>
                         </div>
                     }
+                />
+
+                <SummaryTiles
+                    className="mt-4"
+                    items={[
+                        { label: 'Total spent', value: formatMoney(stats.total_paid), icon: 'fa-arrow-up',   accent: 'red',   subtext: 'Across all transactions' },
+                        { label: 'Pending',     value: formatMoney(stats.pending),    icon: 'fa-hourglass-half', accent: 'amber', subtext: 'Awaiting confirmation' },
+                    ]}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
@@ -176,17 +185,6 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                             </div>
                         </div>
 
-                        {/* Quick Stats */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-[#111] p-4 rounded-xl border border-white/5">
-                                <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Spent</div>
-                                <div className="text-xl font-bold text-white">{formatMoney(stats.total_paid)}</div>
-                            </div>
-                            <div className="bg-[#111] p-4 rounded-xl border border-white/5">
-                                <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Pending</div>
-                                <div className="text-xl font-bold text-amber-500">{formatMoney(stats.pending)}</div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Right Column: Transactions & Methods */}
@@ -210,14 +208,14 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                                             <div className="payment-method-title">{method.display_name}</div>
                                             <div className="payment-method-subtitle uppercase">{method.type} {method.is_default && '• Default'}</div>
                                         </div>
-                                        <button className="text-red-500/50 hover:text-red-500 transition-colors p-2" onClick={() => setMethodToDelete(method.id)}>
+                                        <button type="button" className="tfe-btn tfe-btn--icon tfe-btn--sm" onClick={() => setMethodToDelete(method.id)} aria-label="Remove method">
                                             <i className="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 )) : (
-                                    <div className="text-center py-8 text-white/30">
-                                        <i className="fas fa-wallet fa-2x mb-3 opacity-50"></i>
-                                        <p>No payment methods added yet.</p>
+                                    <div className="tfe-empty tfe-empty--inline">
+                                        <div className="tfe-empty__icon"><i className="fas fa-wallet"></i></div>
+                                        <div className="tfe-empty__body">No payment methods added yet.</div>
                                     </div>
                                 )}
                             </div>
@@ -251,8 +249,9 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                                         </div>
                                     </div>
                                 )) : (
-                                    <div className="text-center py-8 text-white/30">
-                                        <p>No recent transactions.</p>
+                                    <div className="tfe-empty tfe-empty--inline">
+                                        <div className="tfe-empty__icon"><i className="fas fa-receipt"></i></div>
+                                        <div className="tfe-empty__body">No recent transactions.</div>
                                     </div>
                                 )}
                             </div>
@@ -272,74 +271,73 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                 tabs={methodTabs}
             >
                 {activeMethodTab === 'card' && (
-                    <div className="flex flex-col h-full">
-                        {/* Paystack Integration Guide */}
-                        <div className="stripe-guide-box" style={{ background: 'rgba(5, 75, 150, 0.1)', borderColor: 'rgba(5, 75, 150, 0.2)' }}>
-                            <div className="stripe-guide-title" style={{ color: '#00c3f7' }}>
+                    <div className="d-flex flex-column h-100">
+                        <div className="wallet-guide">
+                            <div className="wallet-guide__title">
                                 <i className="fas fa-layer-group fa-lg"></i>
                                 <span>Paystack Integration Guide</span>
                             </div>
-                            <div className="text-xs text-gray-400 mb-3">
+                            <div className="text-white-50 small mb-3">
                                 To implement Paystack (Card & Mobile Money), follow these steps:
                             </div>
-                            <div className="stripe-step">
-                                <div className="stripe-step-num" style={{ background: '#00c3f7' }}>1</div>
+                            <div className="wallet-guide__step">
+                                <div className="wallet-guide__num">1</div>
                                 <div>Install <code>react-paystack</code> package or use Inline JS script.</div>
                             </div>
-                            <div className="stripe-step">
-                                <div className="stripe-step-num" style={{ background: '#00c3f7' }}>2</div>
+                            <div className="wallet-guide__step">
+                                <div className="wallet-guide__num">2</div>
                                 <div>Backend: Verify transaction via <code>https://api.paystack.co/transaction/verify/:reference</code>.</div>
                             </div>
-                            <div className="stripe-step">
-                                <div className="stripe-step-num" style={{ background: '#00c3f7' }}>3</div>
+                            <div className="wallet-guide__step">
+                                <div className="wallet-guide__num">3</div>
                                 <div>Frontend: Use <code>usePaystackPayment</code> hook to trigger the popup for Cards/M-Pesa.</div>
                             </div>
                         </div>
 
-                        <form onSubmit={handleAddMethod} className="space-y-4">
-                            <div className="alert alert-info bg-blue-500/10 border-blue-500/20 text-blue-400 text-sm">
+                        <form onSubmit={handleAddMethod} className="tfe-form-field mt-3">
+                            <div className="wallet-note">
                                 <i className="fas fa-info-circle me-2"></i>
                                 In production, clicking "Add Card" would open the secured Paystack Popup to tokenize the card.
                             </div>
-                            
+
                             <div>
                                 <label className="tfe-form-label">Card Holder Email</label>
                                 <input type="email" className="tfe-input" placeholder="user@example.com" defaultValue={auth.user.email} />
                             </div>
-                            
-                            <div className="modal-footer">
-                                <button type="button" className="btn-cancel" onClick={() => setShowMethodModal(false)}>Cancel</button>
-                                <button type="submit" className="btn-submit-modal" style={{ background: '#00c3f7', color: '#000' }} disabled={methodProcessing}>Initialize Paystack</button>
+
+                            <div className="dash-modal-footer">
+                                <button type="button" className="tfe-btn" onClick={() => setShowMethodModal(false)}>Cancel</button>
+                                <button type="submit" className="tfe-btn tfe-btn--filled" disabled={methodProcessing}>Initialize Paystack</button>
                             </div>
                         </form>
                     </div>
                 )}
 
                 {activeMethodTab === 'mpesa' && (
-                    <form onSubmit={handleAddMethod} className="flex flex-col h-full">
-                        <div className="space-y-4 mb-4">
-                            <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl flex items-center gap-3">
-                                <div className="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center text-white font-bold">M</div>
+                    <form onSubmit={handleAddMethod} className="d-flex flex-column h-100">
+                        <div className="tfe-form-field">
+                            <div className="wallet-note wallet-note--success">
+                                <div className="wallet-note__glyph">M</div>
                                 <div>
-                                    <div className="text-white font-bold">M-Pesa Integration</div>
-                                    <div className="text-white-50 text-xs">Fast and secure mobile payments</div>
+                                    <div className="text-white fw-bold">M-Pesa Integration</div>
+                                    <div className="text-white-50 small">Fast and secure mobile payments</div>
                                 </div>
                             </div>
                             <div>
                                 <label className="tfe-form-label">Phone Number</label>
-                                <input 
-                                    type="text" 
-                                    className="tfe-input" 
-                                    placeholder="2547..." 
-                                    value={methodData.phone_number} 
-                                    onChange={e => setMethodData('phone_number', e.target.value)} 
+                                <input
+                                    type="text"
+                                    className="tfe-input"
+                                    placeholder="2547..."
+                                    value={methodData.phone_number}
+                                    onChange={e => setMethodData('phone_number', e.target.value)}
                                 />
-                                <div className="form-hint">Enter your M-Pesa registered number starting with 254</div>
+                                <div className="tfe-form-help">Enter your M-Pesa registered number starting with 254</div>
                             </div>
                         </div>
-                         <div className="modal-footer">
-                            <button type="button" className="btn-cancel" onClick={() => setShowMethodModal(false)}>Cancel</button>
-                            <button type="submit" className="btn-submit-modal" style={{ background: '#00c851' }} disabled={methodProcessing}>Save M-Pesa</button>
+                        <div className="dash-modal-footer">
+                            <button type="button" className="tfe-btn" onClick={() => setShowMethodModal(false)}>Cancel</button>
+                            <button type="submit" className="tfe-btn tfe-btn--filled" disabled={methodProcessing}>Save M-Pesa</button>
                         </div>
                     </form>
                 )}
@@ -356,20 +354,17 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                 tabs={payTabs}
             >
                 <form onSubmit={handlePayment}>
-                    <div className="space-y-4 mb-4">
+                    <div className="tfe-form-field">
                         <div>
                             <label className="tfe-form-label">Amount (KES)</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-3 text-gray-500">KES</span>
-                                <input 
-                                    type="number" 
-                                    className="tfe-input pl-16 text-lg font-bold text-right" 
-                                    placeholder="0.00" 
-                                    value={payData.amount} 
-                                    onChange={e => setPayData('amount', e.target.value)} 
-                                    required 
-                                />
-                            </div>
+                            <input
+                                type="number"
+                                className="tfe-input"
+                                placeholder="0.00"
+                                value={payData.amount}
+                                onChange={e => setPayData('amount', e.target.value)}
+                                required
+                            />
                         </div>
                         <div>
                             <label className="tfe-form-label">Payment Method</label>
@@ -380,18 +375,18 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
                         </div>
                         <div>
                             <label className="tfe-form-label">Description (Optional)</label>
-                            <input 
-                                type="text" 
-                                className="tfe-input" 
-                                placeholder="e.g. Ticket Purchase" 
-                                value={payData.description} 
-                                onChange={e => setPayData('description', e.target.value)} 
+                            <input
+                                type="text"
+                                className="tfe-input"
+                                placeholder="e.g. Ticket Purchase"
+                                value={payData.description}
+                                onChange={e => setPayData('description', e.target.value)}
                             />
                         </div>
                     </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn-cancel" onClick={() => setShowPayModal(false)}>Cancel</button>
-                        <button type="submit" className="btn-submit-modal">Process Payment</button>
+                    <div className="dash-modal-footer">
+                        <button type="button" className="tfe-btn" onClick={() => setShowPayModal(false)}>Cancel</button>
+                        <button type="submit" className="tfe-btn tfe-btn--filled">Process Payment</button>
                     </div>
                 </form>
             </DashboardModal>

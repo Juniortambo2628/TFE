@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import '../../../css/fan/fan-pages.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { useTournament } from '@/Context/TournamentContext';
@@ -91,30 +92,13 @@ export default function Events({ auth, events, userRsvps = [] }) {
                     <AdPlaceholder position="horizontal" />
                 </div>
 
-                {/* Summary Cards */}
-                <div className="summary-cards-grid mb-5">
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-calendar"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Events</h3>
-                            <div className="card-value-gaming">{events.length}</div>
-                            <div className="text-white-50 small mt-1">Found near you</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-check-circle"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Registered</h3>
-                            <div className="card-value-gaming">{userRsvps.length}</div>
-                            <div className="text-white-50 small mt-1">My activities</div>
-                        </div>
-                    </div>
-                </div>
+                <SummaryTiles
+                    className="mb-5"
+                    items={[
+                        { label: 'Events',     value: events.length,    icon: 'fa-calendar',      accent: 'red',  subtext: 'Found near you' },
+                        { label: 'Registered', value: userRsvps.length, icon: 'fa-check-circle',  accent: 'blue', subtext: 'My activities' },
+                    ]}
+                />
 
                 {/* Main Content */}
                 <div className="events-layout mt-4">
@@ -127,14 +111,18 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                     <h3>Upcoming Events</h3>
                                 </div>
                                 <div className="d-flex gap-2">
-                                    <button 
-                                        className={`btn-fan-custom btn-fan-custom-sm ${activeFilter === 'all' ? 'active' : 'opacity-50'}`}
+                                    <button
+                                        type="button"
+                                        className="tfe-btn tfe-btn--sm"
+                                        aria-pressed={activeFilter === 'all'}
                                         onClick={() => setActiveFilter('all')}
                                     >
                                         All
                                     </button>
-                                    <button 
-                                        className={`btn-fan-custom btn-fan-custom-sm ${activeFilter === 'registered' ? 'active' : 'opacity-50'}`}
+                                    <button
+                                        type="button"
+                                        className="tfe-btn tfe-btn--sm"
+                                        aria-pressed={activeFilter === 'registered'}
                                         onClick={() => setActiveFilter('registered')}
                                     >
                                         My Events
@@ -166,11 +154,13 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                                     </div>
                                                     <div className="event-actions">
                                                         <span className="event-price">Free</span>
-                                                        <button className="btn-fan-custom btn-fan-custom-sm" onClick={() => setSelectedEvent(event)}>Details</button>
+                                                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setSelectedEvent(event)}>Details</button>
                                                         {isRsvped(event.id) ? (
-                                                            <button className="btn-fan-custom btn-fan-custom-sm border-danger text-danger" onClick={() => setEventToCancel(event.id)}>X</button>
+                                                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setEventToCancel(event.id)} aria-label="Cancel RSVP">
+                                                                <i className="fas fa-times"></i>
+                                                            </button>
                                                         ) : (
-                                                            <button className="btn-fan-custom btn-fan-custom-sm bg-primary border-primary" onClick={() => handleRsvp(event.id)}>Register</button>
+                                                            <button type="button" className="tfe-btn tfe-btn--filled tfe-btn--sm" onClick={() => handleRsvp(event.id)}>Register</button>
                                                         )}
                                                     </div>
                                                 </div>
@@ -179,9 +169,9 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="empty-state-inline">
-                                    <i className="fas fa-calendar-times"></i>
-                                    <p>No upcoming events found.</p>
+                                <div className="tfe-empty tfe-empty--inline">
+                                    <div className="tfe-empty__icon"><i className="fas fa-calendar-times"></i></div>
+                                    <div className="tfe-empty__body">No upcoming events found.</div>
                                 </div>
                             )}
                         </div>
@@ -243,8 +233,8 @@ export default function Events({ auth, events, userRsvps = [] }) {
                             <div className="d-flex justify-content-between align-items-start mb-4">
                                 <div>
                                     <div className="d-flex align-items-center gap-2 mb-2">
-                                        <span className="badge bg-primary">{selectedEvent.type.replace('_', ' ')}</span>
-                                        {isRsvped(selectedEvent.id) && <span className="badge bg-success">Registered</span>}
+                                        <span className="tfe-pill tfe-pill--info">{selectedEvent.type.replace('_', ' ')}</span>
+                                        {isRsvped(selectedEvent.id) && <span className="tfe-pill tfe-pill--approved">Registered</span>}
                                     </div>
                                     <h4 className="text-white mb-2">Date & Time</h4>
                                     <div className="text-white-50">
@@ -259,7 +249,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
 
                             <div className="mb-4">
                                 <h4 className="tfe-form-label">Description</h4>
-                                <p className="text-white-50" style={{ lineHeight: '1.6' }}>
+                                <p className="text-white-50 lh-base">
                                     {selectedEvent.description || 'No detailed description available for this event.'}
                                 </p>
                             </div>
@@ -273,12 +263,12 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                 </p>
                             </div>
 
-                            <div className="modal-footer">
-                                <button className="btn-cancel" onClick={() => setSelectedEvent(null)}>Close</button>
+                            <div className="d-flex justify-content-end gap-2 mt-4">
+                                <button type="button" className="tfe-btn" onClick={() => setSelectedEvent(null)}>Close</button>
                                 {isRsvped(selectedEvent.id) ? (
-                                    <button 
-                                        className="btn-submit-modal"
-                                        style={{ background: '#dc3545' }}
+                                    <button
+                                        type="button"
+                                        className="tfe-btn"
                                         onClick={() => {
                                             setEventToCancel(selectedEvent.id);
                                             setSelectedEvent(null);
@@ -287,8 +277,9 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                         Cancel RSVP
                                     </button>
                                 ) : (
-                                    <button 
-                                        className="btn-submit-modal bg-primary border-primary"
+                                    <button
+                                        type="button"
+                                        className="tfe-btn tfe-btn--filled"
                                         onClick={() => {
                                             handleRsvp(selectedEvent.id);
                                             setSelectedEvent(null);
@@ -306,23 +297,23 @@ export default function Events({ auth, events, userRsvps = [] }) {
                             <div className="mb-4">
                                 <h4 className="tfe-form-label">Venue / Location</h4>
                                 <div className="d-flex align-items-center gap-3 text-white">
-                                    <div className="bg-white/10 p-3 rounded-circle" style={{ width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <i className="fas fa-map-marker-alt text-primary fa-lg"></i>
+                                    <div className="event-location-glyph">
+                                        <i className="fas fa-map-marker-alt fa-lg"></i>
                                     </div>
                                     <div>
                                         <div className="fw-bold">{selectedEvent.location || 'TBA'}</div>
-                                        <div className="text-white-50 text-sm">Venue details</div>
+                                        <div className="text-white-50 small">Venue details</div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div className="bg-white/5 rounded-xl p-5 text-center border border-dashed border-white/20">
-                                <i className="fas fa-map text-white-50 fa-3x mb-3"></i>
-                                <p className="text-white-50">Map view is currently unavailable for this location.</p>
+
+                            <div className="tfe-empty tfe-empty--inline">
+                                <div className="tfe-empty__icon"><i className="fas fa-map"></i></div>
+                                <div className="tfe-empty__body">Map view is currently unavailable for this location.</div>
                             </div>
 
-                            <div className="modal-footer">
-                                <button className="btn-cancel" onClick={() => setSelectedEvent(null)}>Close</button>
+                            <div className="d-flex justify-content-end mt-4">
+                                <button type="button" className="tfe-btn" onClick={() => setSelectedEvent(null)}>Close</button>
                             </div>
                         </>
                     )}
