@@ -1,7 +1,7 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { AreaChart, BarChart, Card, Title, Text } from "@tremor/react";
 import { Link, usePage } from '@inertiajs/react';
@@ -42,31 +42,13 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Quick Stats Row — matches Fan dashboard summary-cards-grid so
-                the admin surface reads with the same tokens as fan. */}
-            <div className="summary-cards-grid">
-                <StatCard
-                    label="Total Users"
-                    value={stats?.total_users || 0}
-                    icon="fa-users"
-                    variant="blue"
-                    subtext="Registered accounts"
-                />
-                <StatCard
-                    label="Total Revenue"
-                    value={formatMoney(stats?.total_revenue || 0)}
-                    icon="fa-coins"
-                    variant="red"
-                    subtext="Paystack transactions"
-                />
-                <StatCard
-                    label="Active Tribes"
-                    value={stats?.active_tribes || 0}
-                    icon="fa-handshake"
-                    variant="blue"
-                    subtext="Communities in use"
-                />
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: 'Total Users',   value: stats?.total_users || 0,               icon: 'fa-users',     accent: 'blue', subtext: 'Registered accounts' },
+                    { label: 'Total Revenue', value: formatMoney(stats?.total_revenue || 0), icon: 'fa-coins',     accent: 'red',  subtext: 'Paystack transactions' },
+                    { label: 'Active Tribes', value: stats?.active_tribes || 0,             icon: 'fa-handshake', accent: 'teal', subtext: 'Communities in use' },
+                ]}
+            />
 
             {/* Sprint 32 — shared quick-actions grid, matches fan + partner. */}
             <div className="content-card quick-actions-card mt-4">

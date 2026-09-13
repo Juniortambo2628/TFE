@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 import { Head, router } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -57,21 +57,19 @@ export default function LoanApplications({ loans, stats, finance_partners = [], 
                 ]}
             />
 
-            <div className="summary-cards-grid">
-                <StatCard label="Total Applications" value={stats.total} icon="fa-file-invoice-dollar" variant="blue"
-                    subtext={`${stats.unrouted} unrouted`} />
-                <StatCard label="Pending Review" value={stats.pending} icon="fa-clock" variant="amber"
-                    subtext="Awaiting decision" />
-                <StatCard label="Approved" value={stats.approved} icon="fa-check-circle" variant="blue"
-                    subtext={`${stats.disbursed} disbursed`} />
-                <StatCard label="Approved Amount" value={formatMoney(stats.total_amount)} icon="fa-coins" variant="red"
-                    subtext="Across all partners" />
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: 'Total Applications', value: stats.total,                    icon: 'fa-file-invoice-dollar', accent: 'blue',  subtext: `${stats.unrouted} unrouted` },
+                    { label: 'Pending Review',     value: stats.pending,                  icon: 'fa-clock',               accent: 'amber', subtext: 'Awaiting decision' },
+                    { label: 'Approved',           value: stats.approved,                 icon: 'fa-check-circle',        accent: 'teal',  subtext: `${stats.disbursed} disbursed` },
+                    { label: 'Approved Amount',    value: formatMoney(stats.total_amount),icon: 'fa-coins',               accent: 'red',   subtext: 'Across all partners' },
+                ]}
+            />
 
             {/* Filter chip row */}
             <div className="content-card mt-4 p-3">
                 <div className="d-flex flex-wrap gap-2 align-items-center">
-                    <span className="text-white-50 small text-uppercase me-2" style={{ letterSpacing: '0.08em' }}>Status</span>
+                    <span className="tfe-form-label me-2 mb-0">Status</span>
                     <FilterChip active={!filters.status} onClick={() => switchFilter({ status: null })}>All</FilterChip>
                     {['PENDING', 'APPROVED', 'REJECTED', 'DISBURSED'].map((s) => (
                         <FilterChip key={s} active={filters.status === s}
@@ -81,7 +79,7 @@ export default function LoanApplications({ loans, stats, finance_partners = [], 
                     ))}
                 </div>
                 <div className="d-flex flex-wrap gap-2 align-items-center mt-2">
-                    <span className="text-white-50 small text-uppercase me-2" style={{ letterSpacing: '0.08em' }}>Partner</span>
+                    <span className="tfe-form-label me-2 mb-0">Partner</span>
                     <FilterChip active={!filters.finance_partner_id}
                         onClick={() => switchFilter({ finance_partner_id: null })}>All</FilterChip>
                     <FilterChip active={filters.finance_partner_id === 'unrouted'}
