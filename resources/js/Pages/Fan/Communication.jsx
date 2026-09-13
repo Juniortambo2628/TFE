@@ -3,6 +3,7 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
 export default function Communication({ auth, announcements, messages }) {
@@ -45,42 +46,28 @@ export default function Communication({ auth, announcements, messages }) {
                     bgImage="/assets/img/fan/backgrounds/social_hero.png"
                 />
 
-                {/* Stats Cards */}
-                <div className="summary-cards-grid">
-                    <div className="fan-card-premium glow-red">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                <i className="fas fa-bullhorn"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Announcements</h3>
-                            <div className="card-value-gaming">{announcements.length}</div>
-                            <div className="text-white-50 small mt-1">Latest Updates</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-envelope"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Unread Messages</h3>
-                            <div className="card-value-gaming">{messages.filter(m => !m.is_read).length}</div>
-                            <div className="text-white-50 small mt-1">Check Inbox</div>
-                        </div>
-                    </div>
-                </div>
+                <SummaryTiles
+                    items={[
+                        { label: 'Announcements',   value: announcements.length,                          icon: 'fa-bullhorn', accent: 'red',  subtext: 'Latest updates' },
+                        { label: 'Unread messages', value: messages.filter(m => !m.is_read).length,       icon: 'fa-envelope', accent: 'blue', subtext: 'Check inbox' },
+                    ]}
+                />
 
                 {/* Tab Navigation */}
-                <div className="schedule-tabs">
-                    <button 
+                <div className="d-flex flex-wrap gap-2 my-4">
+                    <button
+                        type="button"
                         onClick={() => setActiveTab('announcements')}
-                        className={`schedule-tab ${activeTab === 'announcements' ? 'active' : ''}`}
+                        aria-pressed={activeTab === 'announcements'}
+                        className="tfe-btn tfe-btn--sm"
                     >
                         <i className="fas fa-bullhorn"></i> Official Announcements
                     </button>
-                    <button 
+                    <button
+                        type="button"
                         onClick={() => setActiveTab('messages')}
-                        className={`schedule-tab ${activeTab === 'messages' ? 'active' : ''}`}
+                        aria-pressed={activeTab === 'messages'}
+                        className="tfe-btn tfe-btn--sm"
                     >
                         <i className="fas fa-envelope"></i> My Messages
                     </button>
@@ -101,11 +88,11 @@ export default function Communication({ auth, announcements, messages }) {
                                             <i className={`fas ${announcement.priority === 'urgent' ? 'fa-exclamation-circle text-danger' : 'fa-info-circle text-primary'}`}></i>
                                         </div>
                                         <div className="announcement-content">
-                                            <div className="announcement-meta">
-                                                <span className={`badge bg-${announcement.priority === 'urgent' ? 'danger' : 'primary'} me-2`}>
-                                                    {announcement.priority.toUpperCase()}
+                                            <div className="announcement-meta d-flex align-items-center gap-2 mb-1">
+                                                <span className={`tfe-pill ${announcement.priority === 'urgent' ? 'tfe-pill--rejected' : 'tfe-pill--info'}`}>
+                                                    {announcement.priority}
                                                 </span>
-                                                <span className="text-muted small">
+                                                <span className="text-white-50 small">
                                                     {announcement.created_at}
                                                 </span>
                                             </div>
@@ -116,9 +103,9 @@ export default function Communication({ auth, announcements, messages }) {
                                 ))}
                             </div>
                         ) : (
-                            <div className="empty-state-inline">
-                                <i className="fas fa-newspaper"></i>
-                                <p>No announcements at this time.</p>
+                            <div className="tfe-empty tfe-empty--inline">
+                                <div className="tfe-empty__icon"><i className="fas fa-newspaper"></i></div>
+                                <div className="tfe-empty__body">No announcements at this time.</div>
                             </div>
                         )}
                     </div>
@@ -134,11 +121,10 @@ export default function Communication({ auth, announcements, messages }) {
                         {messages.length > 0 ? (
                             <div className="messages-list">
                                 {messages.map((message) => (
-                                    <div 
-                                        key={message.id} 
-                                        className={`message-item ${!message.is_read ? 'unread' : ''}`}
+                                    <div
+                                        key={message.id}
+                                        className={`message-item cursor-pointer ${!message.is_read ? 'unread' : ''}`}
                                         onClick={() => setSelectedMessage(message)}
-                                        style={{ cursor: 'pointer' }}
                                     >
                                         <div className="message-icon">
                                             <i className="fas fa-envelope"></i>
@@ -168,15 +154,15 @@ export default function Communication({ auth, announcements, messages }) {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <p className="message-body text-truncate" style={{ maxWidth: '80%' }}>{message.content}</p>
+                                            <p className="message-body message-body-truncate">{message.content}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="empty-state-inline">
-                                <i className="fas fa-inbox"></i>
-                                <p>Your inbox is empty.</p>
+                            <div className="tfe-empty tfe-empty--inline">
+                                <div className="tfe-empty__icon"><i className="fas fa-inbox"></i></div>
+                                <div className="tfe-empty__body">Your inbox is empty.</div>
                             </div>
                         )}
                     </div>
@@ -211,51 +197,29 @@ export default function Communication({ auth, announcements, messages }) {
                             
                             {/* Shared Story Display */}
                             {selectedMessage.share_type === 'story' && selectedMessage.shared_story && (
-                                <div className="mb-4 dash-modal-subtle" style={{ 
-                                    border: '1px solid #333', 
-                                    borderRadius: '8px', 
-                                    overflow: 'hidden',
-                                }}>
-                                    <div className="p-3 border-bottom border-secondary d-flex align-items-center dash-modal-subtle-sm">
-                                        <img 
-                                            src={getAvatar(selectedMessage.shared_story.user)} 
+                                <div className="dash-shared-embed mb-4">
+                                    <div className="dash-shared-embed__head">
+                                        <img
+                                            src={getAvatar(selectedMessage.shared_story.user)}
                                             alt={selectedMessage.shared_story.user.name}
                                             className="dash-avatar dash-avatar-sm"
-                                            style={{ marginRight: '10px' }}
                                         />
-                                        <div>
-                                            <div className="text-white fw-bold">Shared story from {selectedMessage.shared_story.user.name}</div>
+                                        <div className="text-white fw-bold">
+                                            Shared story from {selectedMessage.shared_story.user.name}
                                         </div>
                                     </div>
-                                    <div className="p-3">
+                                    <div className="dash-shared-embed__body">
                                         {selectedMessage.shared_story.media_url && (
-                                            <div className="mb-3" style={{ textAlign: 'center' }}>
+                                            <div className="dash-shared-embed__media">
                                                 {selectedMessage.shared_story.media_type === 'video' ? (
-                                                    <video 
-                                                        src={selectedMessage.shared_story.media_url} 
-                                                        controls 
-                                                        style={{ 
-                                                            maxWidth: '100%', 
-                                                            maxHeight: '400px',
-                                                            borderRadius: '8px'
-                                                        }}
-                                                    />
+                                                    <video src={selectedMessage.shared_story.media_url} controls />
                                                 ) : (
-                                                    <img 
-                                                        src={selectedMessage.shared_story.media_url} 
-                                                        alt="Shared story"
-                                                        style={{ 
-                                                            maxWidth: '100%', 
-                                                            maxHeight: '400px',
-                                                            borderRadius: '8px',
-                                                            objectFit: 'contain'
-                                                        }}
-                                                    />
+                                                    <img src={selectedMessage.shared_story.media_url} alt="Shared story" />
                                                 )}
                                             </div>
                                         )}
                                         {selectedMessage.shared_story.caption && (
-                                            <div className="text-white" style={{ whiteSpace: 'pre-wrap' }}>
+                                            <div className="dash-shared-embed__text">
                                                 {selectedMessage.shared_story.caption}
                                             </div>
                                         )}
@@ -265,39 +229,25 @@ export default function Communication({ auth, announcements, messages }) {
 
                             {/* Shared Post Display */}
                             {selectedMessage.share_type === 'post' && selectedMessage.shared_post && (
-                                <div className="mb-4 dash-modal-subtle" style={{ 
-                                    border: '1px solid #333', 
-                                    borderRadius: '8px', 
-                                    overflow: 'hidden',
-                                }}>
-                                    <div className="p-3 border-bottom border-secondary d-flex align-items-center dash-modal-subtle-sm">
-                                        <img 
-                                            src={getAvatar(selectedMessage.shared_post.user)} 
+                                <div className="dash-shared-embed mb-4">
+                                    <div className="dash-shared-embed__head">
+                                        <img
+                                            src={getAvatar(selectedMessage.shared_post.user)}
                                             alt={selectedMessage.shared_post.user.name}
                                             className="dash-avatar dash-avatar-sm"
-                                            style={{ marginRight: '10px' }}
                                         />
-                                        <div>
-                                            <div className="text-white fw-bold">Shared post from {selectedMessage.shared_post.user.name}</div>
+                                        <div className="text-white fw-bold">
+                                            Shared post from {selectedMessage.shared_post.user.name}
                                         </div>
                                     </div>
-                                    <div className="p-3">
+                                    <div className="dash-shared-embed__body">
                                         {selectedMessage.shared_post.image_url && (
-                                            <div className="mb-3" style={{ textAlign: 'center' }}>
-                                                <img 
-                                                    src={selectedMessage.shared_post.image_url} 
-                                                    alt="Shared post"
-                                                    style={{ 
-                                                        maxWidth: '100%', 
-                                                        maxHeight: '400px',
-                                                        borderRadius: '8px',
-                                                        objectFit: 'contain'
-                                                    }}
-                                                />
+                                            <div className="dash-shared-embed__media">
+                                                <img src={selectedMessage.shared_post.image_url} alt="Shared post" />
                                             </div>
                                         )}
                                         {selectedMessage.shared_post.content && (
-                                            <div className="text-white" style={{ whiteSpace: 'pre-wrap' }}>
+                                            <div className="dash-shared-embed__text">
                                                 {selectedMessage.shared_post.content}
                                             </div>
                                         )}
@@ -307,21 +257,21 @@ export default function Communication({ auth, announcements, messages }) {
 
                             {/* Regular Message Content */}
                             {selectedMessage.content && (
-                                <div className="text-white" style={{ whiteSpace: 'pre-wrap', color: '#fff' }}>
+                                <div className="dash-shared-embed__text text-white">
                                     {selectedMessage.content}
                                 </div>
                             )}
                         </div>
-                         <div className="p-3 border-top border-secondary text-end bg-dark">
+                         <div className="dash-modal-footer">
+                            <button type="button" className="tfe-btn" onClick={() => setSelectedMessage(null)}>Close</button>
                             {!selectedMessage.is_read && (
-                                <button type="button" className="tfe-btn tfe-btn--filled me-2" onClick={() => {
+                                <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => {
                                     handleMarkRead(selectedMessage.id);
                                     setSelectedMessage({...selectedMessage, is_read: true});
                                 }}>
                                     Mark as Read
                                 </button>
                             )}
-                            <button type="button" className="tfe-btn" onClick={() => setSelectedMessage(null)}>Close</button>
                          </div>
                     </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
@@ -63,36 +63,14 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                 ]}
             />
 
-            <div className="summary-cards-grid">
-                <StatCard
-                    label="Applications"
-                    value={stats.total ?? 0}
-                    icon="fa-file-invoice-dollar"
-                    variant="red"
-                    subtext={`${stats.pending ?? 0} pending`}
-                />
-                <StatCard
-                    label="Approved"
-                    value={formatMoney(stats.approved_amount ?? 0, 'USD')}
-                    icon="fa-check-circle"
-                    variant="blue"
-                    subtext="Underwritten so far"
-                />
-                <StatCard
-                    label="Disbursed"
-                    value={formatMoney(stats.disbursed_amount ?? 0, 'USD')}
-                    icon="fa-hand-holding-usd"
-                    variant="blue"
-                    subtext="Landed in your account"
-                />
-                <StatCard
-                    label="Partners available"
-                    value={financePartners.length}
-                    icon="fa-university"
-                    variant="red"
-                    subtext="Verified finance partners"
-                />
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: 'Applications',       value: stats.total ?? 0,                                    icon: 'fa-file-invoice-dollar', accent: 'red',  subtext: `${stats.pending ?? 0} pending` },
+                    { label: 'Approved',           value: formatMoney(stats.approved_amount ?? 0, 'USD'),      icon: 'fa-check-circle',        accent: 'blue', subtext: 'Underwritten so far' },
+                    { label: 'Disbursed',          value: formatMoney(stats.disbursed_amount ?? 0, 'USD'),     icon: 'fa-hand-holding-usd',    accent: 'teal', subtext: 'Landed in your account' },
+                    { label: 'Partners available', value: financePartners.length,                              icon: 'fa-university',          accent: 'rose', subtext: 'Verified finance partners' },
+                ]}
+            />
 
             <div className="content-card mt-4 p-4">
                 <div className="card-header d-flex justify-content-between align-items-center">
@@ -124,9 +102,7 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                     <form onSubmit={submit} className="mt-3">
                         {financePartners.length > 1 && (
                             <div className="mb-3">
-                                <div className="text-white-50 small text-uppercase mb-2" style={{ letterSpacing: '0.08em' }}>
-                                    Route to
-                                </div>
+                                <div className="tfe-form-label mb-2">Route to</div>
                                 <div className="d-flex flex-wrap gap-2">
                                     {financePartners.map((p) => (
                                         <button

@@ -11,6 +11,7 @@ import {
 import { startRegistration } from '@simplewebauthn/browser';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import StatusDialog from '@/Components/Common/StatusDialog';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { cn } from '@/lib/utils';
@@ -151,31 +152,24 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
                     breadcrumbs={[{ label: 'Security' }]}
                 />
                 
-                {/* Stats Cards - Keeping these but updating style to match new dashboard cards */}
-                {/* Stats Cards */}
-                <div className="summary-cards-grid">
-                    <div className={`fan-card-premium ${security_settings.two_factor_enabled ? 'glow-blue' : 'glow-red'}`}>
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: security_settings.two_factor_enabled ? '#00d2ff' : '#ff2d55' }}>
-                                <i className={`fas ${security_settings.two_factor_enabled ? 'fa-shield-check' : 'fa-shield-alt'}`}></i>
-                            </div>
-                            <h3 className="card-title-gaming">Two-Factor Auth</h3>
-                            <div className="card-value-gaming">{security_settings.two_factor_enabled ? 'ENABLED' : 'DISABLED'}</div>
-                            <div className="text-white-50 small mt-1">{security_settings.two_factor_enabled ? 'Account Secure' : 'Action Required'}</div>
-                        </div>
-                    </div>
-                    
-                    <div className="fan-card-premium glow-blue">
-                        <div className="card-content-gaming">
-                            <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                <i className="fas fa-history"></i>
-                            </div>
-                            <h3 className="card-title-gaming">Login Sessions</h3>
-                            <div className="card-value-gaming">{loginHistory.length} LOGINS</div>
-                            <div className="text-white-50 small mt-1">Activity Tracking</div>
-                        </div>
-                    </div>
-                </div>
+                <SummaryTiles
+                    items={[
+                        {
+                            label: 'Two-factor auth',
+                            value: security_settings.two_factor_enabled ? 'Enabled' : 'Disabled',
+                            icon: security_settings.two_factor_enabled ? 'fa-shield-check' : 'fa-shield-alt',
+                            accent: security_settings.two_factor_enabled ? 'teal' : 'red',
+                            subtext: security_settings.two_factor_enabled ? 'Account secure' : 'Action required',
+                        },
+                        {
+                            label: 'Login sessions',
+                            value: loginHistory.length,
+                            icon: 'fa-history',
+                            accent: 'blue',
+                            subtext: 'Activity tracking',
+                        },
+                    ]}
+                />
 
                 {/* Content Grid */}
                 <div className="content-cards-grid mt-4">
@@ -214,7 +208,7 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
                                     <h4 className="text-white mb-1">Password Management</h4>
                                     <p className="text-white-50 small mb-0">Update your account password</p>
                                 </div>
-                                <button className="btn-fan-custom btn-fan-custom-sm" onClick={() => setShowPassForm(!showPassForm)}>
+                                <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setShowPassForm(!showPassForm)}>
                                     <i className="fas fa-key me-2"></i> {showPassForm ? 'Close' : 'Change Password'}
                                 </button>
                             </div>
@@ -236,8 +230,8 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
                                         <input type="password" className="tfe-input" value={passData.password_confirmation} onChange={e => setPassData('password_confirmation', e.target.value)} required />
                                     </div>
                                     <div className="d-flex gap-2 justify-content-end">
-                                        <button type="button" className="btn-fan-custom btn-fan-custom-sm opacity-75" onClick={() => setShowPassForm(false)}>Cancel</button>
-                                        <button type="submit" className="btn-fan-custom btn-fan-custom-sm" disabled={passProcessing}> {passProcessing ? 'Updating...' : 'Update Password'}</button>
+                                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setShowPassForm(false)}>Cancel</button>
+                                        <button type="submit" className="tfe-btn tfe-btn--filled tfe-btn--sm" disabled={passProcessing}>{passProcessing ? 'Updating…' : 'Update Password'}</button>
                                     </div>
                                 </form>
                             )}
@@ -255,46 +249,46 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
                                 Use your fingerprint, face, or screen lock to securely sign in without a password.
                             </p>
 
-                            <div className="passkeys-list mb-4">
+                            <div className="mb-4">
                                 {passkeys.length > 0 ? passkeys.map((passkey, idx) => (
-                                    <div key={passkey.id} className="d-flex justify-content-between align-items-center mb-3 p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25 hover-glow transition-all">
+                                    <div key={passkey.id} className="passkey-row">
                                         <div className="d-flex align-items-center gap-3">
-                                            <div className="text-accent fs-4 bg-accent bg-opacity-10 p-2 rounded-circle" style={{ width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <div className="passkey-row__glyph">
                                                 <i className="fas fa-key"></i>
                                             </div>
                                             <div>
                                                 <div className="text-white fw-bold">{passkey.alias || `Passkey ${idx + 1}`}</div>
-                                                <div className="text-white-50 x-small">Added: {formatDate(passkey.created_at)}</div>
+                                                <div className="text-white-50 small">Added: {formatDate(passkey.created_at)}</div>
                                             </div>
                                         </div>
-                                        <button 
-                                            className="btn-glass-pill btn-glass-pill-sm text-danger border-danger border-opacity-25"
+                                        <button
+                                            type="button"
+                                            className="tfe-btn tfe-btn--icon tfe-btn--sm"
                                             onClick={() => setPasskeyToDelete(passkey.id)}
-                                            title="Remove Passkey"
+                                            aria-label="Remove passkey"
                                         >
                                             <i className="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
                                 )) : (
-                                    <div className="text-center py-5 bg-dark bg-opacity-25 rounded-3 border border-dashed border-secondary border-opacity-25 mb-4">
-                                        <div className="text-white-50 opacity-25 mb-3 fs-1">
-                                            <i className="fas fa-fingerprint"></i>
-                                        </div>
-                                        <div className="text-white-50">No passkeys registered yet</div>
-                                        <div className="text-white-50 x-small opacity-50">Secure your account with biometrics</div>
+                                    <div className="tfe-empty tfe-empty--inline">
+                                        <div className="tfe-empty__icon"><i className="fas fa-fingerprint"></i></div>
+                                        <div className="tfe-empty__title">No passkeys registered yet</div>
+                                        <div className="tfe-empty__body">Secure your account with biometrics.</div>
                                     </div>
                                 )}
                             </div>
 
-                            <button 
-                                className="btn-fan-custom w-100 py-3 d-flex align-items-center justify-content-center gap-2" 
+                            <button
+                                type="button"
+                                className="tfe-btn w-100 justify-content-center"
                                 onClick={registerPasskey}
                                 disabled={isRegisteringPasskey}
                             >
                                 {isRegisteringPasskey ? (
-                                    <><div className="spinner-border spinner-border-sm" role="status"></div> Registering...</>
+                                    <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registering…</>
                                 ) : (
-                                    <><i className="fas fa-plus"></i> Register New Passkey</>
+                                    <><i className="fas fa-plus"></i> Register new passkey</>
                                 )}
                             </button>
                         </div>
@@ -306,22 +300,24 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
                             <i className="fas fa-history text-accent"></i>
                             <h3>Login History</h3>
                         </div>
-                        <div className="login-history p-3">
+                        <div className="p-3">
                             {loginHistory.length > 0 ? loginHistory.map((login, idx) => (
-                                <div key={idx} className="login-item d-flex justify-content-between align-items-center mb-1 p-3 hover-bg-light transition-all rounded-3">
+                                <div key={idx} className="login-row">
                                     <div className="d-flex align-items-center gap-3">
-                                        <div className="bg-secondary bg-opacity-10 p-2 rounded-circle text-white-50">
+                                        <div className="login-row__glyph">
                                             <i className="fas fa-globe"></i>
                                         </div>
                                         <div>
-                                            <div className="login-device text-white fw-medium">{login.ip_address}</div>
-                                            <div className="login-details text-white-50 x-small">{login.created_at}</div>
+                                            <div className="text-white fw-medium">{login.ip_address}</div>
+                                            <div className="text-white-50 small">{login.created_at}</div>
                                         </div>
                                     </div>
-                                    <span className="badge bg-success-glass text-success border border-success border-opacity-25 px-3 py-2">Success</span>
+                                    <span className="tfe-pill tfe-pill--approved">Success</span>
                                 </div>
                             )) : (
-                                <div className="text-white-50 text-center py-4">No login history available.</div>
+                                <div className="tfe-empty tfe-empty--inline">
+                                    <div className="tfe-empty__body">No login history available.</div>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -329,50 +325,50 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
 
                 {/* 2FA Setup Modal */}
                 <Dialog open={show2FAModal} onOpenChange={setShow2FAModal}>
-                    <DialogContent className="admin-card-dark max-w-lg border-0 text-center">
+                    <DialogContent className="admin-card-dark border-0 text-center twofa-modal">
                         <DialogHeader>
-                            <DialogTitle className="text-xl font-bold text-white border-b border-white/10 pb-3 mb-4">
+                            <DialogTitle className="twofa-modal__title">
                                 Setup Two-Factor Authentication
                             </DialogTitle>
                         </DialogHeader>
-                        <div className="mb-6">
-                            <p className="text-gray-400 mb-4">
+                        <div>
+                            <p className="text-white-50 mb-4">
                                 Scan this QR code with your authenticator app (e.g. Google Authenticator, Authy) and enter the 6-digit code to confirm.
                             </p>
-                            
+
                             {flash?.two_factor_setup?.qr_code && (
-                                <div 
-                                    className="bg-white p-3 rounded-2xl inline-block shadow-lg mb-4"
+                                <div
+                                    className="twofa-modal__qr"
                                     dangerouslySetInnerHTML={{ __html: flash.two_factor_setup.qr_code }}
                                 />
                             )}
 
                             <form onSubmit={confirm2FA}>
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-medium text-gray-400 text-start">Verification Code</label>
-                                    <input 
-                                        type="text" 
-                                        className="w-full text-center text-3xl font-bold tracking-[0.5rem] py-4 bg-[#1a1a1a] border border-white/10 rounded-2xl text-[#d97706] focus:outline-none focus:ring-2 focus:ring-[#d97706]/50 transition-all"
-                                        placeholder="000 000"
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label text-start">Verification code</label>
+                                    <input
+                                        type="text"
+                                        className="tfe-input twofa-modal__code"
+                                        placeholder="000000"
                                         maxLength="6"
                                         value={setupCode}
                                         onChange={e => setSetupCode(e.target.value)}
-                                        required 
+                                        required
                                     />
                                 </div>
-                                <DialogFooter className="mt-8 flex gap-3">
-                                    <button 
-                                        type="button" 
-                                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-all"
+                                <DialogFooter className="dash-modal-footer">
+                                    <button
+                                        type="button"
+                                        className="tfe-btn flex-fill justify-content-center"
                                         onClick={() => setShow2FAModal(false)}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="submit" 
-                                        className="flex-1 py-3 bg-[#10b981] hover:bg-[#059669] rounded-xl text-white font-bold shadow-lg shadow-[#10b981]/20 transition-all"
+                                    <button
+                                        type="submit"
+                                        className="tfe-btn tfe-btn--filled flex-fill justify-content-center"
                                     >
-                                        Confirm & Enable
+                                        Confirm &amp; Enable
                                     </button>
                                 </DialogFooter>
                             </form>
