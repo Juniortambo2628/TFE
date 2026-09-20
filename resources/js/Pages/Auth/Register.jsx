@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import '../../../css/register-dark.css';
 import { countries } from '../../Data/countries';
 import SearchableSelect from '../../Components/SearchableSelect';
 import axios from 'axios';
+import AuthLayout from '@/Layouts/AuthLayout';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
@@ -206,10 +207,20 @@ export default function Register() {
     const progressPercentage = (currentStep / totalSteps) * 100;
 
     return (
-        <div style={{minHeight: '100vh'}}>
-            <Head title={`Register - Step ${currentStep}`}>
-            </Head>
-
+        <AuthLayout
+            wide
+            head={`Register - Step ${currentStep}`}
+            title="Create your account"
+            subtitle="Join the fans planning their tournament with The Football Experience."
+            backHref={route('index')}
+            heroHeadline="Your tournament starts here."
+            heroTagline="Set up your account to save fixtures, build budgets and book your trip."
+            chips={[
+                { icon: 'fas fa-users', label: 'Join a tribe' },
+                { icon: 'fas fa-wallet', label: 'Plan a budget' },
+                { icon: 'fas fa-earth-africa', label: 'Every tournament' },
+            ]}
+        >
             <DashboardModal
                 open={activeModal !== null}
                 onOpenChange={(open) => !open && setActiveModal(null)}
@@ -230,21 +241,7 @@ export default function Register() {
                 </div>
             </DashboardModal>
 
-            <div className="container py-5">
-                <Link href={route('index')} className="pill-back-btn auth-back-link pill-fixed-left">
-                    <i className="fas fa-home" aria-hidden="true"></i>
-                    <span>Home</span>
-                </Link>
-                <Link href={route('login')} className="pill-back-btn pill-fixed-right">
-                    <i className="fas fa-sign-in-alt" aria-hidden="true"></i>
-                    <span>Sign In</span>
-                </Link>
-
-                <h1 className="mb-4 text-center text-white">Register</h1>
-
-                <div className="card">
-                    <div className="card-body">
-                        <form onSubmit={submit}>
+            <form onSubmit={submit}>
                             <div className="form-top-bar">
                                 <div className="progress-indicator mb-4">
                                     <div className="progress-header d-flex justify-content-between text-white">
@@ -483,22 +480,20 @@ export default function Register() {
                                     <div></div>
                                 )}
                                 {currentStep < totalSteps ? (
-                                    <button type="button" className="tfe-btn tfe-btn--filled px-5" onClick={nextStep}>
+                                    <button type="button" className="tfe-auth__submit" style={{ width: 'auto', minWidth: '180px' }} onClick={nextStep}>
                                         Next <i className="fas fa-arrow-right ms-2"></i>
                                     </button>
                                 ) : (
-                                    <button type="submit" className="tfe-btn tfe-btn--filled px-5" disabled={processing}>
+                                    <button type="submit" className="tfe-auth__submit" style={{ width: 'auto', minWidth: '180px' }} disabled={processing}>
                                         {processing ? 'Creating Account...' : 'Complete Registration'}
                                     </button>
                                 )}
                             </div>
                         </form>
-                    </div>
-                </div>
-                <div className="text-center mt-4 text-white-50">
-                    Already have an account? <Link href={route('login')} className="text-danger text-decoration-none fw-bold">Sign in here</Link>
-                </div>
+
+            <div className="tfe-auth__alt">
+                Already have an account? <Link href={route('login')}>Sign in here</Link>
             </div>
-        </div>
+        </AuthLayout>
     );
 }

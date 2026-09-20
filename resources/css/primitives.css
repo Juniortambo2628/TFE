@@ -509,10 +509,19 @@ a.tfe-sidebar-nav-item.is-active {
 
 /* .tfe-input — the shared text/number/date/etc. field. Also covers
    <select> and <textarea>. Reads the same tokens as .tfe-btn so a
-   form + its submit share the same visual weight. */
-.tfe-input,
-.tfe-select,
-.tfe-textarea {
+   form + its submit share the same visual weight.
+
+   Selectors are element-qualified (input.tfe-input, …) on purpose: the
+   @tailwindcss/forms plugin injects a global reset for
+   `[type="text"],[type="email"],…` that sets a solid WHITE background.
+   An attribute selector ranks equal to a bare class, so the plain
+   `.tfe-input` lost the tie on source order and every typed field
+   rendered white (glass never showed). Qualifying with the element name
+   adds one point of specificity so the glass reliably wins, without an
+   `!important` and without touching any other input. */
+input.tfe-input,
+select.tfe-select,
+textarea.tfe-textarea {
     display: block;
     width: 100%;
     padding: 10px 14px;
@@ -527,35 +536,35 @@ a.tfe-sidebar-nav-item.is-active {
                 box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.tfe-input:hover,
-.tfe-select:hover,
-.tfe-textarea:hover {
+input.tfe-input:hover,
+select.tfe-select:hover,
+textarea.tfe-textarea:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.16);
 }
 
-.tfe-input:focus,
-.tfe-select:focus,
-.tfe-textarea:focus {
+input.tfe-input:focus,
+select.tfe-select:focus,
+textarea.tfe-textarea:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.07);
     border-color: rgba(255, 255, 255, 0.32);
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
 }
 
-.tfe-input::placeholder,
-.tfe-textarea::placeholder {
+input.tfe-input::placeholder,
+textarea.tfe-textarea::placeholder {
     color: rgba(255, 255, 255, 0.35);
 }
 
-.tfe-input:disabled,
-.tfe-select:disabled,
-.tfe-textarea:disabled {
+input.tfe-input:disabled,
+select.tfe-select:disabled,
+textarea.tfe-textarea:disabled {
     opacity: 0.55;
     cursor: not-allowed;
 }
 
-.tfe-textarea {
+textarea.tfe-textarea {
     min-height: 96px;
     resize: vertical;
 }

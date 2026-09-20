@@ -1,0 +1,488 @@
+/*
+ * Auth experience (Sprint 31) — a shared split-screen shell for every
+ * public auth page (Login, Register, ForgotPassword, ResetPassword,
+ * ConfirmPassword, VerifyEmail, TwoFactorChallenge).
+ *
+ * Everything here is scoped under `.tfe-auth` so it never leaks onto
+ * dashboards the way the old per-page login-dark/register-dark body
+ * rules did. Colours + spacing come from design-tokens.css; inputs
+ * reuse the `.tfe-input` glass primitive from primitives.css.
+ *
+ * The gradient CTA (`.tfe-auth__submit`) is a deliberate, isolated
+ * exception to the "no colourful buttons" rule — that rule guards the
+ * monochrome dashboards; the public auth surface is allowed one fun,
+ * on-brand crimson CTA.
+ */
+
+.tfe-auth {
+  --auth-accent-1: #b80b1e;
+  --auth-accent-2: #ef4050;
+  --auth-radius: 20px;
+
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(120% 120% at 15% 0%, rgba(184, 11, 30, 0.12), transparent 45%),
+    var(--dash-bg, #070606);
+  color: #fff;
+  overflow: hidden;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+/* The two-column shell lives in its own container so out-of-flow
+   siblings (the sonner <Toaster>, the absolute back pill) never
+   become stray grid items and skew the columns into a 2x2. */
+.tfe-auth__grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+/* ── Left media panel ─────────────────────────────────────────────── */
+
+.tfe-auth__media {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.tfe-auth__media-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+  animation: authKenburns 24s ease-in-out infinite alternate;
+}
+
+@keyframes authKenburns {
+  from { transform: scale(1.04); }
+  to { transform: scale(1.14); }
+}
+
+/* Legible gradient scrim over the photo */
+.tfe-auth__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(7, 6, 6, 0.35) 0%, rgba(7, 6, 6, 0.05) 35%, rgba(7, 6, 6, 0.85) 100%),
+    linear-gradient(90deg, rgba(184, 11, 30, 0.18), transparent 60%);
+  z-index: 1;
+}
+
+.tfe-auth__media-inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 44px;
+}
+
+.tfe-auth__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.tfe-auth__brand img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px;
+  object-fit: contain;
+  backdrop-filter: blur(6px);
+}
+
+.tfe-auth__brand span {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+}
+
+.tfe-auth__tagline {
+  max-width: 30ch;
+}
+
+.tfe-auth__tagline h1 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 12px;
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+.tfe-auth__tagline p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Floating glass stat chips — the "fun" touch */
+.tfe-auth__chips {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.tfe-auth__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.tfe-auth__chip i {
+  color: var(--auth-accent-2);
+}
+
+/* ── Right form panel ─────────────────────────────────────────────── */
+
+.tfe-auth__panel {
+  position: relative;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.tfe-auth__panel::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(closest-side, rgba(184, 11, 30, 0.16), transparent);
+  pointer-events: none;
+}
+
+.tfe-auth__card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--auth-radius);
+  padding: 40px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px);
+  animation: authFadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Register needs a wider card for the multi-step grid */
+.tfe-auth--wide .tfe-auth__card {
+  max-width: 720px;
+}
+
+@keyframes authFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile brand — shown when the media panel collapses away */
+.tfe-auth__card-brand {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.tfe-auth__card-brand img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #000;
+  padding: 6px;
+  object-fit: contain;
+}
+
+.tfe-auth__title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: 0.2px;
+  color: #fff;
+}
+
+.tfe-auth__subtitle {
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 0.95rem;
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+/* ── Form bits (reuse .tfe-input / .tfe-form-label) ───────────────── */
+
+.tfe-auth__field {
+  margin-bottom: 18px;
+}
+
+.tfe-auth .tfe-form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tfe-auth .tfe-form-label i {
+  color: var(--auth-accent-2);
+  font-size: 0.85em;
+}
+
+/* Give auth inputs a slightly taller, pill-leaning glass field */
+.tfe-auth .tfe-input,
+.tfe-auth .tfe-select,
+.tfe-auth .tfe-textarea {
+  padding: 13px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+/* Password field with a show/hide toggle */
+.tfe-auth__password {
+  position: relative;
+}
+
+.tfe-auth__password .tfe-input {
+  padding-right: 46px;
+}
+
+.tfe-auth__eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  color: var(--text-muted, #888);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.tfe-auth__eye:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tfe-auth__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.tfe-auth__remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tfe-auth__remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--auth-accent-1);
+}
+
+.tfe-auth__link {
+  color: var(--text-secondary, #a0a0a0);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.15s ease;
+}
+
+.tfe-auth__link:hover {
+  color: var(--auth-accent-2);
+}
+
+/* Gradient CTA — the one fun, on-brand button */
+.tfe-auth__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--auth-accent-1), var(--auth-accent-2));
+  background-size: 180% 100%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.98rem;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(184, 11, 30, 0.32);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-position 0.4s ease;
+}
+
+.tfe-auth__submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background-position: 100% 0;
+  box-shadow: 0 16px 40px rgba(184, 11, 30, 0.42);
+}
+
+.tfe-auth__submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.tfe-auth__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Divider */
+.tfe-auth__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  color: var(--text-muted, #888);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.tfe-auth__divider::before,
+.tfe-auth__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Social / secondary buttons reuse .tfe-btn from primitives.css */
+.tfe-auth__social {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tfe-auth__alt {
+  text-align: center;
+  margin-top: 22px;
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 0.92rem;
+}
+
+.tfe-auth__alt a {
+  color: var(--auth-accent-2);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.tfe-auth__alt a:hover {
+  text-decoration: underline;
+}
+
+.tfe-auth__status {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Back-to-home pill, floats top-left over the whole shell */
+.tfe-auth__back {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.85rem;
+  backdrop-filter: blur(8px);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.tfe-auth__back:hover {
+  transform: translateY(-1px);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .tfe-auth {
+    position: relative;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .tfe-auth__grid {
+    position: relative;
+    grid-template-columns: 1fr;
+  }
+
+  .tfe-auth__media {
+    display: none;
+  }
+
+  .tfe-auth__card-brand {
+    display: flex;
+  }
+
+  .tfe-auth__panel {
+    padding: 72px 18px 40px;
+  }
+}
+
+@media (max-width: 520px) {
+  .tfe-auth__card {
+    padding: 28px 20px;
+  }
+
+  .tfe-auth__social {
+    grid-template-columns: 1fr;
+  }
+
+  /* iOS zoom guard */
+  .tfe-auth .tfe-input,
+  .tfe-auth .tfe-select {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tfe-auth__media-img,
+  .tfe-auth__card,
+  .tfe-auth__submit {
+    animation: none;
+    transition: none;
+  }
+}

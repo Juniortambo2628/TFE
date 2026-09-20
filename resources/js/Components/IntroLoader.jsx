@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const IntroLoader = ({ onFinish }) => {
     const [phase, setPhase] = useState('loading'); // 'loading' -> 'fading' -> 'finished'
-    const TOTAL_LOADING_TIME = 2000;
+    const TOTAL_LOADING_TIME = 1300;
 
     useEffect(() => {
         const timer = setTimeout(() => {

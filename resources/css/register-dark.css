@@ -9,44 +9,13 @@
   --pill-radius: 999px;
 }
 
-html,
-body {
-  height: 100%;
-}
-body {
-  background:
-    radial-gradient(closest-side at 50% 50%, rgba(184, 11, 30, 0.06), transparent 30%), var(--bg);
-  color: #fff;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial;
-}
-
-.container.py-5 {
-  padding-top: 48px;
-  padding-bottom: 48px;
-}
-.card {
-  max-width: 920px;
-  margin: 0 auto;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  box-shadow:
-    0 30px 60px rgba(0, 0, 0, 0.7),
-    0 0 60px rgba(184, 11, 30, 0.12) inset;
-  animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; /* Smooth entrance */
-  opacity: 0; /* Start hidden for animation */
-  transform: translateY(20px);
-}
-.card-body {
-  padding: 34px;
-}
+/* NOTE (Sprint 31): the auth split-screen shell + card now live in
+   auth.css (scoped under .tfe-auth). The old global html/body/.card
+   rules were removed from here because this file is bundled app-wide
+   and those rules leaked a crimson body background and a styled .card
+   onto other SPA pages after a visitor passed through Register. Only
+   the register-internal component classes (steps, team grid,
+   searchable dropdown) remain below. */
 
 .form-label {
   color: #fff !important;
