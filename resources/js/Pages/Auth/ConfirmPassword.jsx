@@ -1,9 +1,6 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import AuthLayout from '@/Layouts/AuthLayout';
+import PasswordField from '@/Components/Common/PasswordField';
 
 export default function ConfirmPassword() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -19,37 +16,35 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Confirm Password" />
-
-            <div className="mb-4 text-sm text-gray-600">
-                This is a secure area of the application. Please confirm your
-                password before continuing.
-            </div>
-
+        <AuthLayout
+            head="Confirm Password"
+            title="Confirm your password"
+            subtitle="This is a secure area of the application. Please confirm your password before continuing."
+            backHref={route('index')}
+            heroHeadline="A quick security check."
+            heroTagline="Confirm it's really you before we open this secure area."
+        >
             <form onSubmit={submit}>
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
+                <div className="tfe-auth__field">
+                    <label className="tfe-form-label" htmlFor="password">
+                        <i className="fas fa-lock"></i> Password
+                    </label>
+                    <PasswordField
                         id="password"
-                        type="password"
-                        name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
-                        isFocused={true}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        autoFocus
                         onChange={(e) => setData('password', e.target.value)}
+                        required
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    {errors.password && <div className="tfe-form-error">{errors.password}</div>}
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Confirm
-                    </PrimaryButton>
-                </div>
+                <button type="submit" className="tfe-auth__submit" disabled={processing}>
+                    <i className="fas fa-check"></i> Confirm
+                </button>
             </form>
-        </GuestLayout>
+        </AuthLayout>
     );
 }

@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { toast } from 'sonner';
-import '../../../css/login-dark.css';
+import AuthLayout from '@/Layouts/AuthLayout';
+import PasswordField from '@/Components/Common/PasswordField';
 
 export default function Login({ status, canResetPassword }) {
-    const { assetUrl } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -46,7 +46,7 @@ export default function Login({ status, canResetPassword }) {
         } catch (error) {
             console.error('Passkey login error details:', error);
             let message = error.response?.data?.message || error.message || 'Unknown error';
-            
+
             if (error.name === 'SecurityError') {
                 message = "WebAuthn (Passkeys) requires a secure domain (like localhost or a real domain). IP addresses (like 127.0.0.1) are NOT allowed.";
             }
@@ -57,105 +57,87 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <>
-            <Head>
-                <title>Sign In</title>
-            </Head>
+        <AuthLayout
+            head="Sign In"
+            title="Welcome back"
+            subtitle="Sign in to pick up your matchday plan where you left off."
+            backHref={route('index')}
+            heroHeadline="Welcome back to the terraces."
+            heroTagline="Your saved fixtures, budgets and trips are ready when you are."
+        >
+            {status && <div className="tfe-auth__status">{status}</div>}
 
-            {/* Back Button */}
-            <Link href={route('index')} className="pill-back-btn auth-back-link pill-fixed-left" aria-label="Return to home">
-                <i className="fas fa-home" aria-hidden="true"></i>
-                <span>Home</span>
-            </Link>
-
-            <div className="login-dark-wrapper">
-                <div className="login-card">
-                    <div className="login-card-inner">
-                        <div className="login-brand">
-                            <img src={`${assetUrl}assets/img/logo/TFE-logo.png`} alt="logo" aria-hidden="true" />
-                            <h2>Sign In</h2>
-                        </div>
-
-                        {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
-
-                        <form onSubmit={submit}>
-                            <div className="form-group">
-                                <label className="tfe-form-label" htmlFor="email">
-                                    <i className="fas fa-envelope"></i> Email Address
-                                </label>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    value={data.email}
-                                    className="tfe-input"
-                                    autoComplete="username"
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    required
-                                />
-                                {errors.email && <div className="tfe-form-error">{errors.email}</div>}
-                            </div>
-
-                            <div className="form-group password-row">
-                                <label className="tfe-form-label" htmlFor="password">
-                                    <i className="fas fa-lock"></i> Password
-                                </label>
-                                <input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    value={data.password}
-                                    className="tfe-input"
-                                    autoComplete="current-password"
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    required
-                                />
-                                {errors.password && <div className="tfe-form-error">{errors.password}</div>}
-                                
-                                <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                                    {canResetPassword && (
-                                        <Link href={route('password.request')} className="alt-links" style={{ fontSize: '0.9rem' }}>
-                                            Forgot your password?
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="remember-row">
-                                <input
-                                    type="checkbox"
-                                    id="rememberMe"
-                                    name="remember"
-                                    checked={data.remember}
-                                    onChange={(e) => setData('remember', e.target.checked)}
-                                />
-                                <label htmlFor="rememberMe" style={{ margin: 0 }}>Remember me</label>
-                            </div>
-
-                            <div>
-                                <button type="submit" className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center" disabled={processing}>
-                                    ➜ Sign In
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="alt-links" style={{ marginTop: '12px' }}>
-                            Don't have an account? <Link href={route('register')}>Sign up here</Link>
-                        </div>
-
-                        <div className="divider" aria-hidden="true"><span>OR</span></div>
-
-                        <div className="social-row">
-                            <a href={route('social.redirect', 'google')} className="tfe-btn justify-content-center" id="googleLoginBtn">
-                                <i className="fab fa-google"></i> Sign in with Google
-                            </a>
-                            <button onClick={loginWithPasskey} className="tfe-btn justify-content-center" id="passkeyLoginBtn" type="button">
-                                <i className="fas fa-fingerprint"></i> Sign in with Passkey
-                            </button>
-                        </div>
-                    </div>
+            <form onSubmit={submit}>
+                <div className="tfe-auth__field">
+                    <label className="tfe-form-label" htmlFor="email">
+                        <i className="fas fa-envelope"></i> Email Address
+                    </label>
+                    <input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={data.email}
+                        className="tfe-input"
+                        autoComplete="username"
+                        placeholder="you@example.com"
+                        onChange={(e) => setData('email', e.target.value)}
+                        required
+                    />
+                    {errors.email && <div className="tfe-form-error">{errors.email}</div>}
                 </div>
+
+                <div className="tfe-auth__field">
+                    <label className="tfe-form-label" htmlFor="password">
+                        <i className="fas fa-lock"></i> Password
+                    </label>
+                    <PasswordField
+                        id="password"
+                        value={data.password}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        onChange={(e) => setData('password', e.target.value)}
+                        required
+                    />
+                    {errors.password && <div className="tfe-form-error">{errors.password}</div>}
+                </div>
+
+                <div className="tfe-auth__row">
+                    <label className="tfe-auth__remember" htmlFor="rememberMe">
+                        <input
+                            type="checkbox"
+                            id="rememberMe"
+                            name="remember"
+                            checked={data.remember}
+                            onChange={(e) => setData('remember', e.target.checked)}
+                        />
+                        Remember me
+                    </label>
+                    {canResetPassword && (
+                        <Link href={route('password.request')} className="tfe-auth__link">
+                            Forgot your password?
+                        </Link>
+                    )}
+                </div>
+
+                <button type="submit" className="tfe-auth__submit" disabled={processing}>
+                    <i className="fas fa-arrow-right-to-bracket"></i> Sign In
+                </button>
+            </form>
+
+            <div className="tfe-auth__alt">
+                Don't have an account? <Link href={route('register')}>Sign up here</Link>
             </div>
-        </>
+
+            <div className="tfe-auth__divider"><span>OR</span></div>
+
+            <div className="tfe-auth__social">
+                <a href={route('social.redirect', 'google')} className="tfe-btn justify-content-center" id="googleLoginBtn">
+                    <i className="fab fa-google"></i> Google
+                </a>
+                <button onClick={loginWithPasskey} className="tfe-btn justify-content-center" id="passkeyLoginBtn" type="button">
+                    <i className="fas fa-fingerprint"></i> Passkey
+                </button>
+            </div>
+        </AuthLayout>
     );
 }

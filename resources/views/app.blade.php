@@ -61,6 +61,10 @@
                 window.dispatchEvent(new Event('google-translate-loaded'));
             }
         </script>
-        <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+        {{-- Deferred: the Google Translate widget is not needed for first
+             paint. Loading it defer (and letting the callback fire after
+             parse) keeps it off the critical path so pages become
+             interactive sooner. --}}
+        <script defer type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     </body>
 </html>
