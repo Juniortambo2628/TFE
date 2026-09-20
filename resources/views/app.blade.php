@@ -11,7 +11,15 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+        {{-- Font Awesome is self-hosted (see public/assets/libs +
+             public/assets/webfonts). Serving it from our own origin removes
+             a render-blocking third-party request to cdnjs — which is
+             especially slow/unreliable on the networks our fans use — and
+             keeps icons working even if a CDN is blocked. The solid weight
+             (used the most) is preloaded so icons don't flash in. --}}
+        <link rel="preload" href="{{ asset('assets/webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="stylesheet" href="{{ asset('assets/libs/font-awesome.min.css') }}">
 
         {{-- Landing template styles bleed into dashboard pages (body
              background, huge TFE watermark, flat hero cards) — only load

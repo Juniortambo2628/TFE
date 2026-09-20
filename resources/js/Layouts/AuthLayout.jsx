@@ -32,7 +32,11 @@ export default function AuthLayout({
 }) {
     const { assetUrl } = usePage().props;
     const logo = `${assetUrl}assets/img/logo/TFE-logo.png`;
-    const hero = heroImage || `${assetUrl}assets/img/fan-auth.jpg`;
+    // Default hero ships as an optimised WebP (~130KB) with a JPEG
+    // fallback (~220KB), down from the 2.1MB original. A caller can still
+    // pass a custom heroImage, which is used as-is.
+    const heroWebp = heroImage ? null : `${assetUrl}assets/img/fan-auth.webp`;
+    const hero = heroImage || `${assetUrl}assets/img/fan-auth-opt.jpg`;
 
     return (
         <div className={`tfe-auth${wide ? ' tfe-auth--wide' : ''}`}>
@@ -49,7 +53,10 @@ export default function AuthLayout({
             <div className="tfe-auth__grid">
             {/* Left media panel */}
             <aside className="tfe-auth__media" aria-hidden="true">
-                <img src={hero} alt="" className="tfe-auth__media-img" loading="eager" fetchpriority="high" />
+                <picture>
+                    {heroWebp && <source srcSet={heroWebp} type="image/webp" />}
+                    <img src={hero} alt="" className="tfe-auth__media-img" loading="eager" fetchpriority="high" />
+                </picture>
                 <div className="tfe-auth__media-inner">
                     <Link href={route('index')} className="tfe-auth__brand">
                         <img src={logo} alt="The Football Experience" />
