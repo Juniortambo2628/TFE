@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
+import PageHero from '@/Components/Common/PageHero';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../../css/hero-enhancements.css';
 
@@ -15,7 +16,7 @@ import '../../../css/hero-enhancements.css';
  * a spacer so the section clears the fixed header, the section itself, the
  * footer, and the cookie consent.
  */
-export default function SectionPageShell({ title, children }) {
+export default function SectionPageShell({ title, hero, children }) {
     useEffect(() => {
         // Same rAF-throttled fixed-header toggle the landing page uses so the
         // header picks up its scrolled background on these pages too.
@@ -46,7 +47,17 @@ export default function SectionPageShell({ title, children }) {
             <Head title={title} />
             <Header />
             <div className="page-wrapper overflow-hidden bg-black text-white section-page">
-                <div className="section-page-spacer" aria-hidden="true" />
+                {hero ? (
+                    <PageHero
+                        eyebrow={hero.eyebrow}
+                        title={hero.title}
+                        tagline={hero.tagline}
+                        background={hero.background}
+                        cta={hero.cta_label ? { label: hero.cta_label, href: hero.cta_href } : undefined}
+                    />
+                ) : (
+                    <div className="section-page-spacer" aria-hidden="true" />
+                )}
                 {children}
                 <Footer />
             </div>

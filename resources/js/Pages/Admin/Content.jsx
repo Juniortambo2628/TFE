@@ -26,11 +26,21 @@ export default function Content({ auth, posts = { data: [] }, settings = {}, tri
 
     // Landing page sections
     const landingSections = [
+        { key: 'heroes', label: 'Page Heroes', icon: 'fas fa-image' },
         { key: 'about', label: 'About', icon: 'fas fa-info-circle' },
         { key: 'features', label: 'Features', icon: 'fas fa-star' },
         { key: 'services', label: 'Services', icon: 'fas fa-concierge-bell' },
         { key: 'contact', label: 'Contact', icon: 'fas fa-envelope' },
         { key: 'footer', label: 'Footer', icon: 'fas fa-shoe-prints' }
+    ];
+
+    // The standalone public section pages that render the shared PageHero.
+    const heroPages = [
+        { slug: 'about', label: 'About', icon: 'fas fa-info-circle' },
+        { slug: 'features', label: 'Features', icon: 'fas fa-star' },
+        { slug: 'services', label: 'Services', icon: 'fas fa-concierge-bell' },
+        { slug: 'news', label: 'News', icon: 'fas fa-newspaper' },
+        { slug: 'contact', label: 'Contact', icon: 'fas fa-envelope' },
     ];
 
     // All 18 Fan Dashboard pages
@@ -209,6 +219,37 @@ export default function Content({ auth, posts = { data: [] }, settings = {}, tri
                             </button>
                         ))}
                     </div>
+
+                    {/* Page Heroes — the /about, /features, /services, /news,
+                        /contact hero content (leave a field blank to fall back
+                        to config/site_pages.php). */}
+                    {landingSection === 'heroes' && (
+                        <div className="row g-4">
+                            {heroPages.map((page) => (
+                                <div className="col-lg-6" key={page.slug}>
+                                    <div className="admin-card-dark h-100">
+                                        <div className="card-header">
+                                            <h3><i className={page.icon}></i> {page.label} Hero</h3>
+                                        </div>
+                                        <div className="card-body">
+                                            <SettingInput label="Eyebrow" settingKey={`${page.slug}_eyebrow`} placeholder={`${page.label}`} group="page_hero" />
+                                            <SettingInput label="Title" settingKey={`${page.slug}_title`} placeholder={`${page.label} page title`} group="page_hero" />
+                                            <SettingInput label="Tagline" settingKey={`${page.slug}_tagline`} type="textarea" placeholder="Short intro line" group="page_hero" />
+                                            <SettingInput label="Background image (public path or /storage URL)" settingKey={`${page.slug}_background`} placeholder="assets/img/backdrops/stadium-fans.jpg" group="page_hero" />
+                                            <div className="row g-3">
+                                                <div className="col-6">
+                                                    <SettingInput label="CTA label" settingKey={`${page.slug}_cta_label`} placeholder="Get started" group="page_hero" />
+                                                </div>
+                                                <div className="col-6">
+                                                    <SettingInput label="CTA link" settingKey={`${page.slug}_cta_href`} placeholder="/services" group="page_hero" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* About Section */}
                     {landingSection === 'about' && (

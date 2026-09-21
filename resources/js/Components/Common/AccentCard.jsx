@@ -51,7 +51,14 @@ export default function AccentCard({
     return (
         <Tag href={href} className={classes} style={{ '--acard-accent': accent }} {...props}>
             {bgImage && (
-                <img src={bgImage} alt="" aria-hidden="true" className="tfe-acard__bg" loading="lazy" />
+                <img
+                    src={bgImage}
+                    alt=""
+                    aria-hidden="true"
+                    className="tfe-acard__bg"
+                    loading="lazy"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
             )}
 
             {isCover && (
