@@ -789,3 +789,42 @@ textarea.tfe-textarea {
     right: 8px;
     background: rgba(0, 0, 0, 0.6);
 }
+
+/* ── Form helpers used inside TfeModal forms ─────────────────────────────── */
+.tfe-form-section {
+    margin: 0 0 4px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.01em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tfe-color-swatch {
+    width: 46px;
+    height: 42px;
+    padding: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.tfe-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    user-select: none;
+}
+
+.tfe-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--partner-accent, #d97706);
+    cursor: pointer;
+}
