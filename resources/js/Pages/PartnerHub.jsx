@@ -201,18 +201,14 @@ function HowWeSupportStrip({ accent }) {
                 <div className="row g-4">
                     {pillars.map((p, i) => (
                         <div key={i} className="col-md-4">
-                            <div className="tfe-slab h-100">
-                                <div className="tfe-slab__body">
-                                    <div
-                                        className="d-inline-flex align-items-center justify-content-center mb-3"
-                                        style={{ width: 44, height: 44, borderRadius: 10, background: `${accent}22`, color: accent, fontSize: '1.1rem' }}
-                                    >
-                                        <i className={`fas ${p.icon}`}></i>
-                                    </div>
-                                    <h3 className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>{p.title}</h3>
-                                    <p className="text-white-50 small mb-0" style={{ lineHeight: 1.6 }}>{p.body}</p>
-                                </div>
-                            </div>
+                            <AccentCard
+                                LinkComponent="div"
+                                accent={accent}
+                                icon={`fas ${p.icon}`}
+                                title={p.title}
+                                desc={p.body}
+                                className="tfe-acard--content"
+                            />
                         </div>
                     ))}
                 </div>

@@ -67,7 +67,9 @@ export default function News({ variant = 'split' }) {
                     news.map(function (item, index) {
                         return React.createElement(LandingCard, {
                             key: index,
-                            image: item.image || 'https://via.placeholder.com/600x400?text=News',
+                            // via.placeholder.com is defunct (ERR_CONNECTION_CLOSED
+                            // + broken images in prod) — fall back to a local backdrop.
+                            image: item.image || 'assets/img/backdrops/night-stadium.jpg',
                             title: item.title,
                             subtitle: (item.source ? item.source + ' • ' : '') + item.date,
                             tags: ['Football', 'News'],

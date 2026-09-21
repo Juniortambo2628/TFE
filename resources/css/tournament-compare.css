@@ -37,9 +37,43 @@
 
 .tc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  /* Fixed portrait columns, centred — each tournament card is a tall
+     2:1 (height = 2× width) rectangle like the Apple product cards. */
+  grid-template-columns: repeat(auto-fit, 300px);
+  justify-content: center;
   gap: 1.5rem;
   margin-top: 2.5rem;
+}
+
+/* Portrait aspect for the landing tournament cards only (scoped to the
+   tc-grid, so partner / dashboard AccentCards keep their own height). */
+.tc-grid .tfe-acard {
+  aspect-ratio: 1 / 2;
+  min-height: 0;
+}
+
+/* Bigger trophy, centred in the tall card's middle gap — copy sits above
+   it, the dates/length + CTA sit below on clear card. */
+.tc-grid .tfe-acard__art {
+  height: 300px;
+  right: 50%;
+  top: 50%;
+  transform: translate(50%, -50%);
+  max-width: 88%;
+}
+
+.tc-grid .tfe-acard:hover .tfe-acard__art {
+  transform: translate(50%, -50%) scale(1.05) rotate(-2deg);
+}
+
+/* Full-width copy in the portrait card (trophy is centred behind it). */
+.tc-grid .tfe-acard__title,
+.tc-grid .tfe-acard__pills {
+  max-width: 100%;
+}
+
+@media (max-width: 340px) {
+  .tc-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Card ── */
