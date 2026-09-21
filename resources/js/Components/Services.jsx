@@ -35,7 +35,7 @@ const SERVICE_CARDS = [
     },
 ];
 
-export default function Services({ variant = 'split' }) {
+export default function Services({ variant = 'split', hideHeader = false }) {
     const { tournament } = useTournament();
     const tournamentName = tournament ? tournament.name : 'tournament';
     const [modalData, setModalData] = useState(null);
@@ -50,6 +50,7 @@ export default function Services({ variant = 'split' }) {
                 description={description}
                 action={{ label: 'Get Started', href: route('register') }}
                 variant={variant}
+                hideHeader={hideHeader}
             >
                 {SERVICE_CARDS.map((card) => (
                     <LandingCard

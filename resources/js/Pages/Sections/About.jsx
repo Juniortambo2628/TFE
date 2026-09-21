@@ -5,7 +5,7 @@ import AboutSection from '@/Components/About';
 export default function AboutPage({ hero }) {
     return (
         <SectionPageShell title="About" hero={hero}>
-            <AboutSection variant="split" />
+            <AboutSection hideHeader />
         </SectionPageShell>
     );
 }

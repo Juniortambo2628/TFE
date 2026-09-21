@@ -5,7 +5,7 @@ import ServicesSection from '@/Components/Services';
 export default function ServicesPage({ hero }) {
     return (
         <SectionPageShell title="Services" hero={hero}>
-            <ServicesSection variant="split" />
+            <ServicesSection hideHeader />
         </SectionPageShell>
     );
 }

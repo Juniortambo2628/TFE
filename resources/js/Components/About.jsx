@@ -35,7 +35,7 @@ const ABOUT_CARDS = [
     },
 ];
 
-export default function About({ variant = 'split' }) {
+export default function About({ variant = 'split', hideHeader = false }) {
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
     var tournamentName = tournament ? tournament.name : 'the next tournament';
@@ -54,6 +54,7 @@ export default function About({ variant = 'split' }) {
                 description={description}
                 action={{ label: 'Learn More', href: '#features' }}
                 variant={variant}
+                hideHeader={hideHeader}
             >
                 {ABOUT_CARDS.map((card) => (
                     <LandingCard

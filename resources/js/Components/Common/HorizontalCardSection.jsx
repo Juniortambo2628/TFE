@@ -34,11 +34,12 @@ export default function HorizontalCardSection({
     headerAction,
     variant = 'split',
     theme = 'dark',
+    hideHeader = false,
     children,
 }) {
     const sectionClasses = [
         'landing-section',
-        `section-${variant}`,
+        hideHeader ? 'section-headerless' : `section-${variant}`,
         `section-${theme}`,
     ].join(' ');
 
@@ -101,7 +102,9 @@ export default function HorizontalCardSection({
     return (
         <section id={id} className={sectionClasses}>
             <div className="landing-section-inner">
-                {isSplit ? (
+                {hideHeader ? (
+                    renderCards()
+                ) : isSplit ? (
                     <>
                         {isSplitReverse ? (
                             <>

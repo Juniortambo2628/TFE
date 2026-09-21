@@ -334,6 +334,23 @@
     scroll-snap-align: start;
 }
 
+/* ── Variant: headerless (dedicated section pages — the PageHero already
+   carries the title, so the section renders just the cards track). ── */
+.landing-section.section-headerless {
+    min-height: auto;
+    padding: 3rem 0 4rem;
+}
+
+.landing-section.section-headerless .landing-section-inner {
+    grid-template-columns: 1fr;
+    padding-right: 0;
+}
+
+.landing-section.section-headerless .cards-track {
+    mask-image: linear-gradient(to left, transparent 0%, black 8%, black 85%, black 100%);
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, black 8%, black 85%, black 100%);
+}
+
 /* ── Variant: stacked header (title spans full width on top) ── */
 .landing-section.section-stacked .landing-section-inner {
     grid-template-columns: 1fr;
