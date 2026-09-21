@@ -58,12 +58,16 @@ export default function Itineraries({ itineraries }) {
 
                     <div className="row g-4">
                         {itineraries.length === 0 ? (
-                            <div className="col-12 text-center py-5">
-                                <div className="p-5 bg-dark rounded border border-secondary">
-                                    <i className="fas fa-route fa-4x text-white-50 mb-3"></i>
-                                    <h3>No Travel Plans Yet</h3>
-                                    <p className="text-white-50">{`Use our budget calculator to start planning your ${tournament?.short_name || 'tournament'} journey.`}</p>
-                                    <Link href={route('fan.budget-calculator')} className="btn-fan-custom mt-3">
+                            <div className="col-12">
+                                <div className="tfe-empty">
+                                    <div className="tfe-empty__icon">
+                                        <i className="fas fa-route"></i>
+                                    </div>
+                                    <div className="tfe-empty__title">No Travel Plans Yet</div>
+                                    <div className="tfe-empty__body">
+                                        {`Use our budget calculator to start planning your ${tournament?.short_name || 'tournament'} journey.`}
+                                    </div>
+                                    <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled tfe-empty__action">
                                         Open Budget Calculator
                                     </Link>
                                 </div>

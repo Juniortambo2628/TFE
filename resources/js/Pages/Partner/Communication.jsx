@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
-import Breadcrumbs from '@/Components/Common/Breadcrumbs';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import '../../../css/fan/fan-pages.css';
 import { formatMoney } from '@/lib/utils';
@@ -40,22 +40,15 @@ export default function Communication({ threads = [], stats = {} }) {
         <PartnerLayout title="Messages">
             <Head title="Messages - Partner" />
 
-            {/* Hero Section */}
-            <div className="partner-hero">
-                <Breadcrumbs 
-                    title="Messages" 
-                    breadcrumbs={[{ label: 'Messages' }]}
-                    accentColor="#d97706"
-                    homeRoute="partner.dashboard"
-                />
-                <h1 className="dash-section-title">
-                    <i className="fas fa-envelope accent-partner"></i>
-                    Communication Center
-                </h1>
-                <p className="dash-text-muted dash-no-margin">
-                    Communicate with fans about their travel requests. Messages are linked to budget reference IDs for anonymity.
-                </p>
-            </div>
+            <DashboardHero
+                role="partner"
+                title="Communication Center"
+                subtitle="Communicate with fans about their travel requests. Messages are linked to budget reference IDs for anonymity."
+                breadcrumbs={[
+                    { label: 'Partner', icon: 'fas fa-home', href: route('partner.dashboard') },
+                    { label: 'Messages' },
+                ]}
+            />
 
             {/* Success Message */}
             {flash?.success && (
