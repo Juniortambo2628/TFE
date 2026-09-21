@@ -13,7 +13,7 @@ const CATEGORY_LABELS = {
     transfers: 'Transfer News',
 };
 
-export default function News({ variant = 'split' }) {
+export default function News({ variant = 'split', hideHeader = false }) {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalData, setModalData] = useState(null);
@@ -58,6 +58,7 @@ export default function News({ variant = 'split' }) {
                 description={newsDescription}
                 headerAction={{ label: 'View All', href: 'https://news.google.com/search?q=football' }}
                 variant={variant}
+                hideHeader={hideHeader}
             >
                 {loading ? (
                     <div style={{ color: 'rgba(255,255,255,0.5)', padding: '2rem' }}>

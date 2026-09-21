@@ -35,7 +35,7 @@ const FEATURE_CARDS = [
     },
 ];
 
-export default function Features({ variant = 'split' }) {
+export default function Features({ variant = 'split', hideHeader = false }) {
     const { tournament } = useTournament();
     const tournamentName = tournament ? tournament.name : 'the next tournament';
     const [modalData, setModalData] = useState(null);
@@ -50,6 +50,7 @@ export default function Features({ variant = 'split' }) {
                 description={description}
                 action={{ label: 'Explore Features', href: '#services' }}
                 variant={variant}
+                hideHeader={hideHeader}
             >
                 {FEATURE_CARDS.map((card) => (
                     <LandingCard

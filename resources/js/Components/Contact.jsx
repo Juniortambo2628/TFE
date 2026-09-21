@@ -28,7 +28,7 @@ const CONTACT_CARDS = [
     },
 ];
 
-export default function Contact() {
+export default function Contact({ hideHeader = false }) {
     var modalData = useState(null);
     var openCard = modalData[0];
     var setOpenCard = modalData[1];
@@ -45,6 +45,7 @@ export default function Contact() {
                 badge="Contact"
                 title="Get in Touch"
                 description={'Have questions about our packages or financing? Our team is here to help you plan your ' + tournamentName + ' — and beyond — with confidence.'}
+                hideHeader={hideHeader}
             >
                 {CONTACT_CARDS.map(function (card) {
                     return React.createElement(LandingCard, {

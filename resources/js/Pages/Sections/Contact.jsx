@@ -5,7 +5,7 @@ import ContactSection from '@/Components/Contact';
 export default function ContactPage({ hero }) {
     return (
         <SectionPageShell title="Contact" hero={hero}>
-            <ContactSection />
+            <ContactSection hideHeader />
         </SectionPageShell>
     );
 }

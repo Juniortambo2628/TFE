@@ -5,7 +5,7 @@ import NewsSection from '@/Components/News';
 export default function NewsPage({ hero }) {
     return (
         <SectionPageShell title="News" hero={hero}>
-            <NewsSection variant="split" />
+            <NewsSection hideHeader />
         </SectionPageShell>
     );
 }
