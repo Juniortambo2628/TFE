@@ -1,23 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import CapacityBar from '@/Components/Common/CapacityBar';
-import TournamentPill from '@/Components/Common/TournamentPill';
+import GlassPill from '@/Components/Common/GlassPill';
+import AccentCard from '@/Components/Common/AccentCard';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
 
 /**
  * PartnerHub — public /partners/{slug} page.
  *
- * MVP shape (Sprint 9): partner-branded hero, tagline, about copy,
- * stats band, service tags, and a grid of the partner's published
- * listings. Themed by `profile.theme_accent`; falls back to the
- * platform crimson if the partner hasn't set one.
- *
- * Sprint 10 will add the "How we support the sports ecosystem"
- * segment strip and the "How it works" onboarding pipeline (see the
- * Ecobank Finance Hub deck slide).
+ * Partner-branded hero (identity + About + What we offer), stats band,
+ * the support pillars, and a grid of the partner's listings rendered with
+ * the shared AccentCard. A slim "How it works" strip stays pinned to the
+ * bottom of the viewport until the footer scrolls into view.
  */
 export default function PartnerHub({ profile, listings = [] }) {
     const { assetUrl } = usePage().props;
@@ -25,84 +22,82 @@ export default function PartnerHub({ profile, listings = [] }) {
     const heroBg = profile?.hero_image
         ? profile.hero_image
         : `${assetUrl}assets/img/backdrops/stadium-fans.jpg`;
+    const tags = profile?.service_tags || [];
 
     return (
         <TournamentProvider>
             <Head title={profile?.display_name || 'Partner'} />
             <Header />
 
-            <div className="page-wrapper overflow-hidden bg-black text-white">
-                {/* Branded hero */}
+            <div className="page-wrapper overflow-hidden bg-black text-white partner-hub">
+                {/* Branded hero — identity on the left, About + What we offer on the right */}
                 <section
-                    className="position-relative"
-                    style={{
-                        minHeight: 460,
-                        backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 100%), url(${heroBg})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                    }}
+                    className="partner-hub-hero"
+                    style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
                 >
-                    <div className="container py-5">
-                        <div className="d-flex align-items-center gap-3 mb-3">
-                            {profile?.logo_url && (
-                                <img
-                                    src={profile.logo_url}
-                                    alt={profile.display_name}
-                                    style={{ height: 56, width: 56, objectFit: 'contain', background: '#fff', borderRadius: 12, padding: 6 }}
-                                />
-                            )}
-                            <div>
-                                <div className="text-white-50 small text-uppercase" style={{ letterSpacing: '2px' }}>
-                                    Official {formatPartnerType(profile?.partner_type)} Partner
+                    <div className="container">
+                        <div className="partner-hub-hero__grid">
+                            <div className="partner-hub-hero__identity">
+                                <div className="d-flex align-items-center gap-3 mb-3">
+                                    {profile?.logo_url && (
+                                        <img src={profile.logo_url} alt={profile.display_name} className="partner-hub-hero__logo" />
+                                    )}
+                                    <div>
+                                        <div className="partner-hub-hero__eyebrow">
+                                            Official {formatPartnerType(profile?.partner_type)} Partner
+                                        </div>
+                                        <h1 className="partner-hub-hero__title">{profile?.display_name}</h1>
+                                    </div>
                                 </div>
-                                <h1 className="text-white fw-bold mb-0" style={{ fontSize: '2.5rem' }}>
-                                    {profile?.display_name}
-                                </h1>
+
+                                {profile?.verification_status === 'verified' && (
+                                    <GlassPill className="mb-3"><i className="fas fa-check-circle"></i> Verified partner</GlassPill>
+                                )}
+
+                                {profile?.tagline && (
+                                    <p className="partner-hub-hero__tagline">{profile.tagline}</p>
+                                )}
+
+                                <div className="d-flex flex-wrap gap-2 mt-3">
+                                    {profile?.contact_email && (
+                                        <a href={`mailto:${profile.contact_email}`} className="tfe-btn tfe-btn--filled tfe-btn--lg">
+                                            Contact us
+                                        </a>
+                                    )}
+                                    {profile?.website_url && (
+                                        <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="tfe-btn tfe-btn--lg">
+                                            Visit website
+                                            <i className="fas fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
+                                        </a>
+                                    )}
+                                </div>
                             </div>
-                            {profile?.verification_status === 'verified' && (
-                                <span className="tfe-pill tfe-pill--approved ms-auto">
-                                    <i className="fas fa-check-circle"></i>
-                                    Verified partner
-                                </span>
-                            )}
-                        </div>
 
-                        {profile?.tagline && (
-                            <p className="text-white" style={{ fontSize: '1.35rem', maxWidth: 720, opacity: 0.92 }}>
-                                {profile.tagline}
-                            </p>
-                        )}
-
-                        <div className="d-flex flex-wrap gap-2 mt-3">
-                            {profile?.contact_email && (
-                                <a
-                                    href={`mailto:${profile.contact_email}`}
-                                    className="tfe-btn tfe-btn--filled tfe-btn--lg"
-                                >
-                                    Contact us
-                                </a>
-                            )}
-                            {profile?.website_url && (
-                                <a
-                                    href={profile.website_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="tfe-btn tfe-btn--lg"
-                                >
-                                    Visit website
-                                    <i className="fas fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
-                                </a>
+                            {(profile?.about || tags.length > 0) && (
+                                <div className="partner-hub-hero__about">
+                                    {profile?.about && (
+                                        <>
+                                            <h2 className="partner-hub-hero__about-title">About {profile?.display_name}</h2>
+                                            <p className="partner-hub-hero__about-text">{profile.about}</p>
+                                        </>
+                                    )}
+                                    {tags.length > 0 && (
+                                        <>
+                                            <h3 className="partner-hub-hero__offer-title">What we offer</h3>
+                                            <div className="d-flex flex-wrap gap-2">
+                                                {tags.map((tag, idx) => (
+                                                    <GlassPill key={idx} size="sm">{tag}</GlassPill>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
                 </section>
 
-                {/* Stats band — .tfe-tile primitive so it matches the
-                    admin/fan/partner dashboards. Cycles through the
-                    variant palette; the partner accent still bleeds
-                    through via --partner-accent on the wrapper. */}
+                {/* Stats band */}
                 {profile?.stats && profile.stats.length > 0 && (
                     <section className="py-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
                         <div className="container">
@@ -121,43 +116,10 @@ export default function PartnerHub({ profile, listings = [] }) {
                     </section>
                 )}
 
-                {/* About + service tags */}
-                {(profile?.about || (profile?.service_tags && profile.service_tags.length > 0)) && (
-                    <section className="py-5">
-                        <div className="container">
-                            <div className="row g-5">
-                                <div className="col-lg-7">
-                                    <h2 className="text-white fw-bold mb-3">About {profile?.display_name}</h2>
-                                    <p className="text-white-50" style={{ fontSize: '1.05rem', lineHeight: 1.7 }}>
-                                        {profile?.about}
-                                    </p>
-                                </div>
-                                {profile?.service_tags && profile.service_tags.length > 0 && (
-                                    <div className="col-lg-5">
-                                        <h3 className="text-white fw-bold mb-3" style={{ fontSize: '1.15rem' }}>
-                                            What we offer
-                                        </h3>
-                                        <div className="d-flex flex-wrap gap-2">
-                                            {profile.service_tags.map((tag, idx) => (
-                                                <span key={idx} className="tfe-pill tfe-pill--info">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* How we support the sports ecosystem (deck p.8) */}
+                {/* How we support the sports ecosystem */}
                 <HowWeSupportStrip accent={accent} />
 
-                {/* How it works — end-to-end pipeline (deck p.9) */}
-                <HowItWorksPipeline accent={accent} />
-
-                {/* Published listings */}
+                {/* Published listings — shared AccentCard */}
                 <section className="py-5" style={{ background: 'rgba(20,20,20,0.4)' }}>
                     <div className="container">
                         <div className="d-flex align-items-baseline justify-content-between mb-4">
@@ -177,59 +139,24 @@ export default function PartnerHub({ profile, listings = [] }) {
                                 </p>
                             </div>
                         ) : (
-                            <div className="row g-4">
+                            <div className="row g-4" style={{ paddingBottom: '96px' }}>
                                 {listings.map((l) => (
                                     <div key={l.id} className="col-md-6 col-lg-4">
-                                        <Link
+                                        <AccentCard
+                                            LinkComponent={Link}
                                             href={route('fan.packages.show', l.id)}
-                                            className="tfe-slab partner-hub-listing text-decoration-none d-block h-100"
-                                            style={{ '--partner-accent': accent }}
+                                            accent={accent}
+                                            artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
+                                            status={l.tournament_short || undefined}
+                                            title={l.name}
+                                            desc={l.description}
+                                            meta={[
+                                                { label: 'From', value: `${l.currency} ${Number(l.base_price).toLocaleString()}` },
+                                            ]}
+                                            cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
                                         >
-                                            {l.hero_image && (
-                                                <img
-                                                    src={l.hero_image}
-                                                    alt={l.name}
-                                                    className="partner-hub-listing__hero"
-                                                />
-                                            )}
-                                            <div className="tfe-slab__body">
-                                                <div className="d-flex justify-content-between align-items-start mb-2">
-                                                    <div>
-                                                        <h4 className="text-white mb-1" style={{ fontSize: '1.05rem' }}>
-                                                            {l.name}
-                                                        </h4>
-                                                        {l.tournament_short && (
-                                                            <TournamentPill
-                                                                tournamentId={l.tournament_id}
-                                                                shortName={l.tournament_short}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                    <div className="text-end">
-                                                        <div className="text-white fw-bold">
-                                                            {l.currency} {Number(l.base_price).toLocaleString()}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {l.description && (
-                                                    <p className="text-white-50 small mb-3" style={{ minHeight: 44 }}>
-                                                        {l.description.length > 90 ? l.description.slice(0, 90) + '…' : l.description}
-                                                    </p>
-                                                )}
-                                                <CapacityBar
-                                                    sold={l.sold_count}
-                                                    capacity={l.capacity}
-                                                    pct={l.availability_pct}
-                                                    className="mb-2"
-                                                />
-                                                <div className="d-flex align-items-center gap-2 mt-3" style={{ color: accent }}>
-                                                    <span className="fw-semibold small">
-                                                        {l.is_sold_out ? 'Sold out' : 'View details'}
-                                                    </span>
-                                                    {!l.is_sold_out && <i className="fas fa-arrow-right" style={{ fontSize: '0.75rem' }}></i>}
-                                                </div>
-                                            </div>
-                                        </Link>
+                                            <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
+                                        </AccentCard>
                                     </div>
                                 ))}
                             </div>
@@ -239,14 +166,16 @@ export default function PartnerHub({ profile, listings = [] }) {
 
                 <Footer />
             </div>
+
+            {/* Slim, sticky "How it works" strip — pinned to the bottom of
+                the viewport until the footer scrolls into view. */}
+            <HowItWorksBar accent={accent} />
         </TournamentProvider>
     );
 }
 
-// Strip the trailing "_partner" (finance_partner, event_organiser also
-// lands here as "Event Organiser") before title-casing so the eyebrow
-// "Official {type} Partner" doesn't produce "Official Finance Partner
-// Partner" for finance_partner.
+// Strip the trailing "_partner" before title-casing so "Official {type}
+// Partner" doesn't read "Official Finance Partner Partner".
 function formatPartnerType(t) {
     if (!t) return '';
     return t.replace(/_partner$/i, '')
@@ -256,26 +185,13 @@ function formatPartnerType(t) {
 
 /**
  * "How we support the sports ecosystem" — three pillars mapping to the
- * partner-side dashboard tabs (Publish / Convert / Measure). Style is
- * intentionally quiet so it doesn't compete with the partner's brand.
+ * partner dashboard tabs (Publish / Convert / Measure).
  */
 function HowWeSupportStrip({ accent }) {
     const pillars = [
-        {
-            icon: 'fa-tags',
-            title: 'Publish',
-            body: 'Package experiences fans actually want — matches, stays, transfers — and put them in front of every buyer on the platform.',
-        },
-        {
-            icon: 'fa-handshake',
-            title: 'Convert',
-            body: 'Fans submit briefs against your listings. You quote, they book. No cold pipeline to chase.',
-        },
-        {
-            icon: 'fa-chart-line',
-            title: 'Measure',
-            body: 'Track sell-through, turnaround and revenue per listing. Iterate on what wins.',
-        },
+        { icon: 'fa-tags', title: 'Publish', body: 'Package experiences fans actually want — matches, stays, transfers — and put them in front of every buyer on the platform.' },
+        { icon: 'fa-handshake', title: 'Convert', body: 'Fans submit briefs against your listings. You quote, they book. No cold pipeline to chase.' },
+        { icon: 'fa-chart-line', title: 'Measure', body: 'Track sell-through, turnaround and revenue per listing. Iterate on what wins.' },
     ];
 
     return (
@@ -289,23 +205,12 @@ function HowWeSupportStrip({ accent }) {
                                 <div className="tfe-slab__body">
                                     <div
                                         className="d-inline-flex align-items-center justify-content-center mb-3"
-                                        style={{
-                                            width: 44,
-                                            height: 44,
-                                            borderRadius: 10,
-                                            background: `${accent}22`,
-                                            color: accent,
-                                            fontSize: '1.1rem',
-                                        }}
+                                        style={{ width: 44, height: 44, borderRadius: 10, background: `${accent}22`, color: accent, fontSize: '1.1rem' }}
                                     >
                                         <i className={`fas ${p.icon}`}></i>
                                     </div>
-                                    <h3 className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>
-                                        {p.title}
-                                    </h3>
-                                    <p className="text-white-50 small mb-0" style={{ lineHeight: 1.6 }}>
-                                        {p.body}
-                                    </p>
+                                    <h3 className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>{p.title}</h3>
+                                    <p className="text-white-50 small mb-0" style={{ lineHeight: 1.6 }}>{p.body}</p>
                                 </div>
                             </div>
                         </div>
@@ -317,62 +222,59 @@ function HowWeSupportStrip({ accent }) {
 }
 
 /**
- * "How it works" — the fan-to-delivery pipeline as a four-step strip.
- * Each step is numbered and connected by a hair line so the whole flow
- * reads as one journey. Renders horizontally on md+ and stacks below.
+ * HowItWorksBar — the fan-to-delivery pipeline as a slim glass bar pinned
+ * to the bottom of the viewport. It appears once the user scrolls past the
+ * hero and slides away when the footer enters view so it never covers it.
  */
-function HowItWorksPipeline({ accent }) {
+function HowItWorksBar({ accent }) {
+    const [visible, setVisible] = useState(false);
+
     const steps = [
-        { n: 1, title: 'Fan brief', body: 'Fan picks matches and preferences in the calculator.' },
-        { n: 2, title: 'Partner quote', body: 'You review the brief and return a priced quote.' },
-        { n: 3, title: 'Payment', body: 'Fan pays; funds land against the confirmed booking.' },
-        { n: 4, title: 'Delivery', body: 'You deliver the trip; feedback rolls back to metrics.' },
+        { n: 1, title: 'Fan brief' },
+        { n: 2, title: 'Partner quote' },
+        { n: 3, title: 'Payment' },
+        { n: 4, title: 'Delivery' },
     ];
 
+    useEffect(() => {
+        const footer = document.querySelector('.tfe-footer, .footer');
+        let footerVisible = false;
+
+        const io = footer
+            ? new IntersectionObserver(
+                  ([entry]) => { footerVisible = entry.isIntersecting; update(); },
+                  { threshold: 0 }
+              )
+            : null;
+        if (io && footer) io.observe(footer);
+
+        const update = () => {
+            setVisible(window.scrollY > 320 && !footerVisible);
+        };
+        const onScroll = () => window.requestAnimationFrame(update);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        update();
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            if (io) io.disconnect();
+        };
+    }, []);
+
     return (
-        <section className="py-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <div className="container">
-                <h2 className="text-white fw-bold mb-4">How it works</h2>
-                <div className="row g-3 g-md-0 align-items-stretch">
+        <div className={'partner-hub-hiw' + (visible ? ' is-visible' : '')} style={{ '--partner-accent': accent }} aria-hidden={!visible}>
+            <div className="partner-hub-hiw__inner">
+                <span className="partner-hub-hiw__label">How it works</span>
+                <ol className="partner-hub-hiw__steps">
                     {steps.map((s, i) => (
-                        <div key={s.n} className="col-md-3 position-relative">
-                            <div className="d-flex align-items-start gap-3 pe-md-3">
-                                <div
-                                    className="flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                    style={{
-                                        width: 36,
-                                        height: 36,
-                                        borderRadius: '50%',
-                                        background: accent,
-                                        color: '#fff',
-                                        fontSize: '0.95rem',
-                                    }}
-                                >
-                                    {s.n}
-                                </div>
-                                <div>
-                                    <div className="text-white fw-bold">{s.title}</div>
-                                    <div className="text-white-50 small" style={{ lineHeight: 1.5 }}>
-                                        {s.body}
-                                    </div>
-                                </div>
-                            </div>
-                            {i < steps.length - 1 && (
-                                <div
-                                    className="d-none d-md-block position-absolute"
-                                    style={{
-                                        top: 18,
-                                        right: -6,
-                                        width: 12,
-                                        height: 1,
-                                        background: 'rgba(255,255,255,0.2)',
-                                    }}
-                                />
-                            )}
-                        </div>
+                        <li key={s.n} className="partner-hub-hiw__step">
+                            <span className="partner-hub-hiw__num">{s.n}</span>
+                            <span className="partner-hub-hiw__title">{s.title}</span>
+                            {i < steps.length - 1 && <i className="fas fa-chevron-right partner-hub-hiw__sep"></i>}
+                        </li>
                     ))}
-                </div>
+                </ol>
             </div>
-        </section>
+        </div>
     );
 }

@@ -18,6 +18,7 @@ export default function AuthLayout({
     head,
     children,
     wide = false,
+    fitViewport = false,
     heroImage,
     heroHeadline = 'Your matchday, planned end to end.',
     heroTagline = 'Fixtures, hotels, flights and tickets — one plan for the whole tournament.',
@@ -82,10 +83,10 @@ export default function AuthLayout({
 
             {/* Right form panel */}
             <main className="tfe-auth__panel">
-                <div className="tfe-auth__card">
+                <div className={'tfe-auth__card' + (fitViewport ? ' tfe-auth__card--fit' : '')}>
                     <Link href={route('index')} className="tfe-auth__card-brand">
                         <img src={logo} alt="The Football Experience" />
-                        <span style={{ fontWeight: 800 }}>The Football Experience</span>
+                        <span style={{ fontWeight: 700 }}>The Football Experience</span>
                     </Link>
 
                     {title && <h2 className="tfe-auth__title">{title}</h2>}

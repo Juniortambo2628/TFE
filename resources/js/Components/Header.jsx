@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import '../../css/tournament-switcher.css';
+import '../../css/header.css';
 
 export default function Header() {
     const { assetUrl } = usePage().props;

@@ -48,8 +48,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 260px;
-  padding: 1.6rem 1.7rem;
+  min-height: 340px;
+  padding: 1.7rem 1.8rem;
   border-radius: 22px;
   overflow: hidden;
   isolation: isolate;
@@ -103,7 +103,7 @@
   top: 50%;
   right: -18px;
   transform: translateY(-50%);
-  height: 190px;
+  height: 240px;
   width: auto;
   object-fit: contain;
   opacity: 0.9;
@@ -117,25 +117,10 @@
   transform: translateY(-50%) scale(1.06) rotate(-2deg);
 }
 
-/* Header row: status pill */
+/* Status pill — positioned; the frosted look comes from GlassPill. */
 .tc-card__status {
   align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
   text-transform: capitalize;
-  letter-spacing: 0.03em;
-}
-
-.tc-card__status .tc-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
 }
 
 .tc-card__name {
@@ -143,14 +128,16 @@
   font-weight: 800;
   font-size: 1.35rem;
   line-height: 1.15;
-  margin: 1rem 0 0.35rem;
+  margin: 1rem 0 0.55rem;
   max-width: 72%;
   letter-spacing: -0.01em;
 }
 
+/* Hosts — a wrap of glass pills. */
 .tc-card__hosts {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 0.86rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   max-width: 72%;
 }
 
@@ -175,17 +162,14 @@
   margin-top: 2px;
 }
 
+/* CTA — a glass pill (colourless); GlassPill provides the frosted look. */
 .tc-card__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 1.2rem;
-  font-weight: 700;
-  font-size: 0.9rem;
+  align-self: flex-start;
+  margin-top: 1.3rem;
 }
 
 .tc-card__cta i {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   transition: transform 0.25s ease;
 }
 

@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { PrivacyPolicy, CookiePolicy, TermsOfService } from '@/Components/LegalDocs';
+import '../../../css/privacy-consent.css';
 
 export default function PrivacyConsent() {
     const { auth } = usePage().props;
@@ -65,61 +66,20 @@ export default function PrivacyConsent() {
 
     return (
         <>
-            {/* Consent Banner */}
+            {/* Consent Banner — floating glass card */}
             {bannerVisible && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    width: '100%',
-                    backgroundColor: '#1a1a1a',
-                    color: '#fff',
-                    padding: '20px',
-                    zIndex: 9999,
-                    borderTop: '1px solid #333',
-                    boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '16px'
-                }}>
-                    <div style={{ flex: 1, minWidth: '300px' }}>
-                        <h4 style={{ fontSize: '16px', marginBottom: '8px', color: '#e31b23' }}>We value your privacy</h4>
-                        <p style={{ fontSize: '14px', color: '#ccc', margin: 0 }}>
-                            We use cookies to enhance your experience, analyze site traffic, and serve tailored advertisements. 
-                            By continuing to visit this site you agree to our use of cookies. 
-                            <button 
-                                onClick={() => openLegal('privacy')} 
-                                style={{ background: 'none', border: 'none', color: '#e31b23', textDecoration: 'underline', cursor: 'pointer', marginLeft: '5px' }}
-                            >
-                                Privacy Policy
-                            </button>
-                            &nbsp;and&nbsp;
-                            <button 
-                                onClick={() => openLegal('cookies')} 
-                                style={{ background: 'none', border: 'none', color: '#e31b23', textDecoration: 'underline', cursor: 'pointer' }}
-                            >
-                                Cookie Policy
-                            </button>.
-                        </p>
-                    </div>
-                    <div>
-                        <button 
-                            onClick={handleAccept}
-                            style={{
-                                backgroundColor: '#e31b23',
-                                color: '#fff',
-                                border: 'none',
-                                padding: '10px 24px',
-                                borderRadius: '6px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                fontSize: '14px'
-                            }}
-                        >
-                            Accept All
-                        </button>
+                <div className="tfe-consent" role="dialog" aria-label="Cookie consent">
+                    <span className="tfe-consent__badge">Privacy</span>
+                    <h4 className="tfe-consent__title">We value your privacy</h4>
+                    <p className="tfe-consent__body">
+                        We use cookies to enhance your experience, analyze site traffic, and serve tailored content. By continuing you agree to our{' '}
+                        <button onClick={() => openLegal('privacy')} className="tfe-consent__link">Privacy Policy</button>
+                        {' '}and{' '}
+                        <button onClick={() => openLegal('cookies')} className="tfe-consent__link">Cookie Policy</button>.
+                    </p>
+                    <div className="tfe-consent__actions">
+                        <button onClick={handleAccept} className="tfe-consent__accept">Accept all</button>
+                        <button onClick={() => openLegal('cookies')} className="tfe-consent__manage">Manage</button>
                     </div>
                 </div>
             )}

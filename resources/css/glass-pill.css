@@ -1,0 +1,57 @@
+/*
+ * GlassPill — a neutral (no-colour) glass pill used across the landing
+ * surface: hero host-country badges, tournament card status / hosts, and
+ * pill-style CTAs. Deliberately monochrome so category colour never rides
+ * on it; it reads as frosted glass on any dark background.
+ */
+.tfe-glass-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.tfe-glass-pill i,
+.tfe-glass-pill iconify-icon {
+    font-size: 0.85em;
+    opacity: 0.9;
+}
+
+/* Size modifiers */
+.tfe-glass-pill--sm {
+    padding: 3px 9px;
+    font-size: 0.72rem;
+}
+
+.tfe-glass-pill--lg {
+    padding: 9px 18px;
+    font-size: 0.9rem;
+}
+
+/* Interactive (button / link) — subtle hover lift, still colourless. */
+.tfe-glass-pill--interactive {
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.tfe-glass-pill--interactive:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.28);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+button.tfe-glass-pill {
+    font-family: inherit;
+}

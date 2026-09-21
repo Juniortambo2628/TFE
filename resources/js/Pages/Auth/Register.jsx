@@ -209,6 +209,7 @@ export default function Register() {
     return (
         <AuthLayout
             wide
+            fitViewport
             head={`Register - Step ${currentStep}`}
             title="Create your account"
             subtitle="Join the fans planning their tournament with The Football Experience."
@@ -241,7 +242,8 @@ export default function Register() {
                 </div>
             </DashboardModal>
 
-            <form onSubmit={submit}>
+            <form onSubmit={submit} className="tfe-auth__form">
+                        <div className="tfe-auth__form-head">
                             <div className="form-top-bar">
                                 <div className="progress-indicator mb-4">
                                     <div className="progress-header d-flex justify-content-between text-white">
@@ -262,7 +264,9 @@ export default function Register() {
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
+                        <div className="tfe-auth__form-body">
                             {currentStep === 1 && (
                                 <div className="social-login-section mb-4 text-center">
                                     <p className="text-white-50 small mb-3">Quick Register with Social Account</p>
@@ -470,7 +474,9 @@ export default function Register() {
                                     </div>
                                 </div>
                             )}
+                        </div>
 
+                        <div className="tfe-auth__form-foot">
                             <div className="registration-bottom-controls mt-4 pt-3 border-top border-secondary">
                                 {currentStep > 1 ? (
                                     <button type="button" className="tfe-btn" onClick={prevStep}>
@@ -489,6 +495,7 @@ export default function Register() {
                                     </button>
                                 )}
                             </div>
+                        </div>
                         </form>
 
             <div className="tfe-auth__alt">

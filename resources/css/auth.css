@@ -26,7 +26,10 @@
     var(--dash-bg, #070606);
   color: #fff;
   overflow: hidden;
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  /* Match the rest of the app (Tailwind font-sans / --font-display) instead
+     of forcing Inter, which wasn't loaded and fell back to the system font
+     — the source of the auth pages looking off-theme. */
+  font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* The two-column shell lives in its own container so out-of-flow
@@ -103,7 +106,7 @@
 }
 
 .tfe-auth__brand span {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: 0.3px;
 }
@@ -114,7 +117,7 @@
 
 .tfe-auth__tagline h1 {
   font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   margin: 0 0 12px;
   color: #fff;
@@ -158,6 +161,10 @@
 .tfe-auth__panel {
   position: relative;
   overflow-y: auto;
+  /* Must be explicit: with overflow-y:auto the browser computes overflow-x
+     to `auto` too, so the decorative ::before glow (which bleeds past the
+     right edge) was producing a horizontal scrollbar. Clip it. */
+  overflow-x: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -193,6 +200,51 @@
   max-width: 720px;
 }
 
+/* ── Fixed-height form card (Register) ────────────────────────────────
+   The card fits the viewport height; its head (progress) and foot
+   (Back/Next) stay pinned while the middle field area scrolls, so the
+   controls are always visible. Padding is tightened for a compact form. */
+.tfe-auth__card--fit {
+  display: flex;
+  flex-direction: column;
+  max-height: min(92vh, 900px);
+  overflow: hidden;
+  padding: 24px 30px;
+}
+
+.tfe-auth__card--fit .tfe-auth__card-brand { margin-bottom: 14px; }
+.tfe-auth__card--fit .tfe-auth__title { font-size: 1.4rem; margin-bottom: 2px; }
+.tfe-auth__card--fit .tfe-auth__subtitle { font-size: 0.85rem; margin-bottom: 14px; }
+
+.tfe-auth__form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tfe-auth__form-head { flex: 0 0 auto; }
+
+.tfe-auth__form-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 4px 8px 8px 2px;
+  margin-right: -6px;
+}
+
+.tfe-auth__form-foot {
+  flex: 0 0 auto;
+}
+
+/* Compact spacing overrides scoped to the fitted register card. */
+.tfe-auth__card--fit .progress-indicator { margin-bottom: 0.5rem !important; }
+.tfe-auth__card--fit .social-login-section { margin-bottom: 0.75rem !important; }
+.tfe-auth__card--fit .social-login-section .divider { margin: 0.85rem 0 !important; }
+.tfe-auth__card--fit .form-step h3 { margin-bottom: 1rem !important; font-size: 1rem; }
+.tfe-auth__card--fit .form-step .row { --bs-gutter-y: 0.65rem; }
+.tfe-auth__card--fit .registration-bottom-controls { margin-top: 0.85rem !important; padding-top: 0.85rem !important; }
+
 @keyframes authFadeUp {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
@@ -217,7 +269,7 @@
 
 .tfe-auth__title {
   font-size: 1.7rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 6px;
   letter-spacing: 0.2px;
   color: #fff;
