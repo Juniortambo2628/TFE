@@ -24,6 +24,7 @@ export default function AccentCard({
     accent = '#dc143c',
     active = false,
     artwork,
+    icon,
     status,
     eyebrow,
     title,
@@ -48,6 +49,12 @@ export default function AccentCard({
                     className={'tfe-acard__art' + (artwork.variant === 'thumb' ? ' tfe-acard__art--thumb' : '')}
                     loading="lazy"
                 />
+            )}
+
+            {icon && (
+                <div className="tfe-acard__icon">
+                    <i className={icon} aria-hidden="true"></i>
+                </div>
             )}
 
             {status && <GlassPill size="sm" className="tfe-acard__status">{status}</GlassPill>}

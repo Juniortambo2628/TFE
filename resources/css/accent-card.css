@@ -41,6 +41,17 @@
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--acard-accent) 50%, transparent), 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
+/* Content variant — icon + title + copy, no artwork/meta/CTA (e.g. the
+   Publish/Convert/Measure pillars). Shorter, full-width text. */
+.tfe-acard--content {
+    min-height: 210px;
+}
+
+.tfe-acard--content .tfe-acard__title,
+.tfe-acard--content .tfe-acard__desc {
+    max-width: 100%;
+}
+
 /* Accent wash keyed off the card's brand */
 .tfe-acard::before {
     content: '';
@@ -96,6 +107,21 @@
 
 .tfe-acard:hover .tfe-acard__art--thumb {
     transform: scale(1.04);
+}
+
+/* Optional icon chip (e.g. the Publish/Convert/Measure pillars). */
+.tfe-acard__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--acard-accent) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--acard-accent) 30%, transparent);
+    color: var(--acard-accent);
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
 }
 
 .tfe-acard__status {
