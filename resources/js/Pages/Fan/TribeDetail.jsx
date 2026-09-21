@@ -96,7 +96,7 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
     ];
 
     return (
-        <FanLayout user={auth.user} header={tribe.name}>
+        <FanLayout title={tribe.name}>
             <Head title={tribe.name} />
 
             <div className="container-fluid p-0">

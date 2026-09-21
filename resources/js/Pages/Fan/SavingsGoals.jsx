@@ -40,7 +40,7 @@ export default function SavingsGoals({ auth, goals }) {
     const primaryCurrency = goals?.[0]?.currency || 'USD';
 
     return (
-        <FanLayout user={auth.user} header="Savings Goals">
+        <FanLayout title="Savings Goals">
             <Head title="Savings Goals" />
 
             <div className="pb-12">

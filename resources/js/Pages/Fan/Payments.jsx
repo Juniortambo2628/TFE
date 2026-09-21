@@ -136,7 +136,7 @@ export default function Payments({ auth, payments, paymentMethods, transactions,
     ];
 
     return (
-        <FanLayout user={auth.user} header="Payments">
+        <FanLayout title="Payments">
             <Head title="Payments" />
 
             <div>

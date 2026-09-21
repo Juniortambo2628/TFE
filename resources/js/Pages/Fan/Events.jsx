@@ -75,7 +75,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
     ];
 
     return (
-        <FanLayout user={auth.user} header="Events & Activities">
+        <FanLayout title="Events">
             <Head title="Events" />
 
             <div>

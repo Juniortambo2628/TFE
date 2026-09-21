@@ -142,7 +142,7 @@ export default function Security({ auth, security_settings = {}, loginHistory = 
     };
 
     return (
-        <FanLayout user={auth.user} header="Security Settings">
+        <FanLayout title="Security">
             <Head title="Security" />
 
             <div className="pb-5">

@@ -11,7 +11,7 @@ export default function Wallet({ auth, walletData }) {
     const progress = goalTarget > 0 ? (savings / goalTarget) * 100 : 0;
 
     return (
-        <FanLayout user={auth.user} header="My Wallet & Savings">
+        <FanLayout title="Wallet">
             <Head title="Wallet" />
 
             <div className="pb-12">
