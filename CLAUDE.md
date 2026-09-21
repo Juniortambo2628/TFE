@@ -313,18 +313,31 @@ it runs migrations, `config:cache`, `route:cache`, `view:cache`, and
 PHP's `exec()` in `disable_functions`, and Laravel's `storage:link`
 shells out on some code paths — so it errors with `Call to undefined
 function Illuminate\Filesystem\exec()`. Use `ln -s` directly instead;
-the GitHub Actions `post-deploy.sh` already does this. If you ever
-need to recreate the symlinks manually:
+the GitHub Actions `post-deploy.sh` already does this.
+
+**The frontend docroot is the domain's OWN directory, NOT `public_html`.**
+Each site on this cPanel is an addon domain with its own docroot, so
+tfe.okjtech.co.ke serves from `~/tfe.okjtech.co.ke` (this is the
+`FRONTEND_PATH` deploy secret), and `public_html` belongs to a *different*
+site — never symlink tfe storage into `public_html`. The Laravel app root
+is `~/tfe-core` (`BACKEND_PATH`). If you ever need to recreate the symlinks
+manually (`ln -sfn` also repoints a stale/incorrect one; use your real
+home path):
 
 ```bash
+DOCROOT=~/tfe.okjtech.co.ke   # FRONTEND_PATH — the domain's docroot
+APP=~/tfe-core                # BACKEND_PATH — the Laravel app root
+
 # Frontend — this is what serves /storage/*.jpg to browsers.
-[ -L /home/zhpebukm/public_html/storage ] || \
-  ln -s /home/zhpebukm/tfe-core/storage/app/public /home/zhpebukm/public_html/storage
+ln -sfn "$APP/storage/app/public" "$DOCROOT/storage"
 
 # Backend — public_path('storage/…') resolution for internal reads.
-[ -L /home/zhpebukm/tfe-core/public/storage ] || \
-  ln -s /home/zhpebukm/tfe-core/storage/app/public /home/zhpebukm/tfe-core/public/storage
+ln -sfn "$APP/storage/app/public" "$APP/public/storage"
 ```
+
+If an old, incorrect `public_html/storage` symlink is lying around from a
+previous setup, remove it: `rm -f ~/public_html/storage` (only if it's a
+symlink and `public_html` isn't tfe's docroot).
 
 Live-bell via Reverb is **not viable on shared hosting** — it needs a
 persistent PHP process + WebSocket upgrade support, both of which

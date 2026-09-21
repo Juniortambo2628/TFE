@@ -75,10 +75,12 @@ php artisan event:cache 2>/dev/null || true
 # needing exec().
 #
 # We create TWO symlinks, both pointing at the Laravel public disk root
-# (config/filesystems.php → storage_path('app/public')):
-#   1. Frontend: public_html/storage → tfe-core/storage/app/public
+# (config/filesystems.php → storage_path('app/public')). NB: FRONTEND_PATH
+# is the domain's OWN docroot (e.g. ~/tfe.okjtech.co.ke), NOT public_html —
+# public_html belongs to a different site on this cPanel.
+#   1. Frontend: $FRONTEND_PATH/storage -> $BACKEND_PATH/storage/app/public
 #      This is what serves /storage/*.jpg to browsers.
-#   2. Backend: tfe-core/public/storage → tfe-core/storage/app/public
+#   2. Backend: $BACKEND_PATH/public/storage -> $BACKEND_PATH/storage/app/public
 #      Some third-party packages use public_path('storage/...') to
 #      resolve paths internally; without this they 404 even though the
 #      frontend URL works.
