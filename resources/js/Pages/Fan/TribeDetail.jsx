@@ -4,6 +4,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/fan/tribes.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -110,61 +111,21 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                     bgImage={tribe.banner || '/assets/img/logo/TFE-logo.png'}
                 >
                     {tribe.is_admin && (
-                        <button className="btn-fan-custom" onClick={() => setShowEditModal(true)}>
+                        <button className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={() => setShowEditModal(true)}>
                             <i className="fas fa-cog me-2"></i> Manage Settings
                         </button>
                     )}
                 </DashboardHero>
 
                 <div className="tribes-container pt-0">
-                    {/* Summary Cards */}
-                    <div className="summary-cards-grid mb-5">
-                        <div className="fan-card-premium glow-red">
-                            <div className="card-content-gaming">
-                                <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                    <i className="fas fa-users"></i>
-                                </div>
-                                <h3 className="card-title-gaming">Members</h3>
-                                <div className="card-value-gaming">{tribe.member_count}</div>
-                                <div className="text-white-50 small mt-1">Active Fans</div>
-                            </div>
-                        </div>
-                        
-                        <div className="fan-card-premium glow-blue">
-                            <div className="card-content-gaming">
-                                <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                    <i className="fas fa-comments"></i>
-                                </div>
-                                <h3 className="card-title-gaming">Discussions</h3>
-                                <div className="card-value-gaming">{posts.length}</div>
-                                <div className="text-white-50 small mt-1">Total Posts</div>
-                            </div>
-                        </div>
-
-                        <div className="fan-card-premium glow-red">
-                            <div className="card-content-gaming">
-                                <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                                    <i className="fas fa-eye"></i>
-                                </div>
-                                <h3 className="card-title-gaming">Views</h3>
-                                <div className="card-value-gaming">{posts.reduce((sum, p) => sum + p.view_count, 0)}</div>
-                                <div className="text-white-50 small mt-1">Engagement</div>
-                            </div>
-                        </div>
-
-                        {tribe.is_member && (
-                            <div className="fan-card-premium glow-blue pointer" onClick={() => setShowPostForm(true)}>
-                                <div className="card-content-gaming">
-                                    <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                                        <i className="fas fa-plus"></i>
-                                    </div>
-                                    <h3 className="card-title-gaming">Discussion</h3>
-                                    <div className="card-value-gaming">New</div>
-                                    <div className="text-white-50 small mt-1">Join Flow</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    <SummaryTiles
+                        className="mb-4"
+                        items={[
+                            { label: 'Members',     value: tribe.member_count,                                icon: 'fa-users',    accent: 'red',  subtext: 'Active Fans' },
+                            { label: 'Discussions', value: posts.length,                                       icon: 'fa-comments', accent: 'blue', subtext: 'Total Posts' },
+                            { label: 'Views',       value: posts.reduce((sum, p) => sum + p.view_count, 0),    icon: 'fa-eye',      accent: 'rose', subtext: 'Engagement' },
+                        ]}
+                    />
 
                     <div className="row">
                     <div className="col-lg-8">
@@ -186,6 +147,15 @@ export default function TribeDetail({ auth, tribe, members, posts, stats }) {
                                     <i className="fas fa-comments"></i>
                                     <h3>Discussions</h3>
                                 </div>
+                                {tribe.is_member && !showPostForm && (
+                                    <button
+                                        type="button"
+                                        className="tfe-btn tfe-btn--sm tfe-btn--filled"
+                                        onClick={() => setShowPostForm(true)}
+                                    >
+                                        <i className="fas fa-plus me-2"></i> New discussion
+                                    </button>
+                                )}
                             </div>
                             
                             {/* Create Post Form */}

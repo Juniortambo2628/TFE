@@ -3,6 +3,7 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 
 export default function PredictWin({ auth, upcomingMatches, userStats, leaderboard, prizes }) {
     const [selectedMatch, setSelectedMatch] = useState(null);
@@ -38,52 +39,14 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                 <AdPlaceholder position="horizontal" />
             </div>
 
-            {/* Summary Cards */}
-            <div className="summary-cards-grid">
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-bullseye"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Predictions</h3>
-                        <div className="card-value-gaming">{userStats.total_predictions}</div>
-                        <div className="text-white-50 small mt-1">Total submitted</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-check-circle"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Correct</h3>
-                        <div className="card-value-gaming">{userStats.correct_predictions}</div>
-                        <div className="text-white-50 small mt-1">{userStats.accuracy}% accuracy</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-star"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Points</h3>
-                        <div className="card-value-gaming">{userStats.points} pts</div>
-                        <div className="text-white-50 small mt-1">Earned so far</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-trophy"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Rank</h3>
-                        <div className="card-value-gaming">#{userStats.rank}</div>
-                        <div className="text-white-50 small mt-1">Leaderboard Position</div>
-                    </div>
-                </div>
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: 'Predictions', value: userStats.total_predictions,   icon: 'fa-bullseye',     accent: 'red',   subtext: 'Total submitted' },
+                    { label: 'Correct',     value: userStats.correct_predictions, icon: 'fa-check-circle', accent: 'blue',  subtext: `${userStats.accuracy}% accuracy` },
+                    { label: 'Points',      value: `${userStats.points} pts`,     icon: 'fa-star',         accent: 'amber', subtext: 'Earned so far' },
+                    { label: 'Rank',        value: `#${userStats.rank}`,          icon: 'fa-trophy',       accent: 'teal',  subtext: 'Leaderboard Position' },
+                ]}
+            />
 
             <div className="content-cards-grid mt-4">
                 {/* Upcoming Matches */}

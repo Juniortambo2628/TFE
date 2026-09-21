@@ -8,6 +8,7 @@ import ShareModal from '@/Components/ShareModal';
 import AdPostCard from '@/Components/AdPostCard';
 import '../../../css/fan/feed.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
 
@@ -202,52 +203,14 @@ export default function Feed({ auth, posts, stats, trendingHashtags, feedAds = [
                 breadcrumbs={[{ label: 'Feed' }]}
             />
 
-            {/* Summary Cards */}
-            <div className="summary-cards-grid">
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-user-friends"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Followers</h3>
-                        <div className="card-value-gaming">{stats.followers}</div>
-                        <div className="text-white-50 small mt-1">Fan Connections</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-users"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Following</h3>
-                        <div className="card-value-gaming">{stats.following}</div>
-                        <div className="text-white-50 small mt-1">Fans you follow</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-heart"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Likes Received</h3>
-                        <div className="card-value-gaming">{stats.likes_received || 0}</div>
-                        <div className="text-white-50 small mt-1">Total Engagement</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-edit"></i>
-                        </div>
-                        <h3 className="card-title-gaming">My Posts</h3>
-                        <div className="card-value-gaming">{stats.posts}</div>
-                        <div className="text-white-50 small mt-1">Your Shares</div>
-                    </div>
-                </div>
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: 'Followers',      value: stats.followers,          icon: 'fa-user-friends', accent: 'blue', subtext: 'Fan Connections' },
+                    { label: 'Following',      value: stats.following,          icon: 'fa-users',        accent: 'red',  subtext: 'Fans you follow' },
+                    { label: 'Likes Received', value: stats.likes_received || 0, icon: 'fa-heart',        accent: 'rose', subtext: 'Total Engagement' },
+                    { label: 'My Posts',       value: stats.posts,              icon: 'fa-edit',         accent: 'teal', subtext: 'Your Shares' },
+                ]}
+            />
 
             {/* Main Content Grid */}
             <div className="content-cards-grid mt-4">
