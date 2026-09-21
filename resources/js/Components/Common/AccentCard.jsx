@@ -26,6 +26,8 @@ export default function AccentCard({
     active = false,
     artwork,
     cover,
+    bgImage,
+    cornerButton,
     status,
     eyebrow,
     title,
@@ -48,11 +50,26 @@ export default function AccentCard({
 
     return (
         <Tag href={href} className={classes} style={{ '--acard-accent': accent }} {...props}>
+            {bgImage && (
+                <img src={bgImage} alt="" aria-hidden="true" className="tfe-acard__bg" loading="lazy" />
+            )}
+
             {isCover && (
                 <>
                     <img src={cover} alt="" aria-hidden="true" className="tfe-acard__cover" loading="lazy" />
                     <span className="tfe-acard__cover-overlay" aria-hidden="true"></span>
                 </>
+            )}
+
+            {cornerButton && (
+                <button
+                    type="button"
+                    className="tfe-acard__corner-btn"
+                    aria-label={cornerButton.label || 'More information'}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); cornerButton.onClick?.(e); }}
+                >
+                    <i className={cornerButton.icon || 'fas fa-plus'} aria-hidden="true"></i>
+                </button>
             )}
 
             {artwork?.src && (

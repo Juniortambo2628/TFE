@@ -31,6 +31,7 @@ export default function LandingCard({ image, title, subtitle, tags, alt, onClick
             title={title}
             desc={subtitle}
             cta={onClick ? { label: 'Learn More', icon: 'fas fa-arrow-up-right' } : undefined}
+            cornerButton={onClick ? { icon: 'fas fa-plus', label: `More about ${title}`, onClick: handleClick } : undefined}
             role={onClick ? 'button' : undefined}
             tabIndex={onClick ? 0 : undefined}
             onClick={onClick ? handleClick : undefined}

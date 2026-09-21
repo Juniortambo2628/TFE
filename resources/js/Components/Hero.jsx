@@ -87,6 +87,14 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
     // Accent + trophy artwork for the hero tournament card (AccentCard).
     var heroAccent = (tournament && tournament.color_accent) || '#DC143C';
+    // Per-tournament organiser visual, used as the hero card's background
+    // watermark. Files live under public/tournament-organizers-card-visuals/.
+    var ORGANIZER_BG = {
+        afcon_2027: 'tournament-organizers-card-visuals/CAF-AFCON-visual-cardbg.png',
+        wc_2026: 'tournament-organizers-card-visuals/FIFA-world-cup-visual-cardbg.png',
+        euro_2024: 'tournament-organizers-card-visuals/UEFA-euros-visual-cardbg.png',
+    };
+    var heroBgImage = (tournament && ORGANIZER_BG[tournament.id]) ? baseUrl + ORGANIZER_BG[tournament.id] : null;
     var heroTrophy = (function () {
         var trophyPath = tournament && tournament.trophy_image;
         if (trophyPath) {
@@ -330,7 +338,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
             {/* Content Layer - Persistent across slide changes */}
             <div className="container flex-grow-1 d-flex flex-column position-relative z-1">
-                <div className="d-flex flex-column gap-5 position-relative flex-grow-1 justify-content-center pt-5 pb-5">
+                <div className="hero-content-stack d-flex flex-column gap-5 position-relative flex-grow-1 justify-content-center pb-5">
                     {/* Row 1: World Map + Countdown */}
                     <div className="row align-items-center gx-0">
                         {/* Left: World Map — host countries highlighted */}
@@ -354,6 +362,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     LinkComponent="div"
                                     accent={heroAccent}
                                     className="tfe-acard--hero"
+                                    bgImage={heroBgImage}
                                     artwork={heroTrophy}
                                     eyebrow={isConcluded ? 'Champions crowned' : 'Kicks off in'}
                                     title={tournament?.name || 'Tournament'}
