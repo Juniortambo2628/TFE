@@ -87,14 +87,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
     // Accent + trophy artwork for the hero tournament card (AccentCard).
     var heroAccent = (tournament && tournament.color_accent) || '#DC143C';
-    // Per-tournament organiser visual, used as the hero card's background
-    // watermark. Files live under public/tournament-organizers-card-visuals/.
-    var ORGANIZER_BG = {
-        afcon_2027: 'tournament-organizers-card-visuals/CAF-AFCON-visual-cardbg.png',
-        wc_2026: 'tournament-organizers-card-visuals/FIFA-world-cup-visual-cardbg.png',
-        euro_2024: 'tournament-organizers-card-visuals/UEFA-euros-visual-cardbg.png',
-    };
-    var heroBgImage = (tournament && ORGANIZER_BG[tournament.id]) ? baseUrl + ORGANIZER_BG[tournament.id] : null;
+    // Per-tournament organiser visual (the hero card's background watermark)
+    // comes from config/tournaments.php `organizer_card_bg`, overridable in the
+    // admin CMS (SiteSetting `tournament_card_bg_{id}`). Files live under
+    // public/tournament-organizers-card-visuals/.
+    var heroBgImage = (tournament && tournament.organizer_card_bg) ? baseUrl + tournament.organizer_card_bg : null;
     var heroTrophy = (function () {
         var trophyPath = tournament && tournament.trophy_image;
         if (trophyPath) {

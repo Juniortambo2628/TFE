@@ -555,6 +555,45 @@ new prefix, add it to the safelist — a class-name pattern that
 only appears inside template literals will silently vanish on prod
 otherwise.
 
+## Public section pages + heroes (post-Sprint 30)
+
+The landing page was split to stay light. `About`, `Features`, `Services`,
+`News` and `Contact` are no longer rendered on `Home` — each lives on its
+own public route (`/about`, `/features`, `/services`, `/news`, `/contact`,
+`HomeController@{name}`) and the nav links point there. The news **JSON
+API moved to `/api/news`** (route name kept as `news.index`, so
+`route('news.index')` is unchanged) to free the `/news` URL for the page.
+
+- **`SectionPageShell`** (`Components/Landing/`) is the shared chrome:
+  header + `PageHero` + the section component + footer + cookie consent.
+- **`PageHero`** (`Components/Common/`) reuses the partner-hub hero CSS
+  (`.partner-hub-hero` + `.page-hero*` in `partner-hub.css`) — one hero
+  layout for the section pages AND the partner hub.
+- Hero content is **config + CMS**: defaults in `config/site_pages.php`
+  keyed by slug (title/eyebrow/tagline/background/cta_label/cta_href);
+  `HomeController::pageHero()` overlays admin overrides from `SiteSetting`
+  keys `page_hero_{slug}_{field}`. Edit them under **Admin → Content →
+  Page Heroes** (`Admin/Content.jsx`).
+- The five section components (`About/Features/Services/News/Contact.jsx`)
+  are now used ONLY on their dedicated pages; each card carries a `+`
+  button + a `LandingModal` info dialog.
+
+**Admin Content settings shape:** `ContentController::index` passes
+`settings` as a **flat `key => value` map** (`SiteSetting::pluck`), which
+is what every `SettingInput` reads (`settings['{group}_{key}']`) — don't
+revert it to `groupBy('group')` or the editors stop pre-filling.
+
+### Organiser card background (hero tournament card)
+
+The hero tournament card's background watermark comes from
+`config/tournaments.php` → `organizer_card_bg` per tournament, overridable
+in the CMS via `SiteSetting` key `tournament_card_bg_{id}` (wired through
+`TournamentService::loadOverrides` + `assemble`, exposed as
+`tournament.organizer_card_bg`). Files live in
+`public/tournament-organizers-card-visuals/` (see its README) and **must be
+committed** to deploy — a missing file is hidden gracefully via `onError`
+on `AccentCard`'s `bgImage`, so it never shows a broken image.
+
 ## Directory conventions
 
 ```

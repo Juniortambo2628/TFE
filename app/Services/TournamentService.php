@@ -102,6 +102,7 @@ class TournamentService
             'tagline' => null,
             'trophy_image' => null,
             'color_accent' => null,
+            'organizer_card_bg' => null,
         ];
         try {
             if (Schema::hasTable('site_settings')) {
@@ -109,6 +110,7 @@ class TournamentService
                 $overrides['tagline'] = SiteSetting::get("tournament_tagline_{$id}");
                 $overrides['trophy_image'] = SiteSetting::get("tournament_trophy_{$id}");
                 $overrides['color_accent'] = SiteSetting::get("tournament_accent_{$id}");
+                $overrides['organizer_card_bg'] = SiteSetting::get("tournament_card_bg_{$id}");
             }
         } catch (\Throwable $e) {
             // best-effort — config values still apply.
@@ -170,6 +172,7 @@ class TournamentService
         $tagline = $overrides['tagline'] ?: ($config['tagline'] ?? null);
         $trophyImage = $overrides['trophy_image'] ?: ($config['trophy_image'] ?? null);
         $colorAccent = $overrides['color_accent'] ?: ($config['color_accent'] ?? null);
+        $organizerCardBg = $overrides['organizer_card_bg'] ?: ($config['organizer_card_bg'] ?? null);
 
         return array_merge($config, [
             'status' => self::computedStatus($config),
@@ -185,6 +188,8 @@ class TournamentService
             'tagline' => $tagline,
             'trophy_image' => $trophyImage,
             'color_accent' => $colorAccent,
+            // Organiser card background (CAF/FIFA/UEFA visual): admin override > config.
+            'organizer_card_bg' => $organizerCardBg,
             // Wikipedia logo (overrides hardcoded hero_image when available)
             'wikipedia_logo' => $wikipedia['logo'] ?? null,
             // Merged results (config fallback + Wikipedia)

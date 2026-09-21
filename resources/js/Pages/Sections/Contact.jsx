@@ -2,9 +2,9 @@ import React from 'react';
 import SectionPageShell from '@/Components/Landing/SectionPageShell';
 import ContactSection from '@/Components/Contact';
 
-export default function ContactPage() {
+export default function ContactPage({ hero }) {
     return (
-        <SectionPageShell title="Contact">
+        <SectionPageShell title="Contact" hero={hero}>
             <ContactSection />
         </SectionPageShell>
     );

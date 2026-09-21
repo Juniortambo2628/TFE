@@ -45,7 +45,10 @@ class ContentController extends Controller
             'total_tribes' => Tribe::count(),
         ];
 
-        $settings = SiteSetting::all()->groupBy('group');
+        // Flat key => value map — the Content page reads settings by their full
+        // key (e.g. `page_hero_about_title`), so this both powers the editors
+        // and pre-fills them with saved values.
+        $settings = SiteSetting::pluck('value', 'key');
 
         return Inertia::render('Admin/Content', [
             'posts' => $posts,
