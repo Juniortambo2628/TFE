@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { router } from '@inertiajs/react';
 import DataTable from '@/Components/DataTable';
 import { formatMoney } from '@/lib/utils';
@@ -123,49 +123,12 @@ export default function Payments({ auth, transactions = { data: [] }, stats = {}
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Dashboard Stats */}
-            <div className="admin-visual-cards mb-4" style={{ overflow: 'visible', flexWrap: 'wrap' }}>
-                <StatCard 
-                    type="visual"
-                    label="Total Volume" 
-                    value={formatMoney(stats.total_volume)} 
-                    icon="fas fa-money-bill-wave"
-                    bgType="payments"
-                    settingsKey="bg_card_payments_total"
-                    image="/assets/images/bgimage04.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Completed" 
-                    value={stats.completed_count || 0} 
-                    icon="fas fa-check-circle"
-                    bgType="payments"
-                    settingsKey="bg_card_payments_completed"
-                    image="/assets/images/bgimage05.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Pending" 
-                    value={stats.pending_count || 0} 
-                    icon="fas fa-clock"
-                    bgType="payments"
-                    settingsKey="bg_card_payments_pending"
-                    image="/assets/images/bgimage01.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Failed/Cancelled" 
-                    value={stats.failed_count || 0} 
-                    icon="fas fa-times-circle"
-                    bgType="payments"
-                    settingsKey="bg_card_payments_failed"
-                    image="/assets/images/bgimage02.jpg"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles items={[
+                { label: 'Total Volume', value: formatMoney(stats.total_volume), icon: 'fa-money-bill-wave', accent: 'teal' },
+                { label: 'Completed', value: stats.completed_count || 0, icon: 'fa-check-circle', accent: 'graph' },
+                { label: 'Pending', value: stats.pending_count || 0, icon: 'fa-clock', accent: 'amber' },
+                { label: 'Failed/Cancelled', value: stats.failed_count || 0, icon: 'fa-times-circle', accent: 'red' },
+            ]} className="mb-4" />
 
             {/* Toolbar */}
             <AdminToolbar
