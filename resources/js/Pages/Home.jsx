@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import '../../css/hero-enhancements.css';
 
@@ -17,6 +17,7 @@ import TournamentCompare from '@/Components/Landing/TournamentCompare';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
+import LandingModal from '@/Components/Common/LandingModal';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import { TournamentProvider } from '@/Context/TournamentContext';
@@ -27,58 +28,64 @@ const EXPERIENCES = [
         title: 'Private Yacht Tours',
         subtitle: 'Coastal match-day cruise experiences',
         tags: ['VIP', 'Cruise'],
+        description: 'Sail into match day in style. Private charters along the host coastline with onboard hospitality, transfers to the stadium and a skipper who knows the fixtures. Ideal for groups celebrating a milestone trip.',
     },
     {
         image: 'assets/img/backdrops/field-spotlight.jpg',
         title: 'Stadium Pitch Walks',
         subtitle: 'Walk the turf before kick-off',
         tags: ['Pitch Walk', 'Exclusive'],
+        description: 'Get closer than the front row. Guided pitch-side access before selected fixtures, with photo opportunities in the tunnel and dugout — a bucket-list moment for any fan.',
     },
     {
         image: 'assets/img/IMG-15.jpg',
         title: 'Luxury Stays',
         subtitle: 'Curated 4-5 star properties',
         tags: ['4-5 Star', 'Luxury'],
+        description: 'Hand-picked 4 and 5 star hotels within easy reach of the stadiums, with flexible check-in around kick-off times and rates negotiated for travelling fans.',
     },
     {
         image: 'assets/img/backdrops/argentina-fans.jpg',
         title: 'Fan Meetups',
         subtitle: 'Connect with travelling fans',
         tags: ['Community', 'Meetups'],
+        description: 'Find your people. Organised meetups, watch-alongs and supporter marches so you experience the tournament with fellow fans rather than on your own.',
     },
 ];
 
 export default function Home({ appName }) {
+    const [experienceModal, setExperienceModal] = useState(null);
 
     // Global Initializations
     useEffect(() => {
-        // Dynamically load AOS (Animate On Scroll) for landing page
-        if (!window.AOS) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/assets/libs/aos.css';
-            document.head.appendChild(link);
+        // NOTE: AOS (Animate On Scroll) used to be injected here, but nothing
+        // on the page carries a data-aos attribute anymore — every landing
+        // animation is framer-motion now. Loading AOS just fetched an extra
+        // CSS + JS bundle and attached idle scroll/resize listeners for zero
+        // effect, so it was removed as dead weight.
 
-            const script = document.createElement('script');
-            script.src = '/assets/libs/aos.js';
-            script.onload = () => {
-                if (window.AOS) {
-                    window.AOS.init({ once: true, duration: 1000 });
-                }
-            };
-            document.head.appendChild(script);
-        } else {
-            window.AOS.init({ once: true, duration: 1000 });
-        }
-
-        const handleScroll = () => {
+        // rAF-throttled + passive so the scroll listener does at most one
+        // DOM write per frame instead of firing (and toggling a class)
+        // synchronously on every scroll tick — a common jank source.
+        let ticking = false;
+        let lastFixed = null;
+        const applyHeaderState = () => {
+            ticking = false;
             const header = document.querySelector('.tfe-header');
-            if (header) {
-                if (window.scrollY >= 60) header.classList.add('fixed-header');
-                else header.classList.remove('fixed-header');
+            if (!header) return;
+            const shouldFix = window.scrollY >= 60;
+            if (shouldFix !== lastFixed) {
+                lastFixed = shouldFix;
+                header.classList.toggle('fixed-header', shouldFix);
             }
         };
-        window.addEventListener('scroll', handleScroll);
+        const handleScroll = () => {
+            if (!ticking) {
+                ticking = true;
+                window.requestAnimationFrame(applyHeaderState);
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
@@ -121,6 +128,11 @@ export default function Home({ appName }) {
                             title={card.title}
                             subtitle={card.subtitle}
                             tags={card.tags}
+                            onClick={setExperienceModal}
+                            modalData={{
+                                description: card.description,
+                                cta: { label: 'Start planning this', href: route('register') },
+                            }}
                         />
                     ))}
               </HorizontalCardSection>
@@ -142,6 +154,11 @@ export default function Home({ appName }) {
 
                 <Footer />
           </div>
+            <LandingModal
+                open={experienceModal !== null}
+                onClose={() => setExperienceModal(null)}
+                data={experienceModal}
+            />
             <PrivacyConsent />
        </TournamentProvider>
     );

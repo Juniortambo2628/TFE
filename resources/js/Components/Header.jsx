@@ -4,20 +4,13 @@ import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import '../../css/tournament-switcher.css';
 
 export default function Header() {
-    var pageProps = usePage().props;
-    var assetUrl = pageProps.assetUrl;
-    var logo = assetUrl + 'assets/img/logo/TFE-logo.png';
-    var menuState = useState(false);
-    var isMenuOpen = menuState[0];
-    var setIsMenuOpen = menuState[1];
+    const { assetUrl } = usePage().props;
+    const logo = (assetUrl || '') + 'assets/img/logo/TFE-logo.png';
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    var toggleMenu = function () {
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    var navLinks = [
+    const navLinks = [
         { label: 'Home', href: '#hero' },
-        { label: 'About TFE', href: '#about' },
+        { label: 'About', href: '#about' },
         { label: 'Features', href: '#features' },
         { label: 'Services', href: '#services' },
         { label: 'Partners', href: route('partners.index') },
@@ -25,65 +18,60 @@ export default function Header() {
         { label: 'Contact', href: '#contact' },
     ];
 
-    return React.createElement('header', {
-        className: 'header position-fixed start-0 top-0 w-100 tfe-header',
-        style: { zIndex: 1000 },
-    },
-        React.createElement('div', { className: 'container' },
-            React.createElement('div', { className: 'header-wrapper d-flex align-items-center justify-content-between position-relative' },
-                React.createElement('div', { className: 'logo' },
-                    React.createElement(Link, { href: '/', className: 'tfe-logo-link' },
-                        React.createElement('img', { src: logo, alt: 'TFE Logo', className: 'img-fluid tfe-logo-img', style: { maxHeight: '70px' } })
-                    )
-                ),
-                React.createElement('div', { className: 'position-absolute top-50 start-50 translate-middle d-none d-lg-block' },
-                    React.createElement(TournamentSwitcher, null)
-                ),
-                React.createElement('div', { className: 'd-flex align-items-center gap-4' },
-                    React.createElement('div', { className: 'd-lg-none' },
-                        React.createElement(TournamentSwitcher, null)
-                    ),
-                    React.createElement(Link, {
-                        href: route('login'),
-                        className: 'tfe-btn tfe-btn--filled d-none d-lg-inline-flex',
-                    },
-                        React.createElement('span', null, 'Sign In'),
-                        React.createElement('iconify-icon', { icon: 'lucide:arrow-up-right' })
-                    ),
-                    React.createElement(Link, {
-                        href: route('register'),
-                        className: 'tfe-btn tfe-btn--filled d-lg-none',
-                    },
-                        React.createElement('span', null, 'Begin Journey'),
-                        React.createElement('iconify-icon', { icon: 'lucide:arrow-up-right' })
-                    ),
-                    React.createElement('button', {
-                        className: 'navbar-toggler btn-pill-crimson d-none',
-                        type: 'button',
-                        onClick: toggleMenu,
-                        'aria-expanded': isMenuOpen,
-                        'aria-label': 'Toggle navigation',
-                    },
-                        React.createElement('iconify-icon', { icon: 'solar:hamburger-menu-line-duotone', className: 'menu-icon fs-8' })
-                    ),
-                    React.createElement('div', {
-                        className: 'collapse navbar-collapse' + (isMenuOpen ? ' show' : ''),
-                        id: 'navbarNav',
-                    },
-                        React.createElement('ul', { className: 'navbar-nav align-items-center justify-content-end flex-grow-1' },
-                            navLinks.map(function (link) {
-                                return React.createElement('li', { key: link.href, className: 'nav-item' },
-                                    React.createElement('a', {
-                                        className: 'nav-link',
-                                        href: link.href,
-                                        onClick: function () { setIsMenuOpen(false); },
-                                    }, link.label)
-                                );
-                            })
-                        )
-                    )
-                )
-            )
-        )
+    const renderLinks = () =>
+        navLinks.map((link) => (
+            <li key={link.href} className="nav-item">
+                <a className="nav-link" href={link.href} onClick={() => setIsMenuOpen(false)}>
+                    {link.label}
+                </a>
+            </li>
+        ));
+
+    return (
+        <header className="header position-fixed start-0 top-0 w-100 tfe-header" style={{ zIndex: 1000 }}>
+            <div className="container">
+                <div className="header-wrapper d-flex align-items-center position-relative">
+                    {/* Logo */}
+                    <div className="logo">
+                        <Link href="/" className="tfe-logo-link">
+                            <img src={logo} alt="TFE Logo" className="img-fluid tfe-logo-img" style={{ maxHeight: '70px' }} />
+                        </Link>
+                    </div>
+
+                    {/* Desktop navigation (centre) */}
+                    <nav className="tfe-nav d-none d-lg-flex" aria-label="Primary">
+                        <ul className="navbar-nav">{renderLinks()}</ul>
+                    </nav>
+
+                    {/* Right cluster: tournament switcher + Sign In + mobile toggler */}
+                    <div className="tfe-header-actions d-flex align-items-center gap-3 ms-auto">
+                        <TournamentSwitcher />
+
+                        <Link href={route('login')} className="tfe-btn tfe-btn--filled d-none d-lg-inline-flex">
+                            <span>Sign In</span>
+                            <iconify-icon icon="lucide:arrow-up-right" />
+                        </Link>
+
+                        <button
+                            className="navbar-toggler tfe-nav-toggler d-lg-none"
+                            type="button"
+                            onClick={() => setIsMenuOpen((v) => !v)}
+                            aria-expanded={isMenuOpen}
+                            aria-label="Toggle navigation"
+                        >
+                            <i className={isMenuOpen ? 'fas fa-xmark' : 'fas fa-bars'} aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    {/* Mobile dropdown navigation */}
+                    <div className={'tfe-mobile-nav d-lg-none' + (isMenuOpen ? ' show' : '')}>
+                        <ul className="navbar-nav">{renderLinks()}</ul>
+                        <Link href={route('login')} className="tfe-btn tfe-btn--filled w-100 justify-content-center mt-2" onClick={() => setIsMenuOpen(false)}>
+                            <span>Sign In</span>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </header>
     );
 }
