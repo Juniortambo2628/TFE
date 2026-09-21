@@ -115,6 +115,17 @@
   max-width: 30ch;
 }
 
+/* Big brand mark sitting just above the headline — no background chip,
+   ~3x the old top-corner logo. */
+.tfe-auth__hero-logo {
+  display: block;
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.55));
+}
+
 .tfe-auth__tagline h1 {
   font-size: clamp(1.8rem, 3vw, 2.6rem);
   font-weight: 700;

@@ -2,21 +2,22 @@ import GlassPill from '@/Components/Common/GlassPill';
 import '../../../css/accent-card.css';
 
 /**
- * AccentCard — the shared tournament-style card used on the landing
- * tournament compare grid and across the partners pages.
+ * AccentCard — the shared tournament-style card used across the platform
+ * (landing tournament grid, landing section cards, partners directory +
+ * hub, dashboards).
  *
- * Props:
- *  - href, LinkComponent (default 'a' — pass Inertia's Link for SPA nav)
- *  - accent: brand colour driving the wash + active ring
- *  - active: emphasised ring (e.g. the currently-viewed tournament)
- *  - artwork: { src, alt?, variant?: 'float'|'thumb' } floating image
- *  - status: string → glass pill top-left
- *  - eyebrow: small muted label above the title
- *  - title, desc
- *  - pills: string[] → glass pills
- *  - meta: { label, value }[] → bottom meta grid
- *  - cta: { label, icon? } → glass pill CTA
- *  - children: extra content (e.g. a capacity bar) above the meta
+ * Artwork options (mutually exclusive):
+ *  - artwork: { src, alt?, variant?: 'float'|'thumb' } — floating image
+ *    (trophy / partner logo / listing thumbnail).
+ *  - artwork: { icon }  — a white icon in the trophy position (support
+ *    pillars).
+ *  - cover: <imageUrl> — the image fills the card as a background with a
+ *    legibility gradient; content sits at the bottom (landing section
+ *    cards keep their photos).
+ *
+ * Other props: href, LinkComponent ('a' | Inertia Link | 'div'), accent,
+ * active, status, eyebrow, title, desc, pills[], meta[], cta{label,icon},
+ * children (extra content), plus any handlers (onClick) via ...props.
  */
 export default function AccentCard({
     href,
@@ -24,7 +25,7 @@ export default function AccentCard({
     accent = '#dc143c',
     active = false,
     artwork,
-    icon,
+    cover,
     status,
     eyebrow,
     title,
@@ -37,10 +38,23 @@ export default function AccentCard({
     ...props
 }) {
     const Tag = LinkComponent;
-    const classes = ['tfe-acard', active ? 'tfe-acard--active' : '', className].filter(Boolean).join(' ');
+    const isCover = !!cover;
+    const classes = [
+        'tfe-acard',
+        isCover ? 'tfe-acard--cover' : '',
+        active ? 'tfe-acard--active' : '',
+        className,
+    ].filter(Boolean).join(' ');
 
     return (
         <Tag href={href} className={classes} style={{ '--acard-accent': accent }} {...props}>
+            {isCover && (
+                <>
+                    <img src={cover} alt="" aria-hidden="true" className="tfe-acard__cover" loading="lazy" />
+                    <span className="tfe-acard__cover-overlay" aria-hidden="true"></span>
+                </>
+            )}
+
             {artwork?.src && (
                 <img
                     src={artwork.src}
@@ -51,45 +65,47 @@ export default function AccentCard({
                 />
             )}
 
-            {icon && (
-                <div className="tfe-acard__icon">
-                    <i className={icon} aria-hidden="true"></i>
-                </div>
+            {artwork?.icon && (
+                <span className="tfe-acard__art tfe-acard__art--icon" aria-hidden="true">
+                    <i className={artwork.icon}></i>
+                </span>
             )}
 
             {status && <GlassPill size="sm" className="tfe-acard__status">{status}</GlassPill>}
 
-            {eyebrow && <div className="tfe-acard__eyebrow">{eyebrow}</div>}
-            {title && <h3 className="tfe-acard__title">{title}</h3>}
-            {desc && <p className="tfe-acard__desc">{desc}</p>}
+            <div className="tfe-acard__content">
+                {eyebrow && <div className="tfe-acard__eyebrow">{eyebrow}</div>}
+                {title && <h3 className="tfe-acard__title">{title}</h3>}
+                {desc && <p className="tfe-acard__desc">{desc}</p>}
 
-            {pills.length > 0 && (
-                <div className="tfe-acard__pills">
-                    {pills.map((p, i) => (
-                        <GlassPill key={i} size="sm">{p}</GlassPill>
-                    ))}
-                </div>
-            )}
+                {pills.length > 0 && (
+                    <div className="tfe-acard__pills">
+                        {pills.map((p, i) => (
+                            <GlassPill key={i} size="sm">{p}</GlassPill>
+                        ))}
+                    </div>
+                )}
 
-            {children && <div className="tfe-acard__slot">{children}</div>}
+                {children && <div className="tfe-acard__slot">{children}</div>}
 
-            {meta.length > 0 && (
-                <div className="tfe-acard__meta">
-                    {meta.map((m, i) => (
-                        <div key={i}>
-                            <div className="tfe-acard__meta-label">{m.label}</div>
-                            <div className="tfe-acard__meta-value">{m.value}</div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                {meta.length > 0 && (
+                    <div className="tfe-acard__meta">
+                        {meta.map((m, i) => (
+                            <div key={i}>
+                                <div className="tfe-acard__meta-label">{m.label}</div>
+                                <div className="tfe-acard__meta-value">{m.value}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-            {cta && (
-                <GlassPill className="tfe-acard__cta">
-                    {cta.label}
-                    {cta.icon !== null && <i className={cta.icon || 'fas fa-arrow-right'} />}
-                </GlassPill>
-            )}
+                {cta && (
+                    <GlassPill className="tfe-acard__cta">
+                        {cta.label}
+                        {cta.icon !== null && <i className={cta.icon || 'fas fa-arrow-right'} />}
+                    </GlassPill>
+                )}
+            </div>
         </Tag>
     );
 }

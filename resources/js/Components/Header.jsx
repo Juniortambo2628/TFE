@@ -10,13 +10,7 @@ export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const navLinks = [
-        { label: 'Home', href: '#hero' },
-        { label: 'About', href: '#about' },
-        { label: 'Features', href: '#features' },
-        { label: 'Services', href: '#services' },
         { label: 'Partners', href: route('partners.index') },
-        { label: 'News', href: '#news' },
-        { label: 'Contact', href: '#contact' },
     ];
 
     const renderLinks = () =>

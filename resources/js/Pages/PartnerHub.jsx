@@ -204,7 +204,7 @@ function HowWeSupportStrip({ accent }) {
                             <AccentCard
                                 LinkComponent="div"
                                 accent={accent}
-                                icon={`fas ${p.icon}`}
+                                artwork={{ icon: `fas ${p.icon}` }}
                                 title={p.title}
                                 desc={p.body}
                                 className="tfe-acard--content"

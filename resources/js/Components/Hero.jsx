@@ -7,6 +7,7 @@ import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlag
 import HeroWorldMap from '@/Components/HeroWorldMap';
 import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
 import GlassPill from '@/Components/Common/GlassPill';
+import AccentCard from '@/Components/Common/AccentCard';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -83,6 +84,19 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var wikipediaTeams = (tournament && tournament.teams) || [];
     var topScorer = (tournament && tournament.top_scorer) || null;
     var wikipediaFlags = (tournament && tournament.wikipedia_flags) || {};
+
+    // Accent + trophy artwork for the hero tournament card (AccentCard).
+    var heroAccent = (tournament && tournament.color_accent) || '#DC143C';
+    var heroTrophy = (function () {
+        var trophyPath = tournament && tournament.trophy_image;
+        if (trophyPath) {
+            return { src: baseUrl + trophyPath, alt: (tournament.short_name || 'Tournament') + ' trophy' };
+        }
+        if (wikipediaLogo) {
+            return { src: wikipediaLogo, alt: '' };
+        }
+        return { icon: 'fas fa-trophy' };
+    })();
 
     // Stadiums come exclusively from the resolved tournament's Wikipedia
     // venues now — no more per-tournament hardcoded branches. Memoized on
@@ -326,29 +340,25 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             />
                         </div>
 
-                        {/* Right Content: Trophy + Countdown — floating, no card */}
+                        {/* Right Content: the active tournament, countdown + CTAs
+                            wrapped in the shared tournament card (AccentCard),
+                            echoing the AFCON compare card. */}
                         <div className="col-xl-4">
-                            <div className="d-flex flex-column align-items-center align-items-xl-end">
-                                <motion.div
-                                    key={`countdown-${tournament ? tournament.id : 'default'}`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: 0.1 }}
-                                    className="hero-countdown-floating"
+                            <motion.div
+                                key={`countdown-${tournament ? tournament.id : 'default'}`}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.1 }}
+                            >
+                                <AccentCard
+                                    LinkComponent="div"
+                                    accent={heroAccent}
+                                    className="tfe-acard--hero"
+                                    artwork={heroTrophy}
+                                    eyebrow={isConcluded ? 'Champions crowned' : 'Kicks off in'}
+                                    title={tournament?.name || 'Tournament'}
+                                    desc={tournament?.tagline || (tournament?.wikipedia_extract ? tournament.wikipedia_extract.substring(0, 110) : '')}
                                 >
-                                    {/* Trophy / Logo — config-driven, no name string-matching. */}
-                                    <div className="hero-countdown-trophy-wrap">
-                                        {(() => {
-                                            var trophyPath = tournament && tournament.trophy_image;
-                                            if (trophyPath) {
-                                                return <img src={`${assetUrl}${trophyPath}`} alt={`${tournament.short_name || 'Tournament'} trophy`} className="hero-countdown-logo-img" style={{ transform: 'scale(1.2)' }} />;
-                                            }
-                                            if (wikipediaLogo) {
-                                                return <img src={wikipediaLogo} alt="" className="hero-countdown-logo-img" />;
-                                            }
-                                            return <i className="fas fa-trophy hero-countdown-trophy-icon"></i>;
-                                        })()}
-                                    </div>
                                     {isConcluded ? (
                                         <div className="d-flex flex-column gap-3">
                                             {tournament.winner && (
@@ -383,7 +393,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="d-flex gap-3 align-items-center">
+                                        <div className="hero-countdown-row d-flex gap-3 align-items-center">
                                             {[
                                                 { label: 'days', value: timeLeft.days || 0, max: 1000 },
                                                 { label: 'hrs', value: timeLeft.hours || 0, max: 24 },
@@ -400,7 +410,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                         <div className="position-relative" style={{ width: size + 'px', height: size + 'px' }}>
                                                             <svg width={size} height={size} className="hero-countdown-svg">
                                                                 <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
-                                                                <circle cx={center} cy={center} r={radius} fill="transparent" stroke="#DC143C" strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+                                                                <circle cx={center} cy={center} r={radius} fill="transparent" stroke={heroAccent} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
                                                             </svg>
                                                             <div className="position-absolute top-50 start-50 translate-middle text-center">
                                                                 <div className="text-white fw-bold font-monospace hero-countdown-value">{String(item.value).padStart(2, '0')}</div>
@@ -412,36 +422,28 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                             })}
                                         </div>
                                     )}
-                                </motion.div>
 
-                                {/* Divider */}
-                                {tournament?.hosts && tournament.hosts.length > 0 && (
-                                    <hr className="w-100 border-white opacity-10 my-3" />
-                                )}
+                                    {/* Host Countries */}
+                                    {tournament?.hosts && tournament.hosts.length > 0 && (
+                                        <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
+                                            <i className="fas fa-map-marker-alt text-danger"></i>
+                                            {tournament.hosts.map((host, idx) => (
+                                                <GlassPill key={idx} size="sm">{host}</GlassPill>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {/* Host Countries */}
-                                {tournament?.hosts && tournament.hosts.length > 0 && (
-                                    <div className="d-flex align-items-center gap-2 flex-wrap justify-content-center justify-content-xl-end w-100">
-                                        <i className="fas fa-map-marker-alt text-danger"></i>
-                                        {tournament.hosts.map((host, idx) => (
-                                            <GlassPill key={idx} size="sm">{host}</GlassPill>
-                                        ))}
+                                    {/* CTA Buttons */}
+                                    <div className="hero-cta-buttons d-flex flex-row flex-wrap gap-2 mt-4">
+                                        <button type="button" onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
+                                            <i className="fas fa-calendar-alt me-2"></i>View Matches
+                                        </button>
+                                        <a href="/register" className="btn-glass-pill hero-view-matches-btn">
+                                            <i className="fas fa-plane me-2"></i>Plan My Trip
+                                        </a>
                                     </div>
-                                )}
-
-                                {/* Divider */}
-                                <hr className="w-100 border-white opacity-10 my-3" />
-
-                                {/* CTA Buttons */}
-                                <div className="hero-cta-buttons d-flex flex-row flex-nowrap justify-content-center justify-content-xl-end gap-2 w-100">
-                                    <button onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
-                                        <i className="fas fa-calendar-alt me-2"></i>View Matches
-                                    </button>
-                                    <a href="/register" className="btn-glass-pill hero-view-matches-btn">
-                                        <i className="fas fa-plane me-2"></i>Plan My Trip
-                                    </a>
-                                </div>
-                            </div>
+                                </AccentCard>
+                            </motion.div>
                         </div>
                     </div>
 
