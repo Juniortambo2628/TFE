@@ -41,15 +41,10 @@
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--acard-accent) 50%, transparent), 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
-/* Content variant — icon + title + copy, no artwork/meta/CTA (e.g. the
-   Publish/Convert/Measure pillars). Shorter, full-width text. */
+/* Content variant — icon-as-artwork + title + copy, no meta/CTA (e.g. the
+   Publish/Convert/Measure pillars). Shorter than a full card. */
 .tfe-acard--content {
     min-height: 210px;
-}
-
-.tfe-acard--content .tfe-acard__title,
-.tfe-acard--content .tfe-acard__desc {
-    max-width: 100%;
 }
 
 /* Accent wash keyed off the card's brand */
@@ -209,3 +204,123 @@
     .tfe-acard__desc { max-width: 82%; }
     .tfe-acard__art { height: 150px; opacity: 0.8; }
 }
+
+/* ── Content wrapper (Sprint) ─────────────────────────────────────────
+   Card body is a flex column that grows so meta/CTA anchor to the bottom
+   (margin-top:auto) regardless of artwork/cover. */
+.tfe-acard__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Icon rendered in the trophy position — white, filled, no box/outline. */
+.tfe-acard__art--icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    color: #fff;
+    font-size: 4.6rem;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
+}
+
+/* ── Cover-image variant (landing section cards) ──────────────────────
+   The image fills the card; a bottom gradient keeps the copy legible and
+   the content bottom-aligns over it. */
+.tfe-acard--cover {
+    min-height: 300px;
+    padding: 1.4rem 1.5rem;
+    justify-content: flex-end;
+}
+
+.tfe-acard--cover::before { display: none; }  /* no accent wash over a photo */
+
+.tfe-acard__cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+    transition: transform 0.5s ease;
+}
+
+.tfe-acard:hover .tfe-acard__cover {
+    transform: scale(1.05);
+}
+
+.tfe-acard__cover-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0.05) 100%);
+}
+
+.tfe-acard--cover .tfe-acard__content {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+}
+
+.tfe-acard--cover .tfe-acard__title,
+.tfe-acard--cover .tfe-acard__desc,
+.tfe-acard--cover .tfe-acard__pills {
+    max-width: 100%;
+}
+
+.tfe-acard--cover .tfe-acard__title { margin-bottom: 0.35rem; }
+
+/* The cover card's CTA reveals on hover (like the old LandingCard). */
+.tfe-acard--cover .tfe-acard__cta {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.tfe-acard--cover:hover .tfe-acard__cta {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Landing horizontal-scroll section card (Popular Experiences, News) —
+   fixed width to sit in the .cards-track, full track height, clickable. */
+.tfe-acard--landing {
+    width: 340px;
+    height: 100%;
+    min-height: 300px;
+    cursor: pointer;
+    scroll-snap-align: start;
+}
+
+@media (max-width: 576px) {
+    .tfe-acard--landing { width: 280px; }
+}
+
+/* ── Hero tournament card ──────────────────────────────────────────────
+   The active tournament's info, countdown, hosts and CTAs live inside the
+   shared card in the landing hero. Title/copy stay clear of the floating
+   trophy; the countdown/host/CTA slot runs full width. It's a static card
+   (not a link), so it doesn't lift on hover. */
+.tfe-acard--hero {
+    min-height: 0;
+    padding: 1.6rem 1.7rem;
+}
+
+.tfe-acard--hero .tfe-acard__slot {
+    max-width: 100%;
+    margin-top: 1.1rem;
+}
+
+.tfe-acard--hero .hero-countdown-row { flex-wrap: wrap; }
+
+.tfe-acard--hero:hover {
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.tfe-acard--hero:hover .tfe-acard__art { transform: translateY(-50%); }
+
+.tfe-acard--hero .btn-glass-pill { flex: 1 1 auto; justify-content: center; }

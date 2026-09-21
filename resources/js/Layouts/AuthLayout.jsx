@@ -60,11 +60,11 @@ export default function AuthLayout({
                 </picture>
                 <div className="tfe-auth__media-inner">
                     <Link href={route('index')} className="tfe-auth__brand">
-                        <img src={logo} alt="The Football Experience" />
                         <span>The Football Experience</span>
                     </Link>
 
                     <div className="tfe-auth__tagline">
+                        <img src={logo} alt="The Football Experience" className="tfe-auth__hero-logo" />
                         <h1>{heroHeadline}</h1>
                         <p>{heroTagline}</p>
                         {chips.length > 0 && (

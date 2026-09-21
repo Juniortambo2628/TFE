@@ -13,6 +13,14 @@ import { useTournament } from '@/Context/TournamentContext';
 
 const totalSteps = 3;
 
+// Turn a 2-letter ISO code into its emoji flag (regional indicator symbols),
+// so the country-code dropdown shows a flag instead of a bare abbreviation.
+function isoToFlag(iso) {
+    if (!iso || iso.length !== 2) return '';
+    const cp = iso.toUpperCase().split('').map((c) => 0x1f1e6 + c.charCodeAt(0) - 65);
+    return String.fromCodePoint(...cp);
+}
+
 export default function Register() {
     const { assetUrl } = usePage().props;
     const { tournament } = useTournament();
@@ -337,46 +345,6 @@ export default function Register() {
                                             {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="tfe-form-label">Phone Number <span className="text-danger">*</span></label>
-                                            <div className="input-group">
-                                                <div style={{width: '140px'}} className="me-2 text-white">
-                                                    <SearchableSelect
-                                                        options={countries}
-                                                        value={data.country_code}
-                                                        onChange={(val) => {
-                                                            const countryObj = countries.find(c => c.code === val);
-                                                            setData(prev => ({
-                                                                ...prev, 
-                                                                country_code: val,
-                                                                country: countryObj ? countryObj.value : prev.country
-                                                            }));
-                                                        }}
-                                                        placeholder="Code"
-                                                        labelKey="code"
-                                                        valueKey="code"
-                                                        searchKeys={['code', 'value', 'iso']}
-                                                        renderOption={(option) => (
-                                                            <div className="d-flex align-items-center justify-content-between w-100">
-                                                                <div className="d-flex align-items-center">
-                                                                    <span className="text-white me-2 small">{option.iso}</span>
-                                                                    <span className="text-white fw-bold">{option.code}</span>
-                                                                </div>
-                                                                <span className="text-white-50 small ms-2 text-truncate" style={{maxWidth: '120px'}}>{option.value}</span>
-                                                            </div>
-                                                        )}
-                                                    />
-                                                </div>
-                                                <input 
-                                                    type="tel" 
-                                                    className="tfe-input" 
-                                                    value={data.phone} 
-                                                    onChange={e => handleInputChange('phone', e.target.value)} 
-                                                    required 
-                                                    placeholder="123 456 7890" 
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-6">
                                             <label className="tfe-form-label">Country <span className="text-danger">*</span></label>
                                             <div className="text-white">
                                                 <SearchableSelect
@@ -388,6 +356,48 @@ export default function Register() {
                                                     valueKey="value"
                                                 />
                                                 {errors.country && <div className="invalid-feedback d-block">{errors.country}</div>}
+                                            </div>
+                                        </div>
+                                        {/* Phone gets its own full-width row so the code selector and the
+                                            number input sit side by side without the input wrapping. */}
+                                        <div className="col-12">
+                                            <label className="tfe-form-label">Phone Number <span className="text-danger">*</span></label>
+                                            <div className="d-flex align-items-stretch gap-2">
+                                                <div style={{width: '160px', flex: '0 0 160px'}} className="text-white">
+                                                    <SearchableSelect
+                                                        options={countries}
+                                                        value={data.country_code}
+                                                        onChange={(val) => {
+                                                            const countryObj = countries.find(c => c.code === val);
+                                                            setData(prev => ({
+                                                                ...prev,
+                                                                country_code: val,
+                                                                country: countryObj ? countryObj.value : prev.country
+                                                            }));
+                                                        }}
+                                                        placeholder="Code"
+                                                        labelKey="code"
+                                                        valueKey="code"
+                                                        searchKeys={['code', 'value', 'iso']}
+                                                        renderOption={(option) => (
+                                                            <div className="d-flex align-items-center justify-content-between w-100">
+                                                                <div className="d-flex align-items-center">
+                                                                    <span className="me-2" style={{fontSize: '1.1rem', lineHeight: 1}}>{isoToFlag(option.iso)}</span>
+                                                                    <span className="text-white fw-bold">{option.code}</span>
+                                                                </div>
+                                                                <span className="text-white-50 small ms-2 text-truncate" style={{maxWidth: '110px'}}>{option.value}</span>
+                                                            </div>
+                                                        )}
+                                                    />
+                                                </div>
+                                                <input
+                                                    type="tel"
+                                                    className="tfe-input flex-grow-1"
+                                                    value={data.phone}
+                                                    onChange={e => handleInputChange('phone', e.target.value)}
+                                                    required
+                                                    placeholder="123 456 7890"
+                                                />
                                             </div>
                                         </div>
                                         <div className="col-md-6">
