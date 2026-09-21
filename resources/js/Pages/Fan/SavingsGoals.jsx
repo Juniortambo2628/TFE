@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
+import TfeModal from '@/Components/Common/TfeModal';
 import { formatMoney } from '@/lib/utils';
 import { SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
 import { useTournament } from '@/Context/TournamentContext';
@@ -52,75 +54,84 @@ export default function SavingsGoals({ auth, goals }) {
                 />
 
                 <div className="container px-4 mx-auto -mt-8">
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <span className="text-white/60 text-sm">Total Saved</span>
-                            <h2 className="text-2xl font-bold text-white mt-1">{formatMoney(totalSaved, primaryCurrency)}</h2>
-                        </div>
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <span className="text-white/60 text-sm">Total Target</span>
-                            <h2 className="text-2xl font-bold text-white mt-1">{formatMoney(totalTarget, primaryCurrency)}</h2>
-                        </div>
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <span className="text-white/60 text-sm">Goals</span>
-                            <h2 className="text-2xl font-bold text-white mt-1">{goals.length}</h2>
-                        </div>
-                    </div>
+                    <SummaryTiles
+                        className="mb-4"
+                        items={[
+                            { label: 'Total Saved',  value: formatMoney(totalSaved, primaryCurrency),  icon: 'fa-piggy-bank', accent: 'teal',  subtext: 'Across every goal' },
+                            { label: 'Total Target', value: formatMoney(totalTarget, primaryCurrency), icon: 'fa-bullseye',   accent: 'blue',  subtext: 'What you’re aiming for' },
+                            { label: 'Goals',        value: goals.length,                              icon: 'fa-flag',       accent: 'rose',  subtext: 'Open plans' },
+                        ]}
+                    />
 
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-white">My Goals</h2>
-                        <button onClick={() => setShowForm(!showForm)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
-                            <i className="fas fa-plus mr-2"></i>New Goal
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h2 className="text-xl font-bold text-white m-0">My Goals</h2>
+                        <button
+                            type="button"
+                            onClick={() => setShowForm(true)}
+                            className="tfe-btn tfe-btn--filled"
+                        >
+                            <i className="fas fa-plus me-2"></i> New Goal
                         </button>
                     </div>
 
-                    {showForm && (
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 mb-8">
-                            <h3 className="text-lg font-bold text-white mb-4">Create Savings Goal</h3>
-                            <form onSubmit={submit} className="space-y-4">
-                                <div>
-                                    <label className="block text-white/60 text-sm mb-1">Goal Name</label>
-                                    <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                        placeholder={`e.g. ${tournament?.short_name || 'Tournament'} Tickets Fund`} required />
+                    <TfeModal open={showForm} title="Create savings goal" onClose={() => setShowForm(false)} size="md">
+                        <form onSubmit={submit}>
+                            <div className="tfe-form-field">
+                                <label className="tfe-form-label">Goal name</label>
+                                <input
+                                    type="text"
+                                    className="tfe-input"
+                                    value={form.name}
+                                    onChange={e => setForm({ ...form, name: e.target.value })}
+                                    placeholder={`e.g. ${tournament?.short_name || 'Tournament'} Tickets Fund`}
+                                    required
+                                />
+                            </div>
+                            <div className="row g-3 mt-1">
+                                <div className="col-8">
+                                    <label className="tfe-form-label">Target amount</label>
+                                    <input
+                                        type="number"
+                                        className="tfe-input"
+                                        value={form.target_amount}
+                                        onChange={e => setForm({ ...form, target_amount: e.target.value })}
+                                        placeholder="e.g. 5000"
+                                        required
+                                        min="1000"
+                                    />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="col-span-2">
-                                        <label className="block text-white/60 text-sm mb-1">Target Amount</label>
-                                        <input type="number" value={form.target_amount} onChange={e => setForm({ ...form, target_amount: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                                            placeholder="e.g. 5000" required min="1000" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-white/60 text-sm mb-1">Currency</label>
-                                        <select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500">
-                                            {SUPPORTED_CURRENCIES.map(c => (
-                                                <option key={c.code} value={c.code}>{c.code}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                <div className="col-4">
+                                    <label className="tfe-form-label">Currency</label>
+                                    <select
+                                        className="tfe-select"
+                                        value={form.currency}
+                                        onChange={e => setForm({ ...form, currency: e.target.value })}
+                                    >
+                                        {SUPPORTED_CURRENCIES.map(c => (
+                                            <option key={c.code} value={c.code}>{c.code}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <div>
-                                    <label className="block text-white/60 text-sm mb-1">Target Date (optional)</label>
-                                    <input type="date" value={form.target_date} onChange={e => setForm({ ...form, target_date: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500" />
+                                <div className="col-12">
+                                    <label className="tfe-form-label">Target date <span className="tfe-form-help">(optional)</span></label>
+                                    <input
+                                        type="date"
+                                        className="tfe-input"
+                                        value={form.target_date}
+                                        onChange={e => setForm({ ...form, target_date: e.target.value })}
+                                    />
                                 </div>
-                                <div className="flex gap-3">
-                                    <button type="submit" disabled={processing}
-                                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-                                        {processing ? 'Creating...' : 'Create Goal'}
-                                    </button>
-                                    <button type="button" onClick={() => setShowForm(false)}
-                                        className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    )}
+                            </div>
+                            <div className="d-flex justify-content-end gap-2 mt-4">
+                                <button type="button" className="tfe-btn" onClick={() => setShowForm(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing}>
+                                    {processing ? 'Creating…' : 'Create goal'}
+                                </button>
+                            </div>
+                        </form>
+                    </TfeModal>
 
                     {goals.length === 0 ? (
                         <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-12 text-center">

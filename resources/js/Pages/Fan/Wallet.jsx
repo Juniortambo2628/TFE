@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { cn, formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
@@ -24,69 +25,23 @@ export default function Wallet({ auth, walletData }) {
                 />
 
                 <div className="container px-4 mx-auto -mt-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Main Balance Card */}
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-white/60 text-sm">Escrow Balance</span>
-                                <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
-                                    <i className="fas fa-wallet text-xl"></i>
-                                </div>
-                            </div>
-                            <h2 className="text-3xl font-bold text-white mb-1">
-                                {formatMoney(balance)}
-                            </h2>
-                            <p className="text-green-500 text-sm flex items-center gap-1">
-                                <i className="fas fa-lock"></i> Secured in Escrow
-                            </p>
-                        </div>
+                    <SummaryTiles
+                        items={[
+                            { label: 'Escrow Balance',   value: formatMoney(balance),     icon: 'fa-wallet',           accent: 'teal',   subtext: 'Secured in escrow' },
+                            { label: 'Target Progress',  value: `${Math.round(progress)}%`, icon: 'fa-bullseye',         accent: 'blue',   subtext: `Goal: ${formatMoney(goalTarget)}` },
+                            { label: 'Approved Funding', value: formatMoney(loanBalance), icon: 'fa-hand-holding-usd', accent: 'violet', subtext: 'From partners' },
+                        ]}
+                    />
 
-                        {/* Savings Goal Card */}
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-white/60 text-sm">Target Progress</span>
-                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-                                    <i className="fas fa-bullseye text-xl"></i>
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-end mb-2">
-                                <span className="text-xl font-bold text-white">{Math.round(progress)}%</span>
-                                <span className="text-white/40 text-xs">Goal: {formatMoney(goalTarget)}</span>
-                            </div>
-                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                <div 
-                                    className="h-full bg-blue-500 transition-all duration-1000" 
-                                    style={{ width: `${Math.min(progress, 100)}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Loans Card */}
-                        <div className="bg-zinc-900/50 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-white/60 text-sm">Approved Funding</span>
-                                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
-                                    <i className="fas fa-hand-holding-usd text-xl"></i>
-                                </div>
-                            </div>
-                            <h2 className="text-3xl font-bold text-white mb-1">
-                                {formatMoney(loanBalance)}
-                            </h2>
-                            <Link href={route('fan.loan-applications')} className="text-purple-500 text-sm hover:underline">
-                                Manage financing
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
                         {/* Transaction History */}
                         <div className="lg:col-span-2">
                             <div className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden">
                                 <div className="p-6 border-bottom border-white/5 flex justify-between items-center bg-white/5">
                                     <h3 className="text-white font-semibold">Transaction History</h3>
-                                    <button className="text-white/40 text-sm hover:text-white transition-colors">
+                                    <Link href={route('fan.payments')} className="tfe-btn tfe-btn--sm">
                                         View All
-                                    </button>
+                                    </Link>
                                 </div>
                                 <div className="divide-y divide-white/5">
                                     {transactions && transactions.length > 0 ? (
@@ -129,9 +84,9 @@ export default function Wallet({ auth, walletData }) {
                             <div className="bg-gradient-to-br from-red-600 to-red-800 p-6 rounded-2xl shadow-xl">
                                 <h4 className="text-white font-bold mb-2">Book Your Trip</h4>
                                 <p className="text-white/80 text-sm mb-4">You can now use your escrow balance to book matches and accommodation.</p>
-                                <Link 
+                                <Link
                                     href={route('fan.match-schedule')}
-                                    className="w-full py-2 bg-white text-red-700 rounded-xl font-bold text-center block hover:bg-zinc-100 transition-colors"
+                                    className="tfe-btn tfe-btn--filled w-full"
                                 >
                                     Browse Tickets
                                 </Link>
