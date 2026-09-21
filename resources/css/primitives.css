@@ -590,6 +590,23 @@ textarea.tfe-textarea:disabled {
     cursor: not-allowed;
 }
 
+/* Chrome/Safari autofill paints its own light-yellow/white background over
+   any dark field (login-ish inputs — email, password, name — are the usual
+   victims, which is why they read as "unstyled white boxes"). Pin the dark
+   fill + white ink back on for every dashboard field family in one place. */
+input.tfe-input:-webkit-autofill,
+input.tfe-input:-webkit-autofill:hover,
+input.tfe-input:-webkit-autofill:focus,
+input.dash-input:-webkit-autofill,
+input.dash-input:-webkit-autofill:hover,
+input.dash-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #fff;
+    -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset;
+    box-shadow: 0 0 0 1000px #1a1a1a inset;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+}
+
 textarea.tfe-textarea {
     min-height: 96px;
     resize: vertical;
@@ -649,4 +666,126 @@ textarea.tfe-textarea {
     .tfe-btn:hover:not(:disabled) {
         transform: none;
     }
+}
+
+/* ── .tfe-modal — the one shared dashboard dialog (TfeModal.jsx) ──────────
+   Centered glass panel with a title bar, scrollable body and click-outside
+   / Escape to close. Every create/edit form on the dashboards renders through
+   it so they read as one system. */
+.tfe-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: tfe-modal-fade var(--dur-fast, 0.16s) var(--ease-out, ease);
+}
+
+@keyframes tfe-modal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.tfe-modal {
+    width: min(560px, 100%);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background: #14141a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+    animation: tfe-modal-rise var(--dur-fast, 0.16s) var(--ease-out, ease);
+}
+
+.tfe-modal--sm { width: min(420px, 100%); }
+.tfe-modal--lg { width: min(760px, 100%); }
+
+@keyframes tfe-modal-rise {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+
+.tfe-modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tfe-modal__title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.tfe-modal__body {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.tfe-modal__foot {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ── .tfe-image-upload — shared file picker with preview (ImageUpload.jsx) ── */
+.tfe-image-upload__drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    min-height: 130px;
+    padding: 20px;
+    border: 1.5px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color var(--dur-fast, 0.16s) ease, background var(--dur-fast, 0.16s) ease;
+}
+
+.tfe-image-upload__drop:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tfe-image-upload__drop i { font-size: 1.5rem; }
+.tfe-image-upload__drop span { font-weight: 600; color: #fff; }
+.tfe-image-upload__drop small { font-size: 0.75rem; opacity: 0.7; }
+
+.tfe-image-upload__preview {
+    position: relative;
+    width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tfe-image-upload__preview img {
+    display: block;
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.tfe-image-upload__preview .tfe-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
 }

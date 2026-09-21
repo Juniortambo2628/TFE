@@ -190,7 +190,7 @@ export default function Communication({ threads = [], stats = {} }) {
                                     value={messageForm.data.body}
                                     onChange={(e) => messageForm.setData('body', e.target.value)}
                                     placeholder="Type your message..."
-                                    className="dash-input partner-comm-reply-input"
+                                    className="tfe-input partner-comm-reply-input"
                                 />
                                 <button
                                     type="submit"

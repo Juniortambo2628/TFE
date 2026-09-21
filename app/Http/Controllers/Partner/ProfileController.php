@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,10 @@ class ProfileController extends Controller
             'created_at' => $user->created_at->format('M d, Y'),
             'avatar' => $user->profile?->avatar_path ?? $user->avatar ?? asset('assets/img/avatars/default-avatar.png'),
             'cover_image' => $user->cover_image,
+            // Partner-type label so the page never hard-codes "Travel Partner"
+            // for a finance/airline/sponsor account (single source of truth).
+            'partner_type' => $user->partner_type,
+            'partner_type_label' => AdminPartnerController::partnerTypes()[$user->partner_type] ?? 'Partner',
         ];
 
         return Inertia::render('Partner/Profile', [

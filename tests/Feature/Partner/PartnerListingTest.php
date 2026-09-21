@@ -53,45 +53,67 @@ class PartnerListingTest extends TestCase
         $this->assertSame('My Listing', $listings[0]['name']);
     }
 
-    public function test_partner_can_create_a_listing_as_draft(): void
+    public function test_partner_creating_a_listing_publishes_it_immediately(): void
     {
         $me = $this->partner();
 
+        // No review step: a saved package listing goes live (approved + active).
         $this->actingAs($me)->post(route('partner.listings.store'), [
             'tournament_id' => 'afcon_2027',
+            'type' => 'package',
             'name' => 'Weekend in Lagos',
             'base_price' => 1200,
             'currency' => 'USD',
             'nights' => 3,
             'flight_class' => 'economy',
             'accommodation_level' => '3_star',
-            'moderation_status' => 'draft',
-        ])->assertRedirect();
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('listings', [
             'name' => 'Weekend in Lagos',
             'publisher_id' => $me->id,
             'publisher_type' => User::class,
-            'moderation_status' => 'draft',
-            'is_active' => false,
+            'moderation_status' => 'approved',
+            'is_active' => true,
         ]);
     }
 
-    public function test_partner_submitting_flips_status_to_pending_and_stamps_submitted_at(): void
+    public function test_partner_can_create_an_offer_without_trip_fields(): void
+    {
+        // A finance/airline/betting "offer" isn't forced to supply nights,
+        // flight class or accommodation (contextual create form).
+        $me = $this->partner(['partner_type' => 'finance_partner']);
+
+        $this->actingAs($me)->post(route('partner.listings.store'), [
+            'tournament_id' => 'afcon_2027',
+            'type' => 'offer',
+            'name' => 'Trip financing — 12 months',
+            'base_price' => 99,
+            'currency' => 'USD',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('listings', [
+            'name' => 'Trip financing — 12 months',
+            'type' => 'offer',
+            'moderation_status' => 'approved',
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_partner_can_toggle_a_listing_between_published_and_hidden(): void
     {
         $me = $this->partner();
         $listing = Listing::factory()->create([
             'publisher_type' => User::class,
             'publisher_id' => $me->id,
-            'moderation_status' => 'draft',
-            'submitted_at' => null,
+            'is_active' => true,
         ]);
 
-        $this->actingAs($me)->post(route('partner.listings.submit', $listing->id))->assertRedirect();
+        $this->actingAs($me)->post(route('partner.listings.toggle', $listing->id))->assertRedirect();
+        $this->assertFalse($listing->fresh()->is_active);
 
-        $listing->refresh();
-        $this->assertSame('pending', $listing->moderation_status);
-        $this->assertNotNull($listing->submitted_at);
+        $this->actingAs($me)->post(route('partner.listings.toggle', $listing->id))->assertRedirect();
+        $this->assertTrue($listing->fresh()->is_active);
     }
 
     public function test_partner_cannot_touch_another_partners_listing(): void
@@ -101,11 +123,10 @@ class PartnerListingTest extends TestCase
         $theirs = Listing::factory()->create([
             'publisher_type' => User::class,
             'publisher_id' => $them->id,
-            'moderation_status' => 'draft',
         ]);
 
         $this->actingAs($me)
-            ->post(route('partner.listings.submit', $theirs->id))
+            ->post(route('partner.listings.toggle', $theirs->id))
             ->assertForbidden();
 
         $this->actingAs($me)
@@ -124,6 +145,7 @@ class PartnerListingTest extends TestCase
 
         $this->actingAs($me)->put(route('partner.listings.update', $listing->id), [
             'tournament_id' => $listing->tournament_id,
+            'type' => $listing->type,
             'name' => $listing->name,
             'base_price' => $listing->base_price,
             'currency' => $listing->currency,

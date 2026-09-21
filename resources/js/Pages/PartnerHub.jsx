@@ -141,7 +141,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                         ) : (
                             <div className="row g-4" style={{ paddingBottom: '96px' }}>
                                 {listings.map((l) => (
-                                    <div key={l.id} className="col-md-6 col-lg-4">
+                                    <div key={l.id} className="col-md-6 col-lg-4 col-xl-3">
                                         <AccentCard
                                             LinkComponent={Link}
                                             href={route('fan.packages.show', l.id)}

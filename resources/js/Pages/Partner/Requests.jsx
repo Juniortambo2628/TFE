@@ -101,7 +101,7 @@ export default function Requests({ budgets = [], stats = {} }) {
                         placeholder="Search by ID or Fan..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="dash-input partner-search-input"
+                        className="tfe-input partner-search-input"
                     />
                 </div>
             </div>

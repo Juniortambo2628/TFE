@@ -381,7 +381,7 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
     Route::get('/listings/fixtures', [ListingController::class, 'fixtures'])->name('listings.fixtures');
     Route::post('/listings', [ListingController::class, 'store'])->name('listings.store');
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
-    Route::post('/listings/{listing}/submit', [ListingController::class, 'submit'])->name('listings.submit');
+    Route::post('/listings/{listing}/toggle', [ListingController::class, 'toggle'])->name('listings.toggle');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
 
     // Sprint 10 — Measure tab: per-partner analytics.

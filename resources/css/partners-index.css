@@ -151,8 +151,21 @@
 
 .partners-index-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    /* 4-up on desktop, stepping down to 3 / 2 / 1 on narrower viewports. */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.5rem;
+}
+
+@media (max-width: 1199.98px) {
+    .partners-index-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+    .partners-index-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575.98px) {
+    .partners-index-grid { grid-template-columns: 1fr; }
 }
 
 .partners-index-empty {

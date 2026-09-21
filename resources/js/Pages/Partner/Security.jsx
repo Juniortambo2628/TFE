@@ -107,7 +107,7 @@ export default function Security({ security_settings }) {
                                 type="password"
                                 value={data.current_password}
                                 onChange={(e) => setData('current_password', e.target.value)}
-                                className="dash-input"
+                                className="tfe-input"
                                 required
                                 disabled={processing}
                             />
@@ -120,7 +120,7 @@ export default function Security({ security_settings }) {
                                 type="password"
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
-                                className="dash-input"
+                                className="tfe-input"
                                 required
                                 disabled={processing}
                             />
@@ -133,7 +133,7 @@ export default function Security({ security_settings }) {
                                 type="password"
                                 value={data.password_confirmation}
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
-                                className="dash-input"
+                                className="tfe-input"
                                 required
                                 disabled={processing}
                             />
@@ -190,7 +190,7 @@ export default function Security({ security_settings }) {
                             value={passkeyForm.data.name}
                             onChange={(e) => passkeyForm.setData('name', e.target.value)}
                             placeholder="Passkey name (e.g. My iPhone)"
-                            className="dash-input partner-passkey-input-name"
+                            className="tfe-input partner-passkey-input-name"
                             disabled={passkeyForm.processing}
                         />
                         <button onClick={addPasskey} disabled={passkeyForm.processing} className="partner-passkey-btn-add">

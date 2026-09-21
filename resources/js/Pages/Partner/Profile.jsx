@@ -89,7 +89,7 @@ export default function Profile({ profile }) {
                             <h3 className="dash-text-primary dash-no-margin">{profile.name}</h3>
                             <p className="dash-text-muted dash-no-margin dash-text-base">{profile.email}</p>
                             <span className="dash-badge dash-badge-warning partner-badge-margin">
-                                Travel Partner
+                                {profile.partner_type_label || 'Partner'}
                             </span>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export default function Profile({ profile }) {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="dash-input"
+                                    className="tfe-input"
                                     disabled={processing}
                                 />
                             ) : (
@@ -135,7 +135,7 @@ export default function Profile({ profile }) {
                                     type="text"
                                     value={data.phone}
                                     onChange={(e) => setData('phone', e.target.value)}
-                                    className="dash-input"
+                                    className="tfe-input"
                                     placeholder="+254 700 000 000"
                                     disabled={processing}
                                 />
@@ -153,7 +153,7 @@ export default function Profile({ profile }) {
                                     type="text"
                                     value={data.company_name}
                                     onChange={(e) => setData('company_name', e.target.value)}
-                                    className="dash-input"
+                                    className="tfe-input"
                                     placeholder="Your travel company name"
                                     disabled={processing}
                                 />
@@ -170,7 +170,7 @@ export default function Profile({ profile }) {
                                 <textarea
                                     value={data.company_address}
                                     onChange={(e) => setData('company_address', e.target.value)}
-                                    className="dash-textarea dash-min-h-80"
+                                    className="tfe-textarea"
                                     placeholder="Enter your company address"
                                     disabled={processing}
                                 />
@@ -192,7 +192,7 @@ export default function Profile({ profile }) {
                                         type="text"
                                         value={data.avatar}
                                         onChange={(e) => setData('avatar', e.target.value)}
-                                        className="dash-input"
+                                        className="tfe-input"
                                         placeholder="https://example.com/avatar.png"
                                     />
                                 </div>
@@ -201,7 +201,7 @@ export default function Profile({ profile }) {
                                     <input
                                         type="file"
                                         onChange={(e) => setData('cover_image', e.target.files[0])}
-                                        className="dash-input"
+                                        className="tfe-input"
                                         accept="image/*"
                                     />
                                     <p className="dash-helper-text">Recommended size: 1200x400px</p>
@@ -237,7 +237,7 @@ export default function Profile({ profile }) {
                         </div>
                         <div>
                             <span className="dash-info-label">Account Type</span>
-                            <p className="accent-partner dash-info-value">Travel Partner</p>
+                            <p className="accent-partner dash-info-value">{profile.partner_type_label || 'Partner'}</p>
                         </div>
                     </div>
                 </div>
