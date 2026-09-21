@@ -9,6 +9,15 @@
     overflow-x: hidden;
 }
 
+/* Standalone section pages: clear the fixed header so the section's badge
+   and title aren't hidden behind it. */
+.section-page-spacer {
+    height: 96px;
+}
+@media (max-width: 576px) {
+    .section-page-spacer { height: 80px; }
+}
+
 /* ── Section Base ── */
 .landing-section {
     min-height: 100vh;
@@ -345,9 +354,15 @@
         padding: 0 1.5rem;
     }
 
-    /* Reset asymmetric padding on mobile (both split variants use same padding) */
+    /* Collapse BOTH split variants to a single column on mobile. The
+       split-reverse desktop rule sets a 2-column grid at specificity
+       (0,3,0); media queries don't add specificity, so we must re-assert
+       the single-column grid at matching specificity here or the reversed
+       sections never stack (cards bleed off the left edge). */
     .landing-section.section-split .landing-section-inner,
     .landing-section.section-split-reverse .landing-section-inner {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
         padding-left: 1.5rem;
         padding-right: 1.5rem;
     }
@@ -359,11 +374,19 @@
     .landing-section.section-split-reverse .section-header-reverse {
         padding-right: 0;
         padding-left: 0;
+        /* Info first, cards below — same order as the normal sections
+           (DOM order for split-reverse is cards-then-header). */
+        order: -1;
     }
 
-    /* Reset reversed scroll direction on mobile — single column layout */
+    /* On mobile the reversed track behaves like the normal one: cards
+       anchored to the left gutter, fade on the right to signal scroll. */
     .landing-section.section-split-reverse .cards-track-reverse {
         direction: ltr;
+        padding-left: 0.5rem;
+        padding-right: 0;
+        mask-image: linear-gradient(to left, transparent 0%, black 8%, black 100%);
+        -webkit-mask-image: linear-gradient(to left, transparent 0%, black 8%, black 100%);
     }
 
     .landing-section .cards-track {

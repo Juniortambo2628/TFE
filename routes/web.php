@@ -48,7 +48,19 @@ use App\Http\Controllers\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
-Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+
+// News JSON API — consumed by the News section via the Ziggy route name
+// (name kept as news.index so `route('news.index')` still resolves). Path
+// moved under /api so the public /news page below can own the /news URL.
+Route::get('/api/news', [NewsController::class, 'index'])->name('news.index');
+
+// Public section pages — each mirrors the landing structure (header + the
+// section + footer) so the landing page stays light. Nav links point here.
+Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::get('/features', [HomeController::class, 'features'])->name('features');
+Route::get('/services', [HomeController::class, 'services'])->name('services');
+Route::get('/news', [HomeController::class, 'news'])->name('news');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
 // Public Partner directory + hub — no auth needed. Sprint 11 added
 // the index; the {slug} hub predates it.

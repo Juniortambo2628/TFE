@@ -6,11 +6,6 @@ import '../../css/hero-enhancements.css';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import Hero from '@/Components/Hero';
-import About from '@/Components/About';
-import Features from '@/Components/Features';
-import Services from '@/Components/Services';
-import News from '@/Components/News';
-import Contact from '@/Components/Contact';
 
 import Testimonials from '@/Components/Landing/Testimonials';
 import TournamentCompare from '@/Components/Landing/TournamentCompare';
@@ -106,9 +101,8 @@ export default function Home({ appName }) {
                     <AdPlaceholder position="horizontal" />
               </div>
 
-                <About variant="split" />
-                <Features variant="split-reverse" />
-                <Services variant="split" />
+                {/* About / Features / Services / News / Contact now live on their
+                    own routes (linked from the nav) to keep the landing light. */}
 
                 {/* Compare-tournaments widget — helps fans pick which one to plan */}
                 <TournamentCompare />
@@ -142,8 +136,6 @@ export default function Home({ appName }) {
                     <AdPlaceholder position="horizontal" />
               </div>
 
-                <News variant="split-reverse" />
-                <Contact />
                 <Testimonials />
                 <PartnerCarousel />
 
