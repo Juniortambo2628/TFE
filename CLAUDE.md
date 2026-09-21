@@ -126,6 +126,17 @@ alias is registered at the bottom of `Listing.php`.
 Fan-facing surfaces (PartnerHub grid, BudgetCalculator picker) filter to
 `approved + active`. Admin approve/reject fires `ListingModerationNotification`.
 
+**Sprint 42 — partner listings no longer go through review.** A partner saving
+a listing (`Partner/ListingController::store`) publishes it immediately:
+`moderation_status = approved`, and `is_active` (the Published/Hidden toggle,
+route `partner.listings.toggle`) is the partner's own visibility switch. The
+create/edit form (`Partner/Listings.jsx`, in a `TfeModal`) is contextual by
+`type` — trip fields (nights/flight_class/accommodation) only show for
+Package/Tour and are `required_if:type` server-side; the default type is
+seeded from `partner_type` (`DEFAULT_TYPE` map). The admin approval queue
+(`/admin/listing-approvals`) still exists and works, but partner-authored rows
+no longer land there by default.
+
 `publisherSummary()` returns the compact `{slug, display_name, logo_url,
 theme_accent, verified}` block that `PoweredByBadge` renders. Null for
 admin-authored rows. Always eager-load with
@@ -559,7 +570,21 @@ new card / table / list CSS:
   form and its submit share visual weight. Size modifier `--sm`
   for inline filter rows. Helpers: `.tfe-form-label`,
   `.tfe-form-help`, `.tfe-form-error`, `.tfe-form-field` (vertical
-  stack, standard 16px gap between fields).
+  stack, standard 16px gap between fields), `.tfe-form-section`
+  (a titled divider inside a form), `.tfe-color-swatch`, `.tfe-check`.
+  A global `-webkit-autofill` guard (primitives.css) keeps Chrome/Safari
+  from painting login-ish fields white over the dark fill.
+- **`TfeModal`** (Sprint 42, `Components/Common/TfeModal.jsx`) — the ONE
+  shared dashboard dialog. Centered glass panel (`.tfe-modal*`), Escape +
+  click-outside to close, `size="sm|md|lg"`. Every create/edit form on the
+  dashboards (partner listing form, partner Profile editor) renders through
+  it — don't hand-roll a new overlay.
+- **`ImageUpload`** (Sprint 42, `Components/Common/ImageUpload.jsx`) — file
+  picker with live preview (`.tfe-image-upload*`), replacing bare "image URL"
+  text fields. Accepts jpg/png/webp only (matches the server
+  `mimes:jpg,jpeg,png,webp` rule). Parent posts the File with
+  `forceFormData`; the controller stores it and keeps the string field as a
+  fallback for existing URLs.
 
 ### PurgeCSS safelist gotcha
 
@@ -754,6 +779,7 @@ tests/
 | 29     | Budget currency propagates to Booking + Journey render |
 | 30     | Multicurrency reaches SavingsGoals + LoanApplications displays |
 | 41     | Contact-form dialogs, gated header switcher, hero declutter, airline + betting partners & seeded offerings |
+| 42     | Partner dashboard polish: 4-col partner grids, self-serve branding editor, publish-on-save + contextual listing form, TfeModal + ImageUpload primitives, Dribbble-inspired admin dashboard restructure |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 
