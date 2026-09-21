@@ -5,9 +5,21 @@ import '../../css/tournament-switcher.css';
 import '../../css/header.css';
 
 export default function Header() {
-    const { assetUrl } = usePage().props;
+    const page = usePage();
+    const { assetUrl } = page.props;
     const logo = (assetUrl || '') + 'assets/img/logo/TFE-logo.png';
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // The tournament switcher belongs only on surfaces where switching makes
+    // sense: the landing page (switch active tournament) and a single-view
+    // tournament page (navigate to the picked tournament's page). Elsewhere
+    // — the section/partner pages that share this Header — it's hidden.
+    // (The fan dashboard uses its own DashboardHeader, not this component.)
+    const switcherVariant = page.component === 'Home'
+        ? 'landing'
+        : page.component === 'Tournaments/Show'
+            ? 'tournament'
+            : null;
 
     const navLinks = [
         { label: 'About', href: route('about') },
@@ -45,7 +57,7 @@ export default function Header() {
 
                     {/* Right cluster: tournament switcher + Sign In + mobile toggler */}
                     <div className="tfe-header-actions d-flex align-items-center gap-3 ms-auto">
-                        <TournamentSwitcher />
+                        {switcherVariant && <TournamentSwitcher variant={switcherVariant} />}
 
                         <Link href={route('login')} className="tfe-btn tfe-btn--filled d-none d-lg-inline-flex">
                             <span>Sign In</span>

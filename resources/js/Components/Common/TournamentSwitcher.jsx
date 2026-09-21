@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
 // Sprint 32 — the landing switcher CSS was only bundled with the
 // public Header. Import it here so the dashboard variant can reuse the
@@ -14,7 +15,10 @@ const STATUS_COLORS = {
 /**
  * Unified tournament switcher dropdown.
  *
- * @param {"landing"|"dashboard"} variant - Visual variant
+ * @param {"landing"|"dashboard"|"tournament"} variant - Visual/behaviour variant.
+ *   - landing / dashboard: switch the active tournament in place (query param).
+ *   - tournament: navigate to the selected tournament's single-view page
+ *     (/tournaments/{slug}) instead of switching context in place.
  */
 export default function TournamentSwitcher({ variant = 'landing' }) {
     const { tournament, tournamentList, switchTournament, isActive } = useTournament();
@@ -22,6 +26,7 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
     const ref = useRef(null);
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
     const isLanding = variant === 'landing';
+    const isTournamentPage = variant === 'tournament';
 
     useEffect(() => {
         if (!open) return;
@@ -44,12 +49,16 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
         ) : null;
     }
 
-    const handleSwitch = (id) => {
+    const handleSwitch = (item) => {
         setOpen(false);
-        if (isLanding) {
-            switchTournament(id);
+        if (isTournamentPage) {
+            // On a single-view tournament page, switching means going to that
+            // tournament's own page rather than changing session context.
+            router.visit(`/tournaments/${item.slug}`);
+        } else if (isLanding) {
+            switchTournament(item.id);
         } else {
-            switchTournament(id, currentPath);
+            switchTournament(item.id, currentPath);
         }
     };
 
@@ -84,7 +93,7 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
                         <li key={item.id} role="none">
                             <button
                                 className={`tournament-switcher-item${isActive?.(item.id) ? ' active' : ''}`}
-                                onClick={() => handleSwitch(item.id)}
+                                onClick={() => handleSwitch(item)}
                                 role="menuitem"
                                 type="button"
                             >

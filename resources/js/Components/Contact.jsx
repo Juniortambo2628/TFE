@@ -57,7 +57,9 @@ export default function Contact({ hideHeader = false }) {
                         onClick: handleClick,
                         modalData: {
                             description: card.description,
-                            cta: { label: 'Send a Message', href: 'mailto:hello@tfe.okjtech.co.ke' },
+                            // Render the working contact form in the dialog,
+                            // pre-filling the subject with this card's intent.
+                            form: { subject: card.title },
                         },
                     });
                 })}

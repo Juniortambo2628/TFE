@@ -180,8 +180,9 @@ function Offerings({ listings = [], accent, baseUrl }) {
                             <AccentCard
                                 LinkComponent={Link}
                                 href="/register"
-                                accent={accent}
+                                accent={l.publisher?.theme_accent || accent}
                                 artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
+                                eyebrow={l.publisher ? `By ${l.publisher.display_name}` : undefined}
                                 title={l.name}
                                 desc={l.description}
                                 meta={[{ label: 'From', value: formatMoney(l.base_price, l.currency) }]}

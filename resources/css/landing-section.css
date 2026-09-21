@@ -588,6 +588,44 @@
     margin-top: 0;
 }
 
+/* Contact form inside the dialog (data.form). Fields reuse .tfe-input /
+   .tfe-textarea primitives; this only lays out the stack + success state. */
+.landing-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+.landing-modal-form .tfe-form-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.landing-modal-form .tfe-btn {
+    margin-top: 0.25rem;
+    align-self: flex-start;
+}
+
+.landing-modal-sent {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: auto;
+    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    background: rgba(22, 163, 74, 0.14);
+    border: 1px solid rgba(22, 163, 74, 0.4);
+    color: #d1fae5;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.landing-modal-sent i {
+    font-size: 1.4rem;
+    color: #34d399;
+}
+
 .landing-modal-partner {
     display: inline-flex;
     align-items: center;

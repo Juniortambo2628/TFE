@@ -61,6 +61,7 @@ Route::get('/features', [HomeController::class, 'features'])->name('features');
 Route::get('/services', [HomeController::class, 'services'])->name('services');
 Route::get('/news', [HomeController::class, 'news'])->name('news');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact', [HomeController::class, 'contactStore'])->name('contact.store');
 
 // Public single-view tournament pages (recap for past, plan-your-trip for
 // upcoming). Reached by slug, e.g. /tournaments/afcon-2027.
