@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
+import GlassPill from '@/Components/Common/GlassPill';
 import '../../../css/tournament-compare.css';
 
 /**
@@ -74,16 +75,14 @@ export default function TournamentCompare() {
                                     <img src={trophy} alt="" aria-hidden="true" className="tc-card__trophy" loading="lazy" />
                                 )}
 
-                                <span
-                                    className="tc-card__status"
-                                    style={{ background: t.statusBadge.bg, color: t.statusBadge.fg }}
-                                >
-                                    <span className="tc-dot" />
-                                    {t.status}
-                                </span>
+                                <GlassPill size="sm" className="tc-card__status">{t.status}</GlassPill>
 
                                 <h3 className="tc-card__name">{t.name}</h3>
-                                <div className="tc-card__hosts">{(t.hosts || []).join(' · ')}</div>
+                                <div className="tc-card__hosts">
+                                    {(t.hosts || []).map((host) => (
+                                        <GlassPill key={host} size="sm">{host}</GlassPill>
+                                    ))}
+                                </div>
 
                                 <div className="tc-card__meta">
                                     <div>
@@ -98,10 +97,10 @@ export default function TournamentCompare() {
                                     </div>
                                 </div>
 
-                                <span className="tc-card__cta" style={{ color: t.cta.color }}>
+                                <GlassPill className="tc-card__cta">
                                     {t.cta.label}
                                     {!t.isActive && <i className="fas fa-arrow-right" />}
-                                </span>
+                                </GlassPill>
                             </a>
                         );
                     })}

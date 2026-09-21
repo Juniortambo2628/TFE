@@ -6,6 +6,7 @@ import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
 import HeroWorldMap from '@/Components/HeroWorldMap';
 import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
+import GlassPill from '@/Components/Common/GlassPill';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -423,9 +424,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     <div className="d-flex align-items-center gap-2 flex-wrap justify-content-center justify-content-xl-end w-100">
                                         <i className="fas fa-map-marker-alt text-danger"></i>
                                         {tournament.hosts.map((host, idx) => (
-                                            <span key={idx} className="hero-glass-badge px-2 py-1 rounded-pill" style={{ fontSize: '0.75rem' }}>
-                                                {host}
-                                            </span>
+                                            <GlassPill key={idx} size="sm">{host}</GlassPill>
                                         ))}
                                     </div>
                                 )}
