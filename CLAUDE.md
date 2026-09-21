@@ -586,6 +586,28 @@ new card / table / list CSS:
   `forceFormData`; the controller stores it and keeps the string field as a
   fallback for existing URLs.
 
+### Dashboard layout conventions (Sprint 43)
+
+- Every role/dashboard page uses the shared **`DashboardHero`** (stadium hero,
+  `role=` + `breadcrumbs=`) — never a bespoke `partner-hero` /
+  `dash-section-title` header. A page can pass `bgImage=` to brand the hero
+  (e.g. the partner Profile passes the partner's `hero_image`).
+- Summary rows use **`SummaryTiles`** (→ `StatCard` → `.tfe-tile`). `.tfe-tile`
+  renders its icon as a large faded side-glyph (`.tfe-tile__icon`), matching
+  the partner-hub "How we support" cards. **StatCard no longer reads the CMS** —
+  the `type="visual"` / `bg_card_*` background-image path was removed so admin
+  CMS customization is limited to public pages. The old "Visual Cards" tab is
+  gone from Admin → Settings.
+- All tables use **`.tfe-table`** (wrap in `.table-responsive`); the header row
+  has no fill or divider. Empty states use **`.tfe-empty`**.
+- The sidebar brand card (`AppSidebar`) has **no circular avatar** — the
+  member's avatar fills the card as a faded background over the accent gradient
+  (`.tfe-sidebar-brand`, fed `--sidebar-accent` + `--sidebar-avatar` vars).
+- **No inline `style` props for colour/background/spacing** on dashboard
+  surfaces — use a class or a CSS variable (the only inline styles left are
+  dynamic CSS *variables* like `--sidebar-avatar`, `--dash-hero-bg-image`,
+  `--partner-accent`).
+
 ### PurgeCSS safelist gotcha
 
 `postcss.config.js` runs `@fullhuman/postcss-purgecss` in prod
@@ -780,6 +802,7 @@ tests/
 | 30     | Multicurrency reaches SavingsGoals + LoanApplications displays |
 | 41     | Contact-form dialogs, gated header switcher, hero declutter, airline + betting partners & seeded offerings |
 | 42     | Partner dashboard polish: 4-col partner grids, self-serve branding editor, publish-on-save + contextual listing form, TfeModal + ImageUpload primitives, Dribbble-inspired admin dashboard restructure |
+| 43     | Unified partner dashboard layout (shared DashboardHero + .tfe-table everywhere), summary tiles restyled to the hub "support" cards, sidebar avatar → faded brand background, CMS pruned to public pages only |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 
