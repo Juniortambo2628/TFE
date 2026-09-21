@@ -47,6 +47,49 @@
     min-height: 210px;
 }
 
+/* Organizer watermark / brand visual, painted behind the accent wash and
+   content (e.g. the CAF / FIFA / UEFA card background on the hero card). */
+.tfe-acard__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: -2;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Round "+" affordance pinned top-right (landing section cards open their
+   info dialog). Sits above artwork/cover and content. */
+.tfe-acard__corner-btn {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    z-index: 3;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tfe-acard__corner-btn:hover {
+    background: color-mix(in srgb, var(--acard-accent) 80%, black 10%);
+    border-color: color-mix(in srgb, var(--acard-accent) 70%, transparent);
+    transform: rotate(90deg);
+}
+
 /* Accent wash keyed off the card's brand */
 .tfe-acard::before {
     content: '';

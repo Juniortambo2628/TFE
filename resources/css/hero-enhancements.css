@@ -63,6 +63,23 @@
     z-index: 5;
     pointer-events: none;
 }
+
+/* Push the hero content (world map + tournament card, then the stats row)
+   below the absolutely-positioned top bar so the stadium badge and flag
+   carousel never overlap the tournament card. Padding is always reserved,
+   so vertical centering can't pull the content back up under the top bar. */
+.hero-content-stack {
+    padding-top: 130px;
+}
+@media (min-width: 1200px) {
+    .hero-content-stack { padding-top: 148px; }
+}
+@media (max-width: 991px) {
+    .hero-content-stack { padding-top: 118px; }
+}
+@media (max-width: 575px) {
+    .hero-content-stack { padding-top: 100px; }
+}
 .hero-top-bar-inner {
     pointer-events: auto;
     flex-wrap: nowrap;
