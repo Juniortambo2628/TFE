@@ -1,7 +1,7 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
@@ -37,59 +37,13 @@ export default function Analytics({
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Dashboard Stats */}
-            <div className="admin-visual-cards mb-4" style={{ overflow: 'visible', flexWrap: 'wrap' }}>
-                <StatCard 
-                    type="visual"
-                    label="Calculator Uses" 
-                    value={stats.total_calc_uses} 
-                    icon="fas fa-calculator"
-                    bgType="analytics"
-                    settingsKey="bg_card_analytics_calc_uses"
-                    image="/assets/images/bgimage01.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Market Potential Avg" 
-                    value={formatMoney(stats.avg_calc_cost)} 
-                    icon="fas fa-search-dollar"
-                    bgType="analytics"
-                    settingsKey="bg_card_analytics_avg_potential"
-                    image="/assets/images/bgimage02.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Itineraries Saved" 
-                    value={stats.total_saved} 
-                    icon="fas fa-save"
-                    bgType="analytics"
-                    settingsKey="bg_card_analytics_saved_itins"
-                    image="/assets/images/bgimage03.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Actual Conversion Avg" 
-                    value={formatMoney(stats.avg_itinerary_cost)} 
-                    icon="fas fa-chart-line"
-                    bgType="analytics"
-                    settingsKey="bg_card_analytics_avg_conversion"
-                    image="/assets/images/bgimage04.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Quote Value Variance" 
-                    value={formatMoney(totalPriceDifference)} 
-                    icon="fas fa-hand-holding-usd"
-                    bgType="analytics"
-                    settingsKey="bg_card_analytics_variance"
-                    image="/assets/images/bgimage08.jpg"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles items={[
+                { label: 'Calculator Uses', value: stats.total_calc_uses, icon: 'fa-calculator', accent: 'blue' },
+                { label: 'Market Potential Avg', value: formatMoney(stats.avg_calc_cost), icon: 'fa-search-dollar', accent: 'teal' },
+                { label: 'Itineraries Saved', value: stats.total_saved, icon: 'fa-save', accent: 'cyan' },
+                { label: 'Actual Conversion Avg', value: formatMoney(stats.avg_itinerary_cost), icon: 'fa-chart-line', accent: 'violet' },
+                { label: 'Quote Value Variance', value: formatMoney(totalPriceDifference), icon: 'fa-hand-holding-usd', accent: 'amber' },
+            ]} className="mb-4" />
 
             <div className="row g-4">
                 {/* Usage Comparison Chart */}

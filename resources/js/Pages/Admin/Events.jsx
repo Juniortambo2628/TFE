@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import AdminCategoryCard from '@/Components/Admin/AdminCategoryCard';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
@@ -126,36 +126,11 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                 }}
             />
 
-            {/* Dashboard Stats */}
-            <div className="admin-visual-cards mb-4 dash-visual-cards">
-                <StatCard 
-                    type="visual"
-                    label="Total Events" 
-                    value={stats.total || eventsList.length} 
-                    icon="fas fa-calendar-alt"
-                    bgType="events"
-                    settingsKey="bg_card_events_total"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Upcoming" 
-                    value={stats.upcoming || 0} 
-                    icon="fas fa-clock"
-                    bgType="events"
-                    settingsKey="bg_card_events_upcoming"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Attendees" 
-                    value={stats.attendees || 0} 
-                    icon="fas fa-users"
-                    bgType="events"
-                    settingsKey="bg_card_events_attendees"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles items={[
+                { label: 'Total Events', value: stats.total || eventsList.length, icon: 'fa-calendar-alt', accent: 'blue' },
+                { label: 'Upcoming', value: stats.upcoming || 0, icon: 'fa-clock', accent: 'amber' },
+                { label: 'Attendees', value: stats.attendees || 0, icon: 'fa-users', accent: 'teal' },
+            ]} className="mb-4" />
 
             <div className="admin-visual-cards mb-4 dash-visual-cards">
                 {categories.map(cat => (
@@ -168,7 +143,6 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                         image={cat.image}
                         active={selectedCategory === cat.key}
                         onClick={() => setSelectedCategory(cat.key)}
-                        settingsKey={`bg_card_events_cat_${cat.key}`}
                     />
                 ))}
             </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -85,24 +85,10 @@ export default function Prizes({ auth, prizes = [] }) {
                 }}
             />
 
-            <div className="admin-visual-cards mb-4">
-                <StatCard 
-                    type="visual"
-                    label="Active Prizes" 
-                    value={prizes.filter(p => p.active).length} 
-                    icon="fas fa-trophy"
-                    bgType="events"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Total Value" 
-                    value={`KES ${new Intl.NumberFormat().format(prizes.reduce((acc, p) => acc + parseFloat(p.value || 0), 0))}`} 
-                    icon="fas fa-coins"
-                    bgType="payments"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles items={[
+                { label: 'Active Prizes', value: prizes.filter(p => p.active).length, icon: 'fa-trophy', accent: 'amber' },
+                { label: 'Total Value', value: `KES ${new Intl.NumberFormat().format(prizes.reduce((acc, p) => acc + parseFloat(p.value || 0), 0))}`, icon: 'fa-coins', accent: 'teal' },
+            ]} className="mb-4" />
 
             <div className="admin-card-dark">
                 <div className="card-header">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { Head, router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -160,32 +160,11 @@ export default function Products({ auth, products, stats }) {
                 }}
             />
 
-            <div className="admin-visual-cards mb-4">
-                <StatCard 
-                    type="visual"
-                    label="Total Items" 
-                    value={stats.total} 
-                    icon="fas fa-boxes"
-                    bgType="events"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Out of Stock" 
-                    value={stats.out_of_stock} 
-                    icon="fas fa-exclamation-triangle"
-                    bgType="dashboard"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Inventory Value" 
-                    value={`KES ${new Intl.NumberFormat().format(stats.total_value)}`} 
-                    icon="fas fa-coins"
-                    bgType="payments"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles items={[
+                { label: 'Total Items', value: stats.total, icon: 'fa-boxes', accent: 'blue' },
+                { label: 'Out of Stock', value: stats.out_of_stock, icon: 'fa-exclamation-triangle', accent: 'red' },
+                { label: 'Inventory Value', value: `KES ${new Intl.NumberFormat().format(stats.total_value)}`, icon: 'fa-coins', accent: 'teal' },
+            ]} className="mb-4" />
 
             <div className="admin-card-dark">
                 <div className="card-header">
