@@ -590,9 +590,34 @@ The hero tournament card's background watermark comes from
 in the CMS via `SiteSetting` key `tournament_card_bg_{id}` (wired through
 `TournamentService::loadOverrides` + `assemble`, exposed as
 `tournament.organizer_card_bg`). Files live in
-`public/tournament-organizers-card-visuals/` (see its README) and **must be
-committed** to deploy — a missing file is hidden gracefully via `onError`
-on `AccentCard`'s `bgImage`, so it never shows a broken image.
+`public/tournament-organizers-card-visuals/` (see its README; the CAF/FIFA/UEFA
+files are `.png`) and **must be committed** to deploy — a missing file is
+hidden gracefully via `onError` on `AccentCard`'s `bgImage`, so it never shows
+a broken image. Changing a tournament's config (e.g. this path) needs the
+`TournamentService` cache cleared — `php artisan cache:clear` or the admin
+**Settings → Refresh tournaments** button — since the payload is cached 24h.
+
+### Tournament single-view pages
+
+`/tournaments/{slug}` (`HomeController@tournament`, name `tournaments.show`)
+renders `Pages/Tournaments/Show.jsx` through `SectionPageShell` + `PageHero`.
+The hero background is the organiser visual (`organizer_card_bg`) with the
+tournament's `trophy_image` floating large on the right (PageHero `media`
+prop + `page-hero--split` horizontal gradient so the brand stays visible).
+
+- **Concluded**: recap — stat tiles, highlights (champion / runner-up /
+  `top_scorer` / `player_of_tournament`), participating teams (flags), and a
+  closing CTA to the next upcoming tournament.
+- **Upcoming**: sign-up + plan-your-trip CTAs, then offerings — approved
+  active `Listing`s for that tournament as `AccentCard`s (same shape as the
+  partner hub; falls back to curated Budget/Financing/Partners cards when a
+  tournament has no listings), plus the teams grid.
+
+`player_of_tournament` and `total_goals` are optional config fields
+(`config/tournaments.php`). The landing `TournamentCompare` cards link here
+(`/tournaments/{slug}`), not `/?tournament=`. `PageHero` now also takes
+`ctas` (array), `media` and a `children` slot; `SectionPageShell` takes a
+`heroSlot` for a fully custom hero.
 
 ## Directory conventions
 

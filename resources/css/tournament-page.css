@@ -1,0 +1,185 @@
+/*
+ * Tournament single-view page (/tournaments/{slug}). Reuses the shared
+ * PageHero, AccentCard, GlassPill and .tfe-tile primitives — this file only
+ * adds the page-specific glue (hero meta, highlights band, teams grid,
+ * closing CTA). Accent rides on --partner-accent set on .tourpage.
+ */
+
+.tourpage {
+    padding: 3.5rem 0 4.5rem;
+}
+
+/* Host / dates pills sitting under the hero tagline */
+.tourpage-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.tourpage-stats {
+    margin-bottom: 1rem;
+}
+
+/* Section block */
+.tourpage-block {
+    margin-top: 3rem;
+}
+
+.tourpage-block__title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+}
+
+.tourpage-block__count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 0.1rem 0.6rem;
+}
+
+.tourpage-block__sub {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    margin: 0 0 1.4rem;
+}
+
+/* ── Highlights (champion / runner-up / top scorer / player of tournament) ── */
+.tourpage-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1.2rem;
+}
+
+.tourpage-highlight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: 16px;
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tourpage-highlight__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--partner-accent, #dc143c) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--partner-accent, #dc143c) 30%, transparent);
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.tourpage-highlight--gold .tourpage-highlight__icon {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.45);
+    color: #f5d67a;
+}
+
+.tourpage-highlight--silver .tourpage-highlight__icon {
+    background: rgba(200, 200, 210, 0.18);
+    border-color: rgba(200, 200, 210, 0.4);
+    color: #dfe3ea;
+}
+
+.tourpage-highlight__label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.tourpage-highlight__value {
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* ── Teams grid (flags) ── */
+.tourpage-teams {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+}
+
+.tourpage-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.8rem 0.4rem 0.5rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tourpage-team:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.tourpage-team img {
+    width: 26px;
+    height: 18px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.tourpage-team__name {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ── Closing CTA band (past tournaments → plan the next one) ── */
+.tourpage-cta-band {
+    margin-top: 3.5rem;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border-radius: 22px;
+    background:
+        radial-gradient(closest-side at 50% 0%, color-mix(in srgb, var(--partner-accent, #dc143c) 22%, transparent), transparent 70%),
+        linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tourpage-cta-band__title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0 0 0.5rem;
+}
+
+.tourpage-cta-band__sub {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 1rem;
+    margin: 0 auto 1.6rem;
+    max-width: 46ch;
+}
+
+@media (max-width: 576px) {
+    .tourpage-block__title { font-size: 1.3rem; }
+    .tourpage-cta-band__title { font-size: 1.35rem; }
+}

@@ -9,8 +9,8 @@ import '../../../css/tournament-compare.css';
  *
  * Renders a moodboard-style bento grid comparing every tournament we
  * support: hosts, dates, length and status, with the tournament's trophy
- * as card artwork. Each card links to /?tournament=<slug> so switching
- * context re-renders the whole site (via ResolveTournament middleware).
+ * as card artwork. Each card links to /tournaments/<slug> — the single-view
+ * tournament page (recap for past, plan-your-trip for upcoming).
  *
  * The call to action is status-aware — a concluded tournament reads
  * "View recap", never "Plan for this".
@@ -64,7 +64,7 @@ export default function TournamentCompare() {
                     {rows.map((t) => (
                         <AccentCard
                             key={t.id}
-                            href={`/?tournament=${t.slug || t.id}`}
+                            href={`/tournaments/${t.slug || t.id}`}
                             accent={t.accent}
                             active={t.isActive}
                             aria-label={`${t.name} — ${t.cta.label}`}

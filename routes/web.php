@@ -62,6 +62,10 @@ Route::get('/services', [HomeController::class, 'services'])->name('services');
 Route::get('/news', [HomeController::class, 'news'])->name('news');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
+// Public single-view tournament pages (recap for past, plan-your-trip for
+// upcoming). Reached by slug, e.g. /tournaments/afcon-2027.
+Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('tournaments.show');
+
 // Public Partner directory + hub — no auth needed. Sprint 11 added
 // the index; the {slug} hub predates it.
 Route::get('/partners', [PartnerHubController::class, 'index'])

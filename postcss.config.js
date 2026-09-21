@@ -123,6 +123,8 @@ if (process.env.NODE_ENV === 'production') {
                     /^cards-/,         // cards-track, cards-track-reverse
                     /^badge-/,         // badge-number, badge-divider, badge-label
                     /^tc-/,            // tournament-compare cards (tc-card, tc-card__*)
+                    /^tourpage-/,      // tournament single-view page (tourpage-highlight--gold, …)
+                    /^page-hero/,      // shared PageHero (page-hero--split, page-hero__*)
                 ],
                 deep: [
                     /-(enter|leave)(-(active|from|to))?$/,
