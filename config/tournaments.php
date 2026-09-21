@@ -158,6 +158,8 @@ return [
             'runner_up' => 'England',
             'second_runner_up' => 'France',
             'top_scorer' => ['name' => 'Cody Gakpo', 'goals' => 3],
+            'player_of_tournament' => 'Rodri',
+            'total_goals' => 117,
             'final_venue' => 'Olympiastadion, Berlin',
             'final_score' => 'Spain 2-1 England',
             'num_teams' => 24,

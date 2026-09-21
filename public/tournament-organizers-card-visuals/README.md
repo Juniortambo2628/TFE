@@ -1,13 +1,15 @@
 # Tournament organiser card visuals
 
-These images are the background watermark on the hero **tournament card**
-(the AFCON / World Cup / Euros card in the landing hero). The path for each
-tournament is configured in `config/tournaments.php` under `organizer_card_bg`
-and can be overridden per tournament in the admin CMS
-(`SiteSetting` key `tournament_card_bg_{tournament_id}`).
+These organiser brand images are used two ways:
 
-Drop the PNGs here with **exactly** these names (the server filesystem is
-case-sensitive, unlike Windows/WAMP):
+1. the background watermark on the hero **tournament card** (the landing hero
+   card), and
+2. the hero background of each **tournament single-view page**
+   (`/tournaments/{slug}`).
+
+The path for each tournament is configured in `config/tournaments.php` under
+`organizer_card_bg` and can be overridden per tournament in the admin CMS
+(`SiteSetting` key `tournament_card_bg_{tournament_id}`).
 
 | Tournament | File |
 |------------|------|
@@ -15,7 +17,8 @@ case-sensitive, unlike Windows/WAMP):
 | World Cup 2026 (`wc_2026`) | `FIFA-world-cup-visual-cardbg.png` |
 | Euro 2024 (`euro_2024`) | `UEFA-euros-visual-cardbg.png` |
 
-They must be **committed to the repo** (not just present on your local WAMP)
-so they deploy — otherwise the card falls back to no watermark (the code hides
-the image gracefully on a 404). Served publicly at
-`/tournament-organizers-card-visuals/<file>`.
+Filenames are **case-sensitive** on the server. Served publicly at
+`/tournament-organizers-card-visuals/<file>`. A missing file is hidden
+gracefully (the card/hero just shows no watermark). After changing the config
+path, clear the `TournamentService` cache (`php artisan cache:clear` or the
+admin **Settings → Refresh tournaments** button) — the payload is cached 24h.

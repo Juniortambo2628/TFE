@@ -16,7 +16,7 @@ import '../../../css/hero-enhancements.css';
  * a spacer so the section clears the fixed header, the section itself, the
  * footer, and the cookie consent.
  */
-export default function SectionPageShell({ title, hero, children }) {
+export default function SectionPageShell({ title, hero, heroSlot, children }) {
     useEffect(() => {
         // Same rAF-throttled fixed-header toggle the landing page uses so the
         // header picks up its scrolled background on these pages too.
@@ -47,7 +47,9 @@ export default function SectionPageShell({ title, hero, children }) {
             <Head title={title} />
             <Header />
             <div className="page-wrapper overflow-hidden bg-black text-white section-page">
-                {hero ? (
+                {heroSlot ? (
+                    heroSlot
+                ) : hero ? (
                     <PageHero
                         eyebrow={hero.eyebrow}
                         title={hero.title}

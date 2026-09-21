@@ -313,18 +313,31 @@ it runs migrations, `config:cache`, `route:cache`, `view:cache`, and
 PHP's `exec()` in `disable_functions`, and Laravel's `storage:link`
 shells out on some code paths — so it errors with `Call to undefined
 function Illuminate\Filesystem\exec()`. Use `ln -s` directly instead;
-the GitHub Actions `post-deploy.sh` already does this. If you ever
-need to recreate the symlinks manually:
+the GitHub Actions `post-deploy.sh` already does this.
+
+**The frontend docroot is the domain's OWN directory, NOT `public_html`.**
+Each site on this cPanel is an addon domain with its own docroot, so
+tfe.okjtech.co.ke serves from `~/tfe.okjtech.co.ke` (this is the
+`FRONTEND_PATH` deploy secret), and `public_html` belongs to a *different*
+site — never symlink tfe storage into `public_html`. The Laravel app root
+is `~/tfe-core` (`BACKEND_PATH`). If you ever need to recreate the symlinks
+manually (`ln -sfn` also repoints a stale/incorrect one; use your real
+home path):
 
 ```bash
+DOCROOT=~/tfe.okjtech.co.ke   # FRONTEND_PATH — the domain's docroot
+APP=~/tfe-core                # BACKEND_PATH — the Laravel app root
+
 # Frontend — this is what serves /storage/*.jpg to browsers.
-[ -L /home/zhpebukm/public_html/storage ] || \
-  ln -s /home/zhpebukm/tfe-core/storage/app/public /home/zhpebukm/public_html/storage
+ln -sfn "$APP/storage/app/public" "$DOCROOT/storage"
 
 # Backend — public_path('storage/…') resolution for internal reads.
-[ -L /home/zhpebukm/tfe-core/public/storage ] || \
-  ln -s /home/zhpebukm/tfe-core/storage/app/public /home/zhpebukm/tfe-core/public/storage
+ln -sfn "$APP/storage/app/public" "$APP/public/storage"
 ```
+
+If an old, incorrect `public_html/storage` symlink is lying around from a
+previous setup, remove it: `rm -f ~/public_html/storage` (only if it's a
+symlink and `public_html` isn't tfe's docroot).
 
 Live-bell via Reverb is **not viable on shared hosting** — it needs a
 persistent PHP process + WebSocket upgrade support, both of which
@@ -590,9 +603,34 @@ The hero tournament card's background watermark comes from
 in the CMS via `SiteSetting` key `tournament_card_bg_{id}` (wired through
 `TournamentService::loadOverrides` + `assemble`, exposed as
 `tournament.organizer_card_bg`). Files live in
-`public/tournament-organizers-card-visuals/` (see its README) and **must be
-committed** to deploy — a missing file is hidden gracefully via `onError`
-on `AccentCard`'s `bgImage`, so it never shows a broken image.
+`public/tournament-organizers-card-visuals/` (see its README; the CAF/FIFA/UEFA
+files are `.png`) and **must be committed** to deploy — a missing file is
+hidden gracefully via `onError` on `AccentCard`'s `bgImage`, so it never shows
+a broken image. Changing a tournament's config (e.g. this path) needs the
+`TournamentService` cache cleared — `php artisan cache:clear` or the admin
+**Settings → Refresh tournaments** button — since the payload is cached 24h.
+
+### Tournament single-view pages
+
+`/tournaments/{slug}` (`HomeController@tournament`, name `tournaments.show`)
+renders `Pages/Tournaments/Show.jsx` through `SectionPageShell` + `PageHero`.
+The hero background is the organiser visual (`organizer_card_bg`) with the
+tournament's `trophy_image` floating large on the right (PageHero `media`
+prop + `page-hero--split` horizontal gradient so the brand stays visible).
+
+- **Concluded**: recap — stat tiles, highlights (champion / runner-up /
+  `top_scorer` / `player_of_tournament`), participating teams (flags), and a
+  closing CTA to the next upcoming tournament.
+- **Upcoming**: sign-up + plan-your-trip CTAs, then offerings — approved
+  active `Listing`s for that tournament as `AccentCard`s (same shape as the
+  partner hub; falls back to curated Budget/Financing/Partners cards when a
+  tournament has no listings), plus the teams grid.
+
+`player_of_tournament` and `total_goals` are optional config fields
+(`config/tournaments.php`). The landing `TournamentCompare` cards link here
+(`/tournaments/{slug}`), not `/?tournament=`. `PageHero` now also takes
+`ctas` (array), `media` and a `children` slot; `SectionPageShell` takes a
+`heroSlot` for a fully custom hero.
 
 ## Directory conventions
 

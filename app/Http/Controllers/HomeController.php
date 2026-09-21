@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Listing;
 use App\Models\SiteSetting;
+use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -51,6 +53,65 @@ class HomeController extends Controller
     public function contact()
     {
         return Inertia::render('Sections/Contact', ['hero' => $this->pageHero('contact')]);
+    }
+
+    /**
+     * Public single-view page for one tournament. Past (concluded) tournaments
+     * show the recap (teams, results, scorer, player of the tournament);
+     * upcoming ones focus on sign-up + trip-planning offerings (partner
+     * listings). Reached by slug (e.g. /tournaments/afcon-2027).
+     */
+    public function tournament(string $slug, TournamentService $tournaments)
+    {
+        $all = config('tournaments.tournaments', []);
+
+        // Resolve the config id from the slug (fall back to a raw id).
+        $id = collect($all)->firstWhere('slug', $slug)['id'] ?? (isset($all[$slug]) ? $slug : null);
+        abort_unless($id, 404);
+
+        $tournament = $tournaments->get($id);
+        $status = $tournament['status'] ?? 'upcoming';
+
+        // Offerings for upcoming tournaments — approved, active listings scoped
+        // to this tournament, formatted for the shared AccentCard (same shape
+        // the partner hub uses).
+        $listings = [];
+        if ($status !== 'concluded') {
+            $listings = Listing::query()
+                ->forTournament($id)
+                ->approved()
+                ->active()
+                ->orderByDesc('is_featured')
+                ->orderBy('display_order')
+                ->orderBy('name')
+                ->limit(6)
+                ->get()
+                ->map(fn (Listing $l) => [
+                    'id' => $l->id,
+                    'name' => $l->name,
+                    'description' => $l->description,
+                    'hero_image' => $l->hero_image,
+                    'base_price' => $l->base_price,
+                    'currency' => $l->currency,
+                    'capacity' => $l->capacity,
+                    'sold_count' => $l->sold_count,
+                    'availability_pct' => $l->availability_pct,
+                    'is_sold_out' => $l->is_sold_out,
+                ])
+                ->all();
+        }
+
+        // Where a past tournament's "plan the next one" CTA should point.
+        $upcoming = collect($all)->firstWhere('status', 'upcoming');
+
+        return Inertia::render('Tournaments/Show', [
+            'tournament' => $tournament,
+            'listings' => $listings,
+            'upcoming' => $upcoming ? [
+                'slug' => $upcoming['slug'],
+                'short_name' => $upcoming['short_name'] ?? $upcoming['name'],
+            ] : null,
+        ]);
     }
 
     /**

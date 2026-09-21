@@ -12,6 +12,14 @@
     width: 100%;
 }
 
+.page-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: end;
+    width: 100%;
+}
+
 .page-hero__body {
     max-width: 660px;
     display: flex;
@@ -26,6 +34,49 @@
 .page-hero__cta {
     align-self: flex-start;
     margin-top: 0.5rem;
+}
+
+.page-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Split hero — copy/CTAs on the left, a large image (trophy) on the right. */
+.page-hero--split {
+    min-height: 560px;
+}
+
+.page-hero--split .page-hero__grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+}
+
+.page-hero__media-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.page-hero__media {
+    max-height: 380px;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 22px 44px rgba(0, 0, 0, 0.6));
+}
+
+@media (max-width: 991.98px) {
+    .page-hero--split .page-hero__grid {
+        grid-template-columns: 1fr;
+    }
+    .page-hero__media-wrap {
+        justify-content: flex-start;
+        order: -1;
+    }
+    .page-hero__media {
+        max-height: 200px;
+    }
 }
 
 /* ── Hero ── */
