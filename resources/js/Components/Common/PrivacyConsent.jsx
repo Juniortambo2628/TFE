@@ -69,10 +69,8 @@ export default function PrivacyConsent() {
             {/* Consent Banner — floating glass card */}
             {bannerVisible && (
                 <div className="tfe-consent" role="dialog" aria-label="Cookie consent">
-                    <div className="tfe-consent__head">
-                        <span className="tfe-consent__icon"><i className="fas fa-cookie-bite"></i></span>
-                        <h4 className="tfe-consent__title">We value your privacy</h4>
-                    </div>
+                    <span className="tfe-consent__badge">Privacy</span>
+                    <h4 className="tfe-consent__title">We value your privacy</h4>
                     <p className="tfe-consent__body">
                         We use cookies to enhance your experience, analyze site traffic, and serve tailored content. By continuing you agree to our{' '}
                         <button onClick={() => openLegal('privacy')} className="tfe-consent__link">Privacy Policy</button>
@@ -80,9 +78,7 @@ export default function PrivacyConsent() {
                         <button onClick={() => openLegal('cookies')} className="tfe-consent__link">Cookie Policy</button>.
                     </p>
                     <div className="tfe-consent__actions">
-                        <button onClick={handleAccept} className="tfe-consent__accept">
-                            <i className="fas fa-check"></i> Accept all
-                        </button>
+                        <button onClick={handleAccept} className="tfe-consent__accept">Accept all</button>
                         <button onClick={() => openLegal('cookies')} className="tfe-consent__manage">Manage</button>
                     </div>
                 </div>

@@ -1,11 +1,13 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
 import '../../css/footer.css';
 
 export default function Footer() {
     const { tournament } = useTournament();
+    const { assetUrl } = usePage().props;
     const journeyLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
-    const wordmark = tournament ? (tournament.short_name || tournament.name) : 'The Football Experience';
+    const wordmark = 'The Football Experience';
+    const okjLogo = `${assetUrl || ''}assets/partner-logos/OKJTechLogo-White_Transparent.png`;
     const year = new Date().getFullYear();
 
     const socials = [
@@ -71,7 +73,12 @@ export default function Footer() {
 
                 <div className="tfe-footer__meta">
                     <span>© The Football Experience {year}</span>
-                    <span className="tfe-footer__love"><i className="fas fa-heart"></i> Made for the fans</span>
+                    <span className="tfe-footer__engineered">
+                        engineered by
+                        <a href="https://okjtech.co.ke" target="_blank" rel="noopener noreferrer">
+                            <img src={okjLogo} alt="OKJ Technologies" className="tfe-footer__okj" />
+                        </a>
+                    </span>
                     <span>
                         <Link href={route('login')} className="text-white-50 text-decoration-none">Sign In</Link>
                         {'  ·  '}
