@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContactMessage;
 use App\Models\Listing;
 use App\Models\SiteSetting;
 use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
@@ -56,6 +58,24 @@ class HomeController extends Controller
     }
 
     /**
+     * Public contact form submission (from the Contact page dialogs). Stored
+     * as a ContactMessage so admins see it under Messages; no auth required.
+     */
+    public function contactStore(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:120',
+            'email' => 'required|email|max:190',
+            'subject' => 'required|string|max:180',
+            'message' => 'required|string|max:4000',
+        ]);
+
+        ContactMessage::create($data + ['user_id' => optional($request->user())->id]);
+
+        return back()->with('success', 'Thanks — your message is in. Our team will be in touch shortly.');
+    }
+
+    /**
      * Public single-view page for one tournament. Past (concluded) tournaments
      * show the recap (teams, results, scorer, player of the tournament);
      * upcoming ones focus on sign-up + trip-planning offerings (partner
@@ -81,10 +101,11 @@ class HomeController extends Controller
                 ->forTournament($id)
                 ->approved()
                 ->active()
+                ->with('publisher.partnerProfile')
                 ->orderByDesc('is_featured')
                 ->orderBy('display_order')
                 ->orderBy('name')
-                ->limit(6)
+                ->limit(9)
                 ->get()
                 ->map(fn (Listing $l) => [
                     'id' => $l->id,
@@ -97,6 +118,9 @@ class HomeController extends Controller
                     'sold_count' => $l->sold_count,
                     'availability_pct' => $l->availability_pct,
                     'is_sold_out' => $l->is_sold_out,
+                    // Partner attribution so the tournament page can feature
+                    // WHO the offering is from (null for admin-curated rows).
+                    'publisher' => $l->publisherSummary(),
                 ])
                 ->all();
         }

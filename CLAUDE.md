@@ -50,18 +50,22 @@ npm install --legacy-peer-deps + migrate --seed.
 
 ## Dev credentials
 
-Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder`. **Dev only** — never
-in production.
+Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder` +
+`DemoExtraPartnersSeeder`; placeholder partner offerings by
+`DemoPartnerOfferingsSeeder`. **Dev only** — never in production.
 
 | Role            | Email               | Password | Notes                              |
 |-----------------|---------------------|----------|------------------------------------|
 | System admin    | `admin@tfe.com`     | password | Full admin surface                 |
 | Travel partner  | `partner@tfe.com`   | password | Serengeti Sports Travel            |
 | Finance partner | `finance@tfe.com`   | password | Ecobank Fan Finance, blue #0072CE  |
+| Airline partner | `airline@tfe.com`   | password | Simba Air (`airline`), red #dc2626 |
+| Betting partner | `betting@tfe.com`   | password | GoalBet (`sponsor`), green #16a34a |
 | Demo fan        | `fan@tfe.com`       | password | Seeded ad-hoc; use for shots       |
 
 Public hubs to demo: `/partners/serengeti-sports-travel`,
-`/partners/ecobank-fan-finance`, and the directory at `/partners`.
+`/partners/ecobank-fan-finance`, `/partners/simba-air`,
+`/partners/goalbet`, and the directory at `/partners`.
 
 ---
 
@@ -749,5 +753,33 @@ tests/
 | 28     | Multicurrency Budget Calculator (USD, EUR, GBP, KES, ZAR, NGN, XOF) |
 | 29     | Budget currency propagates to Booking + Journey render |
 | 30     | Multicurrency reaches SavingsGoals + LoanApplications displays |
+| 41     | Contact-form dialogs, gated header switcher, hero declutter, airline + betting partners & seeded offerings |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
+
+### Sprint 41 notes
+
+- **Contact forms** — the Contact page (`Sections/Contact`) card dialogs now
+  render a working contact form. `LandingModal` grows a `data.form` mode
+  (Inertia `useForm` → `POST /contact`, `HomeController::contactStore`, stored
+  as a `ContactMessage`); `Contact.jsx` cards pass `form: { subject }`. Public
+  route name is `contact.store` (the fan-side one is `fan.contact.store`).
+- **Header tournament switcher** — only renders on the landing page (`Home`,
+  `variant="landing"`, switch active tournament) and single-view tournament
+  pages (`Tournaments/Show`, `variant="tournament"`, which *navigates* to the
+  picked tournament's `/tournaments/{slug}` page). Gated in `Header.jsx` by
+  `usePage().component`. The fan dashboard's switcher is unchanged — it lives
+  in `DashboardHeader`, not this public `Header`.
+- **Landing hero** — the bottom horizontal Teams/Matches/Goals strip is gone;
+  Row 1 (world map + tournament card) is the sole hero row and both enlarge on
+  xl (`.hero-worldmap--xl` scale + taller `.tfe-acard--hero`). No backend/CMS
+  change: the removed strip only re-displayed existing tournament payload
+  fields (`num_teams`/`matches_played`/`total_goals`), still used on
+  `Tournaments/Show`.
+- **Demo partners + offerings** — `DemoExtraPartnersSeeder` adds Simba Air
+  (`airline`) and GoalBet (`sponsor`); `DemoPartnerOfferingsSeeder` publishes
+  two approved+active placeholder `Listing`s per partner (travel/finance/
+  airline/betting) across every non-concluded tournament, so the "Plan your
+  trip" feed on an upcoming tournament page features real partner listings.
+  `HomeController::tournament` eager-loads `publisher.partnerProfile` and the
+  offering `AccentCard`s show the partner eyebrow + theme accent.

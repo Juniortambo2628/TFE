@@ -335,13 +335,15 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
             {/* Content Layer - Persistent across slide changes */}
             <div className="container flex-grow-1 d-flex flex-column position-relative z-1">
-                <div className="hero-content-stack d-flex flex-column gap-5 position-relative flex-grow-1 justify-content-center pb-5">
-                    {/* Row 1: World Map + Countdown */}
-                    <div className="row align-items-center gx-0">
+                <div className="hero-content-stack hero-content-stack--roomy d-flex flex-column gap-5 position-relative flex-grow-1 justify-content-center pb-5">
+                    {/* Row 1: World Map + Countdown — now the sole hero row, so
+                        both the map and the tournament card take more room. */}
+                    <div className="row align-items-center gx-0 hero-primary-row">
                         {/* Left: World Map — host countries highlighted */}
                         <div className="col-xl-8 d-none d-xl-block">
                             <HeroWorldMap
                                 tournament={tournament}
+                                className="hero-worldmap--xl"
                             />
                         </div>
 
@@ -449,84 +451,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                         </a>
                                     </div>
                                 </AccentCard>
-                            </motion.div>
-                        </div>
-                    </div>
-
-                    {/* Row 2: Tournament Stats Card — full width, aligned with row above */}
-                    <div className="row gx-0 d-none d-xl-flex">
-                        <div className="col-12 px-3">
-                            <motion.div
-                                key={`stats-${tournament ? tournament.id : 'default'}`}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.2 }}
-                                className="rounded-4 overflow-hidden position-relative shadow-lg p-2 p-md-3 hero-stats-card hero-stats-card-container hero-stats-compact"
-                            >
-                                <div className="row align-items-center g-4">
-                                    {/* Left Content — Tournament Info */}
-                                    <div className="col-xl-5">
-                                        <h3 className="mb-2 lh-sm hero-stats-title fw-bolder">
-                                            {tournament?.name || 'Tournament'}
-                                        </h3>
-                                        <p className="text-white-50 mb-3 hero-tagline">
-                                            {tournament?.tagline || tournament?.wikipedia_extract?.substring(0, 120) || ''}
-                                        </p>
-                                    </div>
-
-                                    {/* Right Content - 3 Vertical Cards */}
-                                    <div className="col-xl-7">
-                                        <div className="row g-3">
-                                            {/* Teams Card */}
-                                            <div className="col-md-4">
-                                                <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-teams">
-                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content">
-                                                        <div className="d-flex justify-content-between align-items-center mb-1">
-                                                            <span className="text-white fw-bold fs-6">Teams</span>
-                                                            <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.facts?.teams || tournament.num_teams || 'TBD'}</span>
-                                                        </div>
-                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap hero-stat-tags">
-                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#nations</span>
-                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#qualified</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Matches Card */}
-                                            <div className="col-md-4">
-                                                <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-matches">
-                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content">
-                                                        <div className="d-flex justify-content-between align-items-center mb-1">
-                                                            <span className="text-white fw-bold fs-6">Matches</span>
-                                                            <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.matches_played || 'TBD'}</span>
-                                                        </div>
-                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap hero-stat-tags">
-                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#games</span>
-                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#fixtures</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Goals Card */}
-                                            <div className="col-md-4">
-                                                <div className="rounded-4 p-2 hero-stat-card-gradient hero-stat-card-goals">
-                                                    <div className="rounded-3 p-3 w-100 shadow-sm hero-stat-content">
-                                                        <div className="d-flex justify-content-between align-items-center mb-1">
-                                                            <span className="text-white fw-bold fs-6">Goals</span>
-                                                            <span className="badge rounded-pill border fw-bold fs-6 hero-glass-badge">{tournament.total_goals || 'TBD'}</span>
-                                                        </div>
-                                                        <div className="text-muted mt-2 d-flex gap-1 flex-wrap hero-stat-tags">
-                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#scored</span>
-                                                            <span className="px-2 py-1 rounded fw-medium hero-glass-badge">#netted</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </motion.div>
                         </div>
                     </div>

@@ -1096,6 +1096,20 @@
     display: none;
 }
 
+/* Sprint 41 — the hero's bottom stats strip was removed, so Row 1 is now the
+   sole hero row. With the freed vertical space, the world map and tournament
+   card both scale up on xl. The map is behind the card column, so a modest
+   scale reads as a larger map without colliding (the card paints on top). */
+@media (min-width: 1200px) {
+    .hero-content-stack--roomy {
+        gap: 0 !important;
+    }
+    .hero-worldmap--xl .hero-worldmap-inner {
+        transform: scale(1.14);
+        transform-origin: center center;
+    }
+}
+
 /* ── Responsive adjustments ─────────────────────────────────── */
 @media (max-width: 1199.98px) {
     .hero-worldmap-wrapper {

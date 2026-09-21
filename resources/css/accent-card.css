@@ -351,6 +351,18 @@
     padding: 1.6rem 1.7rem;
 }
 
+/* Sprint 41 — with the hero's bottom stats strip gone, the tournament card
+   is the hero's focal panel on xl, so it grows to fill the reclaimed space. */
+@media (min-width: 1200px) {
+    .tfe-acard--hero {
+        padding: 2.2rem 2.3rem;
+        min-height: 460px;
+    }
+    .tfe-acard--hero .tfe-acard__title {
+        font-size: 1.9rem;
+    }
+}
+
 .tfe-acard--hero .tfe-acard__slot {
     max-width: 100%;
     margin-top: 1.1rem;
