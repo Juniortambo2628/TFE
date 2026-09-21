@@ -385,6 +385,9 @@ a.tfe-sidebar-nav-item.is-active {
     font-size: 0.8rem;
 }
 
+/* Capacity column needs a floor so the CapacityBar renders at a usable width. */
+.tfe-table__cap { min-width: 140px; }
+
 /* ── Empty state ─────────────────────────────────────────────────────── */
 
 /* .tfe-empty — shared empty-state block: circular icon chip, title,

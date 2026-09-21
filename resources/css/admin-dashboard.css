@@ -160,3 +160,13 @@
 @media (max-width: 575.98px) {
     .admin-tourn-row { grid-auto-columns: 84%; }
 }
+
+/* Small utility classes replacing inline color styles on the activity tables. */
+.admin-avatar-chip {
+    background: var(--admin-primary-light);
+    color: var(--admin-primary);
+}
+
+.admin-amount-pos {
+    color: var(--admin-success);
+}

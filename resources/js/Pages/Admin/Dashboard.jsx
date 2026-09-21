@@ -196,7 +196,7 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                             <>
                                 <td>
                                     <div className="d-flex align-items-center gap-3">
-                                        <div className="dash-avatar dash-avatar-md" style={{ background: 'var(--admin-primary-light)', color: 'var(--admin-primary)' }}>
+                                        <div className="dash-avatar dash-avatar-md admin-avatar-chip">
                                             {u.name?.charAt(0) || 'U'}
                                         </div>
                                         <div>
@@ -230,7 +230,7 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentTransact
                                         {t.status}
                                     </span>
                                 </td>
-                                <td className="text-end"><div className="fw-bold" style={{ color: 'var(--admin-success)' }}>{formatMoney(t.amount)}</div></td>
+                                <td className="text-end"><div className="fw-bold admin-amount-pos">{formatMoney(t.amount)}</div></td>
                             </>
                         )}
                     />

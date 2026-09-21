@@ -47,16 +47,11 @@ export default function Listings({ listings = [], tournaments = [], status_count
             ? listings.filter((l) => l.is_active)
             : listings.filter((l) => !l.is_active);
 
-    const stateChip = (l) => {
-        const s = l.is_active
-            ? { bg: 'rgba(16,185,129,0.15)', color: '#10b981', label: 'Published' }
-            : { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', label: 'Hidden' };
-        return (
-            <span className="px-2 py-1 small fw-semibold" style={{ background: s.bg, color: s.color, borderRadius: 999 }}>
-                {s.label}
-            </span>
-        );
-    };
+    const stateChip = (l) => (
+        <span className={`tfe-pill tfe-pill--${l.is_active ? 'approved' : 'concluded'}`}>
+            {l.is_active ? 'Published' : 'Hidden'}
+        </span>
+    );
 
     return (
         <PartnerLayout title="Publish — Listings">
@@ -144,7 +139,7 @@ export default function Listings({ listings = [], tournaments = [], status_count
                                             </td>
                                             <td><TournamentPill tournamentId={l.tournament_id} shortName={l.tournament_name} /></td>
                                             <td>{formatMoney(l.base_price, l.currency)}</td>
-                                            <td style={{ minWidth: 140 }}>
+                                            <td className="tfe-table__cap">
                                                 {l.capacity ? (
                                                     <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
                                                 ) : (
