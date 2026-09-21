@@ -296,7 +296,9 @@
    bleeds to the RIGHT edge. Cards column is wider so cards overflow
    and indicate scrollability. */
 .landing-section.section-split-reverse .landing-section-inner {
-    grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr);
+    /* Cards column is the dominant one so several cards are visible at
+       once (the info column only needs room for the heading + blurb). */
+    grid-template-columns: minmax(0, 2.4fr) minmax(240px, 0.9fr);
     padding-left: 0;  /* cards bleed to left viewport edge */
 }
 
@@ -305,23 +307,21 @@
     padding-left: 1rem;
 }
 
-/* Cards scroll right-to-left via direction:rtl.
-   Initial view shows cards near the header (right side of the track);
-   scrolling reveals more cards extending toward the left edge.
-   Fade gradient on the left signals more content. */
+/* Cards read left-to-right filling the wide left column from the viewport
+   edge, so the first cards are visible immediately and more sit to the
+   right. The fade sits on the right edge (nearest the header) to signal
+   that the track scrolls. (The old right-to-left/rtl trick anchored cards
+   to the centre, wasting the wide column and showing only one card.) */
 .landing-section.section-split-reverse .cards-track-reverse {
-    direction: rtl;
+    direction: ltr;
     padding-left: 0;
     padding-right: 0.5rem;
     position: relative;
-    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 85%, black 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 85%, black 100%);
+    mask-image: linear-gradient(to right, black 0%, black 88%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 0%, black 88%, transparent 100%);
 }
 
-/* Individual cards keep LTR text direction. Snap to the end (left in RTL)
-   so each swipe lands cleanly. */
 .landing-section.section-split-reverse .cards-track-reverse .landing-card {
-    direction: ltr;
     scroll-snap-align: start;
 }
 
@@ -532,6 +532,39 @@
     background: var(--accent-hover, #b80b1e);
     color: #fff;
     transform: translateY(-1px);
+}
+
+/* Actions stack: primary CTA + partner funnel link */
+.landing-modal-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+.landing-modal-actions .landing-modal-cta {
+    margin-top: 0;
+}
+
+.landing-modal-partner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: color 0.18s ease;
+}
+
+.landing-modal-partner:hover {
+    color: #ef4050;
+}
+
+.landing-modal-partner iconify-icon {
+    font-size: 1rem;
 }
 
 .landing-modal-close {

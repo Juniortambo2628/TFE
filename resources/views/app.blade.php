@@ -54,8 +54,12 @@
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
         
-        <!-- Iconify icons (used by landing page Header) -->
-        <script src="{{ asset('assets/libs/iconify-icon.min.js') }}"></script>
+        {{-- Iconify defines the <iconify-icon> web component (Header,
+             Footer, landing cards, TournamentSwitcher). Deferred so it
+             doesn't block the parser in <head>; the custom element upgrades
+             its instances as soon as the script finishes, so icons still
+             appear without a render-blocking request. --}}
+        <script defer src="{{ asset('assets/libs/iconify-icon.min.js') }}"></script>
     </head>
     <body class="font-sans antialiased">
         @inertia

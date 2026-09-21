@@ -279,6 +279,12 @@ class TournamentService
                     'start_date' => $config['start_date'],
                     'end_date' => $config['end_date'],
                     'hosts' => $config['hosts'] ?? [],
+                    // Surfaced for the landing TournamentCompare cards so each
+                    // card can render its trophy as artwork + a matching hero
+                    // wash. Kept out of the switcher-only concern historically.
+                    'trophy_image' => $config['trophy_image'] ?? null,
+                    'hero_image' => $config['hero_image'] ?? null,
+                    'tagline' => $config['tagline'] ?? null,
                 ];
             }
 

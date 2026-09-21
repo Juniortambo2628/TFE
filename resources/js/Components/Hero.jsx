@@ -257,58 +257,45 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {flagTrack.length > 0 && (
                 <div className="hero-top-bar position-absolute top-0 start-0 w-100 z-1">
                     <div className="d-flex align-items-center justify-content-center gap-3 py-2 px-3 hero-top-bar-inner">
-                        {/* Flag Carousel (compact) */}
-                        <motion.div 
-                            className="flag-carousel-container flag-carousel-compact mb-0 hero-flag-carousel-pointer" 
+                        {/* Flag Carousel (compact) — CSS-animated marquee.
+                            Previously a framer-motion infinite x:[0,-50%] tween
+                            that repainted every frame on the main thread and
+                            made the hero janky; now a GPU-composited CSS
+                            keyframe (see .hero-flag-track-auto), paused on hover
+                            via the is-paused class. */}
+                        <div
+                            className="flag-carousel-container flag-carousel-compact mb-0 hero-flag-carousel-pointer"
                             ref={carouselRef}
                             onMouseEnter={() => setIsPaused(true)}
                             onMouseLeave={() => {
                                 if (!showMatchModal) setIsPaused(false);
                             }}
-                            key={`flags-top-${currentSlide}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5 }}
                         >
-                            <motion.div 
-                                className="flag-track hero-flag-track-pointer"
-                                drag="x"
-                                dragConstraints={carouselRef}
-                                initial={{ x: 0 }}
-                                animate={!isPaused ? { x: [0, "-50%"] } : {}}
-                                transition={{
-                                    x: {
-                                        repeat: Infinity,
-                                        repeatType: "loop",
-                                        duration: 30,
-                                        ease: "linear",
-                                    },
-                                }}
-                            >
+                            <div className={'flag-track hero-flag-track-auto hero-flag-track-pointer' + (isPaused ? ' is-paused' : '')}>
                                 {flagTrack.map((f, i) => (
-                                    <motion.div 
-                                        key={`${f}-${i}`} 
+                                    <div
+                                        key={`${f}-${i}`}
                                         className="flag-item flag-item-sm hero-flag-item-pointer"
-                                        whileHover={{ scale: 1.1, translateY: -3 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onTap={() => {
-                                            openModal(f);
-                                        }}
+                                        onClick={() => openModal(f)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(f); } }}
                                     >
-                                        <img 
-                                            src={`${assetUrl}assets/Flags/${f}.png`} 
-                                            alt={f} 
+                                        <img
+                                            src={`${assetUrl}assets/Flags/${f}.png`}
+                                            alt={f}
                                             draggable="false"
+                                            loading="lazy"
                                             onError={function(e) {
                                                 if (wikipediaFlags[f]) {
                                                     e.target.src = wikipediaFlags[f];
                                                 }
                                             }}
                                         />
-                                    </motion.div>
+                                    </div>
                                 ))}
-                            </motion.div>
-                        </motion.div>
+                            </div>
+                        </div>
 
                         {/* Stadium Badge (compact) */}
                         <motion.div 

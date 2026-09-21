@@ -111,6 +111,18 @@ if (process.env.NODE_ENV === 'production') {
                     /^cost-/,          // CostScenarioChart
                     /^savings-/,       // SavingsGoals page
                     /^booking-/,       // Booking details/history
+                    // ── Landing section system (landing-section.css) ──
+                    // HorizontalCardSection builds its layout class via a
+                    // template literal (`section-${variant}`), so the
+                    // extractor mangles it and PurgeCSS was stripping the
+                    // whole split/split-reverse/stacked layout — the reason
+                    // the "cards left, info right" sections rendered with the
+                    // wrong column ratio in prod. Safelist the families.
+                    /^section-/,       // section-split, section-split-reverse, section-stacked, section-dark/light
+                    /^landing-/,       // landing-section, landing-card*, landing-modal*
+                    /^cards-/,         // cards-track, cards-track-reverse
+                    /^badge-/,         // badge-number, badge-divider, badge-label
+                    /^tc-/,            // tournament-compare cards (tc-card, tc-card__*)
                 ],
                 deep: [
                     /-(enter|leave)(-(active|from|to))?$/,
