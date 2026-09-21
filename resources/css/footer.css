@@ -1,0 +1,189 @@
+/*
+ * Site footer — an elaborate, on-brand sign-off: a bold CTA on the left,
+ * link/social columns on the right, a meta row, and a large clipped
+ * wordmark strip washed in the TFE crimson. Dark + crimson throughout.
+ */
+.tfe-footer {
+    position: relative;
+    background: #060606;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.tfe-footer__top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 3rem;
+    padding: 4.5rem 0 2.5rem;
+}
+
+/* CTA block */
+.tfe-footer__cta h2 {
+    color: #fff;
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+}
+
+.tfe-footer__cta h2 span {
+    background: linear-gradient(90deg, #ef4050, #b80b1e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.tfe-footer__cta p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 42ch;
+    margin: 0 0 1.75rem;
+}
+
+.tfe-footer__getintouch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.6rem;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #b80b1e, #ef4050);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgba(184, 11, 30, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tfe-footer__getintouch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(184, 11, 30, 0.45);
+    color: #fff;
+}
+
+.tfe-footer__getintouch i {
+    font-size: 0.85rem;
+}
+
+/* Columns */
+.tfe-footer__cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.tfe-footer__col h4 {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 1rem;
+}
+
+.tfe-footer__col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.tfe-footer__col a,
+.tfe-footer__col button,
+.tfe-footer__col span.tfe-footer__static {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.92rem;
+    text-decoration: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.18s ease;
+}
+
+.tfe-footer__col a:hover,
+.tfe-footer__col button:hover {
+    color: #ef4050;
+}
+
+.tfe-footer__col i {
+    width: 16px;
+    color: #ef4050;
+    font-size: 0.9rem;
+}
+
+.tfe-footer__static {
+    color: rgba(255, 255, 255, 0.55) !important;
+    cursor: default !important;
+}
+
+/* Meta row */
+.tfe-footer__divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.tfe-footer__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 0 2.25rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.85rem;
+}
+
+.tfe-footer__love i {
+    color: #ef4050;
+    margin-right: 0.4rem;
+}
+
+/* Big clipped wordmark strip */
+.tfe-footer__wordmark {
+    position: relative;
+    background:
+        linear-gradient(90deg, rgba(184, 11, 30, 0.92), rgba(239, 64, 80, 0.85)),
+        #b80b1e;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.tfe-footer__wordmark span {
+    display: block;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    font-size: clamp(3rem, 13vw, 12rem);
+    line-height: 0.9;
+    color: rgba(0, 0, 0, 0.82);
+    padding: 0.25em 0 0.1em;
+    white-space: nowrap;
+    user-select: none;
+}
+
+@media (max-width: 991.98px) {
+    .tfe-footer__top {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        padding-top: 3.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .tfe-footer__cols {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.75rem 1rem;
+    }
+    .tfe-footer__meta { justify-content: flex-start; }
+}

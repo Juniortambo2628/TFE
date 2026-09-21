@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
-import GlassPill from '@/Components/Common/GlassPill';
+import AccentCard from '@/Components/Common/AccentCard';
 import '../../../css/tournament-compare.css';
 
 /**
@@ -61,49 +61,24 @@ export default function TournamentCompare() {
                 </div>
 
                 <div className="tc-grid">
-                    {rows.map((t) => {
-                        const trophy = t.trophy_image ? baseUrl + t.trophy_image : null;
-                        return (
-                            <a
-                                key={t.id}
-                                href={`/?tournament=${t.slug || t.id}`}
-                                className={'tc-card' + (t.isActive ? ' tc-card--active' : '')}
-                                style={{ '--tc-accent': t.accent }}
-                                aria-label={`${t.name} — ${t.cta.label}`}
-                            >
-                                {trophy && (
-                                    <img src={trophy} alt="" aria-hidden="true" className="tc-card__trophy" loading="lazy" />
-                                )}
-
-                                <GlassPill size="sm" className="tc-card__status">{t.status}</GlassPill>
-
-                                <h3 className="tc-card__name">{t.name}</h3>
-                                <div className="tc-card__hosts">
-                                    {(t.hosts || []).map((host) => (
-                                        <GlassPill key={host} size="sm">{host}</GlassPill>
-                                    ))}
-                                </div>
-
-                                <div className="tc-card__meta">
-                                    <div>
-                                        <div className="tc-card__meta-label">Dates</div>
-                                        <div className="tc-card__meta-value">
-                                            {shortDate(t.start_date)} → {shortDate(t.end_date)}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="tc-card__meta-label">Length</div>
-                                        <div className="tc-card__meta-value">{t.days ? `${t.days} days` : '—'}</div>
-                                    </div>
-                                </div>
-
-                                <GlassPill className="tc-card__cta">
-                                    {t.cta.label}
-                                    {!t.isActive && <i className="fas fa-arrow-right" />}
-                                </GlassPill>
-                            </a>
-                        );
-                    })}
+                    {rows.map((t) => (
+                        <AccentCard
+                            key={t.id}
+                            href={`/?tournament=${t.slug || t.id}`}
+                            accent={t.accent}
+                            active={t.isActive}
+                            aria-label={`${t.name} — ${t.cta.label}`}
+                            artwork={t.trophy_image ? { src: baseUrl + t.trophy_image } : undefined}
+                            status={t.status}
+                            title={t.name}
+                            pills={t.hosts || []}
+                            meta={[
+                                { label: 'Dates', value: `${shortDate(t.start_date)} → ${shortDate(t.end_date)}` },
+                                { label: 'Length', value: t.days ? `${t.days} days` : '—' },
+                            ]}
+                            cta={{ label: t.cta.label, icon: t.isActive ? null : 'fas fa-arrow-right' }}
+                        />
+                    ))}
                 </div>
             </div>
         </section>

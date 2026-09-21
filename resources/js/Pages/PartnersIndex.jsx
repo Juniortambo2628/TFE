@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
+import AccentCard from '@/Components/Common/AccentCard';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partners-index.css';
 
@@ -156,51 +157,25 @@ export default function PartnersIndex({ profiles = [], partner_types = {}, tourn
 
 function PartnerCard({ profile }) {
     const accent = profile.theme_accent || '#dc143c';
+    const tags = profile.service_tags || [];
+    const pills = tags.slice(0, 3);
+    if (tags.length > 3) pills.push(`+${tags.length - 3}`);
+
     return (
-        <Link
+        <AccentCard
+            LinkComponent={Link}
             href={route('partners.hub', profile.slug)}
-            className="partner-card"
-            style={{ '--partner-accent': accent }}
-        >
-            <div
-                className="partner-card__hero"
-                style={{ backgroundImage: profile.hero_image ? `url(${profile.hero_image})` : undefined }}
-            >
-                {profile.logo_url && (
-                    <img src={profile.logo_url} alt={profile.display_name} className="partner-card__logo" />
-                )}
-                {profile.verification_status === 'verified' && (
-                    <span className="partner-card__verified">
-                        <i className="fas fa-check-circle"></i>
-                        Verified
-                    </span>
-                )}
-            </div>
-            <div className="partner-card__body">
-                <div className="partner-card__type">{profile.partner_type_label}</div>
-                <h3 className="partner-card__name">{profile.display_name}</h3>
-                {profile.tagline && <p className="partner-card__tagline">{profile.tagline}</p>}
-                {profile.service_tags.length > 0 && (
-                    <div className="partner-card__tags">
-                        {profile.service_tags.slice(0, 3).map((tag, i) => (
-                            <span key={i} className="partner-card__tag">{tag}</span>
-                        ))}
-                        {profile.service_tags.length > 3 && (
-                            <span className="partner-card__tag partner-card__tag--more">
-                                +{profile.service_tags.length - 3}
-                            </span>
-                        )}
-                    </div>
-                )}
-                <div className="partner-card__footer">
-                    <span className="partner-card__listings">
-                        {profile.listings_count} {profile.listings_count === 1 ? 'listing' : 'listings'}
-                    </span>
-                    <span className="partner-card__cta">
-                        Visit hub <i className="fas fa-arrow-right"></i>
-                    </span>
-                </div>
-            </div>
-        </Link>
+            accent={accent}
+            artwork={profile.logo_url ? { src: profile.logo_url, alt: profile.display_name } : undefined}
+            status={profile.verification_status === 'verified' ? 'Verified' : undefined}
+            eyebrow={profile.partner_type_label}
+            title={profile.display_name}
+            desc={profile.tagline}
+            pills={pills}
+            meta={[
+                { label: 'Listings', value: profile.listings_count },
+            ]}
+            cta={{ label: 'Visit hub' }}
+        />
     );
 }
