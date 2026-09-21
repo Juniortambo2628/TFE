@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import Breadcrumbs from '@/Components/Common/Breadcrumbs';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import '../../../css/fan/fan-pages.css';
 import { formatMoney } from '@/lib/utils';
@@ -33,22 +33,15 @@ export default function Requests({ budgets = [], stats = {} }) {
         <PartnerLayout title="Requests">
             <Head title="Partner Requests - TFE" />
 
-            {/* Hero Section */}
-            <div className="partner-hero">
-                <Breadcrumbs 
-                    title="Requests" 
-                    breadcrumbs={[{ label: 'Partner Requests' }]}
-                    accentColor="#d97706"
-                    homeRoute="partner.dashboard"
-                />
-                <h1 className="dash-section-title">
-                    <i className="fas fa-inbox accent-partner"></i>
-                    Partner Requests
-                </h1>
-                <p className="dash-text-muted dash-no-margin">
-                    Browse and claim travel requests from fans looking for local partners to coordinate their trips.
-                </p>
-            </div>
+            <DashboardHero
+                role="partner"
+                title="Partner Requests"
+                subtitle="Browse and claim travel requests from fans looking for local partners to coordinate their trips."
+                breadcrumbs={[
+                    { label: 'Partner', icon: 'fas fa-home', href: route('partner.dashboard') },
+                    { label: 'Requests' },
+                ]}
+            />
 
             {/* Success/Error Message */}
             {flash?.success && (
