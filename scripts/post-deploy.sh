@@ -74,31 +74,44 @@ php artisan event:cache 2>/dev/null || true
 # Illuminate\Filesystem\exec()". `ln -s` does the same job without
 # needing exec().
 #
-# We create TWO symlinks:
+# We create TWO symlinks, both pointing at the Laravel public disk root
+# (config/filesystems.php → storage_path('app/public')):
 #   1. Frontend: public_html/storage → tfe-core/storage/app/public
 #      This is what serves /storage/*.jpg to browsers.
 #   2. Backend: tfe-core/public/storage → tfe-core/storage/app/public
 #      Some third-party packages use public_path('storage/...') to
 #      resolve paths internally; without this they 404 even though the
 #      frontend URL works.
+#
+# ensure_storage_symlink is SELF-CORRECTING: it creates the link when
+# missing AND repoints it when it exists but targets the wrong path. Older
+# setups sometimes left public_html/storage pointing at the whole
+# storage/ dir (which also exposes storage/logs to the web) — the previous
+# create-if-absent logic could never heal that. A real directory is left
+# untouched so we never delete uploaded files.
+ensure_storage_symlink() {
+  local target="$1" link="$2"
+  if [ -L "$link" ]; then
+    if [ "$(readlink "$link")" = "$target" ]; then
+      echo "Symlink already correct: $link -> $target"
+      return
+    fi
+    echo "Repointing incorrect symlink: $link -> $(readlink "$link") (want $target)"
+    rm -f "$link"
+  elif [ -e "$link" ]; then
+    echo "WARNING: $link exists but is not a symlink; leaving alone"
+    return
+  fi
+  ln -s "$target" "$link"
+  echo "Created symlink: $link -> $target"
+}
+
 echo "─── Frontend storage symlink ───"
-if [ -L "$FRONTEND_PATH/storage" ]; then
-  echo "Symlink already exists at $FRONTEND_PATH/storage, skipping"
-else
-  ln -s "$BACKEND_PATH/storage/app/public" "$FRONTEND_PATH/storage"
-  echo "Created symlink: $FRONTEND_PATH/storage -> $BACKEND_PATH/storage/app/public"
-fi
+ensure_storage_symlink "$BACKEND_PATH/storage/app/public" "$FRONTEND_PATH/storage"
 
 echo "─── Backend storage symlink ───"
 mkdir -p "$BACKEND_PATH/public"
-if [ -L "$BACKEND_PATH/public/storage" ]; then
-  echo "Symlink already exists at $BACKEND_PATH/public/storage, skipping"
-elif [ -e "$BACKEND_PATH/public/storage" ]; then
-  echo "WARNING: $BACKEND_PATH/public/storage exists but is not a symlink; leaving alone"
-else
-  ln -s "$BACKEND_PATH/storage/app/public" "$BACKEND_PATH/public/storage"
-  echo "Created symlink: $BACKEND_PATH/public/storage -> $BACKEND_PATH/storage/app/public"
-fi
+ensure_storage_symlink "$BACKEND_PATH/storage/app/public" "$BACKEND_PATH/public/storage"
 
 # ─────────────────────────────────────────────
 # 7. PERMISSIONS

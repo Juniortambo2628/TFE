@@ -47,17 +47,28 @@ else
 fi
 
 # ── 3. Symlink public/storage → storage/app/public ────────────────────────────
-# Required for FILESYSTEM_DISK=public. cPanel disables PHP's exec() in
+# Required for the Laravel public disk (config/filesystems.php →
+# storage_path('app/public')). cPanel disables PHP's exec() in
 # disable_functions, so `php artisan storage:link` errors with "Call to
 # undefined function Illuminate\Filesystem\exec()". `ln -s` sidesteps
-# exec() entirely. Idempotent: skip if the symlink is already correct.
+# exec() entirely. Self-correcting: create when missing AND repoint when it
+# targets the wrong path (e.g. a stale link to the whole storage/ dir).
+# A real directory is left untouched so uploaded files are never deleted.
 log "Ensuring public/storage symlink…"
+STORAGE_TARGET="$APP_ROOT/storage/app/public"
 if [[ -L public/storage ]]; then
-    ok "public/storage symlink already exists"
+    if [[ "$(readlink public/storage)" == "$STORAGE_TARGET" ]]; then
+        ok "public/storage symlink already correct"
+    else
+        warn "repointing public/storage: $(readlink public/storage) -> $STORAGE_TARGET"
+        rm -f public/storage
+        ln -s "$STORAGE_TARGET" "$APP_ROOT/public/storage"
+        ok "public/storage -> storage/app/public"
+    fi
 elif [[ -e public/storage ]]; then
     warn "public/storage exists but is not a symlink — leaving alone"
 else
-    ln -s "$APP_ROOT/storage/app/public" "$APP_ROOT/public/storage"
+    ln -s "$STORAGE_TARGET" "$APP_ROOT/public/storage"
     ok "created public/storage -> storage/app/public"
 fi
 
