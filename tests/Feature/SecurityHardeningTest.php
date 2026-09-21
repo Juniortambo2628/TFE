@@ -56,6 +56,7 @@ class SecurityHardeningTest extends TestCase
         $this->actingAs($partner)
             ->post(route('partner.listings.store'), [
                 'tournament_id' => 'afcon_2027',
+                'type' => 'package',
                 'name' => 'Weekend',
                 'base_price' => 1000,
                 'currency' => 'USD',

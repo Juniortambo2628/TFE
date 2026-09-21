@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import Breadcrumbs from '@/Components/Common/Breadcrumbs';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import '../../../css/fan/fan-pages.css';
 import { formatMoney } from '@/lib/utils';
 
@@ -64,24 +65,15 @@ export default function Communication({ threads = [], stats = {} }) {
                 </div>
             )}
 
-            {/* Stats Row */}
-            <div className="dash-stat-grid dash-mb-lg">
-                <div className="dash-stat-card">
-                    <i className="fas fa-comments accent-partner dash-stat-icon partner-stat-icon-lg"></i>
-                    <div className="dash-stat-value">{stats.total_threads || 0}</div>
-                    <div className="dash-stat-label">Total Threads</div>
-                </div>
-                <div className="dash-stat-card">
-                    <i className="fas fa-envelope-open accent-danger dash-stat-icon partner-stat-icon-lg"></i>
-                    <div className="dash-stat-value">{stats.unread_messages || 0}</div>
-                    <div className="dash-stat-label">Unread Messages</div>
-                </div>
-                <div className="dash-stat-card">
-                    <i className="fas fa-clock accent-admin dash-stat-icon partner-stat-icon-lg"></i>
-                    <div className="dash-stat-value">{stats.pending_requests || 0}</div>
-                    <div className="dash-stat-label">Pending Requests</div>
-                </div>
-            </div>
+            {/* Stats Row — shared summary tiles */}
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Threads',   value: stats.total_threads || 0,   icon: 'fa-comments',      accent: 'blue' },
+                    { label: 'Unread Messages', value: stats.unread_messages || 0, icon: 'fa-envelope-open', accent: 'red' },
+                    { label: 'Pending Requests',value: stats.pending_requests || 0,icon: 'fa-clock',         accent: 'amber' },
+                ]}
+            />
 
             {/* Main Content - Split View */}
             <div className={`partner-comm-grid ${selectedThread ? 'has-thread' : ''}`}>
@@ -190,7 +182,7 @@ export default function Communication({ threads = [], stats = {} }) {
                                     value={messageForm.data.body}
                                     onChange={(e) => messageForm.setData('body', e.target.value)}
                                     placeholder="Type your message..."
-                                    className="dash-input partner-comm-reply-input"
+                                    className="tfe-input partner-comm-reply-input"
                                 />
                                 <button
                                     type="submit"

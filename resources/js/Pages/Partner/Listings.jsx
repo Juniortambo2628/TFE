@@ -4,34 +4,55 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import TournamentPill from '@/Components/Common/TournamentPill';
 import CapacityBar from '@/Components/Common/CapacityBar';
+import TfeModal from '@/Components/Common/TfeModal';
+import ImageUpload from '@/Components/Common/ImageUpload';
 import { formatMoney } from '@/lib/utils';
 
 /**
  * Publish tab — partner authors their own listings.
  *
- * Draft rows stay hidden from fans. "Submit for review" flips them to
- * pending and admin sees them in the approvals queue. A rejected row
- * comes back with moderation_notes and the partner can edit + resubmit.
+ * No admin review: a saved listing goes live immediately. The partner
+ * controls visibility with the Published / Hidden toggle. The create/edit
+ * form is contextual — the trip fields (nights, flight class, accommodation)
+ * only appear for Package / Tour listings, so a finance/airline/betting
+ * partner authoring an Offer isn't asked to fill them.
  */
-export default function Listings({ listings = [], tournaments = [], status_counts }) {
+
+// Which listing type a partner sees by default, by partner_type. Package =
+// full trip (travel-style); Offer = a simple priced product (finance, airline
+// fares, betting promos, sponsorships).
+const DEFAULT_TYPE = {
+    travel_agent: 'package',
+    destination: 'package',
+    event_organiser: 'event',
+    hotel_provider: 'package',
+    finance_partner: 'offer',
+    airline: 'offer',
+    sponsor: 'offer',
+    club: 'offer',
+    federation: 'offer',
+};
+
+// Trip fields only make sense for a packaged trip (or a multi-night tour).
+const showsNights = (type) => type === 'package' || type === 'tour';
+const showsTravel = (type) => type === 'package';
+
+export default function Listings({ listings = [], tournaments = [], status_counts, partner_type }) {
     const [editing, setEditing] = useState(null); // null | 'new' | listing.id
     const [filter, setFilter] = useState('all');
 
-    const filtered = filter === 'all' ? listings : listings.filter((l) => l.moderation_status === filter);
+    const filtered = filter === 'all'
+        ? listings
+        : filter === 'published'
+            ? listings.filter((l) => l.is_active)
+            : listings.filter((l) => !l.is_active);
 
-    const statusChip = (status) => {
-        const map = {
-            draft: { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', label: 'Draft' },
-            pending: { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b', label: 'Pending review' },
-            approved: { bg: 'rgba(16,185,129,0.15)', color: '#10b981', label: 'Approved' },
-            rejected: { bg: 'rgba(239,68,68,0.15)', color: '#ef4444', label: 'Rejected' },
-        };
-        const s = map[status] || map.draft;
+    const stateChip = (l) => {
+        const s = l.is_active
+            ? { bg: 'rgba(16,185,129,0.15)', color: '#10b981', label: 'Published' }
+            : { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', label: 'Hidden' };
         return (
-            <span
-                className="px-2 py-1 small fw-semibold"
-                style={{ background: s.bg, color: s.color, borderRadius: 999 }}
-            >
+            <span className="px-2 py-1 small fw-semibold" style={{ background: s.bg, color: s.color, borderRadius: 999 }}>
                 {s.label}
             </span>
         );
@@ -42,19 +63,15 @@ export default function Listings({ listings = [], tournaments = [], status_count
             <DashboardHero
                 role="partner"
                 title="Publish"
-                subtitle="Author your own listings. Admin approves before they go public."
+                subtitle="Author your own listings. They go live the moment you publish — no review needed."
             />
 
-            {/* Sprint 36 — migrated onto .tfe-tile to match the fan
-                dashboard reference impl. The variant washes are chosen
-                to echo the row's moderation semantics (blue = draft,
-                amber = pending, teal = approved, rose = rejected). */}
             <div className="tfe-stat-grid mt-4">
                 {[
-                    { key: 'draft',    label: 'Draft',    variant: 'blue',  icon: 'fas fa-file' },
-                    { key: 'pending',  label: 'Pending',  variant: 'amber', icon: 'fas fa-hourglass-half' },
-                    { key: 'approved', label: 'Approved', variant: 'teal',  icon: 'fas fa-check-circle' },
-                    { key: 'rejected', label: 'Rejected', variant: 'rose',  icon: 'fas fa-times-circle' },
+                    { key: 'total',     label: 'Total',     variant: 'blue',   icon: 'fas fa-tags' },
+                    { key: 'published', label: 'Published', variant: 'teal',   icon: 'fas fa-circle-check' },
+                    { key: 'hidden',    label: 'Hidden',    variant: 'amber',  icon: 'fas fa-eye-slash' },
+                    { key: 'sold_out',  label: 'Sold out',  variant: 'rose',   icon: 'fas fa-ban' },
                 ].map(({ key, label, variant, icon }) => (
                     <div key={key} className={`tfe-tile tfe-tile--${variant}`}>
                         <div className="tfe-tile__head">
@@ -73,7 +90,7 @@ export default function Listings({ listings = [], tournaments = [], status_count
                         <h3 className="mb-0">Your listings</h3>
                     </div>
                     <div className="d-flex gap-2 flex-wrap">
-                        {['all', 'draft', 'pending', 'approved', 'rejected'].map((f) => (
+                        {['all', 'published', 'hidden'].map((f) => (
                             <button
                                 key={f}
                                 type="button"
@@ -99,7 +116,7 @@ export default function Listings({ listings = [], tournaments = [], status_count
                         <div className="tfe-empty">
                             <div className="tfe-empty__icon"><i className="fas fa-box-open" /></div>
                             <h4 className="tfe-empty__title">Nothing here yet</h4>
-                            <p className="tfe-empty__body">Draft your first listing to start selling on the platform.</p>
+                            <p className="tfe-empty__body">Create your first listing to start selling on the platform.</p>
                         </div>
                     ) : (
                         <div className="table-responsive">
@@ -120,12 +137,13 @@ export default function Listings({ listings = [], tournaments = [], status_count
                                         <tr key={l.id}>
                                             <td>
                                                 <div className="fw-semibold">{l.name}</div>
-                                                <div className="text-white-50 small">
-                                                    {l.nights}n • {l.flight_class} • {l.accommodation_level}
+                                                <div className="text-white-50 small text-capitalize">
+                                                    {l.type}{showsNights(l.type) && l.nights ? ` • ${l.nights}n` : ''}
+                                                    {showsTravel(l.type) && l.flight_class ? ` • ${l.flight_class}` : ''}
                                                 </div>
                                             </td>
                                             <td><TournamentPill tournamentId={l.tournament_id} shortName={l.tournament_name} /></td>
-                                            <td>{formatMoney(l.base_price)}</td>
+                                            <td>{formatMoney(l.base_price, l.currency)}</td>
                                             <td style={{ minWidth: 140 }}>
                                                 {l.capacity ? (
                                                     <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
@@ -133,22 +151,20 @@ export default function Listings({ listings = [], tournaments = [], status_count
                                                     <span className="text-white-50 small">Unlimited</span>
                                                 )}
                                             </td>
-                                            <td>{statusChip(l.moderation_status)}</td>
+                                            <td>{stateChip(l)}</td>
                                             <td className="text-white-50 small">{l.updated_at}</td>
                                             <td className="text-end">
                                                 <div className="d-inline-flex gap-2 flex-wrap justify-content-end">
                                                     <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setEditing(l.id)}>
                                                         Edit
                                                     </button>
-                                                    {(l.moderation_status === 'draft' || l.moderation_status === 'rejected') && (
-                                                        <button
-                                                            type="button"
-                                                            className="tfe-btn tfe-btn--sm tfe-btn--filled"
-                                                            onClick={() => router.post(route('partner.listings.submit', l.id))}
-                                                        >
-                                                            Submit
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        className={`tfe-btn tfe-btn--sm${l.is_active ? '' : ' tfe-btn--filled'}`}
+                                                        onClick={() => router.post(route('partner.listings.toggle', l.id), {}, { preserveScroll: true })}
+                                                    >
+                                                        {l.is_active ? 'Hide' : 'Publish'}
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         className="tfe-btn tfe-btn--sm"
@@ -175,6 +191,7 @@ export default function Listings({ listings = [], tournaments = [], status_count
                 <ListingFormModal
                     listing={editing === 'new' ? null : listings.find((l) => l.id === editing)}
                     tournaments={tournaments}
+                    partnerType={partner_type}
                     onClose={() => setEditing(null)}
                 />
             )}
@@ -182,73 +199,44 @@ export default function Listings({ listings = [], tournaments = [], status_count
     );
 }
 
-function ListingFormModal({ listing, tournaments, onClose }) {
+function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
     const isEdit = !!listing;
-    const { data, setData, post, put, processing, errors } = useForm({
+    const form = useForm({
         tournament_id: listing?.tournament_id || tournaments[0]?.id || '',
-        type: listing?.type || 'package',
+        type: listing?.type || DEFAULT_TYPE[partnerType] || 'offer',
         name: listing?.name || '',
         description: listing?.description || '',
         hero_image: listing?.hero_image || '',
+        hero_image_file: null,
         base_price: listing?.base_price || '',
         currency: listing?.currency || 'USD',
-        included_match_ids: listing?.included_match_ids || [],
-        included_venues: listing?.included_venues || [],
         nights: listing?.nights || 7,
         flight_class: listing?.flight_class || 'economy',
         accommodation_level: listing?.accommodation_level || '3-star',
         capacity: listing?.capacity || '',
-        is_active: listing?.is_active ?? false,
-        moderation_status: listing?.moderation_status === 'approved' ? 'approved' : 'draft',
+        is_active: listing?.is_active ?? true,
     });
+    const { data, setData, processing, errors } = form;
 
-    const submit = (e) => {
+    const save = (e, active) => {
         e.preventDefault();
-        if (isEdit) {
-            put(route('partner.listings.update', listing.id), { preserveScroll: true, onSuccess: onClose });
-        } else {
-            post(route('partner.listings.store'), { preserveScroll: true, onSuccess: onClose });
-        }
+        // transform() runs at submit time, so the just-clicked publish/hide
+        // choice and PUT method-spoofing (needed for multipart file uploads)
+        // are applied to the payload reliably despite setData being async.
+        form.transform((d) => ({ ...d, is_active: active, ...(isEdit ? { _method: 'put' } : {}) }));
+        form.post(
+            isEdit ? route('partner.listings.update', listing.id) : route('partner.listings.store'),
+            { preserveScroll: true, forceFormData: true, onSuccess: onClose },
+        );
     };
 
     return (
-        <div
-            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-            style={{ background: 'rgba(0,0,0,0.7)', zIndex: 1050 }}
-            onClick={onClose}
-        >
-            <div
-                className="p-4"
-                style={{ background: '#1a1a1a', borderRadius: 16, width: 'min(720px, 92vw)', maxHeight: '90vh', overflow: 'auto' }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h3 className="text-white mb-0">{isEdit ? 'Edit listing' : 'New listing'}</h3>
-                    <button
-                        type="button"
-                        className="tfe-btn tfe-btn--sm tfe-btn--icon"
-                        aria-label="Close"
-                        onClick={onClose}
-                    >
-                        <i className="fas fa-times" />
-                    </button>
-                </div>
-
-                {listing?.moderation_status === 'rejected' && listing?.moderation_notes && (
-                    <div className="alert alert-danger">
-                        <strong>Admin feedback:</strong> {listing.moderation_notes}
-                    </div>
-                )}
-
-                <form onSubmit={submit}>
+        <TfeModal open title={isEdit ? 'Edit listing' : 'New listing'} onClose={onClose} size="lg">
+                <form onSubmit={(e) => save(e, true)}>
                     <div className="row g-3">
                         <div className="col-md-6">
                             <label className="tfe-form-label">Tournament</label>
-                            <select
-                                className="tfe-select"
-                                value={data.tournament_id}
-                                onChange={(e) => setData('tournament_id', e.target.value)}
-                            >
+                            <select className="tfe-select" value={data.tournament_id} onChange={(e) => setData('tournament_id', e.target.value)}>
                                 {tournaments.map((t) => (
                                     <option key={t.id} value={t.id}>{t.short_name || t.name}</option>
                                 ))}
@@ -257,137 +245,94 @@ function ListingFormModal({ listing, tournaments, onClose }) {
                         </div>
                         <div className="col-md-6">
                             <label className="tfe-form-label">Type</label>
-                            <select
-                                className="tfe-select"
-                                value={data.type}
-                                onChange={(e) => setData('type', e.target.value)}
-                            >
-                                <option value="package">Package</option>
-                                <option value="offer">Offer</option>
+                            <select className="tfe-select" value={data.type} onChange={(e) => setData('type', e.target.value)}>
+                                <option value="package">Package (full trip)</option>
+                                <option value="offer">Offer (single product)</option>
                                 <option value="event">Event</option>
                                 <option value="tour">Tour</option>
                             </select>
+                            <div className="tfe-form-help">
+                                {showsTravel(data.type)
+                                    ? 'Package includes flights + stay + nights.'
+                                    : showsNights(data.type)
+                                        ? 'Multi-night tour — set the number of nights.'
+                                        : 'A simple priced offer (fare, financing, promo, sponsorship).'}
+                            </div>
                         </div>
 
                         <div className="col-12">
                             <label className="tfe-form-label">Name</label>
-                            <input
-                                type="text"
-                                className="tfe-input"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                            />
+                            <input type="text" className="tfe-input" value={data.name} onChange={(e) => setData('name', e.target.value)} />
                             {errors.name && <div className="tfe-form-error">{errors.name}</div>}
                         </div>
 
                         <div className="col-12">
                             <label className="tfe-form-label">Description</label>
-                            <textarea
-                                className="tfe-input"
-                                rows={3}
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                            />
+                            <textarea className="tfe-textarea" rows={3} value={data.description} onChange={(e) => setData('description', e.target.value)} />
+                            {errors.description && <div className="tfe-form-error">{errors.description}</div>}
                         </div>
 
                         <div className="col-md-4">
                             <label className="tfe-form-label">Base price</label>
-                            <input
-                                type="number"
-                                className="tfe-input"
-                                value={data.base_price}
-                                onChange={(e) => setData('base_price', e.target.value)}
-                            />
+                            <input type="number" className="tfe-input" value={data.base_price} onChange={(e) => setData('base_price', e.target.value)} />
+                            {errors.base_price && <div className="tfe-form-error">{errors.base_price}</div>}
                         </div>
-                        <div className="col-md-2">
+                        <div className="col-md-4">
                             <label className="tfe-form-label">Currency</label>
-                            <input
-                                type="text"
-                                className="tfe-input"
-                                value={data.currency}
-                                onChange={(e) => setData('currency', e.target.value)}
-                            />
+                            <input type="text" className="tfe-input" value={data.currency} onChange={(e) => setData('currency', e.target.value)} />
                         </div>
-                        <div className="col-md-3">
-                            <label className="tfe-form-label">Nights</label>
-                            <input
-                                type="number"
-                                className="tfe-input"
-                                value={data.nights}
-                                onChange={(e) => setData('nights', e.target.value)}
-                            />
-                        </div>
-                        <div className="col-md-3">
+                        <div className="col-md-4">
                             <label className="tfe-form-label">Capacity</label>
-                            <input
-                                type="number"
-                                className="tfe-input"
-                                value={data.capacity}
-                                onChange={(e) => setData('capacity', e.target.value)}
-                                placeholder="Unlimited"
-                            />
+                            <input type="number" className="tfe-input" value={data.capacity} onChange={(e) => setData('capacity', e.target.value)} placeholder="Unlimited" />
                         </div>
 
-                        <div className="col-md-6">
-                            <label className="tfe-form-label">Flight class</label>
-                            <select
-                                className="tfe-select"
-                                value={data.flight_class}
-                                onChange={(e) => setData('flight_class', e.target.value)}
-                            >
-                                <option value="economy">Economy</option>
-                                <option value="business">Business</option>
-                                <option value="first">First</option>
-                            </select>
-                        </div>
-                        <div className="col-md-6">
-                            <label className="tfe-form-label">Accommodation</label>
-                            <input
-                                type="text"
-                                className="tfe-input"
-                                value={data.accommodation_level}
-                                onChange={(e) => setData('accommodation_level', e.target.value)}
-                                placeholder="3-star, 5-star, boutique…"
-                            />
-                        </div>
+                        {showsNights(data.type) && (
+                            <div className="col-md-4">
+                                <label className="tfe-form-label">Nights</label>
+                                <input type="number" className="tfe-input" value={data.nights} onChange={(e) => setData('nights', e.target.value)} />
+                                {errors.nights && <div className="tfe-form-error">{errors.nights}</div>}
+                            </div>
+                        )}
+                        {showsTravel(data.type) && (
+                            <>
+                                <div className="col-md-4">
+                                    <label className="tfe-form-label">Flight class</label>
+                                    <select className="tfe-select" value={data.flight_class} onChange={(e) => setData('flight_class', e.target.value)}>
+                                        <option value="economy">Economy</option>
+                                        <option value="business">Business</option>
+                                        <option value="first">First</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <label className="tfe-form-label">Accommodation</label>
+                                    <input type="text" className="tfe-input" value={data.accommodation_level} onChange={(e) => setData('accommodation_level', e.target.value)} placeholder="3-star, 5-star, boutique…" />
+                                </div>
+                            </>
+                        )}
 
                         <div className="col-12">
-                            <label className="tfe-form-label">Hero image URL</label>
-                            <input
-                                type="text"
-                                className="tfe-input"
+                            <label className="tfe-form-label">Hero image</label>
+                            <ImageUpload
                                 value={data.hero_image}
-                                onChange={(e) => setData('hero_image', e.target.value)}
-                                placeholder="https://…"
+                                onFile={(file) => setData('hero_image_file', file)}
+                                onClear={() => { setData('hero_image', ''); setData('hero_image_file', null); }}
                             />
+                            {errors.hero_image_file && <div className="tfe-form-error">{errors.hero_image_file}</div>}
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-between align-items-center mt-4">
-                        <div className="text-white-50 small">
-                            Save as draft to keep working, or submit for admin review.
-                        </div>
+                    <div className="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+                        <div className="text-white-50 small">Publish to go live now, or save hidden to keep it off your hub.</div>
                         <div className="d-flex gap-2">
-                            <button
-                                type="submit"
-                                className="tfe-btn"
-                                disabled={processing}
-                                onClick={() => setData('moderation_status', 'draft')}
-                            >
-                                Save draft
+                            <button type="button" className="tfe-btn" disabled={processing} onClick={(e) => save(e, false)}>
+                                Save hidden
                             </button>
-                            <button
-                                type="submit"
-                                className="tfe-btn tfe-btn--filled"
-                                disabled={processing}
-                                onClick={() => setData('moderation_status', 'pending')}
-                            >
-                                Submit for review
+                            <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing}>
+                                {isEdit ? 'Save & publish' : 'Publish listing'}
                             </button>
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+        </TfeModal>
     );
 }

@@ -14,10 +14,10 @@ use Inertia\Inertia;
 /**
  * Partner-side Publish tab.
  *
- * Partners author listings under their own publisher_type/id. New rows
- * start as `draft`; hitting "Submit for review" flips to `pending` and
- * admin sees it in the approval queue. Approved rows appear on the
- * partner's public hub and in the fan discovery grid.
+ * Partners author listings under their own publisher_type/id. There is no
+ * admin review step — a saved listing goes live immediately (approved), and
+ * the partner controls whether it's visible to fans via the `is_active`
+ * (Published / Hidden) toggle.
  */
 class ListingController extends Controller
 {
@@ -34,11 +34,12 @@ class ListingController extends Controller
         return Inertia::render('Partner/Listings', [
             'listings' => $listings,
             'tournaments' => app(TournamentService::class)->all(),
+            'partner_type' => $user->partner_type,
             'status_counts' => [
-                'draft' => $listings->where('moderation_status', 'draft')->count(),
-                'pending' => $listings->where('moderation_status', 'pending')->count(),
-                'approved' => $listings->where('moderation_status', 'approved')->count(),
-                'rejected' => $listings->where('moderation_status', 'rejected')->count(),
+                'total' => $listings->count(),
+                'published' => $listings->where('is_active', true)->count(),
+                'hidden' => $listings->where('is_active', false)->count(),
+                'sold_out' => $listings->where('is_sold_out', true)->count(),
             ],
         ]);
     }
@@ -66,17 +67,22 @@ class ListingController extends Controller
             );
         }
 
-        // Partner-authored: publisher is the partner, moderation starts as draft.
+        // Partner-authored: publisher is the partner. No review step — the
+        // listing is approved on save and goes live unless the partner chose
+        // to keep it hidden (is_active=false).
         $validated['publisher_type'] = User::class;
         $validated['publisher_id'] = $user->id;
         $validated['created_by'] = $user->id;
-        $validated['moderation_status'] = $validated['moderation_status'] ?? 'draft';
-        $validated['is_active'] = $validated['is_active'] ?? false;
+        $validated['moderation_status'] = 'approved';
+        $validated['submitted_at'] = now();
+        $validated['is_active'] = $validated['is_active'] ?? true;
         $validated['is_featured'] = false; // partners cannot self-feature
 
         $listing = Listing::create($validated);
 
-        return back()->with('success', "Listing '{$listing->name}' saved as {$listing->moderation_status}.");
+        $state = $listing->is_active ? 'published' : 'saved as hidden';
+
+        return back()->with('success', "Listing '{$listing->name}' {$state}.");
     }
 
     public function update(Request $request, Listing $listing)
@@ -91,14 +97,9 @@ class ListingController extends Controller
             );
         }
 
-        // A rejected listing that the partner edits and resubmits goes
-        // back to pending; a draft they toggle "submit for review" on
-        // does the same. Approved edits stay approved but re-enter the
-        // queue if the partner explicitly resubmits.
-        if (($validated['moderation_status'] ?? null) === 'pending') {
-            $validated['submitted_at'] = now();
-        }
-
+        // No review step: a partner's edits stay live (approved). Visibility
+        // is the partner's own is_active toggle.
+        $validated['moderation_status'] = 'approved';
         $validated['is_featured'] = $listing->is_featured; // preserve admin's flag
 
         $listing->update($validated);
@@ -115,24 +116,19 @@ class ListingController extends Controller
     }
 
     /**
-     * Flip a draft/rejected listing to pending — the "Submit for review"
-     * button on the row. Kept as its own endpoint so the row action is a
-     * single POST without needing the full edit payload.
+     * Flip a listing between Published (is_active=true) and Hidden. Single
+     * POST from the row action — no review step involved.
      */
-    public function submit(Request $request, Listing $listing)
+    public function toggle(Request $request, Listing $listing)
     {
         $this->authorizeOwnership($request, $listing);
 
-        if (! in_array($listing->moderation_status, ['draft', 'rejected'], true)) {
-            return back()->with('error', 'Listing is already submitted or approved.');
-        }
-
         $listing->update([
-            'moderation_status' => 'pending',
-            'submitted_at' => now(),
+            'is_active' => ! $listing->is_active,
+            'moderation_status' => 'approved',
         ]);
 
-        return back()->with('success', 'Listing submitted for admin review.');
+        return back()->with('success', $listing->is_active ? 'Listing published.' : 'Listing hidden.');
     }
 
     protected function authorizeOwnership(Request $request, Listing $listing): void
@@ -182,7 +178,7 @@ class ListingController extends Controller
 
         return $request->validate([
             'tournament_id' => 'required|string|in:'.implode(',', $tournamentIds),
-            'type' => 'nullable|string|in:package,offer,event,tour',
+            'type' => 'required|string|in:package,offer,event,tour',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'hero_image' => 'nullable|string',
@@ -196,12 +192,13 @@ class ListingController extends Controller
             'included_match_ids.*' => 'string',
             'included_venues' => 'nullable|array',
             'included_venues.*' => 'string',
-            'nights' => 'required|integer|min:1|max:60',
-            'flight_class' => 'required|string|in:economy,business,first',
-            'accommodation_level' => 'required|string',
+            // Package/tour-only trip fields — optional for offer/event so a
+            // finance/airline/betting listing isn't forced to fill them.
+            'nights' => 'nullable|required_if:type,package,tour|integer|min:1|max:60',
+            'flight_class' => 'nullable|required_if:type,package|string|in:economy,business,first',
+            'accommodation_level' => 'nullable|required_if:type,package|string',
             'capacity' => 'nullable|integer|min:1',
             'is_active' => 'nullable|boolean',
-            'moderation_status' => 'nullable|string|in:draft,pending',
             'display_order' => 'nullable|integer|min:0',
         ]);
     }

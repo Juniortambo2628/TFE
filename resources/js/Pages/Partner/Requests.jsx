@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import Breadcrumbs from '@/Components/Common/Breadcrumbs';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import '../../../css/fan/fan-pages.css';
 import { formatMoney } from '@/lib/utils';
 
@@ -63,24 +64,15 @@ export default function Requests({ budgets = [], stats = {} }) {
                 </div>
             )}
 
-            {/* Stats */}
-            <div className="dash-stat-grid dash-mb-lg">
-                <div className="dash-stat-card">
-                    <i className="fas fa-inbox accent-partner dash-stat-icon partner-stat-icon-lg"></i>
-                    <div className="dash-stat-value">{stats.total || 0}</div>
-                    <div className="dash-stat-label">Total Requests</div>
-                </div>
-                <div className="dash-stat-card">
-                    <i className="fas fa-clock accent-admin dash-stat-icon partner-stat-icon-lg"></i>
-                    <div className="dash-stat-value">{stats.pending || 0}</div>
-                    <div className="dash-stat-label">Pending Review</div>
-                </div>
-                <div className="dash-stat-card">
-                    <i className="fas fa-check accent-success dash-stat-icon partner-stat-icon-lg"></i>
-                    <div className="dash-stat-value">{stats.approved || 0}</div>
-                    <div className="dash-stat-label">Claimed</div>
-                </div>
-            </div>
+            {/* Stats — shared summary tiles (same primitive as every dashboard) */}
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Requests', value: stats.total || 0,    icon: 'fa-inbox', accent: 'blue' },
+                    { label: 'Pending Review', value: stats.pending || 0,  icon: 'fa-clock', accent: 'amber' },
+                    { label: 'Claimed',        value: stats.approved || 0, icon: 'fa-check', accent: 'teal' },
+                ]}
+            />
 
             {/* Filter/Search */}
             <div className="dash-flex-between dash-mb-lg">
@@ -101,7 +93,7 @@ export default function Requests({ budgets = [], stats = {} }) {
                         placeholder="Search by ID or Fan..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="dash-input partner-search-input"
+                        className="tfe-input partner-search-input"
                     />
                 </div>
             </div>
