@@ -10,15 +10,20 @@ export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const navLinks = [
+        { label: 'About', href: route('about') },
+        { label: 'Features', href: route('features') },
+        { label: 'Services', href: route('services') },
+        { label: 'News', href: route('news') },
+        { label: 'Contact', href: route('contact') },
         { label: 'Partners', href: route('partners.index') },
     ];
 
     const renderLinks = () =>
         navLinks.map((link) => (
             <li key={link.href} className="nav-item">
-                <a className="nav-link" href={link.href} onClick={() => setIsMenuOpen(false)}>
+                <Link className="nav-link" href={link.href} onClick={() => setIsMenuOpen(false)}>
                     {link.label}
-                </a>
+                </Link>
             </li>
         ));
 
