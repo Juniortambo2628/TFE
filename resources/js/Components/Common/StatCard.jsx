@@ -1,5 +1,4 @@
 import React from 'react';
-import { usePage } from '@inertiajs/react';
 import PillBadge from '@/Components/Common/PillBadge';
 
 /**
@@ -13,19 +12,19 @@ import PillBadge from '@/Components/Common/PillBadge';
  *     tile now, differentiated only by the `accent` prop.
  *   - No inline styles for colors or spacing — everything lives in
  *     resources/css/design-tokens.css + primitives.css.
- *   - Backward-compatible with prior call sites that passed
- *     `variant` (red/blue/amber/green/purple/cyan). The
- *     backend-controlled `type="visual"` background-image variant is
- *     still supported for admin content that carries a hero image.
  *
- * Props (new):
+ * Sprint 43 — the CMS-driven `type="visual"` background-image variant was
+ * removed: admin CMS customization is limited to public pages, and dashboard
+ * cards are always the clean token-driven tile. Legacy visual props
+ * (`type`/`image`/`bgType`/`settingsKey`) are accepted but ignored so old
+ * call sites keep rendering a normal tile.
+ *
+ * Props:
  *   label, value, subtext, icon
  *   accent   one of: red rose blue cyan teal amber violet graph
  *   pill     { label, variant } — small status chip in the top-right
  *
- * Legacy prop `variant` still works; it maps to `accent` internally
- * so admin/partner pages keep rendering while we roll the visual
- * refresh out.
+ * Legacy prop `variant` still works; it maps to `accent` internally.
  */
 const VARIANT_TO_ACCENT = {
     red: 'red',
@@ -44,50 +43,11 @@ export default function StatCard({
     value,
     icon,
     subtext,
-    image,
-    bgType,
-    settingsKey,
     variant,
     accent,
     pill,
-    type = 'standard',
     className = '',
 }) {
-    const { adminSettings = {} } = usePage().props;
-
-    // Visual card variant is unchanged: an admin-configured hero image
-    // wrapped in the same tile chrome. Kept for compatibility with the
-    // /admin/users page and any other visual-card call site.
-    const displayImage = (settingsKey && adminSettings[settingsKey])
-        || (bgType && adminSettings[`bg_card_${bgType}`])
-        || image;
-
-    if (type === 'visual') {
-        const cardStyle = displayImage ? {
-            backgroundImage: `url(${displayImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-        } : undefined;
-
-        return (
-            <div className={`tfe-tile ${className}`} style={cardStyle}>
-                <div className="tfe-tile__head">
-                    {icon && (
-                        <div className="tfe-tile__icon">
-                            <i className={`fas ${icon}`}></i>
-                        </div>
-                    )}
-                    {pill && <PillBadge {...pill} />}
-                </div>
-                <div>
-                    <div className="tfe-tile__value">{value}</div>
-                    <div className="tfe-tile__label">{label}</div>
-                    {subtext && <div className="tfe-tile__subtext">{subtext}</div>}
-                </div>
-            </div>
-        );
-    }
-
     const resolvedAccent = accent || VARIANT_TO_ACCENT[variant] || 'red';
     const iconClass = icon?.startsWith('fa') ? icon : (icon ? `fa-${icon}` : '');
 

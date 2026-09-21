@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import Breadcrumbs from '@/Components/Common/Breadcrumbs';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import TfeModal from '@/Components/Common/TfeModal';
 import ImageUpload from '@/Components/Common/ImageUpload';
 import '../../../css/fan/fan-pages.css';
@@ -56,15 +56,13 @@ export default function Profile({ profile }) {
         <PartnerLayout title="Profile">
             <Head title="Profile - Partner" />
 
-            <div className={`dash-card partner-profile-hero`}
-                style={b.hero_image ? { backgroundImage: `url(${b.hero_image})` } : {}}>
-                {!b.hero_image && <div className="partner-profile-overlay"></div>}
-                <div className="partner-profile-content">
-                    <Breadcrumbs title="Profile" breadcrumbs={[{ label: 'Profile' }]} accentColor="#d97706" homeRoute="partner.dashboard" />
-                    <h1 className="dash-section-title"><i className="fas fa-user accent-partner"></i> My Profile</h1>
-                    <p className="partner-profile-subtitle">Manage your account details and how your public hub looks to fans.</p>
-                </div>
-            </div>
+            <DashboardHero
+                role="partner"
+                title="My Profile"
+                subtitle="Manage your account details and how your public hub looks to fans."
+                breadcrumbs={[{ label: 'Profile' }]}
+                bgImage={b.hero_image || undefined}
+            />
 
             {flash?.success && (
                 <div className="dash-flash-success"><i className="fas fa-check-circle me-2"></i>{flash.success}</div>
@@ -73,7 +71,7 @@ export default function Profile({ profile }) {
             <div className="dash-card dash-card-body">
                 <div className="dash-flex-between dash-mb-xl">
                     <div className="dash-flex dash-gap-lg">
-                        <div className="dash-avatar dash-avatar-xl partner-avatar" style={{ borderColor: b.theme_accent }}>
+                        <div className="dash-avatar dash-avatar-xl partner-avatar">
                             {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="dash-avatar-img" /> : profile.name.charAt(0)}
                         </div>
                         <div>

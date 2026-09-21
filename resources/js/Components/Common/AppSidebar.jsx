@@ -51,32 +51,18 @@ export default function AppSidebar({
                 Add top padding equal to the header height on desktop
                 only (mobile renders as a slide-over so it doesn't need it). */}
             <SidebarHeader className="p-4 md:pt-[76px]">
+                {/* Brand card: the member's avatar fills the card and fades
+                    into the accent gradient (no separate circular avatar).
+                    Accent + avatar arrive as CSS vars; all styling in CSS. */}
                 <div
-                    className="flex flex-col items-center gap-3 rounded-xl p-5"
+                    className="tfe-sidebar-brand"
                     style={{
-                        background: `linear-gradient(180deg, ${accentColor}24, rgba(0, 0, 0, 0.2))`,
-                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.6)',
-                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                        '--sidebar-accent': accentColor,
+                        '--sidebar-avatar': user.avatar ? `url(${user.avatar})` : 'none',
                     }}
                 >
-                    <div
-                        className="flex items-center justify-center rounded-full text-white text-2xl font-semibold overflow-hidden"
-                        style={{
-                            width: '64px',
-                            height: '64px',
-                            background: accentColor,
-                            border: '3px solid rgba(255, 255, 255, 0.1)',
-                            boxShadow: `0 4px 12px ${accentColor}4d`,
-                        }}
-                    >
-                        {BrandingIcon ? <BrandingIcon /> : (user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.name.charAt(0))}
-                    </div>
-                    <div className="text-center">
-                        <h4 className="m-0 text-white text-base font-semibold leading-tight">{user.name}</h4>
-                        <div className="text-[11px] tracking-[0.05em] mt-1 font-semibold" style={{ color: accentColor }}>
-                            {roleLabel}
-                        </div>
-                    </div>
+                    <h4 className="tfe-sidebar-brand__name">{user.name}</h4>
+                    <div className="tfe-sidebar-brand__role">{roleLabel}</div>
                 </div>
             </SidebarHeader>
 

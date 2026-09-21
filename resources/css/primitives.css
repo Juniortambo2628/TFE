@@ -65,29 +65,42 @@
 .tfe-tile--violet { --tile-accent: #8b5cf6; }
 .tfe-tile--graph  { --tile-accent: #22c55e; }
 
+/* Head holds only the optional status pill now; the icon is pulled out
+   into a large side-artwork so the tile matches the partner-hub
+   "How we support" cards (.tfe-acard__art--icon). */
 .tfe-tile__head {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 12px;
-    margin-bottom: 18px;
+    min-height: 8px;
+    position: relative;
+    z-index: 1;
 }
 
+/* Icon-as-artwork: a large faded glyph pinned to the right, echoing the
+   support cards. Sits behind the value/label, which carry their own z-index. */
 .tfe-tile__icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.9rem;
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    width: auto;
+    height: auto;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    font-size: 3.4rem;
+    line-height: 1;
     color: rgba(255, 255, 255, 0.9);
-    flex-shrink: 0;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
+    z-index: 0;
+    pointer-events: none;
 }
 
 .tfe-tile__value {
+    position: relative;
+    z-index: 1;
     font-family: var(--font-display);
     font-size: 2rem;
     font-weight: var(--number-font-weight);
@@ -99,6 +112,8 @@
 }
 
 .tfe-tile__label {
+    position: relative;
+    z-index: 1;
     margin-top: 6px;
     font-size: 0.78rem;
     font-weight: var(--label-font-weight);
@@ -338,8 +353,8 @@ a.tfe-sidebar-nav-item.is-active {
     color: rgba(255, 255, 255, 0.55);
     letter-spacing: 0.06em;
     text-transform: none;
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* No head fill or divider — the header row reads as labels only. */
+    background: transparent;
     white-space: nowrap;
 }
 
@@ -827,4 +842,60 @@ textarea.tfe-textarea {
     height: 18px;
     accent-color: var(--partner-accent, #d97706);
     cursor: pointer;
+}
+
+/* ── Sidebar brand card (AppSidebar header) ──────────────────────────────
+   The member's avatar becomes the card background, faded into the accent
+   gradient (no separate circular avatar). Accent + avatar arrive as CSS
+   variables so no style properties live in the JSX. */
+.tfe-sidebar-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    min-height: 148px;
+    padding: 20px 16px 16px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    background:
+        linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 58%, rgba(0, 0, 0, 0.82) 100%),
+        linear-gradient(180deg, color-mix(in srgb, var(--sidebar-accent, #e31b23) 26%, transparent) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+/* Avatar image layer — covers the card and fades toward the bottom (same
+   fade the gradient uses) so the name/role sit on a legible base. */
+.tfe-sidebar-brand::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: var(--sidebar-avatar, none);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.85;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+}
+
+.tfe-sidebar-brand__name {
+    margin: 0;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.tfe-sidebar-brand__role {
+    margin-top: 2px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: color-mix(in srgb, var(--sidebar-accent, #e31b23) 60%, #fff);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
 }

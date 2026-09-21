@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
-import Breadcrumbs from '@/Components/Common/Breadcrumbs';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/fan-pages.css';
 
 export default function Security({ security_settings }) {
@@ -68,22 +68,12 @@ export default function Security({ security_settings }) {
         <PartnerLayout title="Security">
             <Head title="Security - Partner" />
 
-            {/* Hero Section */}
-            <div className="partner-hero">
-                <Breadcrumbs 
-                    title="Security" 
-                    breadcrumbs={[{ label: 'Security' }]}
-                    accentColor="#d97706"
-                    homeRoute="partner.dashboard"
-                />
-                <h1 className="dash-section-title">
-                    <i className="fas fa-shield-alt accent-danger"></i>
-                    Security Settings
-                </h1>
-                <p className="dash-text-muted dash-no-margin">
-                    Manage your partner account security, 2FA, passkeys, and active sessions.
-                </p>
-            </div>
+            <DashboardHero
+                role="partner"
+                title="Security Settings"
+                subtitle="Manage your partner account security, 2FA, passkeys, and active sessions."
+                breadcrumbs={[{ label: 'Security' }]}
+            />
 
             {/* Success Message */}
             {flash?.success && (
