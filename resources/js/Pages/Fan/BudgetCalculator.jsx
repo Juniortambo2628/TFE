@@ -8,6 +8,7 @@ import HotelSelector from '@/Components/Fan/HotelSelector';
 import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
+import AccentCard from '@/Components/Common/AccentCard';
 import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
@@ -1110,7 +1111,7 @@ export default function BudgetCalculator({
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className="picker-grid">
                             {/* Flight Selection */}
                             <div>
                                 <FlightSelector
@@ -1168,38 +1169,34 @@ export default function BudgetCalculator({
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid #2d3748' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                                <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
-                                    {selectedFlight && (
-                                        <span style={{ marginRight: '16px' }}>
-                                            <i className="fas fa-plane me-1 text-success"></i>
-                                            Flight: <strong style={{ color: '#e5e7eb' }}>${realFlightPrice}</strong>/person
-                                        </span>
-                                    )}
-                                    {selectedHotel && (
-                                        <span>
-                                            <i className="fas fa-hotel me-1 text-success"></i>
-                                            Hotel: <strong style={{ color: '#e5e7eb' }}>${realHotelPrice}</strong>/night
-                                        </span>
-                                    )}
-                                    {!selectedFlight && !selectedHotel && (
-                                        <span style={{ color: '#6b7280' }}>
-                                            <i className="fas fa-info-circle me-1"></i>
-                                            Search and select options above, or skip to use estimates
-                                        </span>
-                                    )}
-                                </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={calculateBudget} disabled={loading}>
-                                        {loading ? (
-                                            <><i className="fas fa-spinner fa-spin me-2"></i>Calculating...</>
-                                        ) : (
-                                            <><i className="fas fa-calculator me-2"></i>Calculate with Selections</>
-                                        )}
-                                    </button>
-                                </div>
+                        <div className="picker-footer">
+                            <div className={`picker-footer__facts ${!selectedFlight && !selectedHotel ? 'picker-footer__facts--empty' : ''}`}>
+                                {selectedFlight && (
+                                    <span>
+                                        <i className="fas fa-plane"></i>
+                                        Flight: <strong>${realFlightPrice}</strong>/person
+                                    </span>
+                                )}
+                                {selectedHotel && (
+                                    <span>
+                                        <i className="fas fa-hotel"></i>
+                                        Hotel: <strong>${realHotelPrice}</strong>/night
+                                    </span>
+                                )}
+                                {!selectedFlight && !selectedHotel && (
+                                    <span>
+                                        <i className="fas fa-info-circle"></i>
+                                        Search and select options above, or skip to use estimates
+                                    </span>
+                                )}
                             </div>
+                            <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={calculateBudget} disabled={loading}>
+                                {loading ? (
+                                    <><i className="fas fa-spinner fa-spin me-2"></i>Calculating…</>
+                                ) : (
+                                    <><i className="fas fa-calculator me-2"></i>Calculate with Selections</>
+                                )}
+                            </button>
                         </div>
                     </div>
                 )}
@@ -1269,36 +1266,47 @@ export default function BudgetCalculator({
                             />
                         </div>
 
-                        <div className="breakdown-accordion">
-                            {[
-                                { key: 'match_tickets', label: 'Match Tickets', icon: 'fa-ticket-alt' },
-                                { key: 'flights', label: 'Flights', icon: 'fa-plane' },
-                                { key: 'accommodation', label: 'Accommodation', icon: 'fa-hotel' },
-                                { key: 'food_and_drink', label: 'Food & Drink', icon: 'fa-utensils' },
-                                { key: 'local_transport', label: 'Local Transport', icon: 'fa-bus' },
-                                { key: 'insurance', label: 'Travel Insurance', icon: 'fa-shield-alt' },
-                                { key: 'visa', label: 'Visa', icon: 'fa-passport' },
-                                { key: 'merchandise', label: 'Merchandise', icon: 'fa-shopping-bag' },
-                                { key: 'miscellaneous', label: 'Miscellaneous', icon: 'fa-ellipsis-h' }
-                            ].map(cat => (
-                                <div key={cat.key} className={`accordion-item ${activeAccordion === cat.key ? 'active' : ''}`}>
-                                    <div className="accordion-header" onClick={() => toggleAccordion(cat.key)}>
-                                        <div className="accordion-title">
-                                            <i className={`fas ${cat.icon}`}></i> {cat.label}
-                                        </div>
-                                        <div className="accordion-right">
-                                            <div className="accordion-cost">{formatMoney(breakdown[cat.key] || 0, currency)}</div>
-                                            <i className={`fas fa-chevron-down accordion-icon ${activeAccordion === cat.key ? 'rotated' : ''}`}></i>
-                                        </div>
-                                    </div>
-                                    {activeAccordion === cat.key && (
-                                        <div className="accordion-body">
-                                            <p className="detail-text">{getBreakdownDetails(cat.key)}</p>
-                                        </div>
-                                    )}
+                        {(() => {
+                            // Prefer a real selected image where the fan picked one; otherwise fall
+                            // back to the venue's Wikipedia image for the first selected match's
+                            // stadium so the accommodation/flight cards still land with a real photo.
+                            const firstSelectedMatch = allFixtures.find((m) => selectedMatchIds.includes(m.id));
+                            const stadiumBg = firstSelectedMatch ? (wikipediaVenueImages[firstSelectedMatch.venue] || null) : null;
+                            const hotelBg = selectedHotel?.images?.[0] || null;
+                            const flightBg = selectedFlight?.airline_logo || null;
+                            const basePath = window.location.pathname.includes('/TFE/') ? '/TFE/public' : '';
+                            const stadiumFallback = `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
+                            const flightFallback = `${basePath}/assets/img/backdrops/plane-square.jpg`;
+
+                            const CATEGORIES = [
+                                { key: 'match_tickets',  label: 'Match Tickets',   accent: '#ef4444', bgImage: stadiumBg || stadiumFallback, icon: null },
+                                { key: 'flights',        label: 'Flights',         accent: '#3b82f6', bgImage: flightBg || flightFallback,   icon: flightBg ? null : 'fas fa-plane' },
+                                { key: 'accommodation',  label: 'Accommodation',   accent: '#f59e0b', bgImage: hotelBg,                      icon: hotelBg ? null : 'fas fa-hotel' },
+                                { key: 'food_and_drink', label: 'Food & Drink',    accent: '#f97316', bgImage: null, icon: 'fas fa-utensils' },
+                                { key: 'local_transport',label: 'Local Transport', accent: '#22c55e', bgImage: null, icon: 'fas fa-bus' },
+                                { key: 'insurance',      label: 'Travel Insurance',accent: '#14b8a6', bgImage: null, icon: 'fas fa-shield-alt' },
+                                { key: 'visa',           label: 'Visa',            accent: '#8b5cf6', bgImage: null, icon: 'fas fa-passport' },
+                                { key: 'merchandise',    label: 'Merchandise',     accent: '#ec4899', bgImage: null, icon: 'fas fa-shopping-bag' },
+                                { key: 'miscellaneous',  label: 'Miscellaneous',   accent: '#64748b', bgImage: null, icon: 'fas fa-ellipsis-h' },
+                            ];
+
+                            return (
+                                <div className="breakdown-grid">
+                                    {CATEGORIES.map((cat) => (
+                                        <AccentCard
+                                            key={cat.key}
+                                            LinkComponent="div"
+                                            accent={cat.accent}
+                                            bgImage={cat.bgImage || undefined}
+                                            artwork={cat.icon ? { icon: cat.icon } : undefined}
+                                            eyebrow={cat.label}
+                                            title={formatMoney(breakdown[cat.key] || 0, currency)}
+                                            desc={getBreakdownDetails(cat.key)}
+                                        />
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })()}
 
                         <CostScenarioChart
                             currentTotal={estimatedCost}
