@@ -1328,3 +1328,121 @@
     margin-top: auto;
     padding-top: 0.9rem;
 }
+
+/* Cost scenarios — Sprint 44 gives the panel dynamic tuners (nights,
+   matches, target accommodation) that update the "Your tuning" bar
+   live. The controls sit in a flex row above the chart and match the
+   platform's shared field weight (.tfe-btn/.tfe-select tokens). */
+.scenario-controls {
+    margin: 0 0 16px;
+}
+.scenario-controls__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px 20px;
+}
+.scenario-control {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 140px;
+}
+.scenario-control__label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.62);
+}
+.scenario-control__stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 4px 6px;
+    width: fit-content;
+}
+.scenario-control__stepper .tfe-btn {
+    width: 30px;
+    padding: 4px 0;
+    justify-content: center;
+    min-width: 0;
+}
+.scenario-control__value {
+    min-width: 32px;
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.scenario-controls__hint {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.78rem;
+    margin: 10px 0 0;
+}
+
+/* Result-side sub-panels (Cost scenarios, Finance this trip, Multi-city
+   map, etc.). Sprint 44 promoted these to first-class sections so they
+   read as consistent with the breakdown grid + wizard steps above. */
+.result-subsection {
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 22px;
+    margin: 0 0 20px;
+}
+.result-subsection__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1e1e1e;
+}
+.result-subsection__icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(220, 20, 60, 0.1);
+    color: #dc143c;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex: 0 0 40px;
+}
+.result-subsection--finance .result-subsection__icon {
+    background: rgba(0, 114, 206, 0.14);
+    color: #4aa8ff;
+}
+.result-subsection--scenarios .result-subsection__icon {
+    background: rgba(59, 130, 246, 0.14);
+    color: #60a5fa;
+}
+.result-subsection--map .result-subsection__icon {
+    background: rgba(16, 185, 129, 0.14);
+    color: #34d399;
+}
+.result-subsection__title {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #fff;
+}
+.result-subsection__subtitle {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Finance CTA drops its own outer border/gradient when it lives inside
+   the promoted subsection wrapper (BudgetCalculator uses it there); the
+   subsection provides the frame. */
+.result-subsection--finance .finance-cta {
+    margin-top: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+}

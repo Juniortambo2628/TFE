@@ -20,6 +20,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
+import { iataForOrigin, iataForDestination, destinationCityForHotel } from '@/Data/airports';
 
 export default function BudgetCalculator({
     auth,
@@ -353,12 +354,12 @@ export default function BudgetCalculator({
 
         const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
         const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
-        const originCode = originData?.code || 'NBO';
+        const originCode = iataForOrigin(originData);
 
-        const hosts = tournament?.hosts || [];
-        const destCity = quickEstimate ? (hosts[0] || 'Nairobi') : (
-            allFixtures.find(m => selectedMatchIds.includes(m.id))?.venue?.split(' Stadium')[0] || hosts[0] || 'Nairobi'
+        const firstSelectedVenue = quickEstimate ? null : (
+            allFixtures.find(m => selectedMatchIds.includes(m.id))?.venue || null
         );
+        const destCity = destinationCityForHotel(tournament, firstSelectedVenue);
 
         const now = new Date();
         const departDate = new Date(now);
@@ -1111,63 +1112,59 @@ export default function BudgetCalculator({
                             </div>
                         </div>
 
-                        <div className="picker-grid">
-                            {/* Flight Selection */}
-                            <div>
-                                <FlightSelector
-                                    departureId={(() => {
-                                        const origins = getFlightOrigins(tournamentPricing);
-                                        const originData = origins.find(o => o.id === flightOrigin) || origins[0];
-                                        return originData?.code || 'NBO';
-                                    })()}
-                                    arrivalId={(() => {
-                                        const hosts = tournament?.hosts || [];
-                                        return 'JFK'; // Default — will be refined by venue
-                                    })()}
-                                    outboundDate={(() => {
-                                        const d = new Date();
-                                        d.setMonth(d.getMonth() + 3);
-                                        return d.toISOString().split('T')[0];
-                                    })()}
-                                    returnDate={(() => {
-                                        const d = new Date();
-                                        d.setMonth(d.getMonth() + 3);
-                                        d.setDate(d.getDate() + nights);
-                                        return d.toISOString().split('T')[0];
-                                    })()}
-                                    adults={travelGroupSize}
-                                    onFlightSelected={(flight) => {
-                                        setSelectedFlight(flight);
-                                        setRealFlightPrice(flight.price_usd);
-                                    }}
-                                    selectedFlight={selectedFlight}
-                                />
-                            </div>
+                        {(() => {
+                            // Derive both sides of the flight/hotel search from the active
+                            // tournament (Sprint 44). Departure = the picked flight-origin's
+                            // IATA (config now ships `code`); arrival = the first selected
+                            // match's venue city, falling back to the tournament's first
+                            // host country. Same city drives the hotel search.
+                            const origins = getFlightOrigins(tournamentPricing);
+                            const originData = origins.find(o => o.id === flightOrigin) || origins[0];
+                            const departureIata = iataForOrigin(originData);
+                            const firstSelectedVenue = allFixtures.find(m => selectedMatchIds.includes(m.id))?.venue || null;
+                            const arrivalIata = iataForDestination(tournament, firstSelectedVenue);
+                            const destinationCity = destinationCityForHotel(tournament, firstSelectedVenue);
+                            const now = new Date();
+                            const outbound = new Date(now);
+                            outbound.setMonth(outbound.getMonth() + 3);
+                            const inbound = new Date(outbound);
+                            inbound.setDate(inbound.getDate() + nights);
+                            const outboundDate = outbound.toISOString().split('T')[0];
+                            const returnDate = inbound.toISOString().split('T')[0];
 
-                            {/* Hotel Selection */}
-                            <div>
-                                <HotelSelector
-                                    city={tournament?.hosts?.[0] || 'Nairobi'}
-                                    checkIn={(() => {
-                                        const d = new Date();
-                                        d.setMonth(d.getMonth() + 3);
-                                        return d.toISOString().split('T')[0];
-                                    })()}
-                                    checkOut={(() => {
-                                        const d = new Date();
-                                        d.setMonth(d.getMonth() + 3);
-                                        d.setDate(d.getDate() + nights);
-                                        return d.toISOString().split('T')[0];
-                                    })()}
-                                    adults={travelGroupSize}
-                                    onHotelSelected={(hotel) => {
-                                        setSelectedHotel(hotel);
-                                        setRealHotelPrice(hotel.price_per_night_usd);
-                                    }}
-                                    selectedHotel={selectedHotel}
-                                />
-                            </div>
-                        </div>
+                            return (
+                                <div className="picker-grid">
+                                    <div>
+                                        <FlightSelector
+                                            departureId={departureIata}
+                                            arrivalId={arrivalIata}
+                                            outboundDate={outboundDate}
+                                            returnDate={returnDate}
+                                            adults={travelGroupSize}
+                                            onFlightSelected={(flight) => {
+                                                setSelectedFlight(flight);
+                                                setRealFlightPrice(flight.price_usd);
+                                            }}
+                                            selectedFlight={selectedFlight}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <HotelSelector
+                                            city={destinationCity}
+                                            checkIn={outboundDate}
+                                            checkOut={returnDate}
+                                            adults={travelGroupSize}
+                                            onHotelSelected={(hotel) => {
+                                                setSelectedHotel(hotel);
+                                                setRealHotelPrice(hotel.price_per_night_usd);
+                                            }}
+                                            selectedHotel={selectedHotel}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <div className="picker-footer">
                             <div className={`picker-footer__facts ${!selectedFlight && !selectedHotel ? 'picker-footer__facts--empty' : ''}`}>
@@ -1308,36 +1305,74 @@ export default function BudgetCalculator({
                             );
                         })()}
 
-                        <CostScenarioChart
-                            currentTotal={estimatedCost}
-                            matchCount={selectedMatchIds.length || 1}
-                            nights={nights}
-                            accommodation={accommodation}
-                            pricing={tournamentPricing}
-                            currency={currency}
-                        />
+                        {/* Cost scenarios — Sprint 44 promoted to a first-class subsection
+                            so it reads as consistent with the breakdown grid above, and
+                            gained live tuners so the fan can explore the space, not just
+                            look at a fixed set of comparisons. */}
+                        <section className="result-subsection result-subsection--scenarios">
+                            <div className="result-subsection__head">
+                                <span className="result-subsection__icon"><i className="fas fa-chart-column" aria-hidden="true"></i></span>
+                                <div>
+                                    <h4 className="result-subsection__title">Cost scenarios</h4>
+                                    <p className="result-subsection__subtitle">
+                                        See how your total shifts if you tweak one variable. Baseline is your current plan.
+                                    </p>
+                                </div>
+                            </div>
+                            <CostScenarioChart
+                                currentTotal={estimatedCost}
+                                matchCount={selectedMatchIds.length || 1}
+                                nights={nights}
+                                accommodation={accommodation}
+                                pricing={tournamentPricing}
+                                currency={currency}
+                            />
+                        </section>
 
-                        {/* Sprint 14 — finance-partner CTA. Only renders
-                            when there is at least one verified public
-                            finance partner AND the running total is > 0. */}
-                        {/* Loans are stored in USD on the backend, so convert
-                            the display total back to USD before the finance
-                            partner sees a suggested amount. */}
-                        <FinanceThisTrip
-                            financePartners={financePartners}
-                            budgetTotal={estimatedCost / (rate || 1)}
-                            budgetId={savedBudgets.find((b) => b.is_active)?.id || null}
-                        />
+                        {/* Not paying up-front — the CTA now opens the shared
+                            RequestFinancingWizard (Sprint 44). Amount + itinerary come
+                            from the calculator's current estimate so nothing is retyped. */}
+                        {financePartners.length > 0 && estimatedCost > 0 && (
+                            <section className="result-subsection result-subsection--finance">
+                                <div className="result-subsection__head">
+                                    <span className="result-subsection__icon"><i className="fas fa-hand-holding-usd" aria-hidden="true"></i></span>
+                                    <div>
+                                        <h4 className="result-subsection__title">Financing</h4>
+                                        <p className="result-subsection__subtitle">
+                                            Route this trip to a verified finance partner instead of paying up-front.
+                                        </p>
+                                    </div>
+                                </div>
+                                {/* Loans are stored in USD on the backend, so convert the
+                                    display total back to USD before the finance partner sees it. */}
+                                <FinanceThisTrip
+                                    financePartners={financePartners}
+                                    budgetTotal={estimatedCost / (rate || 1)}
+                                    budgetCurrency="USD"
+                                    savedBudgets={savedBudgets}
+                                    tournament={tournament}
+                                />
+                            </section>
+                        )}
 
                         {/* Multi-city venue map — pins every tournament venue,
                             highlights the fan's selected matches, and draws
                             distance chips between consecutive stops. */}
-                        <div className="mt-4">
+                        <section className="result-subsection result-subsection--map">
+                            <div className="result-subsection__head">
+                                <span className="result-subsection__icon"><i className="fas fa-map-location-dot" aria-hidden="true"></i></span>
+                                <div>
+                                    <h4 className="result-subsection__title">Your route across host cities</h4>
+                                    <p className="result-subsection__subtitle">
+                                        Selected venues, distances between them, and everywhere else the tournament plays.
+                                    </p>
+                                </div>
+                            </div>
                             <ItineraryMap
                                 venues={(tournament && tournament.venues) || []}
                                 selectedMatches={allFixtures.filter((m) => selectedMatchIds.includes(m.id))}
                             />
-                        </div>
+                        </section>
 
                         <div className="d-flex gap-3 mt-4">
                             <button type="button" className="tfe-btn flex-fill" onClick={resetWizard}>

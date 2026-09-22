@@ -1,27 +1,25 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
-import { getRateForCurrency } from '@/Data/BudgetPricingData';
+import { getRateForCurrency, getAccommodationFactors } from '@/Data/BudgetPricingData';
 import { formatMoney } from '@/lib/utils';
 
 /**
  * CostScenarioChart — "what if I…" bar chart for a saved budget.
  *
- * Given the current total, matches, nights and accommodation level,
- * computes the resulting cost for six lightweight scenarios and shows
- * them as bars against the current baseline. All arithmetic is done
- * client-side using the same tournament pricing config the calculator
- * already has — no new API calls.
- *
- * Sprint 28 — the display currency comes from the calculator; the
- * chart labels its axis + tooltip in whatever the fan picked.
+ * Sprint 44 — the scenarios stayed frozen once the calculator ran, which
+ * made the panel feel decorative. It's now interactive: the fan tunes
+ * a nights delta, a match count delta and a target accommodation, and
+ * the chart re-projects live against the current baseline. All
+ * arithmetic still runs client-side in the same currency the calculator
+ * is showing.
  *
  * Props:
- *   currentTotal   number  — the calculator's current total (in `currency`)
- *   matchCount     number  — currently selected match count
- *   nights         number  — trip length
- *   accommodation  string  — current accommodation key
- *   pricing        object  — tournament pricing config
- *   currency       string  — ISO code the total is expressed in
+ *   currentTotal    number  — the calculator's current total (in `currency`)
+ *   matchCount      number  — currently selected match count
+ *   nights          number  — trip length
+ *   accommodation   string  — current accommodation key
+ *   pricing         object  — tournament pricing config
+ *   currency        string  — ISO code the total is expressed in
  */
 export default function CostScenarioChart({
     currentTotal = 0,
@@ -31,11 +29,24 @@ export default function CostScenarioChart({
     pricing = {},
     currency = 'USD',
 }) {
+    const accFactors = useMemo(() => getAccommodationFactors(pricing), [pricing]);
+
+    // Fan-controlled tuners. Kept small: a ±N delta each for nights and
+    // matches, and a target accommodation that swaps against the current
+    // one. Zero deltas + current accommodation reproduce the baseline.
+    const [nightsDelta, setNightsDelta] = useState(0);
+    const [matchesDelta, setMatchesDelta] = useState(0);
+    const [targetAccommodation, setTargetAccommodation] = useState(accommodation);
+
+    // Keep the accommodation control in sync when the fan re-runs the
+    // calculator with a different one — otherwise the picker would
+    // silently point at the old value.
+    React.useEffect(() => {
+        setTargetAccommodation(accommodation);
+    }, [accommodation]);
+
     const scenarios = useMemo(() => {
         const rate = getRateForCurrency(pricing, currency);
-        const accFactors = pricing.accommodation || {
-            hostel: 0.4, airbnb: 0.75, '3_star': 1.0, '4_star': 1.6, '5_star': 2.5, resort: 3.5,
-        };
         const dailyBase = pricing.daily_costs || { food: 60, transport: 30, misc: 20 };
         // daily_costs are in USD in the config, convert to the display currency.
         const dailyCost = ((dailyBase.food || 0) + (dailyBase.transport || 0) + (dailyBase.misc || 0)) * rate;
@@ -45,8 +56,8 @@ export default function CostScenarioChart({
         // is directionally correct without re-running the full calc.
         const perMatchCost = matchCount > 0 ? currentTotal * 0.35 / matchCount : 0;
 
-        // Accommodation swap: swap current accommodation factor for
-        // hostel/5-star and scale the "accommodation share" of the total.
+        // Accommodation swap: swap current accommodation factor for the
+        // target's and scale the "accommodation share" of the total.
         const currentFactor = accFactors[accommodation] || 1.0;
         const accShare = currentTotal * 0.35;
         const rest = currentTotal - accShare;
@@ -55,6 +66,20 @@ export default function CostScenarioChart({
             if (!target || !currentFactor) return currentTotal;
             return rest + (accShare * (target / currentFactor));
         };
+
+        // "Custom (your tuning)" — apply all three tuners at once so the
+        // fan sees the compound effect of a shorter trip + fewer matches
+        // + a downgraded hotel.
+        const customNights = Math.max(1, nights + nightsDelta);
+        const customMatches = Math.max(0, matchCount + matchesDelta);
+        const customNightsShift = (customNights - nights) * dailyCost;
+        const customMatchesShift = (customMatches - matchCount) * perMatchCost;
+        const customAccommodationSwap = targetAccommodation !== accommodation
+            ? swapAcc(targetAccommodation) - currentTotal
+            : 0;
+        const customTotal = Math.max(0,
+            currentTotal + customNightsShift + customMatchesShift + customAccommodationSwap,
+        );
 
         const rows = [
             {
@@ -93,6 +118,12 @@ export default function CostScenarioChart({
                 label: '5-star',
                 total: accommodation !== '5_star' ? swapAcc('5_star') : currentTotal,
             },
+            {
+                key: 'custom',
+                label: 'Your tuning',
+                total: customTotal,
+                isCustom: true,
+            },
         ];
 
         return rows.map((r) => ({
@@ -100,21 +131,71 @@ export default function CostScenarioChart({
             delta: r.total - currentTotal,
             deltaPct: currentTotal > 0 ? Math.round(((r.total - currentTotal) / currentTotal) * 100) : 0,
         })).sort((a, b) => a.total - b.total);
-    }, [currentTotal, matchCount, nights, accommodation, pricing, currency]);
+    }, [currentTotal, matchCount, nights, accommodation, pricing, currency, accFactors, nightsDelta, matchesDelta, targetAccommodation]);
 
     if (!currentTotal) return null;
 
+    const accommodationOptions = Object.keys(accFactors).map((key) => ({
+        key,
+        label: key.replace('_', '-').replace(/\b\w/g, (l) => l.toUpperCase()),
+    }));
+
+    const bumpMatches = (step) => setMatchesDelta((v) => v + step);
+    const bumpNights = (step) => setNightsDelta((v) => v + step);
+    const resetTuners = () => {
+        setNightsDelta(0);
+        setMatchesDelta(0);
+        setTargetAccommodation(accommodation);
+    };
+    const tunersActive = nightsDelta !== 0 || matchesDelta !== 0 || targetAccommodation !== accommodation;
+
     return (
-        <div className="mt-4 p-3 rounded" style={{ background: 'rgba(20,20,20,0.5)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="d-flex align-items-baseline justify-content-between mb-3">
-                <div>
-                    <h5 className="text-white mb-1"><i className="fas fa-chart-column me-2 text-info"></i>Cost scenarios</h5>
-                    <p className="text-white-50 small mb-0">
-                        See how your total shifts if you tweak one variable. Baseline is your current plan.
-                    </p>
+        <div>
+            <div className="scenario-controls">
+                <div className="scenario-controls__row">
+                    <div className="scenario-control">
+                        <span className="scenario-control__label">Nights</span>
+                        <div className="scenario-control__stepper">
+                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => bumpNights(-1)} aria-label="Fewer nights">−</button>
+                            <span className="scenario-control__value">{nights + nightsDelta}</span>
+                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => bumpNights(1)} aria-label="More nights">+</button>
+                        </div>
+                    </div>
+                    <div className="scenario-control">
+                        <span className="scenario-control__label">Matches</span>
+                        <div className="scenario-control__stepper">
+                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => bumpMatches(-1)} aria-label="Fewer matches">−</button>
+                            <span className="scenario-control__value">{Math.max(0, matchCount + matchesDelta)}</span>
+                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => bumpMatches(1)} aria-label="More matches">+</button>
+                        </div>
+                    </div>
+                    <div className="scenario-control">
+                        <label className="scenario-control__label" htmlFor="scenario-accommodation">Accommodation</label>
+                        <select
+                            id="scenario-accommodation"
+                            className="tfe-select tfe-select--sm"
+                            value={targetAccommodation}
+                            onChange={(e) => setTargetAccommodation(e.target.value)}
+                        >
+                            {accommodationOptions.map((o) => (
+                                <option key={o.key} value={o.key}>{o.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                    {tunersActive && (
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={resetTuners}>
+                            <i className="fas fa-rotate-left" aria-hidden="true"></i>
+                            Reset
+                        </button>
+                    )}
                 </div>
+                <p className="scenario-controls__hint">
+                    Tune any of these and the "Your tuning" bar updates in place. The other
+                    bars are single-variable comparisons against your current plan.
+                </p>
             </div>
-            <div style={{ width: '100%', height: 260 }}>
+
+            <div style={{ width: '100%', height: 280 }}>
                 <ResponsiveContainer>
                     <BarChart data={scenarios} margin={{ top: 20, right: 12, left: 0, bottom: 8 }}>
                         <XAxis
@@ -153,6 +234,7 @@ export default function CostScenarioChart({
                                     key={s.key}
                                     fill={
                                         s.isBaseline ? '#3b82f6' :
+                                        s.isCustom ? '#a855f7' :
                                         s.total < currentTotal ? '#10b981' :
                                         '#ef4444'
                                     }
@@ -172,6 +254,7 @@ export default function CostScenarioChart({
             <div className="d-flex flex-wrap gap-3 mt-2 text-white-50 small">
                 <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#10b981', marginRight: 6 }} />Saves money</span>
                 <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#3b82f6', marginRight: 6 }} />Current plan</span>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#a855f7', marginRight: 6 }} />Your tuning</span>
                 <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#ef4444', marginRight: 6 }} />Costs more</span>
             </div>
         </div>
