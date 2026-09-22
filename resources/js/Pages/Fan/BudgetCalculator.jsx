@@ -17,6 +17,7 @@ import { Head, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import TfeModal from '@/Components/Common/TfeModal';
 import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
@@ -385,7 +386,10 @@ export default function BudgetCalculator({
             include_merchandise: merchandisePerMatch,
         };
 
-        axios.post('/api/budget/estimate', apiParams, { timeout: 10000 })
+        // Real URL is /fan/api/budget/estimate — the route sits inside the fan
+        // group in routes/web.php. Named-route lookup so a group rename doesn't
+        // resurrect the old 404. (Sprint 44 follow-up.)
+        axios.post(route('fan.api.budget.estimate'), apiParams, { timeout: 10000 })
             .then(res => {
                 if (res.data?.success && res.data.data) {
                     const d = res.data.data;
@@ -1586,46 +1590,74 @@ export default function BudgetCalculator({
                 </div>
             )}
 
-            {/* Naming Modal */}
-            {showNamingModal && (
-                <div className="filter-modal-overlay" style={{ zIndex: 1100 }}>
-                    <div className="filter-modal" style={{ maxWidth: '450px', top: '50%', transform: 'translateY(-50%)' }}>
-                        <div className="modal-header border-0 pb-0">
-                            <h3 className="m-0 text-white" style={{ fontFamily: '-apple-system, system-ui, sans-serif' }}>Name Your Itinerary</h3>
-                            <button className="close-modal" onClick={() => setShowNamingModal(false)}>×</button>
+            {/* Save-itinerary dialog — Sprint 44 rewrite. The old hand-rolled
+                overlay had an unstyled name input and inconsistent buttons; this
+                one runs on TfeModal + the shared tfe-input primitive so it reads
+                as one system with the rest of the dashboard's dialogs. */}
+            <TfeModal
+                open={showNamingModal}
+                title="Save this itinerary"
+                onClose={() => setShowNamingModal(false)}
+                size="sm"
+                footer={
+                    <div className="d-flex justify-content-end gap-2 w-100">
+                        <button
+                            type="button"
+                            className="tfe-btn"
+                            onClick={() => setShowNamingModal(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="tfe-btn tfe-btn--filled"
+                            onClick={() => itineraryName.trim() && submitSave(itineraryName)}
+                            disabled={!itineraryName.trim() || saving}
+                        >
+                            {saving ? (
+                                <><i className="fas fa-spinner fa-spin"></i>Saving…</>
+                            ) : (
+                                <><i className="fas fa-save"></i>Save itinerary</>
+                            )}
+                        </button>
+                    </div>
+                }
+            >
+                <div className="tfe-form-field">
+                    <label className="tfe-form-label" htmlFor="itinerary-name">Itinerary name</label>
+                    <input
+                        id="itinerary-name"
+                        type="text"
+                        className="tfe-input"
+                        value={itineraryName}
+                        onChange={(e) => setItineraryName(e.target.value)}
+                        placeholder={`e.g., My ${tournament?.short_name || 'tournament'} trip`}
+                        autoFocus
+                        maxLength={80}
+                        onKeyDown={(e) => e.key === 'Enter' && itineraryName.trim() && submitSave(itineraryName)}
+                    />
+                    <p className="tfe-form-help">
+                        This label shows up on your saved-itineraries list and any partner
+                        proposals routed against this plan.
+                    </p>
+                </div>
+                <div className="tfe-slab tfe-slab--flush mt-3" style={{ padding: '14px 16px' }}>
+                    <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                        <div className="d-flex flex-column">
+                            <span className="text-white-50 small" style={{ letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: '0.65rem' }}>Total</span>
+                            <span className="text-white fw-bold" style={{ fontSize: '1.2rem' }}>
+                                {formatMoney(estimatedCost, currency)}
+                            </span>
                         </div>
-                        <div className="modal-body py-4">
-                            <p className="text-white-50 mb-3 small">Please provide a name to identify this travel plan in your itineraries.</p>
-                            <input 
-                                type="text"
-                                className="tfe-textarea p-3"
-                                style={{ borderRadius: '12px', fontSize: '1rem' }}
-                                value={itineraryName}
-                                onChange={(e) => setItineraryName(e.target.value)}
-                                placeholder={`e.g., My ${tournament?.short_name || 'Tournament'} Trip`}
-                                autoFocus
-                                onKeyDown={(e) => e.key === 'Enter' && itineraryName.trim() && submitSave(itineraryName)}
-                            />
-                        </div>
-                        <div className="modal-footer border-0 pt-0">
-                            <button 
-                                className="tfe-btn tfe-btn--sm me-3"
-                                onClick={() => setShowNamingModal(false)}
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                className="tfe-btn tfe-btn--filled tfe-btn--lg m-0" 
-                                style={{ padding: '12px 30px' }}
-                                onClick={() => itineraryName.trim() && submitSave(itineraryName)}
-                                disabled={!itineraryName.trim() || saving}
-                            >
-                                {saving ? <i className="fas fa-spinner fa-spin"></i> : 'Confirm & Save'}
-                            </button>
+                        <div className="text-end text-white-50 small">
+                            {selectedMatchIds.length} {selectedMatchIds.length === 1 ? 'match' : 'matches'}
+                            {' · '}{nights} {nights === 1 ? 'night' : 'nights'}
+                            <br />
+                            {tournament?.short_name || 'Tournament'}
                         </div>
                     </div>
                 </div>
-            )}
+            </TfeModal>
 
             {/* Itinerary Print Modal */}
             {showItinerary && (

@@ -3,6 +3,37 @@ window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+// Sprint 44 — every AJAX POST rides on the CSRF-protected `web` middleware
+// group. Belt-and-braces: pull the token off the meta blade injects on every
+// page and pin it as the default X-CSRF-TOKEN so a request that fires before
+// axios has read the XSRF cookie (or from a caller who bypassed the default
+// interceptors) still validates. A 419 on a valid session usually means the
+// bundle is holding a token from a prior login; a page refresh gets a new
+// one, so the interceptor below surfaces a one-line explanation instead of
+// silently failing.
+const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+if (csrfMeta?.content) {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfMeta.content;
+}
+
+let sessionExpiredNotified = false;
+window.axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const status = error?.response?.status;
+        if (status === 419 && !sessionExpiredNotified) {
+            sessionExpiredNotified = true;
+            try {
+                const { toast } = await import('sonner');
+                toast.error('Your session expired — please refresh the page to continue.', {
+                    duration: 8000,
+                });
+            } catch { /* toast is optional here */ }
+        }
+        return Promise.reject(error);
+    },
+);
+
 /*
  * Sprint 35 — Laravel Echo, broadcaster-agnostic.
  *
