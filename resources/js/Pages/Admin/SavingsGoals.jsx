@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { Head, router, usePage } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { toast } from 'sonner';
@@ -34,32 +34,14 @@ export default function SavingsGoals({ auth, goals, stats }) {
                 breadcrumbs={breadcrumbs}
             />
 
-            <div className="admin-visual-cards mb-4">
-                <StatCard 
-                    type="visual"
-                    label="Total Saved" 
-                    value={`KES ${new Intl.NumberFormat().format(stats.total_saved)}`} 
-                    icon="fas fa-piggy-bank"
-                    bgType="payments"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Active Goals" 
-                    value={stats.active} 
-                    icon="fas fa-running"
-                    bgType="events"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Completed" 
-                    value={stats.completed} 
-                    icon="fas fa-check-double"
-                    bgType="news"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Saved', value: `KES ${new Intl.NumberFormat().format(stats.total_saved)}`, icon: 'fa-piggy-bank', accent: 'teal' },
+                    { label: 'Active Goals', value: stats.active, icon: 'fa-running', accent: 'blue' },
+                    { label: 'Completed', value: stats.completed, icon: 'fa-check-double', accent: 'graph' },
+                ]}
+            />
 
             <div className="admin-card-dark">
                 <div className="card-header">

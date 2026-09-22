@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import DataTable from '@/Components/DataTable';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
@@ -119,16 +119,12 @@ export default function News({ auth, news = { data: [] } }) {
                 }}
             />
 
-            <div className="admin-visual-cards mb-4">
-                <StatCard 
-                    type="visual"
-                    label="Total Articles" 
-                    value={news.total || 0} 
-                    icon="fas fa-newspaper" 
-                    bgType="news" 
-                    image="/assets/images/bgimage05.jpg"
-                />
-            </div>
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Articles', value: news.total || 0, icon: 'fa-newspaper', accent: 'blue' },
+                ]}
+            />
 
             <div className="admin-card-dark">
                 <div className="card-header">

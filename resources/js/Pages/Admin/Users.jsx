@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DataTable from '@/Components/DataTable';
@@ -199,53 +199,15 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Dashboard Stats */}
-            <div className="admin-visual-cards mb-4" style={{ overflow: 'visible', flexWrap: 'wrap' }}>
-                <StatCard 
-                    type="visual"
-                    label="Total Registered" 
-                    value={stats.total || 0} 
-                    icon="fas fa-users"
-                    bgType="users"
-                    settingsKey="bg_card_users_total"
-                    image="/assets/images/bgimage05.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
-                />
-                <StatCard 
-                    type="visual"
-                    label="Platform Admins" 
-                    value={stats.admins || 0} 
-                    icon="fas fa-user-shield"
-                    bgType="users"
-                    settingsKey="bg_card_users_admins"
-                    image="/assets/images/bgimage01.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
-                />
-                <StatCard 
-                    type="visual"
-                    label="Travel Partners" 
-                    value={stats.partners || 0} 
-                    icon="fas fa-handshake"
-                    bgType="users"
-                    settingsKey="bg_card_users_partners"
-                    image="/assets/images/bgimage02.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
-                />
-                <StatCard 
-                    type="visual"
-                    label="Pending Consent" 
-                    value={stats.pending_consent || 0} 
-                    icon="fas fa-user-clock"
-                    bgType="users"
-                    settingsKey="bg_card_users_pending"
-                    image="/assets/images/bgimage03.jpg"
-                    className="flex-grow-1"
-                    allowEdit={adminTheme?.editMode}
-                />
-            </div>
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Registered', value: stats.total || 0,           icon: 'fa-users',       accent: 'blue' },
+                    { label: 'Platform Admins',  value: stats.admins || 0,          icon: 'fa-user-shield', accent: 'red' },
+                    { label: 'Travel Partners',  value: stats.partners || 0,        icon: 'fa-handshake',   accent: 'teal' },
+                    { label: 'Pending Consent',  value: stats.pending_consent || 0, icon: 'fa-user-clock',  accent: 'amber' },
+                ]}
+            />
 
             {/* Toolbar */}
             <AdminToolbar

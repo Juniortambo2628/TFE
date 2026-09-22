@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { Head, router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { toast } from 'sonner';
@@ -54,32 +54,14 @@ export default function Bookings({ auth, bookings, stats }) {
                 breadcrumbs={breadcrumbs}
             />
 
-            <div className="admin-visual-cards mb-4">
-                <StatCard 
-                    type="visual"
-                    label="Total Bookings" 
-                    value={stats.total} 
-                    icon="fas fa-calendar-check"
-                    bgType="events"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Pending Review" 
-                    value={stats.pending} 
-                    icon="fas fa-clock"
-                    bgType="dashboard"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Total Revenue" 
-                    value={`KES ${new Intl.NumberFormat().format(stats.total_revenue)}`} 
-                    icon="fas fa-coins"
-                    bgType="payments"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Bookings', value: stats.total, icon: 'fa-calendar-check', accent: 'blue' },
+                    { label: 'Pending Review', value: stats.pending, icon: 'fa-clock', accent: 'amber' },
+                    { label: 'Total Revenue', value: `KES ${new Intl.NumberFormat().format(stats.total_revenue)}`, icon: 'fa-coins', accent: 'teal' },
+                ]}
+            />
 
             <div className="admin-card-dark">
                 <div className="card-header">

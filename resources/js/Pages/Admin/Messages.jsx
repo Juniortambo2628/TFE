@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
-import StatCard from '@/Components/Common/StatCard';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
@@ -102,38 +102,14 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
             />
 
             {/* Dashboard Stats */}
-            <div className="admin-visual-cards mb-4 dash-visual-cards">
-                <StatCard 
-                    type="visual"
-                    label="Total Inbox" 
-                    value={stats.inbox || 0} 
-                    icon="fas fa-inbox"
-                    bgType="dashboard"
-                    settingsKey="bg_card_messages_inbox"
-                    image="/assets/images/bgimage05.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Unread" 
-                    value={stats.unread || 0} 
-                    icon="fas fa-envelope-open"
-                    bgType="dashboard"
-                    settingsKey="bg_card_messages_unread"
-                    image="/assets/images/bgimage06.jpg"
-                    className="flex-grow-1"
-                />
-                <StatCard 
-                    type="visual"
-                    label="Notifications" 
-                    value={stats.notifications || 0} 
-                    icon="fas fa-bell"
-                    bgType="dashboard"
-                    settingsKey="bg_card_messages_notifications"
-                    image="/assets/images/bgimage07.jpg"
-                    className="flex-grow-1"
-                />
-            </div>
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Inbox', value: stats.inbox || 0, icon: 'fa-inbox', accent: 'blue' },
+                    { label: 'Unread', value: stats.unread || 0, icon: 'fa-envelope-open', accent: 'red' },
+                    { label: 'Notifications', value: stats.notifications || 0, icon: 'fa-bell', accent: 'amber' },
+                ]}
+            />
 
             {/* Tabs */}
             <div className="admin-tabs">
