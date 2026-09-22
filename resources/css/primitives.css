@@ -630,6 +630,16 @@ textarea.tfe-textarea {
 .tfe-select--sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 10px; }
 .tfe-select--sm { padding-right: 32px; background-size: 14px 14px; }
 
+/* Native <option> menus inherit the OS default (usually white bg + black
+   ink, but on some Chromium builds text falls back to the parent color →
+   white-on-white). Pin dark bg + white ink so the drop-down menu that
+   Flight/Hotel selectors open reads consistently on every browser. */
+select.tfe-select option,
+select.tfe-select optgroup {
+    background: #111;
+    color: #fff;
+}
+
 /* Label (optional — matches the muted eyebrow style from .tfe-tile). */
 .tfe-form-label {
     display: block;

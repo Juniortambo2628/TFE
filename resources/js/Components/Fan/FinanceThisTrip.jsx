@@ -1,31 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { router, useForm } from '@inertiajs/react';
-
-// Sprint 27 — the CTA is subtle by design (a sidebar-style card at the
-// bottom of the calculator result). Fans who've never seen it — the
-// exact people it exists for — miss it. On first render we add a soft
-// pulse ring + a small dismissible "First time here?" nudge, and
-// remember the dismissal in localStorage. Anyone who's already applied
-// for financing (localStorage 'tfe_finance_hint_seen' present, or
-// the fan has expanded / submitted the form on any prior visit) sees
-// the card in its normal state.
-const HINT_STORAGE_KEY = 'tfe_finance_hint_seen';
+import RequestFinancingWizard from '@/Components/Fan/RequestFinancingWizard';
 
 /**
- * FinanceThisTrip — Sprint 14 CTA rendered on the BudgetCalculator
- * step-3 result view. Given the running budget total and a list of
- * finance partners, the fan picks one, tweaks amount + purpose, and
- * submits an application against this budget.
+ * FinanceThisTrip — the "Not paying up-front?" CTA that sits under the
+ * Budget Calculator result. Sprint 44 rewrite: the inline form (amount +
+ * purpose fields, in-place submit) is gone; the CTA now opens the shared
+ * RequestFinancingWizard modal — same UX the /fan/loan-applications page
+ * uses, with T&amp;C + data-sharing consent and an explicit confirm step.
  *
- * Empty partner list ⇒ nothing renders. One partner ⇒ direct CTA.
- * Multiple ⇒ picker row.
+ * The pulse ring + dismissible "First time here?" hint from Sprint 27
+ * stay: they're the reason first-time fans actually notice the CTA.
  */
-export default function FinanceThisTrip({ financePartners = [], budgetTotal, budgetId }) {
+const HINT_STORAGE_KEY = 'tfe_finance_hint_seen';
+
+export default function FinanceThisTrip({
+    financePartners = [],
+    budgetTotal,
+    budgetCurrency = 'USD',
+    savedBudgets = [],
+    tournament = null,
+}) {
     if (!financePartners.length || !budgetTotal) return null;
 
-    const [selected, setSelected] = useState(financePartners[0]);
-    const [expanded, setExpanded] = useState(false);
     const [showHint, setShowHint] = useState(false);
+    const [wizardOpen, setWizardOpen] = useState(false);
+    const primaryPartner = financePartners[0];
 
     useEffect(() => {
         try {
@@ -33,8 +32,7 @@ export default function FinanceThisTrip({ financePartners = [], budgetTotal, bud
                 setShowHint(true);
             }
         } catch {
-            // Private mode / storage disabled — the hint just won't
-            // show, which is the safer failure mode.
+            // Private mode / storage disabled — the hint just won't show.
         }
     }, []);
 
@@ -42,135 +40,53 @@ export default function FinanceThisTrip({ financePartners = [], budgetTotal, bud
         setShowHint(false);
         try { localStorage.setItem(HINT_STORAGE_KEY, '1'); } catch { /* noop */ }
     };
-    const { data, setData, post, processing, errors } = useForm({
-        amount: Math.round(budgetTotal),
-        purpose: 'Tournament trip financing',
-        budget_id: budgetId || null,
-        finance_partner_id: financePartners[0].id,
-        notes: '',
-    });
 
-    const pickPartner = (partner) => {
-        setSelected(partner);
-        setData('finance_partner_id', partner.id);
-    };
-
-    const submit = (e) => {
-        e.preventDefault();
-        post(route('fan.loan-applications.store'), {
-            preserveScroll: true,
-            onSuccess: () => setExpanded(false),
-        });
-    };
-
-    const expand = () => {
-        // Expanding counts as "seen" — no reason to keep pulsing after.
+    const openWizard = () => {
         dismissHint();
-        setExpanded(true);
+        setWizardOpen(true);
     };
 
     return (
-        <div
-            className={`finance-cta${showHint && !expanded ? ' finance-cta--pulse' : ''}`}
-            style={{ '--partner-accent': selected.theme_accent || '#0072CE' }}
-        >
-            {showHint && !expanded && (
-                <div className="finance-cta__hint">
-                    <i className="fas fa-arrow-down"></i>
-                    <span>First time here? You can finance the trip below.</span>
-                    <button type="button" onClick={dismissHint} className="finance-cta__hint-close" aria-label="Dismiss hint">
-                        <i className="fas fa-times"></i>
-                    </button>
-                </div>
-            )}
-            <div className="finance-cta__header">
-                <div className="finance-cta__lead">
-                    <div className="finance-cta__eyebrow">Not paying up-front?</div>
-                    <h4 className="finance-cta__title">Finance this trip</h4>
-                    <p className="finance-cta__body">
-                        Apply against your budget total and get an underwriting decision from a verified
-                        Ecobank-backed finance partner.
-                    </p>
-                </div>
-                {!expanded && (
-                    <button type="button" className="finance-cta__btn" onClick={expand}>
+        <>
+            <div
+                className={`finance-cta${showHint ? ' finance-cta--pulse' : ''}`}
+                style={{ '--partner-accent': primaryPartner?.theme_accent || '#0072CE' }}
+            >
+                {showHint && (
+                    <div className="finance-cta__hint">
+                        <i className="fas fa-arrow-down"></i>
+                        <span>First time here? You can finance the trip below.</span>
+                        <button type="button" onClick={dismissHint} className="finance-cta__hint-close" aria-label="Dismiss hint">
+                            <i className="fas fa-times"></i>
+                        </button>
+                    </div>
+                )}
+                <div className="finance-cta__header">
+                    <div className="finance-cta__lead">
+                        <div className="finance-cta__eyebrow">Not paying up-front?</div>
+                        <h4 className="finance-cta__title">Finance this trip</h4>
+                        <p className="finance-cta__body">
+                            Apply against your current estimate and get an underwriting decision
+                            from a verified finance partner. The amount and itinerary details
+                            carry over automatically — no forms to retype.
+                        </p>
+                    </div>
+                    <button type="button" className="finance-cta__btn" onClick={openWizard}>
                         <i className="fas fa-hand-holding-usd"></i>
                         Explore financing
                     </button>
-                )}
+                </div>
             </div>
 
-            {expanded && (
-                <form onSubmit={submit} className="finance-cta__form">
-                    {financePartners.length > 1 && (
-                        <>
-                            <div className="finance-cta__label">Choose a finance partner</div>
-                            <div className="finance-cta__partner-row">
-                                {financePartners.map((p) => (
-                                    <button
-                                        key={p.id}
-                                        type="button"
-                                        onClick={() => pickPartner(p)}
-                                        className={`finance-cta__partner${selected.id === p.id ? ' is-active' : ''}`}
-                                    >
-                                        {p.logo_url ? (
-                                            <img src={p.logo_url} alt={p.display_name} />
-                                        ) : (
-                                            <span className="finance-cta__partner-fallback">
-                                                {p.display_name.charAt(0)}
-                                            </span>
-                                        )}
-                                        <span>{p.display_name}</span>
-                                        {p.verified && <i className="fas fa-check-circle text-success"></i>}
-                                    </button>
-                                ))}
-                            </div>
-                        </>
-                    )}
-
-                    <div className="finance-cta__grid">
-                        <label>
-                            <span>Amount (USD)</span>
-                            <input
-                                type="number"
-                                value={data.amount}
-                                onChange={(e) => setData('amount', e.target.value)}
-                                min="1000"
-                            />
-                            {errors.amount && <em>{errors.amount}</em>}
-                        </label>
-                        <label>
-                            <span>Purpose</span>
-                            <input
-                                type="text"
-                                value={data.purpose}
-                                onChange={(e) => setData('purpose', e.target.value)}
-                            />
-                            {errors.purpose && <em>{errors.purpose}</em>}
-                        </label>
-                    </div>
-
-                    <label className="finance-cta__notes">
-                        <span>Notes (optional)</span>
-                        <textarea
-                            value={data.notes}
-                            onChange={(e) => setData('notes', e.target.value)}
-                            rows={2}
-                            placeholder="Anything the underwriter should know?"
-                        />
-                    </label>
-
-                    <div className="finance-cta__actions">
-                        <button type="button" onClick={() => setExpanded(false)} className="finance-cta__cancel">
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={processing} className="finance-cta__btn">
-                            <i className="fas fa-paper-plane"></i>
-                            Submit application
-                        </button>
-                    </div>
-                </form>
-            )}
-        </div>
+            <RequestFinancingWizard
+                open={wizardOpen}
+                onClose={() => setWizardOpen(false)}
+                budgets={savedBudgets}
+                partners={financePartners}
+                tournament={tournament}
+                currentEstimate={budgetTotal}
+                currentCurrency={budgetCurrency}
+            />
+        </>
     );
 }
