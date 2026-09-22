@@ -8,6 +8,7 @@ import HeroWorldMap from '@/Components/HeroWorldMap';
 import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
+import { resolveStadiumImage, preloadImage } from '@/Data/stadiumImages';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -69,7 +70,7 @@ const DEFAULT_MATCHES = [
 ];
 
 export default function Hero({ stadiums: stadiumsProp }) {
-    const { assetUrl } = usePage().props;
+    const { assetUrl, stadiumImages } = usePage().props;
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
     var targetDate = tournament ? tournament.start_date : '2026-06-11T00:00:00';
@@ -103,19 +104,27 @@ export default function Hero({ stadiums: stadiumsProp }) {
         return { icon: 'fas fa-trophy' };
     })();
 
-    // Stadiums come exclusively from the resolved tournament's Wikipedia
-    // venues now — no more per-tournament hardcoded branches. Memoized on
-    // tournament id so a carousel tick doesn't rebuild the list.
+    // Stadiums come from the resolved tournament's venue rows. Imagery is
+    // locally hosted: StadiumImageService has already overlaid the committed
+    // WebP (or an admin override) onto `image`/`thumbnail` server-side, so
+    // there is no runtime Wikipedia image fetch here any more. `stadiumImages`
+    // is the name-keyed fallback for a venue the overlay didn't match — and
+    // heroImage remains the last resort, so a slug mismatch degrades to the
+    // tournament backdrop rather than an empty slide.
     var stadiums = useMemo(function () {
         if (wikipediaVenues.length > 0) {
             return wikipediaVenues.map(function (v) {
+                var localImage = v.image
+                    || v.thumbnail
+                    || resolveStadiumImage(v.name, stadiumImages);
+
                 return {
                     name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
-                    location: v.location || 'Wikipedia venue',
+                    location: v.location || 'Tournament venue',
                     capacity: v.capacity || 'TBD',
                     history: v.opened || '',
                     fun_fact: v.extract || '',
-                    image: v.thumbnail || v.image || heroImage,
+                    image: localImage || heroImage,
                     matches: [],
                     attribution: 'Data from Wikipedia',
                     url: v.url || '',
@@ -135,7 +144,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             matches: [],
             attribution: '',
         }];
-    }, [tournament?.id, wikipediaVenues, stadiumsProp, heroImage, tournament]);
+    }, [tournament?.id, wikipediaVenues, stadiumsProp, heroImage, tournament, stadiumImages]);
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
@@ -181,6 +190,29 @@ export default function Hero({ stadiums: stadiumsProp }) {
     }, [stadiums.length, isPaused, loaderReady]);
 
     const activeStadium = stadiums[currentSlide] || {};
+
+    // Loading strategy: only one slide is ever mounted (AnimatePresence swaps
+    // on `currentSlide`), so the active image is inherently eager — it is the
+    // hero's LCP element. The slide *after* it gets warmed here so the 0.8s
+    // crossfade has a decoded bitmap instead of kicking off a request at the
+    // moment it becomes visible. Everything beyond next stays unfetched until
+    // the carousel reaches it, which is what keeps a 12-venue tournament from
+    // pulling ~1.5MB of WebP on first paint.
+    useEffect(() => {
+        if (stadiums.length < 2) return;
+
+        const next = stadiums[(currentSlide + 1) % stadiums.length];
+        preloadImage(next?.image);
+    }, [currentSlide, stadiums]);
+
+    // A stadium image that 404s (a slug typo, a deleted admin upload) must not
+    // leave a blank hero. Failures are recorded here and the render falls back
+    // to the tournament backdrop for that slide only.
+    const [failedImages, setFailedImages] = useState({});
+    const activeImage = (activeStadium.image && !failedImages[activeStadium.image])
+        ? activeStadium.image
+        : heroImage;
+
     // Team flags come from (in order): config team_flag_codes → Wikipedia teams
     // → host country flags. No stadium-fixture hardcoding.
     var configFlags = (tournament && tournament.team_flag_codes) || [];
@@ -263,12 +295,31 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.8, ease: "easeInOut" }}
-                        style={{ 
-                            backgroundImage: `url(${activeStadium.image || heroImage})`, 
-                            backgroundSize: 'cover', 
-                            backgroundPosition: 'center' 
-                        }}
-                    />
+                    >
+                        <img
+                            className="hero-stadium-img"
+                            src={activeImage}
+                            alt=""
+                            aria-hidden="true"
+                            // The active slide is the hero's LCP element, so it
+                            // is always eager + high priority. The next slide is
+                            // warmed separately in an effect; the rest are never
+                            // requested until the carousel reaches them.
+                            loading="eager"
+                            fetchPriority="high"
+                            decoding="async"
+                            draggable="false"
+                            onError={() => {
+                                if (activeStadium.image) {
+                                    setFailedImages((prev) => (
+                                        prev[activeStadium.image]
+                                            ? prev
+                                            : { ...prev, [activeStadium.image]: true }
+                                    ));
+                                }
+                            }}
+                        />
+                    </motion.div>
                 </AnimatePresence>
                 <div className="stadium-slide-overlay hero-overlay-gradient"></div>
             </div>
@@ -685,7 +736,17 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             ) : (
                                 <div className="stadium-details-content">
                                     <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/10">
-                                        <img src={activeStadium.image} alt={activeStadium.name} className="hero-modal-stadium-img" />
+                                        {/* Modal only opens on the active slide, whose
+                                            image is already decoded — but it shares the
+                                            same failure fallback so a broken file can't
+                                            leave a torn-image icon in the dialog. */}
+                                        <img
+                                            src={activeImage}
+                                            alt={activeStadium.name}
+                                            className="hero-modal-stadium-img"
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
                                     </div>
                                     <div className="row g-3">
                                         <div className="col-12">
