@@ -30,6 +30,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_admin' => IsAdmin::class,
             'is_partner' => IsPartner::class,
         ]);
+
+        // Sprint 44 — analytics is a fire-and-forget metric write that
+        // holds no session state and no secret, so it stays off the CSRF
+        // check to avoid drowning the console in 419s from long-open tabs.
+        // SerpAPI proxy endpoints stay CSRF-protected: they burn a paid
+        // upstream quota and are worth defending from cross-origin fires.
+        $middleware->validateCsrfTokens(except: [
+            'analytics/track',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

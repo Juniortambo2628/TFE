@@ -349,7 +349,7 @@ function StepReviewConsent({
                 id="req-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="tfe-input"
+                className="tfe-textarea"
                 rows="3"
                 maxLength={1000}
                 placeholder="Employment, existing repayment plans, preferred term…"

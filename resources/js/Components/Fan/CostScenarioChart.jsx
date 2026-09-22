@@ -195,8 +195,11 @@ export default function CostScenarioChart({
                 </p>
             </div>
 
-            <div style={{ width: '100%', height: 280 }}>
-                <ResponsiveContainer>
+            {/* minWidth prevents Recharts' "width(-1)/height(-1)" console warning
+                when the chart mounts inside a section that is itself still
+                collapsing (Sprint 44 result-subsection wrap changed layout order). */}
+            <div style={{ width: '100%', height: 280, minWidth: 0 }}>
+                <ResponsiveContainer minHeight={220}>
                     <BarChart data={scenarios} margin={{ top: 20, right: 12, left: 0, bottom: 8 }}>
                         <XAxis
                             dataKey="label"
