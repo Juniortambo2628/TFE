@@ -38,12 +38,6 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
         });
     };
 
-    // Dynamic background states
-    const [bgDashboardFiles, setBgDashboardFiles] = useState([]);
-    const [bgUsersFiles, setBgUsersFiles] = useState([]);
-    const [bgRevenueFiles, setBgRevenueFiles] = useState([]);
-    const [bgAnalyticsFiles, setBgAnalyticsFiles] = useState([]);
-    const [bgEventsFiles, setBgEventsFiles] = useState([]);
     // Hero background states (per tournament)
     const [heroBgFiles, setHeroBgFiles] = useState({});
 
@@ -65,12 +59,6 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
         maintenance_mode: settings.maintenance_mode || false,
         // Active Tournament (admin-managed)
         active_tournament: settings.active_tournament || defaultTournamentId,
-        // Visual Card Backgrounds
-        bg_card_dashboard: null,
-        bg_card_users: null,
-        bg_card_revenue: null,
-        bg_card_analytics: null,
-        bg_card_events: null,
     });
 
     const breadcrumbs = [
@@ -81,7 +69,6 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
     const tabs = [
         { key: 'site', label: 'Site Identity', icon: 'fas fa-globe' },
         { key: 'tournament', label: 'Tournament', icon: 'fas fa-trophy' },
-        { key: 'visual', label: 'Visual Cards', icon: 'fas fa-th-large' },
         { key: 'social', label: 'Social Links', icon: 'fas fa-share-alt' },
         { key: 'seo', label: 'SEO', icon: 'fas fa-search' },
         { key: 'maintenance', label: 'Maintenance', icon: 'fas fa-tools' }
@@ -322,110 +309,6 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                                     </div>
                                 );
                             })}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Visual Cards Backgrounds */}
-            {activeTab === 'visual' && (
-                <div className="admin-card-dark">
-                    <div className="card-header">
-                        <h3><i className="fas fa-th-large"></i> Card Background Images</h3>
-                        <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Recommended: 400x250px or higher aspect ratio.</p>
-                    </div>
-                    <div className="card-body">
-                        <div className="row g-4">
-                            <div className="col-md-6 col-lg-4">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Dashboard Summary BG</label>
-                                    <FilePondUploader 
-                                        files={bgDashboardFiles}
-                                        onUpdateFiles={(fileItems) => {
-                                            setBgDashboardFiles(fileItems);
-                                            if (fileItems[0]) setData('bg_card_dashboard', fileItems[0].file);
-                                        }}
-                                        labelIdle='Dashboard BG'
-                                    />
-                                    {settings.bg_card_dashboard && (
-                                        <div className="mt-2 rounded overflow-hidden dash-preview-box">
-                                            <img src={settings.bg_card_dashboard} className="w-100 h-100 object-fit-cover" alt="Current" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="col-md-6 col-lg-4">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Users Management BG</label>
-                                    <FilePondUploader 
-                                        files={bgUsersFiles}
-                                        onUpdateFiles={(fileItems) => {
-                                            setBgUsersFiles(fileItems);
-                                            if (fileItems[0]) setData('bg_card_users', fileItems[0].file);
-                                        }}
-                                        labelIdle='Users BG'
-                                    />
-                                    {settings.bg_card_users && (
-                                        <div className="mt-2 rounded overflow-hidden dash-preview-box">
-                                            <img src={settings.bg_card_users} className="w-100 h-100 object-fit-cover" alt="Current" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="col-md-6 col-lg-4">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Payments/Revenue BG</label>
-                                    <FilePondUploader 
-                                        files={bgRevenueFiles}
-                                        onUpdateFiles={(fileItems) => {
-                                            setBgRevenueFiles(fileItems);
-                                            if (fileItems[0]) setData('bg_card_revenue', fileItems[0].file);
-                                        }}
-                                        labelIdle='Revenue BG'
-                                    />
-                                    {settings.bg_card_revenue && (
-                                        <div className="mt-2 rounded overflow-hidden dash-preview-box">
-                                            <img src={settings.bg_card_revenue} className="w-100 h-100 object-fit-cover" alt="Current" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="col-md-6 col-lg-4">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Analytics BG</label>
-                                    <FilePondUploader 
-                                        files={bgAnalyticsFiles}
-                                        onUpdateFiles={(fileItems) => {
-                                            setBgAnalyticsFiles(fileItems);
-                                            if (fileItems[0]) setData('bg_card_analytics', fileItems[0].file);
-                                        }}
-                                        labelIdle='Analytics BG'
-                                    />
-                                    {settings.bg_card_analytics && (
-                                        <div className="mt-2 rounded overflow-hidden dash-preview-box">
-                                            <img src={settings.bg_card_analytics} className="w-100 h-100 object-fit-cover" alt="Current" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="col-md-6 col-lg-4">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Events BG</label>
-                                    <FilePondUploader 
-                                        files={bgEventsFiles}
-                                        onUpdateFiles={(fileItems) => {
-                                            setBgEventsFiles(fileItems);
-                                            if (fileItems[0]) setData('bg_card_events', fileItems[0].file);
-                                        }}
-                                        labelIdle='Events BG'
-                                    />
-                                    {settings.bg_card_events && (
-                                        <div className="mt-2 rounded overflow-hidden dash-preview-box">
-                                            <img src={settings.bg_card_events} className="w-100 h-100 object-fit-cover" alt="Current" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
