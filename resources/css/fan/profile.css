@@ -48,6 +48,9 @@
     width: 100%;
     overflow: hidden;
     background-color: #000;
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .profile-cover-img {
@@ -419,4 +422,48 @@
 
 .profile-post-stats i {
     color: #dc143c;
+}
+
+/* Profile-edit form helpers — small named utilities so the JSX
+   stays free of one-off inline style attributes for widget sizing,
+   disabled-input dimming, native date-picker theming and the
+   FilePond cover preview. */
+.profile-avatar-creator-body {
+    flex: 1;
+}
+.profile-avatar-creator-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+.profile-input-disabled {
+    opacity: 0.5;
+}
+.profile-date-input {
+    color-scheme: dark;
+}
+.profile-country-code-select {
+    width: 110px;
+}
+.profile-country-code-name {
+    max-width: 60px;
+}
+.profile-cover-preview {
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 180px;
+}
+.profile-cover-preview__img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+.profile-legal-callout {
+    background: rgba(13, 202, 240, 0.05);
+}
+.profile-network-empty-icon {
+    opacity: 0.2;
+}
+.profile-network-view-btn {
+    font-size: 0.8rem;
 }

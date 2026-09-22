@@ -199,15 +199,9 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                     {/* Profile Information Card */}
                     <div className="content-card profile-info-card h-100 p-0 overflow-hidden">
                         {/* Cover Image Section */}
-                        <div 
+                        <div
                             className="profile-cover-section"
-                            style={{ 
-                                backgroundImage: `url(${fanProfile.cover_image || `${assetUrl}assets/img/fan/backgrounds/default-cover.png`})`,
-                                backgroundSize: '100% 100%',
-                                backgroundPosition: 'center',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundColor: '#000'
-                            }}
+                            style={{ backgroundImage: `url(${fanProfile.cover_image || `${assetUrl}assets/img/fan/backgrounds/default-cover.png`})` }}
                         >
                             <div className="profile-cover-overlay"></div>
                         </div>
@@ -314,17 +308,17 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                     <i className="fas fa-times me-2"></i> Close
                                 </button>
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <AvatarCreator 
-                                    subdomain="demo" 
+                            <div className="profile-avatar-creator-body">
+                                <AvatarCreator
+                                    subdomain="demo"
                                     config={{
                                         clearCache: true,
                                         bodyType: 'fullbody',
                                         quickStart: false,
                                         language: 'en',
                                     }}
-                                    style={{ width: '100%', height: '100%', border: 'none' }} 
-                                    onAvatarExported={handleAvatarExported} 
+                                    style={{ width: '100%', height: '100%', border: 'none' }}
+                                    onAvatarExported={handleAvatarExported}
                                 />
                             </div>
                         </div>
@@ -500,13 +494,12 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                     </div>
                                     <div className="mb-3">
                                         <label className="tfe-form-label">Email Address</label>
-                                        <input 
-                                            type="email" 
-                                            className="tfe-input"
+                                        <input
+                                            type="email"
+                                            className="tfe-input profile-input-disabled"
                                             value={editForm.email}
                                             disabled
                                             title="Email cannot be changed"
-                                            style={{ opacity: 0.5 }}
                                         />
                                     </div>
                                     <div className="mb-3">
@@ -523,18 +516,17 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                     <div className="d-flex gap-3">
                                         <div className="flex-fill">
                                             <label className="tfe-form-label">Date of Birth</label>
-                                            <input 
-                                                type="date" 
-                                                className="tfe-input"
+                                            <input
+                                                type="date"
+                                                className="tfe-input profile-date-input"
                                                 value={editForm.date_of_birth}
                                                 onChange={e => setEditForm({...editForm, date_of_birth: e.target.value})}
-                                                style={{ colorScheme: 'dark' }}
                                             />
                                         </div>
                                         <div className="flex-fill">
                                             <label className="tfe-form-label">Phone Number</label>
                                             <div className="d-flex gap-2">
-                                                <div style={{width: '110px'}}>
+                                                <div className="profile-country-code-select">
                                                     <SearchableSelect
                                                         options={countries}
                                                         value={editForm.country_code}
@@ -556,7 +548,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                                                     <span className="text-white me-2 small">{option.iso}</span>
                                                                     <span className="text-white fw-bold">{option.code}</span>
                                                                 </div>
-                                                                <span className="text-white-50 small ms-1 text-truncate" style={{maxWidth: '60px'}}>{option.value}</span>
+                                                                <span className="text-white-50 small ms-1 text-truncate profile-country-code-name">{option.value}</span>
                                                             </div>
                                                         )}
                                                     />
@@ -617,11 +609,11 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                     {editForm.cover_image && coverFiles.length === 0 && (
                                         <div className="mb-3">
                                             <label className="tfe-form-label">Current Cover</label>
-                                            <div style={{ borderRadius: 10, overflow: 'hidden', maxHeight: 180 }}>
-                                                <img 
-                                                    src={editForm.cover_image} 
-                                                    alt="Current cover" 
-                                                    style={{ width: '100%', height: 180, objectFit: 'cover' }}
+                                            <div className="profile-cover-preview">
+                                                <img
+                                                    src={editForm.cover_image}
+                                                    alt="Current cover"
+                                                    className="profile-cover-preview__img"
                                                 />
                                             </div>
                                         </div>
@@ -692,7 +684,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 p-3 rounded-4 border border-info border-opacity-10" style={{ background: 'rgba(13, 202, 240, 0.05)' }}>
+                                        <div className="mt-4 p-3 rounded-4 border border-info border-opacity-10 profile-legal-callout">
                                             <div className="d-flex gap-3">
                                                 <i className="fas fa-info-circle text-info mt-1"></i>
                                                 <p className="small text-white-50 mb-0">
@@ -785,10 +777,9 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                                 <small className="text-white-50">Fan Profile</small>
                                             </div>
                                         </div>
-                                        <Link 
-                                            href={route('fan.profile.show', person.id)} 
-                                            className="btn-glass-pill btn-sm py-1 px-3"
-                                            style={{ fontSize: '0.8rem' }}
+                                        <Link
+                                            href={route('fan.profile.show', person.id)}
+                                            className="btn-glass-pill btn-sm py-1 px-3 profile-network-view-btn"
                                         >
                                             View Profile
                                         </Link>
@@ -796,7 +787,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                 ))
                             ) : (
                                 <div className="text-center py-5">
-                                    <i className={`fas ${networkTab === 'followers' ? 'fa-user-friends' : 'fa-users'} fa-3x mb-3 text-white-50`} style={{ opacity: 0.2 }}></i>
+                                    <i className={`fas ${networkTab === 'followers' ? 'fa-user-friends' : 'fa-users'} fa-3x mb-3 text-white-50 profile-network-empty-icon`}></i>
                                     <p className="text-white-50">No {networkTab} found.</p>
                                 </div>
                             )}
