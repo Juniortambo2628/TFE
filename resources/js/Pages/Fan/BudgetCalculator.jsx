@@ -736,11 +736,11 @@ export default function BudgetCalculator({
                     actions={
                         savedBudgets.length > 0 && (
                             <div className="saved-budgets-dropdown">
-                                <button 
-                                    className="btn-fan-custom"
+                                <button
+                                    className="tfe-btn"
                                     onClick={() => setShowSavedBudgets(!showSavedBudgets)}
                                 >
-                                    <i className="fas fa-folder-open me-2"></i> 
+                                    <i className="fas fa-folder-open me-2"></i>
                                     Saved Itineraries ({savedBudgets.length})
                                     <i className={`fas fa-chevron-down ms-2 ${showSavedBudgets ? 'rotated' : ''}`}></i>
                                 </button>
@@ -759,11 +759,11 @@ export default function BudgetCalculator({
                                                         {formatMoney(budget.total_cost, budget.currency || 'USD')} • {budget.nights} Nights
                                                     </div>
                                                 </div>
-                                                <span className={`badge ${
-                                                    budget.partner_status === 'approved' ? 'bg-success' : 
-                                                    budget.partner_status === 'modified' ? 'bg-warning text-dark' : 
-                                                    'bg-secondary'
-                                                }`} style={{ fontSize: '0.65rem' }}>
+                                                <span className={`tfe-pill tfe-pill--${
+                                                    budget.partner_status === 'approved' ? 'approved' :
+                                                    budget.partner_status === 'modified' ? 'pending' :
+                                                    'info'
+                                                }`}>
                                                     {budget.partner_status || 'Pending'}
                                                 </span>
                                             </div>
@@ -780,7 +780,7 @@ export default function BudgetCalculator({
                             <div className="partner-status-box mb-3" style={{ background: 'rgba(0,0,0,0.4)', padding: '10px', borderRadius: '8px', borderLeft: '4px solid #f59e0b' }}>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
                                     <h4 className="m-0 text-white" style={{ fontSize: '1rem' }}><i className="fas fa-handshake me-2 text-warning"></i>Travel Partner Update</h4>
-                                    <span className={`badge ${savedBudgets.find(b => b.is_active).partner_status === 'approved' ? 'bg-success' : 'bg-primary'}`}>
+                                    <span className={`tfe-pill tfe-pill--${savedBudgets.find(b => b.is_active).partner_status === 'approved' ? 'approved' : 'info'}`}>
                                         {savedBudgets.find(b => b.is_active).partner_status.toUpperCase()}
                                     </span>
                                 </div>
@@ -1234,7 +1234,7 @@ export default function BudgetCalculator({
                             )}
                             {budgetToEdit?.partner_cost > 0 && budgetToEdit.partner_status === 'modified' ? (
                                 <div className="partner-revised-cost mb-3">
-                                    <div className="badge bg-warning text-dark mb-2 px-3 py-2" style={{ fontSize: '0.8rem', borderRadius: '20px' }}>
+                                    <div className="tfe-pill tfe-pill--pending mb-2">
                                         <i className="fas fa-certificate me-2"></i>PARTNER REVISED PROPOSAL
                                     </div>
                                     <h2 className="text-yellow-500 mb-1" style={{ fontSize: '2.5rem', fontWeight: '800' }}>
@@ -1339,7 +1339,7 @@ export default function BudgetCalculator({
                                 style={{ borderColor: '#3b82f6', color: '#3b82f6' }}>
                                 <i className="fas fa-file-alt me-2"></i>View Itinerary
                             </button>
-                             <button className="btn-fan-custom flex-fill" onClick={saveBudget} disabled={saving}>
+                             <button className="tfe-btn tfe-btn--filled flex-fill" onClick={saveBudget} disabled={saving}>
                                 {saving ? (
                                     <><i className="fas fa-spinner fa-spin me-2"></i>Saving...</>
                                 ) : (

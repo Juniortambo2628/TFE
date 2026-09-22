@@ -51,7 +51,7 @@ export default function Itineraries({ itineraries }) {
                              <i className="fas fa-map-marked-alt text-primary fs-4"></i>
                              <h2 className="m-0 fs-4 fw-bold">Recent Plans</h2>
                         </div>
-                        <Link href={route('fan.budget-calculator')} className="btn-fan-custom btn-fan-custom-sm">
+                        <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--sm tfe-btn--filled">
                             <i className="fas fa-plus me-2"></i> New Plan
                         </Link>
                     </div>
@@ -115,9 +115,9 @@ export default function Itineraries({ itineraries }) {
                                             </div>
 
                                             <div className="d-flex gap-2">
-                                                <Link 
-                                                    href={route('fan.budget-calculator', { id: itinerary.id })} 
-                                                    className="btn-fan-custom btn-fan-custom-sm flex-grow-1 justify-content-center"
+                                                <Link
+                                                    href={route('fan.budget-calculator', { id: itinerary.id })}
+                                                    className="tfe-btn tfe-btn--sm flex-grow-1 justify-content-center"
                                                 >
                                                     <i className="fas fa-edit me-2"></i> Edit Plan
                                                 </Link>

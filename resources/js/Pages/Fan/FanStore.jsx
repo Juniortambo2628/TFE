@@ -4,6 +4,8 @@ import { Head, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
+import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
 export default function FanStore({ auth, products, categories }) {
@@ -47,52 +49,14 @@ export default function FanStore({ auth, products, categories }) {
                 <AdPlaceholder position="horizontal" />
             </div>
 
-            {/* Summary Cards */}
-            <div className="summary-cards-grid">
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-tshirt"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Products</h3>
-                        <div className="card-value-gaming">{products.length}</div>
-                        <div className="text-white-50 small mt-1">Available items</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-tags"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Categories</h3>
-                        <div className="card-value-gaming">{categories.length - 1}</div>
-                        <div className="text-white-50 small mt-1">Shop by type</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-shopping-cart"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Cart Items</h3>
-                        <div className="card-value-gaming">{cartCount}</div>
-                        <div className="text-white-50 small mt-1">KES {new Intl.NumberFormat().format(cartTotal)}</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-percent"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Fan Discount</h3>
-                        <div className="card-value-gaming">20% OFF</div>
-                        <div className="text-white-50 small mt-1">Members only</div>
-                    </div>
-                </div>
-            </div>
+            <SummaryTiles
+                items={[
+                    { label: 'Products',     value: products.length,       icon: 'fa-tshirt',        accent: 'red',   subtext: 'Available items' },
+                    { label: 'Categories',   value: categories.length - 1, icon: 'fa-tags',          accent: 'blue',  subtext: 'Shop by type' },
+                    { label: 'Cart Items',   value: cartCount,             icon: 'fa-shopping-cart', accent: 'rose',  subtext: formatMoney(cartTotal) },
+                    { label: 'Fan Discount', value: '20% OFF',             icon: 'fa-percent',       accent: 'teal',  subtext: 'Members only' },
+                ]}
+            />
 
             {/* Category Filter */}
             <div className="content-card mt-4">

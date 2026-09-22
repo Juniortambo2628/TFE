@@ -77,7 +77,7 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
     };
 
     return (
-        <FanLayout user={auth.user} header="Match Schedule">
+        <FanLayout title="Match Schedule">
             <Head title="Match Schedule" />
 
             <div>

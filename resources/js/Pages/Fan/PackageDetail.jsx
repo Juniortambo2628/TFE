@@ -52,45 +52,29 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
                                 <i className="fas fa-gift text-danger me-2"></i>
                                 <h3 className="m-0">About this package</h3>
                                 {pkg.is_featured && (
-                                    <span
-                                        className="ms-auto badge"
-                                        style={{
-                                            background: 'linear-gradient(135deg, #f59e0b, #dc143c)',
-                                            color: '#fff', padding: '4px 10px', borderRadius: 999,
-                                        }}
-                                    >
-                                        Featured
-                                    </span>
+                                    <span className="tfe-pill tfe-pill--live ms-auto">Featured</span>
                                 )}
                             </div>
                             <p className="text-white-50">
                                 {pkg.description || 'A curated tournament trip built by our travel team.'}
                             </p>
 
-                            <div className="row g-3 mt-2">
-                                <div className="col-6 col-md-3">
-                                    <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                        <div className="text-white-50 small">Nights</div>
-                                        <div className="text-white fw-bold fs-5">{pkg.nights}</div>
-                                    </div>
+                            <div className="tfe-stat-grid mt-3">
+                                <div className="tfe-tile tfe-tile--blue">
+                                    <div className="tfe-tile__label">Nights</div>
+                                    <div className="tfe-tile__value">{pkg.nights}</div>
                                 </div>
-                                <div className="col-6 col-md-3">
-                                    <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                        <div className="text-white-50 small">Flight</div>
-                                        <div className="text-white fw-bold fs-5 text-capitalize">{pkg.flight_class}</div>
-                                    </div>
+                                <div className="tfe-tile tfe-tile--cyan">
+                                    <div className="tfe-tile__label">Flight</div>
+                                    <div className="tfe-tile__value text-capitalize">{pkg.flight_class}</div>
                                 </div>
-                                <div className="col-6 col-md-3">
-                                    <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                        <div className="text-white-50 small">Stay</div>
-                                        <div className="text-white fw-bold fs-5">{pkg.accommodation_level.replace('_', ' ')}</div>
-                                    </div>
+                                <div className="tfe-tile tfe-tile--teal">
+                                    <div className="tfe-tile__label">Stay</div>
+                                    <div className="tfe-tile__value">{pkg.accommodation_level.replace('_', ' ')}</div>
                                 </div>
-                                <div className="col-6 col-md-3">
-                                    <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                        <div className="text-white-50 small">Matches</div>
-                                        <div className="text-white fw-bold fs-5">{includedMatches.length}</div>
-                                    </div>
+                                <div className="tfe-tile tfe-tile--amber">
+                                    <div className="tfe-tile__label">Matches</div>
+                                    <div className="tfe-tile__value">{includedMatches.length}</div>
                                 </div>
                             </div>
                         </div>

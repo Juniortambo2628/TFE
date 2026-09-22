@@ -34,7 +34,7 @@ export default function Communication({ auth, announcements, messages }) {
     };
 
     return (
-        <FanLayout user={auth.user} header="Messages & Inbox">
+        <FanLayout title="Messages">
             <Head title="Messages" />
 
             <div>

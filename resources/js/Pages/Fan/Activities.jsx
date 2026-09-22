@@ -67,10 +67,9 @@ export default function Activities({ auth, activities }) {
                                                 </div>
                                                 
                                                 <div className="activity-footer-full mt-3 d-flex gap-3">
-                                                    <Link 
-                                                        href={activity.type === 'payment' ? route('fan.payments') : activity.type === 'booking' ? route('fan.journey') : route('fan.events')} 
-                                                        className="btn-fan-custom btn-fan-custom-sm py-1 px-3"
-                                                        style={{ fontSize: '0.75rem' }}
+                                                    <Link
+                                                        href={activity.type === 'payment' ? route('fan.payments') : activity.type === 'booking' ? route('fan.journey') : route('fan.events')}
+                                                        className="tfe-btn tfe-btn--sm"
                                                     >
                                                         Details
                                                     </Link>
@@ -84,7 +83,7 @@ export default function Activities({ auth, activities }) {
                                     <i className="fas fa-history fa-4x text-white-50 mb-3 opacity-20"></i>
                                     <h4 className="text-white">No activity yet</h4>
                                     <p className="text-white-50">{`Your personal activity history will appear here once you start exploring the ${tournament?.short_name || 'tournament'} journey.`}</p>
-                                    <Link href={route('fan.dashboard')} className="btn-fan-custom mt-3">Back to Dashboard</Link>
+                                    <Link href={route('fan.dashboard')} className="tfe-btn tfe-btn--filled mt-3">Back to Dashboard</Link>
                                 </div>
                             )}
                         </div>

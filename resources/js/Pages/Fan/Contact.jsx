@@ -35,7 +35,7 @@ export default function Contact({ auth }) {
     ];
 
     return (
-        <FanLayout user={auth.user} header="Contact Support">
+        <FanLayout title="Contact Support">
             <Head title="Contact" />
 
             <div className="">

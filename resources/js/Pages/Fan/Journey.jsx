@@ -100,11 +100,11 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                              <i className="fas fa-map-marked-alt text-primary"></i>
                             <h3 className="m-0">My Planned Journey</h3>
                              {activeBudget.partner_status === 'approved' ? (
-                                 <span className="badge bg-success ms-auto"><i className="fas fa-check-circle me-1"></i>Confirmed By Partner</span>
+                                 <span className="tfe-pill tfe-pill--approved ms-auto"><i className="fas fa-check-circle me-1"></i>Confirmed By Partner</span>
                              ) : activeBudget.partner_status === 'modified' ? (
-                                 <span className="badge bg-warning text-dark ms-auto"><i className="fas fa-exclamation-circle me-1"></i>Revised Proposal</span>
+                                 <span className="tfe-pill tfe-pill--pending ms-auto"><i className="fas fa-exclamation-circle me-1"></i>Revised Proposal</span>
                              ) : (
-                                 <span className="badge bg-secondary ms-auto"><i className="fas fa-clock me-1"></i>Pending Partner Approval</span>
+                                 <span className="tfe-pill tfe-pill--info ms-auto"><i className="fas fa-clock me-1"></i>Pending Partner Approval</span>
                              )}
                         </div>
                         <div className="card-body">
@@ -123,7 +123,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                 </div>
                              </div>
                              <div className="text-center mt-4 d-flex justify-content-center gap-3">
-                                 <Link href={route('fan.budget-calculator', { id: activeBudget.id })} className="btn-fan-custom">
+                                 <Link href={route('fan.budget-calculator', { id: activeBudget.id })} className="tfe-btn">
                                     <i className="fas fa-edit me-2"></i> Edit Plan
                                 </Link>
                                 {(activeBudget.partner_status === 'approved' || activeBudget.partner_status === 'modified') && (
@@ -152,7 +152,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                 <i className="fas fa-ticket-alt fa-3x text-white-50 mb-3"></i>
                                 <h4>No Active Bookings</h4>
                                 <p className="text-white-50">{`You don't have any active ${tournament?.short_name || 'tournament'} bookings yet.`}</p>
-                                <Link href={route('fan.budget-calculator')} className="btn-fan-custom mt-3">
+                                <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled mt-3">
                                     <i className="fas fa-plus me-2"></i> Create New Plan
                                 </Link>
                             </div>
@@ -196,9 +196,9 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                             </div>
                                         )}
 
-                                        <Link 
+                                        <Link
                                             href={route('fan.bookings.show', booking.id)}
-                                            className="btn-fan-custom btn-fan-custom-sm w-100 justify-content-center"
+                                            className="tfe-btn tfe-btn--sm w-100 justify-content-center"
                                         >
                                             <i className="fas fa-eye me-2"></i> View Details
                                         </Link>

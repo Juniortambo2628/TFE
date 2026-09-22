@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import '../../../css/fan/tribes.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
 import TournamentPill from '@/Components/Common/TournamentPill';
@@ -66,50 +67,23 @@ export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cr
                     <AdPlaceholder position="horizontal" className="mb-4" />
 
             {/* Summary Cards */}
-            <div className="summary-cards-grid mb-5">
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-layer-group"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Total Tribes</h3>
-                        <div className="card-value-gaming">{stats.total_tribes}</div>
-                        <div className="text-white-50 small mt-1">Available Communities</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-users"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Joined Tribes</h3>
-                        <div className="card-value-gaming">{stats.joined_tribes}</div>
-                        <div className="text-white-50 small mt-1">Your Communities</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-red">
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#ff2d55' }}>
-                            <i className="fas fa-globe"></i>
-                        </div>
-                        <h3 className="card-title-gaming">Public Tribes</h3>
-                        <div className="card-value-gaming">{stats.public_tribes}</div>
-                        <div className="text-white-50 small mt-1">Open to all</div>
-                    </div>
-                </div>
-                
-                <div className="fan-card-premium glow-blue pointer" onClick={() => setShowCreateModal(true)}>
-                    <div className="card-content-gaming">
-                        <div className="card-icon-gaming" style={{ color: '#00d2ff' }}>
-                            <i className="fas fa-plus" style={{ fontSize: '1.5rem' }}></i>
-                        </div>
-                        <h3 className="card-title-gaming">Create</h3>
-                        <div className="card-value-gaming">NEW TRIBE</div>
-                        <div className="text-white-50 small mt-1">Start Community</div>
-                    </div>
-                </div>
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Total Tribes',  value: stats.total_tribes,  icon: 'fa-layer-group', accent: 'red',   subtext: 'Available Communities' },
+                    { label: 'Joined Tribes', value: stats.joined_tribes, icon: 'fa-users',       accent: 'blue',  subtext: 'Your Communities' },
+                    { label: 'Public Tribes', value: stats.public_tribes, icon: 'fa-globe',       accent: 'rose',  subtext: 'Open to all' },
+                ]}
+            />
+
+            <div className="d-flex justify-content-end mb-4">
+                <button
+                    type="button"
+                    className="tfe-btn tfe-btn--filled"
+                    onClick={() => setShowCreateModal(true)}
+                >
+                    <i className="fas fa-plus me-2"></i> New tribe
+                </button>
             </div>
 
             {/* Tribes Grid */}
