@@ -168,9 +168,10 @@ class LoanApplicationController extends Controller
             'finance_partner_id' => 'nullable|exists:users,id',
             // Sprint 43 — wizard captures explicit consent to share the
             // fan's contact + budget details with the finance partner.
-            // Required only when the wizard is the origin; the CTA on
-            // the budget calculator still uses the older path.
-            'consent' => 'nullable|boolean|accepted',
+            // `sometimes|accepted` so the rule only runs when the wizard
+            // sends it — the older FinanceThisTrip CTA and existing tests
+            // POST without a consent field and must still pass.
+            'consent' => 'sometimes|accepted',
         ]);
 
         $user = Auth::user();
