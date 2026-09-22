@@ -1,6 +1,7 @@
 import React from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { countryFlagMap, TEAM_FLAGS } from '@/Data/countryFlags';
+import { resolveStadiumImage } from '@/Data/stadiumImages';
 
 /**
  * Reusable Match Card component
@@ -23,6 +24,7 @@ const MatchCard = ({
     showAction = false,
     conflictLabel = null 
 }) => {
+    const { stadiumImages } = usePage().props;
     const teamSupport = match.homeTeam; // Can be used for specific styling if needed
 
     const getFlagUrl = (team) => {
@@ -35,7 +37,13 @@ const MatchCard = ({
         return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
     };
 
-    const stadiumImages = {
+    // Legacy WC2026 venue -> file map. Kept because these images live under a
+    // different directory with non-slug filenames; AFCON (and any future
+    // tournament) resolves through the shared `stadiumImages` map instead,
+    // which is why this is now consulted second rather than being the only
+    // source. Before that fallback existed, every non-WC match card rendered
+    // with no background at all.
+    const wc2026StadiumImages = {
         'Mexico City Stadium': 'Estadio_Azteca_desde_el_aire_1.webp',
         'Estadio Guadalajara': 'Estadio_Akron_02-07-2022_cabecera_sur_lado_derecho.webp',
         'Estadio Monterrey': 'Estadio_BBVA.webp',
@@ -55,7 +63,12 @@ const MatchCard = ({
     };
 
     const getStadiumBg = (venue) => {
-        const img = stadiumImages[venue];
+        // Locally-hosted catalogue first (alias-tolerant, admin-overridable),
+        // then the legacy WC2026 exact-name map.
+        const local = resolveStadiumImage(venue, stadiumImages);
+        if (local) return local;
+
+        const img = wc2026StadiumImages[venue];
         return img ? `/assets/WC26_Stadia_HD_images/optimized_webP/${img}` : null;
     };
 

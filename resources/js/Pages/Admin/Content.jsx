@@ -4,12 +4,14 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import StadiumImageCard from '@/Components/Admin/StadiumImageCard';
 
 /**
  * Content Management Page — Page Heroes (public /about, /features, /services,
- * /news, /contact) plus community Posts moderation.
+ * /news, /contact), Stadium Images (hero-slider venue photography) and
+ * community Posts moderation.
  */
-export default function Content({ auth, posts = { data: [] }, settings = {} }) {
+export default function Content({ auth, posts = { data: [] }, settings = {}, stadiums = [] }) {
     const [mainTab, setMainTab] = useState('heroes');
     const [search, setSearch] = useState('');
     const [postToDelete, setPostToDelete] = useState(null);
@@ -35,9 +37,13 @@ export default function Content({ auth, posts = { data: [] }, settings = {} }) {
 
         const handleSave = () => {
             setSaving(true);
+            // `type` and `group` are required server-side; omitting them
+            // made every save here fail validation silently.
             router.post(route('admin.content.settings.update'), {
                 key: `${group}_${settingKey}`,
-                value: value
+                value: value,
+                type: type === 'textarea' ? 'text' : type,
+                group: group,
             }, {
                 preserveScroll: true,
                 onFinish: () => setSaving(false)
@@ -92,6 +98,12 @@ export default function Content({ auth, posts = { data: [] }, settings = {} }) {
                     <i className="fas fa-image"></i> Page Heroes
                 </button>
                 <button
+                    className={`admin-tab ${mainTab === 'stadiums' ? 'active' : ''}`}
+                    onClick={() => setMainTab('stadiums')}
+                >
+                    <i className="fas fa-futbol"></i> Stadium Images
+                </button>
+                <button
                     className={`admin-tab ${mainTab === 'posts' ? 'active' : ''}`}
                     onClick={() => setMainTab('posts')}
                 >
@@ -128,6 +140,43 @@ export default function Content({ auth, posts = { data: [] }, settings = {} }) {
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* Stadium Images — the hero-slider venue photography. Images ship
+                committed under public/stadiums/; anything uploaded here
+                overrides one of them and can be reset back. */}
+            {mainTab === 'stadiums' && (
+                <>
+                    {stadiums.length === 0 ? (
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-futbol" /></div>
+                            <h4 className="tfe-empty__title">No stadium catalogue</h4>
+                            <p className="tfe-empty__body">
+                                No tournament in <code>config/stadiums.php</code> has a stadium set yet.
+                            </p>
+                        </div>
+                    ) : stadiums.map((set) => (
+                        <div className="mb-5" key={set.tournament_id}>
+                            <div className="d-flex align-items-baseline justify-content-between mb-3">
+                                <h3 className="admin-section-title mb-0">{set.tournament_name}</h3>
+                                <span className="text-white-50 small">
+                                    {set.venues.length} venue{set.venues.length === 1 ? '' : 's'}
+                                </span>
+                            </div>
+
+                            <div className="row g-4">
+                                {set.venues.map((venue) => (
+                                    <div className="col-lg-4 col-md-6" key={venue.slug}>
+                                        <StadiumImageCard
+                                            venue={venue}
+                                            tournamentId={set.tournament_id}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </>
             )}
 
             {/* Posts Tab */}
