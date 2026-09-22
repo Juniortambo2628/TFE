@@ -73,20 +73,16 @@ export default function BookingDetails({ auth, booking, matches }) {
         });
     };
 
-    const getStatusStyle = (status) => {
+    const getStatusPill = (status) => {
         switch (status) {
-            case 'confirmed':
-                return { bg: 'rgba(16, 185, 129, 0.2)', color: '#10b981', label: 'Confirmed' };
-            case 'pending_payment':
-                return { bg: 'rgba(255, 179, 0, 0.2)', color: '#ffb300', label: 'Payment Pending' };
-            case 'cancelled':
-                return { bg: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', label: 'Cancelled' };
-            default:
-                return { bg: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', label: status.replace('_', ' ') };
+            case 'confirmed':       return { variant: 'approved', label: 'Confirmed' };
+            case 'pending_payment': return { variant: 'pending',  label: 'Payment Pending' };
+            case 'cancelled':       return { variant: 'rejected', label: 'Cancelled' };
+            default:                return { variant: 'info',     label: status.replace('_', ' ') };
         }
     };
 
-    const statusStyle = getStatusStyle(booking.status);
+    const statusPill = getStatusPill(booking.status);
 
     return (
         <FanLayout title={`Booking: ${booking.package_name}`}>
@@ -109,29 +105,23 @@ export default function BookingDetails({ auth, booking, matches }) {
                         <div className="content-card p-4 mb-4">
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h2 className="fs-4 fw-bold m-0 text-white">Travel Summary</h2>
-                                <span className="badge p-2 px-3" style={{ background: statusStyle.bg, color: statusStyle.color, border: `1px solid ${statusStyle.color}` }}>
-                                    {statusStyle.label}
+                                <span className={`tfe-pill tfe-pill--${statusPill.variant}`}>
+                                    {statusPill.label}
                                 </span>
                             </div>
 
-                            <div className="row g-4 mb-4">
-                                <div className="col-md-4">
-                                    <div className="p-3 bg-dark rounded border border-secondary text-center">
-                                        <div className="text-white-50 small text-uppercase">Flight Class</div>
-                                        <div className="fw-bold fs-5 text-capitalize">{booking.flight_info}</div>
-                                    </div>
+                            <div className="tfe-stat-grid mb-4">
+                                <div className="tfe-tile tfe-tile--blue">
+                                    <div className="tfe-tile__label">Flight Class</div>
+                                    <div className="tfe-tile__value text-capitalize" style={{ fontSize: '1.5rem' }}>{booking.flight_info}</div>
                                 </div>
-                                <div className="col-md-4">
-                                    <div className="p-3 bg-dark rounded border border-secondary text-center">
-                                        <div className="text-white-50 small text-uppercase">Accommodation</div>
-                                        <div className="fw-bold fs-5 text-capitalize">{booking.accommodation.replace('_', ' ')}</div>
-                                    </div>
+                                <div className="tfe-tile tfe-tile--teal">
+                                    <div className="tfe-tile__label">Accommodation</div>
+                                    <div className="tfe-tile__value text-capitalize" style={{ fontSize: '1.5rem' }}>{booking.accommodation.replace('_', ' ')}</div>
                                 </div>
-                                <div className="col-md-4">
-                                    <div className="p-3 bg-dark rounded border border-secondary text-center">
-                                        <div className="text-white-50 small text-uppercase">Booking Date</div>
-                                        <div className="fw-bold fs-5">{booking.booking_date}</div>
-                                    </div>
+                                <div className="tfe-tile tfe-tile--amber">
+                                    <div className="tfe-tile__label">Booking Date</div>
+                                    <div className="tfe-tile__value" style={{ fontSize: '1.5rem' }}>{booking.booking_date}</div>
                                 </div>
                             </div>
 
@@ -194,7 +184,7 @@ export default function BookingDetails({ auth, booking, matches }) {
                                 </>
                             )}
 
-                            <Link href={route('fan.journey')} className="btn-fan-custom w-100 justify-content-center text-white-50">
+                            <Link href={route('fan.journey')} className="tfe-btn w-100 justify-content-center">
                                 <i className="fas fa-wallet me-2"></i> Manage Other Payments
                             </Link>
                         </div>
