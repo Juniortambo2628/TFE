@@ -82,6 +82,11 @@
 /* ── Hero ── */
 .partner-hub-hero {
     position: relative;
+    /* Legibility gradient over the partner's hero image (passed as the
+       --partner-hub-bg CSS variable so no image URL lives inline). */
+    background-image:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.9) 100%),
+        var(--partner-hub-bg, none);
     background-size: cover;
     background-position: center;
     padding: 120px 0 56px;
@@ -259,3 +264,10 @@
     .partner-hub-hiw__title { display: none; }
     .partner-hub-hiw__inner { padding: 8px 14px; gap: 0.5rem; }
 }
+
+/* Sprint 43 — de-inlined static section styles from PartnerHub.jsx. */
+.partner-hub-band { background: rgba(255, 255, 255, 0.02); }
+.partner-hub-band--dark { background: rgba(20, 20, 20, 0.4); }
+.partner-hub-listings { padding-bottom: 96px; }
+.partner-hub-empty__icon { font-size: 3rem; color: rgba(255, 255, 255, 0.15); }
+.partner-hub-extlink-ico { font-size: 0.75rem; }

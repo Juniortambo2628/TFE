@@ -53,7 +53,7 @@ export default function PartnersIndex({ profiles = [], partner_types = {}, tourn
             <div className="partners-index-page">
                 <section
                     className="partners-index-hero"
-                    style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
+                    style={{ '--partners-index-bg': `url(${heroBg})` }}
                 >
                     <div className="container">
                         <div className="partners-index-hero__eyebrow">The Football Experience</div>

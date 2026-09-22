@@ -33,7 +33,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                 {/* Branded hero — identity on the left, About + What we offer on the right */}
                 <section
                     className="partner-hub-hero"
-                    style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
+                    style={{ '--partner-hub-bg': `url(${heroBg})` }}
                 >
                     <div className="container">
                         <div className="partner-hub-hero__grid">
@@ -67,7 +67,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                                     {profile?.website_url && (
                                         <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="tfe-btn tfe-btn--lg">
                                             Visit website
-                                            <i className="fas fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
+                                            <i className="fas fa-external-link-alt partner-hub-extlink-ico" />
                                         </a>
                                     )}
                                 </div>
@@ -99,7 +99,7 @@ export default function PartnerHub({ profile, listings = [] }) {
 
                 {/* Stats band */}
                 {profile?.stats && profile.stats.length > 0 && (
-                    <section className="py-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <section className="py-5 partner-hub-band">
                         <div className="container">
                             <div className="tfe-stat-grid" style={{ '--partner-accent': accent }}>
                                 {profile.stats.map((stat, idx) => {
@@ -120,7 +120,7 @@ export default function PartnerHub({ profile, listings = [] }) {
                 <HowWeSupportStrip accent={accent} />
 
                 {/* Published listings — shared AccentCard */}
-                <section className="py-5" style={{ background: 'rgba(20,20,20,0.4)' }}>
+                <section className="py-5 partner-hub-band--dark">
                     <div className="container">
                         <div className="d-flex align-items-baseline justify-content-between mb-4">
                             <h2 className="text-white fw-bold mb-0">
@@ -133,13 +133,13 @@ export default function PartnerHub({ profile, listings = [] }) {
 
                         {listings.length === 0 ? (
                             <div className="text-center py-5">
-                                <i className="fas fa-box-open" style={{ fontSize: '3rem', color: 'rgba(255,255,255,0.15)' }}></i>
+                                <i className="fas fa-box-open partner-hub-empty__icon"></i>
                                 <p className="text-white-50 mt-3 mb-0">
                                     This partner hasn't published any listings yet. Check back soon.
                                 </p>
                             </div>
                         ) : (
-                            <div className="row g-4" style={{ paddingBottom: '96px' }}>
+                            <div className="row g-4 partner-hub-listings">
                                 {listings.map((l) => (
                                     <div key={l.id} className="col-md-6 col-lg-4 col-xl-3">
                                         <AccentCard

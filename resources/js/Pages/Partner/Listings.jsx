@@ -81,7 +81,7 @@ export default function Listings({ listings = [], tournaments = [], status_count
             <div className="content-card mt-4">
                 <div className="card-header d-flex flex-wrap gap-3 align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
-                        <i className="fas fa-tags me-2" style={{ color: '#d97706' }}></i>
+                        <i className="fas fa-tags me-2 accent-partner"></i>
                         <h3 className="mb-0">Your listings</h3>
                     </div>
                     <div className="d-flex gap-2 flex-wrap">
