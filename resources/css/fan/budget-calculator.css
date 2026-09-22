@@ -1034,3 +1034,297 @@
         opacity: 1;
     }
 }
+
+/* ── Real flights + hotels picker (Wizard step 4) ─────────────────────────
+   Reuses .tfe-select / .tfe-btn / .tfe-pill primitives; the layout below is
+   the picker-specific chrome that wraps them. */
+.travel-picker {
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.travel-picker__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.travel-picker__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.005em;
+}
+
+.travel-picker__title i { color: rgba(255, 255, 255, 0.55); }
+
+.travel-picker__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    padding: 8px 0 4px;
+}
+
+.travel-picker__lede {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.88rem;
+    max-width: 34ch;
+}
+
+.travel-picker__controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.travel-picker__controls--filter { justify-content: flex-start; }
+
+.travel-picker__hint {
+    font-size: 0.75rem;
+    color: #fcd34d;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.travel-picker__hint--muted { color: rgba(255, 255, 255, 0.5); }
+
+.travel-picker__insights {
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: #34d399;
+}
+.travel-picker__insights i { margin-right: 6px; }
+.travel-picker__insights strong { color: #ecfdf5; }
+
+.travel-picker__state {
+    text-align: center;
+    padding: 30px 16px;
+    color: rgba(255, 255, 255, 0.55);
+}
+.travel-picker__state i { display: block; margin-bottom: 10px; color: rgba(255, 255, 255, 0.35); }
+.travel-picker__state p { margin: 0; }
+
+.travel-picker__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.travel-option {
+    all: unset;
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.travel-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.travel-option.is-selected {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.42);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.travel-option__logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.travel-option__thumb {
+    width: 88px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.travel-option__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.travel-option__title {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: -0.005em;
+}
+
+.travel-option__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+}
+
+.travel-option__row--details { color: rgba(255, 255, 255, 0.72); }
+.travel-option__row--rating { gap: 6px; }
+.travel-option__row--footer {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+    gap: 12px;
+}
+
+.travel-option__strong { color: #fff; font-weight: 600; }
+.travel-option__meta { color: rgba(255, 255, 255, 0.55); font-size: 0.8rem; }
+.travel-option__meta i { margin-right: 4px; }
+.travel-option__meta--positive { color: #34d399; }
+
+.travel-option__flag {
+    padding: 2px 8px;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+}
+
+.travel-option__amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.travel-option__amenity {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.travel-option__stars i { color: rgba(255, 255, 255, 0.18); font-size: 0.7rem; }
+.travel-option__stars i[data-on="true"] { color: #fcd34d; }
+
+.travel-option__price {
+    text-align: right;
+    min-width: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.travel-option__price-value {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.005em;
+}
+
+.travel-option__price-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Step 4 wrapper — two-column layout for flights + hotels, with a
+   footer summary that sits on the tfe design tokens. */
+.picker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+@media (max-width: 900px) {
+    .picker-grid { grid-template-columns: 1fr; }
+}
+
+.picker-footer {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.picker-footer__facts {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.picker-footer__facts i { margin-right: 4px; color: #34d399; }
+.picker-footer__facts strong { color: #fff; margin-left: 4px; }
+.picker-footer__facts--empty { color: rgba(255, 255, 255, 0.4); }
+
+/* ── Estimate breakdown card grid (results view) ──────────────────────────
+   Replaces the collapsing dropdowns with an at-a-glance grid whose visible
+   cards reuse the tournament AccentCard styling (background image for the
+   stadium/hotel/flight cards; icon for the rest). Keeping this section
+   scoped to the results screen so the accent wash + hover-lift feels the
+   same as the tournament grid on landing / partner hubs. */
+.breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 0 0 24px;
+}
+
+.breakdown-grid .tfe-acard {
+    min-height: 210px;
+    padding: 1.2rem 1.3rem;
+}
+
+.breakdown-grid .tfe-acard__title { font-size: 1rem; max-width: 100%; }
+.breakdown-grid .tfe-acard__eyebrow { margin-top: 0; }
+.breakdown-grid .tfe-acard__desc { max-width: 100%; font-size: 0.78rem; }
+.breakdown-grid .tfe-acard__art--icon { font-size: 3.2rem; }
+
+.breakdown-grid .tfe-acard__value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.005em;
+    margin-top: auto;
+    padding-top: 0.9rem;
+}

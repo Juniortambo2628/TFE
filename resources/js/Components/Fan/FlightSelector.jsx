@@ -106,44 +106,41 @@ export default function FlightSelector({
     });
 
     return (
-        <div className="flight-selector">
-            <div className="selector-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h4 style={{ margin: 0, color: '#f59e0b' }}>
-                    <i className="fas fa-plane me-2"></i>Flight Options
+        <div className="travel-picker">
+            <div className="travel-picker__header">
+                <h4 className="travel-picker__title">
+                    <i className="fas fa-plane"></i> Flight Options
                 </h4>
                 {selectedFlight && (
-                    <span style={{ fontSize: '0.8rem', color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '4px 10px', borderRadius: '12px' }}>
-                        <i className="fas fa-check me-1"></i>Selected
+                    <span className="tfe-pill tfe-pill--approved">
+                        <i className="fas fa-check"></i> Selected
                     </span>
                 )}
             </div>
 
             {!searched && (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                    <p style={{ color: '#9ca3af', marginBottom: '12px' }}>
-                        Search Google Flights for real airline options and prices
+                <div className="travel-picker__intro">
+                    <p className="travel-picker__lede">
+                        Search Google Flights for real airline options and prices.
                     </p>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '12px', flexWrap: 'wrap' }}>
-                        <select value={flightClass} onChange={e => setFlightClass(e.target.value)}
-                            style={{ background: '#1f2937', color: '#fff', border: '1px solid #374151', borderRadius: '8px', padding: '6px 12px' }}>
+                    <div className="travel-picker__controls">
+                        <select className="tfe-select tfe-select--sm" value={flightClass} onChange={e => setFlightClass(e.target.value)}>
                             <option value="1">Economy</option>
                             <option value="2">Premium Economy</option>
                             <option value="3">Business</option>
                             <option value="4">First Class</option>
                         </select>
-                        <select value={maxStops} onChange={e => setMaxStops(e.target.value)}
-                            style={{ background: '#1f2937', color: '#fff', border: '1px solid #374151', borderRadius: '8px', padding: '6px 12px' }}>
+                        <select className="tfe-select tfe-select--sm" value={maxStops} onChange={e => setMaxStops(e.target.value)}>
                             <option value="any">Any Stops</option>
                             <option value="0">Non-stop Only</option>
                             <option value="1">1 Stop or Less</option>
                         </select>
                     </div>
-                    <button className="tfe-btn tfe-btn--filled tfe-btn--lg" onClick={searchFlights} disabled={loading}
-                        style={{ padding: '10px 24px' }}>
+                    <button className="tfe-btn tfe-btn--filled" onClick={searchFlights} disabled={loading}>
                         {loading ? (
-                            <><i className="fas fa-spinner fa-spin me-2"></i>Searching flights...</>
+                            <><i className="fas fa-spinner fa-spin"></i> Searching flights…</>
                         ) : (
-                            <><i className="fas fa-search me-2"></i>Search Flights ({departureId} → {arrivalId})</>
+                            <><i className="fas fa-search"></i> Search Flights ({departureId} → {arrivalId})</>
                         )}
                     </button>
                 </div>
@@ -151,112 +148,99 @@ export default function FlightSelector({
 
             {searched && (
                 <>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <select value={maxStops} onChange={e => { setMaxStops(e.target.value); }}
-                            style={{ background: '#1f2937', color: '#fff', border: '1px solid #374151', borderRadius: '8px', padding: '6px 12px', fontSize: '0.85rem' }}>
+                    <div className="travel-picker__controls travel-picker__controls--filter">
+                        <select className="tfe-select tfe-select--sm" value={maxStops} onChange={e => setMaxStops(e.target.value)}>
                             <option value="any">Any Stops</option>
                             <option value="0">Non-stop</option>
                             <option value="1">≤1 Stop</option>
                         </select>
-                        <button onClick={searchFlights} disabled={loading}
-                            style={{ background: 'transparent', color: '#9ca3af', border: '1px solid #374151', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                            <i className="fas fa-sync-alt me-1"></i>Refresh
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={searchFlights} disabled={loading}>
+                            <i className="fas fa-sync-alt"></i> Refresh
                         </button>
                         {source === 'unavailable' && (
-                            <span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>
-                                <i className="fas fa-info-circle me-1"></i>Using estimated prices — add SERPAPI_KEY for live data
+                            <span className="travel-picker__hint">
+                                <i className="fas fa-info-circle"></i> Using estimated prices — add SERPAPI_KEY for live data
                             </span>
                         )}
                     </div>
 
                     {priceInsights && (
-                        <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', fontSize: '0.8rem' }}>
-                            <span style={{ color: '#10b981' }}>
-                                <i className="fas fa-chart-line me-1"></i>
-                                Price level: <strong>{priceInsights.price_level}</strong>
-                                {' · '}Lowest: <strong>${priceInsights.lowest_price}</strong>
-                                {priceInsights.typical_price_range?.length > 0 && (
-                                    <> · Typical: ${priceInsights.typical_price_range[0]}</>
-                                )}
-                            </span>
+                        <div className="travel-picker__insights">
+                            <i className="fas fa-chart-line"></i>
+                            Price level: <strong>{priceInsights.price_level}</strong>
+                            {' · '}Lowest: <strong>${priceInsights.lowest_price}</strong>
+                            {priceInsights.typical_price_range?.length > 0 && (
+                                <> · Typical: ${priceInsights.typical_price_range[0]}</>
+                            )}
                         </div>
                     )}
 
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '30px' }}>
-                            <i className="fas fa-spinner fa-spin fa-2x text-warning"></i>
-                            <p style={{ color: '#9ca3af', marginTop: '10px' }}>Fetching live flight prices...</p>
+                        <div className="travel-picker__state">
+                            <i className="fas fa-spinner fa-spin fa-2x"></i>
+                            <p>Fetching live flight prices…</p>
                         </div>
                     ) : filteredFlights.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
-                            <i className="fas fa-plane-slash fa-2x mb-2"></i>
+                        <div className="travel-picker__state">
+                            <i className="fas fa-plane-slash fa-2x"></i>
                             <p>No flights found. Try different dates or routes.</p>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
-                            {filteredFlights.slice(0, 8).map((flight) => (
-                                <div
-                                    key={flight.id}
-                                    onClick={() => onFlightSelected?.(flight)}
-                                    style={{
-                                        background: selectedFlight?.id === flight.id ? 'rgba(16,185,129,0.15)' : '#1a1f2e',
-                                        border: selectedFlight?.id === flight.id ? '2px solid #10b981' : '1px solid #2d3748',
-                                        borderRadius: '10px',
-                                        padding: '12px 16px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <div className="travel-picker__list">
+                            {filteredFlights.slice(0, 8).map((flight) => {
+                                const active = selectedFlight?.id === flight.id;
+                                return (
+                                    <button
+                                        key={flight.id}
+                                        type="button"
+                                        onClick={() => onFlightSelected?.(flight)}
+                                        className={`travel-option ${active ? 'is-selected' : ''}`}
+                                    >
+                                        <div className="travel-option__body">
+                                            <div className="travel-option__row">
                                                 {flight.airline_logo && (
-                                                    <img src={flight.airline_logo} alt="" style={{ width: '20px', height: '20px' }} />
+                                                    <img src={flight.airline_logo} alt="" className="travel-option__logo" />
                                                 )}
-                                                <span style={{ color: '#e5e7eb', fontWeight: '600', fontSize: '0.9rem' }}>
+                                                <span className="travel-option__title">
                                                     {flight.segments?.[0]?.airline || 'Unknown'}
                                                 </span>
-                                                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                                                <span className="travel-option__meta">
                                                     {flight.segments?.[0]?.flight_number}
                                                 </span>
                                                 {flight.is_best && (
-                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px' }}>
-                                                        Best
-                                                    </span>
+                                                    <span className="tfe-pill tfe-pill--pending travel-option__flag">Best</span>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.85rem' }}>
-                                                <span style={{ color: '#e5e7eb', fontWeight: '600' }}>
+                                            <div className="travel-option__row travel-option__row--details">
+                                                <span className="travel-option__strong">
                                                     {formatTime(flight.segments?.[0]?.departure_time)}
                                                 </span>
-                                                <span style={{ color: '#6b7280' }}>{flight.segments?.[0]?.departure_airport}</span>
-                                                <span style={{ color: '#4b5563' }}>
+                                                <span className="travel-option__meta">{flight.segments?.[0]?.departure_airport}</span>
+                                                <span className="travel-option__meta">
                                                     {flight.stops === 0 ? (
-                                                        <i className="fas fa-plane" style={{ fontSize: '0.7rem' }}></i>
+                                                        <><i className="fas fa-plane"></i> Non-stop</>
                                                     ) : (
                                                         `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`
                                                     )}
                                                 </span>
-                                                <span style={{ color: '#e5e7eb', fontWeight: '600' }}>
+                                                <span className="travel-option__strong">
                                                     {formatTime(flight.segments?.[flight.segments.length - 1]?.arrival_time)}
                                                 </span>
-                                                <span style={{ color: '#6b7280' }}>
+                                                <span className="travel-option__meta">
                                                     {flight.segments?.[flight.segments.length - 1]?.arrival_airport}
                                                 </span>
-                                                <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+                                                <span className="travel-option__meta">
                                                     {formatDuration(flight.total_duration_minutes)}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div style={{ textAlign: 'right', marginLeft: '16px' }}>
-                                            <div style={{ color: '#10b981', fontWeight: '700', fontSize: '1.1rem' }}>
-                                                ${flight.price_usd}
-                                            </div>
-                                            <div style={{ color: '#6b7280', fontSize: '0.7rem' }}>per person</div>
+                                        <div className="travel-option__price">
+                                            <div className="travel-option__price-value">${flight.price_usd}</div>
+                                            <div className="travel-option__price-label">per person</div>
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                 </>
