@@ -3,18 +3,24 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Budget;
+use App\Models\Listing;
 use App\Models\LoanApplication;
 use App\Models\PartnerProfile;
 use App\Models\User;
+use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class LoanApplicationController extends Controller
 {
+    use ResolvesTournament;
+
     public function index()
     {
         $user = Auth::user();
+        $tournamentId = $this->activeTournamentId();
 
         // Hydrate each loan with its finance-partner brand block + budget
         // summary so the fan's "My financing" view can show who
@@ -80,6 +86,57 @@ class LoanApplicationController extends Controller
             ])
             ->values();
 
+        // Sprint 43 — partner-published financing "packages" (Listings of
+        // type `offer` whose publisher is a finance_partner user). Filter
+        // to approved+active for the fan-facing surface, and scope to the
+        // active tournament so the grid tracks what the fan is planning
+        // for. Empty list is fine — the section then falls back to the
+        // request-financing CTA.
+        $offerings = Listing::query()
+            ->active()
+            ->approved()
+            ->forTournament($tournamentId)
+            ->whereHasMorph('publisher', [User::class], fn ($q) => $q
+                ->where('is_partner', true)
+                ->where('partner_type', 'finance_partner'))
+            ->with('publisher.partnerProfile')
+            ->orderByDesc('is_featured')
+            ->orderBy('display_order')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Listing $l) => [
+                'id' => $l->id,
+                'name' => $l->name,
+                'description' => $l->description,
+                'hero_image' => $l->hero_image,
+                'base_price' => (float) $l->base_price,
+                'currency' => $l->currency,
+                'is_sold_out' => $l->is_sold_out,
+                'publisher' => $l->publisherSummary(),
+            ])
+            ->values();
+
+        // Sprint 43 — the wizard needs the fan's completed budgets so
+        // "Request financing against your budget" can pre-fill amount,
+        // currency and reference. Scope to the active tournament and
+        // ship a compact payload.
+        $savedBudgets = Budget::query()
+            ->where('user_id', $user->id)
+            ->where('tournament_id', $tournamentId)
+            ->orderByDesc('is_active')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Budget $b) => [
+                'id' => $b->id,
+                'reference_id' => 'REQ-'.str_pad($b->id, 6, '0', STR_PAD_LEFT),
+                'name' => $b->name,
+                'total_cost' => (float) $b->total_cost,
+                'currency' => $b->currency ?? 'USD',
+                'nights' => $b->nights,
+                'is_active' => (bool) $b->is_active,
+            ])
+            ->values();
+
         // Roll-up tiles for the hero row.
         $stats = [
             'total' => $loans->count(),
@@ -91,6 +148,8 @@ class LoanApplicationController extends Controller
         return Inertia::render('Fan/LoanApplications', [
             'loans' => $loans,
             'financePartners' => $financePartners,
+            'offerings' => $offerings,
+            'savedBudgets' => $savedBudgets,
             'stats' => $stats,
             'auth' => ['user' => $user],
         ]);
@@ -107,6 +166,11 @@ class LoanApplicationController extends Controller
             // "generic" application path still works (admin queue).
             // Must resolve to an actual finance_partner user.
             'finance_partner_id' => 'nullable|exists:users,id',
+            // Sprint 43 — wizard captures explicit consent to share the
+            // fan's contact + budget details with the finance partner.
+            // Required only when the wizard is the origin; the CTA on
+            // the budget calculator still uses the older path.
+            'consent' => 'nullable|boolean|accepted',
         ]);
 
         $user = Auth::user();

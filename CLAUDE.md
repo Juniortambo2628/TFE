@@ -780,8 +780,29 @@ tests/
 | 30     | Multicurrency reaches SavingsGoals + LoanApplications displays |
 | 41     | Contact-form dialogs, gated header switcher, hero declutter, airline + betting partners & seeded offerings |
 | 42     | Partner dashboard polish: 4-col partner grids, self-serve branding editor, publish-on-save + contextual listing form, TfeModal + ImageUpload primitives, Dribbble-inspired admin dashboard restructure |
+| 43     | Fan financing surface rebuild: shoddy inline form removed, partner financing offerings surfaced as AccentCard grid, TfeModal wizard collects wallet + consent against a saved budget then redirects newcomers to the calculator |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
+
+### Sprint 43 notes
+
+- **Fan financing (`/fan/loan-applications`)** — the old "Apply for financing"
+  inline form is gone. The page now leads with a **Financing options** section
+  that renders partner-published financing packages as `AccentCard`s (Listings
+  whose publisher is a `finance_partner`, filtered `approved+active` and scoped
+  to the active tournament), plus a **Request custom financing** row underneath
+  that either opens the wizard (fan already has a saved `Budget`) or sends them
+  to the budget calculator (fan has none yet). `Fan/LoanApplicationController`
+  now hydrates `offerings` and `savedBudgets` on top of the existing loans /
+  stats / financePartners payload.
+- **Request-financing wizard** — a `TfeModal`-based 2-3 step flow. Step 1 picks
+  the saved budget being financed; step 2 (only when >1 partner is public)
+  picks the routing partner; the final step reviews the amount / partner and
+  requires an explicit consent checkbox before it submits. On success the
+  wizard swaps to a confirmation panel telling the fan the request is on the
+  finance partner's portal and updates will land here. `store()` accepts a
+  `nullable|boolean|accepted` `consent` field so the older Budget-calculator
+  `FinanceThisTrip` CTA path still works untouched.
 
 ### Sprint 41 notes
 

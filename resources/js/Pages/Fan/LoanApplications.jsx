@@ -1,47 +1,38 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
+import AccentCard from '@/Components/Common/AccentCard';
+import TfeModal from '@/Components/Common/TfeModal';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
 /**
- * Fan-side "My Financing" surface — Sprint 15.
+ * Fan-side "My Financing" surface.
  *
- * Shows a fan every loan application they've submitted, who
- * underwrote it, the current status with a timeline chip, and the
- * interest terms once approved. New applications route to a
- * finance partner from the picker; without any finance partner
- * available the CTA is disabled and the empty state explains why.
+ * Sprint 43 — the inline "Apply for financing" form is gone. In its
+ * place: a grid of partner financing packages (Listings published by
+ * finance partners) when any are approved+active for the active
+ * tournament, and a request-financing CTA that either opens the
+ * wizard (against a saved budget) or sends the fan to the budget
+ * calculator to build one first. The wizard collects the basics plus
+ * explicit consent to share the fan's details with the finance
+ * partner, and confirms the request has been made.
  */
-export default function LoanApplications({ auth, loans = [], financePartners = [], stats = {} }) {
+export default function LoanApplications({
+    auth,
+    loans = [],
+    financePartners = [],
+    offerings = [],
+    savedBudgets = [],
+    stats = {},
+}) {
     const { tournament } = useTournament();
     const hasPartners = financePartners.length > 0;
-    const [expanded, setExpanded] = useState(false);
-    const [form, setForm] = useState({
-        amount: '',
-        purpose: '',
-        notes: '',
-        finance_partner_id: financePartners[0]?.id || '',
-    });
-    const [processing, setProcessing] = useState(false);
-    const [errors, setErrors] = useState({});
-
-    const submit = (e) => {
-        e.preventDefault();
-        setProcessing(true);
-        setErrors({});
-        router.post(route('fan.loan-applications.store'), form, {
-            onFinish: () => setProcessing(false),
-            onError: (errs) => setErrors(errs),
-            onSuccess: () => {
-                setForm({ amount: '', purpose: '', notes: '', finance_partner_id: financePartners[0]?.id || '' });
-                setExpanded(false);
-            },
-        });
-    };
+    const hasBudgets = savedBudgets.length > 0;
+    const [wizardOpen, setWizardOpen] = useState(false);
 
     const withdraw = (id) => {
         if (confirm('Withdraw this application?')) {
@@ -56,7 +47,7 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
             <DashboardHero
                 role="fan"
                 title="My financing"
-                subtitle={`Track loan applications you've submitted for your ${tournament?.short_name || 'tournament'} trip.`}
+                subtitle={`Explore financing packages or request bespoke terms against your ${tournament?.short_name || 'tournament'} trip.`}
                 breadcrumbs={[
                     { label: 'Wallet', href: route('fan.wallet') },
                     { label: 'Financing' },
@@ -72,113 +63,12 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                 ]}
             />
 
-            <div className="content-card mt-4 p-4">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center gap-2">
-                        <i className="fas fa-hand-holding-usd"></i>
-                        <h3>Apply for financing</h3>
-                    </div>
-                    {!expanded && (
-                        <button
-                            type="button"
-                            onClick={() => setExpanded(true)}
-                            disabled={!hasPartners}
-                            className="tfe-btn tfe-btn--filled"
-                        >
-                            <i className="fas fa-plus" />
-                            New application
-                        </button>
-                    )}
-                </div>
-
-                {!hasPartners && !expanded && (
-                    <p className="text-white-50 mt-3 mb-0">
-                        No finance partners are onboarded yet — check back soon or apply through the
-                        Budget Calculator once a partner is available for your tournament.
-                    </p>
-                )}
-
-                {expanded && (
-                    <form onSubmit={submit} className="mt-3">
-                        {financePartners.length > 1 && (
-                            <div className="mb-3">
-                                <div className="tfe-form-label mb-2">Route to</div>
-                                <div className="d-flex flex-wrap gap-2">
-                                    {financePartners.map((p) => (
-                                        <button
-                                            type="button"
-                                            key={p.id}
-                                            onClick={() => setForm({ ...form, finance_partner_id: p.id })}
-                                            className={`fan-partner-chip${form.finance_partner_id === p.id ? ' is-active' : ''}`}
-                                            style={{ '--partner-accent': p.theme_accent || '#0072CE' }}
-                                        >
-                                            {p.logo_url ? (
-                                                <img src={p.logo_url} alt={p.display_name} />
-                                            ) : (
-                                                <span className="fan-partner-chip__fallback">{p.display_name.charAt(0)}</span>
-                                            )}
-                                            <span>{p.display_name}</span>
-                                            {p.verified && <i className="fas fa-check-circle text-success"></i>}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="row g-3">
-                            <div className="col-md-4">
-                                <label className="tfe-form-label">Amount (USD)</label>
-                                <input
-                                    type="number"
-                                    min="1000"
-                                    value={form.amount}
-                                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                                    className="tfe-input"
-                                    placeholder="e.g. 3500"
-                                    required
-                                />
-                                {errors.amount && <div className="text-danger small mt-1">{errors.amount}</div>}
-                            </div>
-                            <div className="col-md-8">
-                                <label className="tfe-form-label">Purpose</label>
-                                <input
-                                    type="text"
-                                    value={form.purpose}
-                                    onChange={(e) => setForm({ ...form, purpose: e.target.value })}
-                                    className="tfe-input"
-                                    placeholder={`e.g. ${tournament?.short_name || 'Tournament'} travel funding`}
-                                    required
-                                />
-                                {errors.purpose && <div className="text-danger small mt-1">{errors.purpose}</div>}
-                            </div>
-                            <div className="col-12">
-                                <label className="tfe-form-label">Additional notes (optional)</label>
-                                <textarea
-                                    value={form.notes}
-                                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                    className="tfe-input"
-                                    rows="2"
-                                    placeholder="Anything the underwriter should know?"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="d-flex justify-content-end gap-2 mt-3">
-                            <button
-                                type="button"
-                                onClick={() => setExpanded(false)}
-                                className="tfe-btn"
-                            >
-                                Cancel
-                            </button>
-                            <button type="submit" disabled={processing || !form.finance_partner_id} className="tfe-btn tfe-btn--filled">
-                                <i className="fas fa-paper-plane me-2"></i>
-                                {processing ? 'Submitting…' : 'Submit application'}
-                            </button>
-                        </div>
-                    </form>
-                )}
-            </div>
+            <FinancingOptionsSection
+                offerings={offerings}
+                hasBudgets={hasBudgets}
+                hasPartners={hasPartners}
+                onRequestFinancing={() => setWizardOpen(true)}
+            />
 
             <div className="content-card mt-4 p-4">
                 <div className="card-header d-flex align-items-center gap-2">
@@ -187,55 +77,509 @@ export default function LoanApplications({ auth, loans = [], financePartners = [
                 </div>
 
                 {loans.length === 0 ? (
-                    <FinancingEmptyState hasPartners={hasPartners} />
+                    <ApplicationsEmpty
+                        hasPartners={hasPartners}
+                        hasBudgets={hasBudgets}
+                        onRequestFinancing={() => setWizardOpen(true)}
+                    />
                 ) : (
                     <div className="loan-list mt-3">
                         {loans.map((loan) => <LoanRow key={loan.id} loan={loan} onWithdraw={withdraw} />)}
                     </div>
                 )}
             </div>
+
+            <RequestFinancingWizard
+                open={wizardOpen}
+                onClose={() => setWizardOpen(false)}
+                budgets={savedBudgets}
+                partners={financePartners}
+                tournament={tournament}
+            />
         </FanLayout>
     );
 }
 
-function FinancingEmptyState({ hasPartners }) {
+/* ── Section: financing options ─────────────────────────────────────── */
+
+function FinancingOptionsSection({ offerings, hasBudgets, hasPartners, onRequestFinancing }) {
+    const hasOfferings = offerings.length > 0;
+
+    return (
+        <div className="content-card mt-4 p-4">
+            <div className="card-header d-flex justify-content-between align-items-center">
+                <div className="d-flex align-items-center gap-2">
+                    <i className="fas fa-hand-holding-usd"></i>
+                    <h3>Financing options</h3>
+                </div>
+                <span className="text-white-50 small">
+                    {hasOfferings
+                        ? `${offerings.length} ${offerings.length === 1 ? 'package' : 'packages'} available`
+                        : 'Custom request'}
+                </span>
+            </div>
+
+            {hasOfferings ? (
+                <>
+                    <p className="text-white-50 mt-3 mb-3" style={{ maxWidth: 640 }}>
+                        Packages published by verified finance partners for this tournament.
+                        Pick one to see the terms, or request bespoke financing against your budget.
+                    </p>
+                    <div className="row g-3">
+                        {offerings.map((o) => (
+                            <div key={o.id} className="col-md-6 col-lg-4 col-xl-3">
+                                <OfferingCard offering={o} />
+                            </div>
+                        ))}
+                    </div>
+                    <RequestCustomRow
+                        variant="inline"
+                        hasBudgets={hasBudgets}
+                        onRequestFinancing={onRequestFinancing}
+                    />
+                </>
+            ) : (
+                <RequestCustomRow
+                    variant="hero"
+                    hasBudgets={hasBudgets}
+                    hasPartners={hasPartners}
+                    onRequestFinancing={onRequestFinancing}
+                />
+            )}
+        </div>
+    );
+}
+
+function OfferingCard({ offering }) {
+    const accent = offering.publisher?.theme_accent || '#0072CE';
+    return (
+        <AccentCard
+            LinkComponent={Link}
+            href={route('fan.packages.show', offering.id)}
+            accent={accent}
+            artwork={offering.hero_image
+                ? { src: offering.hero_image, alt: offering.name, variant: 'thumb' }
+                : { icon: 'fas fa-hand-holding-usd' }}
+            title={offering.name}
+            desc={offering.description}
+            eyebrow={offering.publisher?.display_name}
+            meta={[
+                { label: 'From', value: `${offering.currency || 'USD'} ${Number(offering.base_price).toLocaleString()}` },
+            ]}
+            cta={{ label: offering.is_sold_out ? 'Sold out' : 'View details', icon: offering.is_sold_out ? null : 'fas fa-arrow-right' }}
+        />
+    );
+}
+
+function RequestCustomRow({ variant, hasBudgets, hasPartners = true, onRequestFinancing }) {
+    if (variant === 'inline') {
+        return (
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <div>
+                    <div className="text-white fw-semibold">Nothing here fits?</div>
+                    <div className="text-white-50 small">
+                        Request bespoke financing against your proposed budget.
+                    </div>
+                </div>
+                {hasBudgets ? (
+                    <button type="button" onClick={onRequestFinancing} className="tfe-btn tfe-btn--filled" disabled={!hasPartners}>
+                        <i className="fas fa-file-signature"></i>
+                        Request financing
+                    </button>
+                ) : (
+                    <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled">
+                        <i className="fas fa-calculator"></i>
+                        Build a budget
+                    </Link>
+                )}
+            </div>
+        );
+    }
+
     if (!hasPartners) {
         return (
-            <div className="empty-state financing-empty">
-                <i className="fas fa-university"></i>
-                <h4>No finance partners onboarded yet</h4>
-                <p>
-                    We're bringing verified banks and lenders onto the platform. As soon as one
-                    is available for your tournament, you'll see them here and on the budget
-                    calculator.
+            <div className="tfe-empty mt-3">
+                <div className="tfe-empty__icon"><i className="fas fa-university"></i></div>
+                <h4 className="tfe-empty__title">No finance partners onboarded yet</h4>
+                <p className="tfe-empty__body">
+                    Verified banks and lenders will show up here as soon as they publish
+                    packages for this tournament.
                 </p>
             </div>
         );
     }
 
     return (
-        <div className="financing-empty financing-empty--pitch">
-            <div className="financing-empty__glyph">
-                <i className="fas fa-hand-holding-usd"></i>
-            </div>
-            <div className="financing-empty__body">
-                <h4>Finance the whole trip in one step</h4>
-                <p>
-                    Build your itinerary in the budget calculator — matches, hotels, flights —
-                    then apply for financing against the total, right on the results screen.
-                    Underwriters see the full picture and can decide faster.
-                </p>
-                <div className="financing-empty__actions">
+        <div className="tfe-empty mt-3">
+            <div className="tfe-empty__icon"><i className="fas fa-hand-holding-usd"></i></div>
+            <h4 className="tfe-empty__title">
+                {hasBudgets ? 'Request financing against your budget' : 'Build your budget first'}
+            </h4>
+            <p className="tfe-empty__body">
+                {hasBudgets
+                    ? 'No pre-published packages yet — send a bespoke request to a verified finance partner using your proposed budget as the basis.'
+                    : 'Open the budget calculator, save your itinerary, then come back to request financing against the full trip.'}
+            </p>
+            <div className="tfe-empty__action">
+                {hasBudgets ? (
+                    <button type="button" onClick={onRequestFinancing} className="tfe-btn tfe-btn--filled">
+                        <i className="fas fa-file-signature"></i>
+                        Request financing
+                    </button>
+                ) : (
                     <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled">
-                        <i className="fas fa-calculator me-2"></i>
+                        <i className="fas fa-calculator"></i>
                         Open the budget calculator
                     </Link>
-                    <span className="financing-empty__or">or apply directly above</span>
-                </div>
+                )}
             </div>
         </div>
     );
 }
+
+function ApplicationsEmpty({ hasPartners, hasBudgets, onRequestFinancing }) {
+    if (!hasPartners) {
+        return (
+            <div className="tfe-empty mt-3">
+                <div className="tfe-empty__icon"><i className="fas fa-file-invoice-dollar"></i></div>
+                <h4 className="tfe-empty__title">No applications yet</h4>
+                <p className="tfe-empty__body">
+                    Once verified finance partners are onboarded for this tournament,
+                    your submitted requests will show up here.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="tfe-empty mt-3">
+            <div className="tfe-empty__icon"><i className="fas fa-file-invoice-dollar"></i></div>
+            <h4 className="tfe-empty__title">No applications yet</h4>
+            <p className="tfe-empty__body">
+                {hasBudgets
+                    ? 'Send your first request — it takes a minute and the partner replies inside the platform.'
+                    : 'Build a budget first, then request financing against the full trip.'}
+            </p>
+            <div className="tfe-empty__action">
+                {hasBudgets ? (
+                    <button type="button" onClick={onRequestFinancing} className="tfe-btn tfe-btn--filled">
+                        <i className="fas fa-file-signature"></i>
+                        Request financing
+                    </button>
+                ) : (
+                    <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled">
+                        <i className="fas fa-calculator"></i>
+                        Open the budget calculator
+                    </Link>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ── Request-financing wizard (TfeModal) ────────────────────────────── */
+
+function RequestFinancingWizard({ open, onClose, budgets, partners, tournament }) {
+    const primaryBudget = useMemo(
+        () => budgets.find((b) => b.is_active) || budgets[0] || null,
+        [budgets],
+    );
+    const [step, setStep] = useState(1);
+    const [budgetId, setBudgetId] = useState(primaryBudget?.id || '');
+    const [partnerId, setPartnerId] = useState(partners[0]?.id || '');
+    const [notes, setNotes] = useState('');
+    const [consent, setConsent] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [submitted, setSubmitted] = useState(false);
+
+    const budget = budgets.find((b) => b.id === Number(budgetId) || b.id === budgetId) || primaryBudget;
+    const partner = partners.find((p) => p.id === Number(partnerId) || p.id === partnerId) || partners[0];
+
+    const reset = () => {
+        setStep(1);
+        setBudgetId(primaryBudget?.id || '');
+        setPartnerId(partners[0]?.id || '');
+        setNotes('');
+        setConsent(false);
+        setErrors({});
+        setSubmitted(false);
+    };
+
+    const close = () => {
+        onClose();
+        // Delay reset so the modal fades before losing state.
+        setTimeout(reset, 200);
+    };
+
+    const submit = () => {
+        if (!consent || !budget || !partner) return;
+        setProcessing(true);
+        setErrors({});
+        router.post(
+            route('fan.loan-applications.store'),
+            {
+                budget_id: budget.id,
+                finance_partner_id: partner.id,
+                amount: Math.round(budget.total_cost),
+                purpose: `Financing for ${tournament?.short_name || 'tournament'} trip — ${budget.reference_id}`,
+                notes,
+                consent: true,
+            },
+            {
+                preserveScroll: true,
+                onError: (errs) => setErrors(errs),
+                onSuccess: () => setSubmitted(true),
+                onFinish: () => setProcessing(false),
+            },
+        );
+    };
+
+    if (!open) return null;
+
+    // Confirmation panel.
+    if (submitted) {
+        return (
+            <TfeModal open={open} title="Application submitted" onClose={close} size="md">
+                <div className="tfe-empty" style={{ padding: '24px 8px' }}>
+                    <div className="tfe-empty__icon" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80' }}>
+                        <i className="fas fa-check"></i>
+                    </div>
+                    <h4 className="tfe-empty__title">Your request is with {partner?.display_name || 'the finance partner'}</h4>
+                    <p className="tfe-empty__body">
+                        The application is now on the finance partner's portal for review.
+                        You'll receive an update — approved, more info needed, or a decision —
+                        in your notifications and on this page.
+                    </p>
+                    <div className="tfe-empty__action">
+                        <button type="button" onClick={close} className="tfe-btn tfe-btn--filled">
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </TfeModal>
+        );
+    }
+
+    const totalSteps = partners.length > 1 ? 3 : 2;
+    const isBudgetStep = step === 1;
+    const isPartnerStep = step === 2 && partners.length > 1;
+    const isConsentStep = step === totalSteps;
+
+    return (
+        <TfeModal
+            open={open}
+            title="Request financing"
+            onClose={close}
+            size="md"
+            footer={
+                <div className="d-flex justify-content-between align-items-center w-100">
+                    <span className="text-white-50 small">Step {step} of {totalSteps}</span>
+                    <div className="d-flex gap-2">
+                        {step > 1 && (
+                            <button type="button" onClick={() => setStep(step - 1)} className="tfe-btn">
+                                Back
+                            </button>
+                        )}
+                        {step < totalSteps ? (
+                            <button
+                                type="button"
+                                onClick={() => setStep(step + 1)}
+                                disabled={isBudgetStep ? !budget : isPartnerStep ? !partner : false}
+                                className="tfe-btn tfe-btn--filled"
+                            >
+                                Continue
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={submit}
+                                disabled={processing || !consent || !budget || !partner}
+                                className="tfe-btn tfe-btn--filled"
+                            >
+                                <i className="fas fa-paper-plane"></i>
+                                {processing ? 'Submitting…' : 'Submit application'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            }
+        >
+            {isBudgetStep && (
+                <WizardStepBudget
+                    budgets={budgets}
+                    budgetId={budgetId}
+                    setBudgetId={setBudgetId}
+                />
+            )}
+
+            {isPartnerStep && (
+                <WizardStepPartner
+                    partners={partners}
+                    partnerId={partnerId}
+                    setPartnerId={setPartnerId}
+                />
+            )}
+
+            {isConsentStep && (
+                <WizardStepConsent
+                    budget={budget}
+                    partner={partner}
+                    notes={notes}
+                    setNotes={setNotes}
+                    consent={consent}
+                    setConsent={setConsent}
+                    errors={errors}
+                />
+            )}
+        </TfeModal>
+    );
+}
+
+function WizardStepBudget({ budgets, budgetId, setBudgetId }) {
+    if (!budgets.length) {
+        return (
+            <div className="tfe-empty" style={{ padding: '16px 0' }}>
+                <div className="tfe-empty__icon"><i className="fas fa-calculator"></i></div>
+                <h4 className="tfe-empty__title">No saved budgets yet</h4>
+                <p className="tfe-empty__body">
+                    Build and save one in the budget calculator, then come back to request
+                    financing against it.
+                </p>
+                <div className="tfe-empty__action">
+                    <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled">
+                        <i className="fas fa-calculator"></i>
+                        Open the budget calculator
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <div className="tfe-form-label mb-2">Which budget are you financing?</div>
+            <p className="text-white-50 small mb-3">
+                The partner sees the itinerary you attach here — matches, nights and total cost.
+            </p>
+            <div className="d-flex flex-column gap-2">
+                {budgets.map((b) => (
+                    <label
+                        key={b.id}
+                        className={`fan-partner-chip w-100${String(budgetId) === String(b.id) ? ' is-active' : ''}`}
+                        style={{ '--partner-accent': '#0072CE', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start' }}
+                    >
+                        <input
+                            type="radio"
+                            name="budget"
+                            value={b.id}
+                            checked={String(budgetId) === String(b.id)}
+                            onChange={() => setBudgetId(b.id)}
+                            style={{ marginRight: 6 }}
+                        />
+                        <span className="flex-fill">
+                            <strong className="d-block text-white">{b.name || b.reference_id}</strong>
+                            <span className="text-white-50 small">
+                                {b.reference_id} · {formatMoney(b.total_cost, b.currency || 'USD')}
+                                {b.nights ? ` · ${b.nights} nights` : ''}
+                                {b.is_active ? ' · Active plan' : ''}
+                            </span>
+                        </span>
+                    </label>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function WizardStepPartner({ partners, partnerId, setPartnerId }) {
+    return (
+        <div>
+            <div className="tfe-form-label mb-2">Route this request to</div>
+            <p className="text-white-50 small mb-3">
+                Pick a verified finance partner. They'll review the attached budget and reply
+                inside the platform.
+            </p>
+            <div className="d-flex flex-wrap gap-2">
+                {partners.map((p) => (
+                    <button
+                        type="button"
+                        key={p.id}
+                        onClick={() => setPartnerId(p.id)}
+                        className={`fan-partner-chip${String(partnerId) === String(p.id) ? ' is-active' : ''}`}
+                        style={{ '--partner-accent': p.theme_accent || '#0072CE' }}
+                    >
+                        {p.logo_url ? (
+                            <img src={p.logo_url} alt={p.display_name} />
+                        ) : (
+                            <span className="fan-partner-chip__fallback">{p.display_name.charAt(0)}</span>
+                        )}
+                        <span>{p.display_name}</span>
+                        {p.verified && <i className="fas fa-check-circle text-success"></i>}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function WizardStepConsent({ budget, partner, notes, setNotes, consent, setConsent, errors }) {
+    return (
+        <div>
+            <div className="tfe-form-label mb-2">Review your request</div>
+            <div className="tfe-slab tfe-slab--flush mb-3" style={{ padding: 16 }}>
+                <div className="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <div className="text-white-50 small">Amount</div>
+                        <div className="text-white fw-bold" style={{ fontSize: '1.15rem' }}>
+                            {formatMoney(Math.round(budget?.total_cost || 0), 'USD')}
+                        </div>
+                        <div className="text-white-50 small mt-1">
+                            From budget {budget?.reference_id}
+                            {budget?.currency && budget.currency !== 'USD'
+                                ? ` (built in ${budget.currency})`
+                                : ''}
+                        </div>
+                    </div>
+                    {partner && <PoweredByBadge publisher={partner} variant="chip" />}
+                </div>
+            </div>
+
+            <label className="tfe-form-label" htmlFor="req-notes">
+                Anything the underwriter should know? (optional)
+            </label>
+            <textarea
+                id="req-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="tfe-input"
+                rows="3"
+                maxLength={1000}
+                placeholder="Employment, existing repayment plans, preferred term…"
+            />
+            {errors.notes && <div className="text-danger small mt-1">{errors.notes}</div>}
+
+            <label className="d-flex align-items-start gap-2 mt-3" style={{ cursor: 'pointer' }}>
+                <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    style={{ marginTop: 4 }}
+                />
+                <span className="text-white-50 small">
+                    I consent to sharing my contact details and the attached budget summary
+                    with <strong className="text-white">{partner?.display_name || 'the finance partner'}</strong> so they can
+                    review this application. I understand I can withdraw it while it's still pending.
+                </span>
+            </label>
+            {errors.consent && <div className="text-danger small mt-1">{errors.consent}</div>}
+            {errors.amount && <div className="text-danger small mt-1">{errors.amount}</div>}
+            {errors.purpose && <div className="text-danger small mt-1">{errors.purpose}</div>}
+        </div>
+    );
+}
+
+/* ── Loan row ───────────────────────────────────────────────────────── */
 
 const STAGES = ['PENDING', 'APPROVED', 'DISBURSED'];
 
