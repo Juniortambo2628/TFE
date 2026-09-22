@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\SiteSetting;
-use App\Models\Tribe;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -27,24 +26,6 @@ class ContentController extends Controller
                 ];
             });
 
-        $tribes = Tribe::withCount('members')
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->map(function ($tribe) {
-                return [
-                    'id' => $tribe->id,
-                    'name' => $tribe->name,
-                    'members_count' => $tribe->members_count,
-                    'privacy' => $tribe->privacy,
-                ];
-            });
-
-        $stats = [
-            'total_posts' => Post::count(),
-            'total_tribes' => Tribe::count(),
-        ];
-
         // Flat key => value map — the Content page reads settings by their full
         // key (e.g. `page_hero_about_title`), so this both powers the editors
         // and pre-fills them with saved values.
@@ -52,8 +33,6 @@ class ContentController extends Controller
 
         return Inertia::render('Admin/Content', [
             'posts' => $posts,
-            'tribes' => $tribes,
-            'stats' => $stats,
             'settings' => $settings,
         ]);
     }

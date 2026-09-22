@@ -161,11 +161,6 @@ class TournamentService
             }
         }
 
-        $finalVenue = $config['final_venue'] ?? null;
-        if (empty($finalVenue) && ! empty($finalMatch['stadium'])) {
-            $finalVenue = $finalMatch['stadium'].($finalMatch['city'] ? ', '.$finalMatch['city'] : '');
-        }
-
         // Admin overrides > config defaults. Loaded once in get() and
         // passed in so no per-call SiteSetting queries fire here.
         $heroImage = $overrides['hero_image'] ?: ($config['hero_image'] ?? null);
@@ -177,7 +172,6 @@ class TournamentService
         return array_merge($config, [
             'status' => self::computedStatus($config),
             'wikipedia' => $wikipedia,
-            'wikipedia_summary' => $wikipedia['summary'] ?? [],
             'venues' => $wikipedia['venues'] ?? [],
             'teams' => $wikipedia['teams'] ?? [],
             'team_flag_codes' => $config['team_flag_codes'] ?? [],
@@ -195,17 +189,12 @@ class TournamentService
             // Merged results (config fallback + Wikipedia)
             'winner' => $winner,
             'runner_up' => $config['runner_up'] ?? ($wikiResults['runner_up'] ?? null),
-            'second_runner_up' => $config['second_runner_up'] ?? ($wikiResults['second_runner_up'] ?? null),
             'top_scorer' => $topScorer,
             'final_score' => $finalScore,
-            'final_venue' => $finalVenue,
             // Stats from Wikipedia (with config fallback)
             'num_teams' => $wikiResults['num_teams'] ?? $config['num_teams'] ?? null,
             'matches_played' => $wikiResults['matches_played'] ?? $config['matches_played'] ?? null,
             'total_goals' => $wikiResults['total_goals'] ?? $config['total_goals'] ?? null,
-            // Detailed results from Wikipedia
-            'wikipedia_results' => $wikiResults,
-            'wikipedia_final_match' => $finalMatch,
             // Matches from Wikipedia (all groups + knockout)
             'wikipedia_matches' => $wikipedia['matches'] ?? [],
             // Awards from Wikipedia
