@@ -6,6 +6,7 @@
 production_env.txt
 .phpactor.json
 .phpunit.result.cache
+/.claude/launch.json
 /.fleet
 /.idea
 /.nova
