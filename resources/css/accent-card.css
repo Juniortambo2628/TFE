@@ -411,6 +411,46 @@
 
 .tfe-acard--hero .hero-countdown-row { flex-wrap: wrap; }
 
+/* Phones — countdown as a 2x2 grid.
+ *
+ * Four 56px dials plus gaps need ~272px, and the card's content box at 390px
+ * viewport is ~265px, so the flex row wrapped 3 + 1: three dials on one line
+ * and a lone "sec" orphaned below. A 2x2 grid is the honest layout at this
+ * width — each cell takes half the card, the dials sit on a shared axis, and
+ * the space freed by dropping from four columns to two pays for a noticeably
+ * larger dial and a readable label.
+ *
+ * `!important` is required, not stylistic: the element carries Bootstrap's
+ * .d-flex and .gap-3 utilities, which are themselves !important.
+ */
+@media (max-width: 575.98px) {
+    .tfe-acard--hero .hero-countdown-row {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.1rem 0.75rem !important;
+        justify-items: center;
+        width: 100%;
+    }
+
+    .tfe-acard--hero .hero-countdown-item {
+        width: 100%;
+    }
+
+    .tfe-acard--hero .hero-countdown-dial {
+        width: 88px;
+        height: 88px;
+    }
+
+    .tfe-acard--hero .hero-countdown-value {
+        font-size: 1.5rem;
+    }
+
+    .tfe-acard--hero .hero-countdown-label {
+        font-size: 11px;
+        padding: 3px 12px;
+    }
+}
+
 .tfe-acard--hero:hover {
     transform: none;
     border-color: rgba(255, 255, 255, 0.08);

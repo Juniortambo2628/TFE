@@ -761,9 +761,20 @@
     min-width: 80px;
 }
 
+/* Countdown dial box — the single place the dial's rendered size is set.
+   The SVG inside carries a viewBox and fills this box, so changing these two
+   values is all it takes to resize a dial at a breakpoint. */
+.hero-countdown-dial {
+    width: 56px;
+    height: 56px;
+}
+
 /* Countdown SVG circles */
 .hero-countdown-svg {
     transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 /* Countdown circle label (D/H/M/S) */

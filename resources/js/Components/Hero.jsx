@@ -488,9 +488,13 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                 const circumference = 2 * Math.PI * radius;
                                                 const strokeDashoffset = circumference - (item.value / item.max) * circumference;
                                                 return (
-                                                    <div key={idx} className="d-flex flex-column align-items-center gap-1">
-                                                        <div className="position-relative" style={{ width: size + 'px', height: size + 'px' }}>
-                                                            <svg width={size} height={size} className="hero-countdown-svg">
+                                                    <div key={idx} className="hero-countdown-item d-flex flex-column align-items-center gap-1">
+                                                        {/* Sized in CSS, not inline, so the dial can grow on
+                                                            narrow screens. The circle maths below stays in the
+                                                            56-unit space and viewBox scales it — no second set
+                                                            of radii to keep in sync. */}
+                                                        <div className="position-relative hero-countdown-dial">
+                                                            <svg viewBox={`0 0 ${size} ${size}`} className="hero-countdown-svg">
                                                                 <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
                                                                 <circle cx={center} cy={center} r={radius} fill="transparent" stroke={heroAccent} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
                                                             </svg>
