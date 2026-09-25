@@ -5,14 +5,22 @@ import WorldMap from 'react-svg-worldmap';
  * Full world map for the Hero section.
  * Non-host countries: frosted glass (blurred fill, white borders).
  * Host countries: solid white, sharp.
+ * The host hosting the current slide's stadium: accent-filled.
  */
 
-export default function HeroWorldMap({ tournament, className }) {
+/* Shared between styleFunction and the blur pass — they must agree on what
+   "non-host" looks like, so it is written once. */
+const NON_HOST_FILL = 'rgba(255,255,255,0.15)';
+
+export default function HeroWorldMap({ tournament, className, activeCountry, accent = '#dc143c' }) {
     const wrapperRef = useRef(null);
 
     const hostCountries = useMemo(() => {
         return (tournament?.host_flag_codes || []).map(c => c.toLowerCase());
     }, [tournament?.id, tournament?.host_flag_codes]);
+
+    // The host country of the stadium on the current hero slide, if any.
+    const active = (activeCountry || '').toLowerCase();
 
     const mapData = useMemo(() => {
         return hostCountries.map(code => ({ country: code, value: 1 }));
@@ -40,18 +48,37 @@ export default function HeroWorldMap({ tournament, className }) {
             svg.insertBefore(defs, svg.firstChild);
         }
 
-        /* Apply blur filter to non-host country paths */
+        /* Apply blur filter to non-host country paths.
+           Keyed off the dim non-host fill rather than "is it white?" — the
+           active host is painted in the accent colour, so a white test would
+           blur the one country we most want sharp. */
         svg.querySelectorAll('path').forEach(path => {
             const style = path.getAttribute('style') || '';
-            const isHost = style.includes('#ffffff');
-            if (!isHost) {
+            if (style.includes(NON_HOST_FILL)) {
                 path.setAttribute('filter', 'url(#hero-country-blur)');
+            } else {
+                // Clear it explicitly: this effect re-runs as the slide
+                // changes, and a country that has just become active would
+                // otherwise keep the blur it was given on the previous pass.
+                path.removeAttribute('filter');
             }
         });
     });
 
     const styleFunction = ({ countryCode }) => {
         const code = (countryCode || '').toLowerCase();
+
+        // The host whose stadium is on screen right now — accent-filled so the
+        // map tracks the slider.
+        if (active && code === active) {
+            return {
+                fill: accent,
+                stroke: '#ffffff',
+                strokeWidth: 1.8,
+                cursor: 'default',
+            };
+        }
+
         if (hostCountries.includes(code)) {
             return {
                 fill: '#ffffff',
@@ -60,8 +87,9 @@ export default function HeroWorldMap({ tournament, className }) {
                 cursor: 'default',
             };
         }
+
         return {
-            fill: 'rgba(255,255,255,0.15)',
+            fill: NON_HOST_FILL,
             stroke: 'rgba(255,255,255,0.7)',
             strokeWidth: 1.2,
             cursor: 'default',

@@ -37,6 +37,16 @@ function parseCapacity(raw, fallback) {
     return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+// Capacity for display. The catalogue stores a plain integer (60000) while
+// Wikipedia used to hand us a pre-formatted string ("60,000"), so normalise to
+// the grouped form here. parseCapacity() reads either shape, so the numeric
+// consumers (the seat map) are unaffected.
+function formatCapacity(raw) {
+    if (raw === null || raw === undefined || raw === '') return 'TBD';
+    if (typeof raw === 'number' && Number.isFinite(raw)) return raw.toLocaleString('en-US');
+    return String(raw);
+}
+
 // Deterministic pseudo-sold-percentage per stadium so the preview reads
 // as "live-ish" without hitting a booking backend. Replaced by real
 // package aggregate once we surface it into the Hero payload.
@@ -121,13 +131,17 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 return {
                     name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
                     location: v.location || 'Tournament venue',
-                    capacity: v.capacity || 'TBD',
+                    capacity: formatCapacity(v.capacity),
                     history: v.opened || '',
                     fun_fact: v.extract || '',
                     image: localImage || heroImage,
                     matches: [],
                     attribution: 'Data from Wikipedia',
                     url: v.url || '',
+                    // Which host this ground belongs to — drives the map
+                    // highlight and the host pill on the tournament card.
+                    country: v.country || '',
+                    country_code: v.country_code || '',
                 };
             });
         }
@@ -395,6 +409,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             <HeroWorldMap
                                 tournament={tournament}
                                 className="hero-worldmap--xl"
+                                activeCountry={activeStadium.country_code}
+                                accent={heroAccent}
                             />
                         </div>
 
@@ -486,9 +502,27 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     {tournament?.hosts && tournament.hosts.length > 0 && (
                                         <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
                                             <i className="fas fa-map-marker-alt text-danger"></i>
-                                            {tournament.hosts.map((host, idx) => (
-                                                <GlassPill key={idx} size="sm">{host}</GlassPill>
-                                            ))}
+                                            {tournament.hosts.map((host, idx) => {
+                                                // Matched on the country name rather than on
+                                                // array position: `hosts` and `host_flag_codes`
+                                                // happen to be parallel today, but nothing
+                                                // enforces that, and a silent mis-pairing here
+                                                // would light up the wrong country.
+                                                const isActive = !!activeStadium.country
+                                                    && host.trim().toLowerCase()
+                                                        === activeStadium.country.trim().toLowerCase();
+
+                                                return (
+                                                    <GlassPill
+                                                        key={idx}
+                                                        size="sm"
+                                                        className={isActive ? 'is-active' : ''}
+                                                        aria-current={isActive ? 'true' : undefined}
+                                                    >
+                                                        {host}
+                                                    </GlassPill>
+                                                );
+                                            })}
                                         </div>
                                     )}
 

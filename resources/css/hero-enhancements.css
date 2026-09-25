@@ -328,7 +328,10 @@
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
-    opacity: 0.85;
+    /* 30% lighter than the original 0.85 so the stadium photography reads
+       through — the gradient is there to keep the hero copy legible, not to
+       hide the background. */
+    opacity: 0.6;
     background: linear-gradient(to bottom,
         rgba(0,0,0,1) 0%,
         rgba(220,20,60,0.9) 20%,

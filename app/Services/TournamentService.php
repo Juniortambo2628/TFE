@@ -160,10 +160,17 @@ class TournamentService
     {
         $wikiTitle = $config['wikipedia_title'] ?? $config['name'];
 
+        // A catalogued tournament takes its venues from config/stadiums.php and
+        // enriches them by our own article titles below, so there is no point
+        // paying for Wikipedia's per-venue round-trips here — those rows are
+        // discarded. Skipping them keeps the cold-cache cost of the swap at
+        // roughly parity instead of doubling it.
+        $hydrateVenues = ! $this->stadiumImages->hasCatalogue($id);
+
         $wikipedia = Cache::remember(
             "tournament:{$id}:wikipedia",
             $ttl,
-            fn () => $this->wikipedia->getAll($wikiTitle, $ttl)
+            fn () => $this->wikipedia->getAll($wikiTitle, $ttl, $hydrateVenues)
         );
 
         // Merge Wikipedia results for concluded tournaments — config values are
@@ -200,12 +207,27 @@ class TournamentService
         $colorAccent = $overrides['color_accent'] ?: ($config['color_accent'] ?? null);
         $organizerCardBg = $overrides['organizer_card_bg'] ?: ($config['organizer_card_bg'] ?? null);
 
-        // Stadium imagery is ours, not Wikipedia's. Overlay the locally-hosted
-        // hero images (and backfill any coordinates Wikipedia failed to parse)
-        // onto the venue rows before they reach the Hero slider, the budget
-        // calculator and the itinerary map. Tournaments with no catalogue in
-        // config/stadiums.php pass straight through unchanged.
-        $venues = $this->stadiumImages->applyToVenues($wikipedia['venues'] ?? [], $id);
+        // Venues: the catalogue leads where we have one.
+        //
+        // Wikipedia's "Venues" parse is free prose — inconsistent naming
+        // between edits, bare city names emitted as grounds, and grounds
+        // missing altogether. Using it as the venue list meant slides could
+        // appear with no image, while stadiums we *did* have images for went
+        // unshown. For a catalogued tournament we already hold the real list,
+        // so config drives it and Wikipedia is demoted to enrichment looked up
+        // by a title we chose. Every venue row then has an image by
+        // construction.
+        //
+        // Uncatalogued tournaments keep the original behaviour exactly:
+        // Wikipedia supplies the list, and applyToVenues() is a no-op for them.
+        if ($this->stadiumImages->hasCatalogue($id)) {
+            $venues = $this->wikipedia->enrichStadiums(
+                $this->stadiumImages->catalogueVenues($id),
+                $ttl
+            );
+        } else {
+            $venues = $this->stadiumImages->applyToVenues($wikipedia['venues'] ?? [], $id);
+        }
 
         return array_merge($config, [
             'status' => self::computedStatus($config),

@@ -238,6 +238,82 @@ class StadiumImageResolutionTest extends TestCase
         ]);
     }
 
+    public function test_catalogue_drives_the_venue_list_not_wikipedia(): void
+    {
+        // The core of the inversion: every catalogued ground becomes a venue
+        // row, in config order, whether or not Wikipedia mentions it.
+        $venues = $this->service->catalogueVenues('afcon_2027');
+
+        $this->assertCount(12, $venues, 'All 12 AFCON grounds should be present.');
+
+        $names = array_column($venues, 'name');
+        $this->assertContains('Talanta Sports City Stadium', $names);
+        $this->assertContains('Amaan Stadium', $names);
+
+        // Config order is the presentation order the hero slider inherits.
+        $this->assertSame('Talanta Sports City Stadium', $venues[0]['name']);
+    }
+
+    public function test_every_catalogue_venue_has_an_image_by_construction(): void
+    {
+        // The whole point of sourcing venues from config: a slide can no
+        // longer exist without artwork behind it.
+        foreach ($this->service->catalogueVenues('afcon_2027') as $venue) {
+            $this->assertNotEmpty($venue['image'], "{$venue['name']} has no image.");
+            $this->assertSame('local', $venue['image_source']);
+            $this->assertNotEmpty($venue['wikipedia_title'], "{$venue['name']} has no article title.");
+        }
+    }
+
+    public function test_catalogue_venues_carry_country_for_the_map_highlight(): void
+    {
+        $byName = collect($this->service->catalogueVenues('afcon_2027'))
+            ->keyBy('name');
+
+        $this->assertSame('ke', $byName['Nyayo National Stadium']['country_code']);
+        $this->assertSame('Kenya', $byName['Nyayo National Stadium']['country']);
+        $this->assertSame('ug', $byName['Mandela National Stadium']['country_code']);
+        $this->assertSame('tz', $byName['Amaan Stadium']['country_code']);
+
+        // Every row needs one, or that slide silently highlights nothing.
+        foreach ($this->service->catalogueVenues('afcon_2027') as $venue) {
+            $this->assertNotEmpty($venue['country_code'], "{$venue['name']} has no country_code.");
+            $this->assertContains(
+                $venue['country_code'],
+                config('tournaments.tournaments.afcon_2027.host_flag_codes'),
+                "{$venue['name']} names a country that is not a host."
+            );
+        }
+    }
+
+    public function test_has_catalogue_gates_the_inversion(): void
+    {
+        // Only catalogued tournaments take the new path; everything else keeps
+        // the original Wikipedia-led behaviour.
+        $this->assertTrue($this->service->hasCatalogue('afcon_2027'));
+        $this->assertFalse($this->service->hasCatalogue('wc_2026'));
+        $this->assertSame([], $this->service->catalogueVenues('wc_2026'));
+    }
+
+    public function test_an_admin_override_reaches_the_catalogue_venue_rows(): void
+    {
+        // The admin editor has to keep working against the new venue source,
+        // not just against the old resolve() path.
+        SiteSetting::set(
+            StadiumImageService::SETTING_PREFIX.'dodoma',
+            '/storage/assets/uploads/custom-dodoma.webp',
+            'image',
+            'stadiums'
+        );
+        $this->service->clearCache('afcon_2027');
+
+        $dodoma = collect($this->service->catalogueVenues('afcon_2027'))
+            ->firstWhere('slug', 'dodoma');
+
+        $this->assertSame('/storage/assets/uploads/custom-dodoma.webp', $dodoma['image']);
+        $this->assertTrue($dodoma['is_overridden']);
+    }
+
     public function test_settings_endpoint_still_saves_plain_text_settings(): void
     {
         // The mimes rule is applied only on the file branch — a text setting

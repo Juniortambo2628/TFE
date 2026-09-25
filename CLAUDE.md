@@ -662,15 +662,33 @@ cache, and the "thumbnail" was sometimes a crowd shot or a logo.
   run of ≥2 words, so "Zanzibar Fumba Stadium" does *not* resolve to Amaan
   Stadium. Showing the wrong ground's photo is worse than showing none — a miss
   returns null and each surface uses its own placeholder.
-- **Overlay**: `TournamentService::assemble` runs `applyToVenues()` over the
-  Wikipedia venue rows, replacing `image`/`thumbnail` and backfilling `lat`/`lng`
-  where Wikipedia's infobox parse failed. An unmatched row is nulled rather than
-  left pointing at a remote thumbnail — that also suppresses the city names
-  ("Nairobi") Wikipedia's venue parser emits as if they were grounds.
+- **The catalogue is the venue list (Sprint 45).** Wikipedia's "Venues" parse
+  is free prose — names drift between edits, grounds go missing, and bare city
+  names ("Nairobi") come back as if they were stadiums. So for a catalogued
+  tournament `TournamentService::assemble` builds venues from
+  `StadiumImageService::catalogueVenues()` and demotes Wikipedia to enrichment
+  via `WikipediaService::enrichStadiums()`, looked up by the `wikipedia_title`
+  **we** set per entry. Every venue row therefore has an image by construction.
+  Config wins on name/city/country/coords/capacity/image; Wikipedia only fills
+  `extract`, `opened`, `url`, and capacity where config left it null.
+- `getAll($title, $ttl, $hydrateVenues)` — pass **false** for a catalogued
+  tournament. Otherwise you pay for Wikipedia's per-venue round-trips *and*
+  ours, and the first set is discarded. Getting this wrong tripled the test
+  suite (3m → 10m) before it was caught.
+- **Uncatalogued tournaments are unchanged**: Wikipedia supplies the list and
+  `applyToVenues()` overlays imagery onto it exactly as before.
 - **Shared prop**: `HandleInertiaRequests` exposes `stadiumImages`, a flat
   `normalized name => url` map, for surfaces that resolve by venue string rather
   than from the venue rows (`MatchCard`, the budget calculator's picker). The
   alias table stays server-side so there is no JS copy to drift.
+- **Country highlight (Sprint 45)**: each entry carries `country_code`, so the
+  hero tracks the slider — `HeroWorldMap` fills the active slide's host country
+  in the tournament accent (others stay white, non-hosts stay blurred) and the
+  matching `hosts` pill on the tournament card gets `is-active`. The pill is
+  matched on **country name**, not array index: `hosts` and `host_flag_codes`
+  are parallel by convention only, and a mis-pairing would light the wrong
+  country. The map's blur pass keys off the non-host fill (`NON_HOST_FILL`),
+  never "is it white?" — an accent-filled active country would otherwise blur.
 - **Consumers**: `Hero.jsx` (active slide eager + `fetchPriority="high"`, next
   slide warmed via `preloadImage`, rest unfetched — a 12-venue tournament no
   longer pulls ~1.5MB on first paint), `Fan/BudgetCalculator.jsx`,
@@ -838,6 +856,7 @@ tests/
 | 42     | Partner dashboard polish: 4-col partner grids, self-serve branding editor, publish-on-save + contextual listing form, TfeModal + ImageUpload primitives, Dribbble-inspired admin dashboard restructure |
 | 43     | Fan financing surface rebuild: shoddy inline form removed, partner financing offerings surfaced as AccentCard grid, TfeModal wizard collects wallet + consent against a saved budget then redirects newcomers to the calculator |
 | 44     | Locally-hosted stadium imagery: Wikipedia thumbnail fetch replaced by committed WebP catalogue + `StadiumImageService`, lazy hero slider, admin Stadium Images editor, reuse on budget calculator / match cards / itinerary map |
+| 45     | Catalogue becomes the venue source (Wikipedia demoted to enrichment by our own titles), hero overlay lightened 30%, active slide highlights its host country on the world map + tournament card pill |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

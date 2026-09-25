@@ -55,3 +55,25 @@
 button.tfe-glass-pill {
     font-family: inherit;
 }
+
+/* Active state — currently used by the hero to mark which host country the
+   stadium on screen belongs to, in step with the world-map highlight.
+   Deliberately colour-neutral (a brighter frost, not a hue) so the pill stays
+   consistent with the rest of the glass system; the map carries the accent. */
+.tfe-glass-pill.is-active {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: #fff;
+    color: #0b0b12;
+    font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+/* The hero swaps slides on a timer, so ease the change rather than snapping. */
+.tfe-glass-pill {
+    transition: background 0.35s ease, color 0.35s ease,
+                border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tfe-glass-pill { transition: none; }
+}
