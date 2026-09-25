@@ -323,22 +323,44 @@
 }
 
 
-/* Hero background overlay gradient — 85% overall opacity
-   A(y=0) black 100% → B(y=20) red 90% → C(y=50) red 70% → D(y=65) red 40% → E(y=80) black 60% → F(y=100) black 100% */
+/* Hero background overlay gradient.
+ *
+ * The job here is text legibility, not atmosphere: the stadium photography
+ * should carry the hero. Two rules follow from that.
+ *
+ * 1. Darkening is concentrated at the TOP and BOTTOM, where the copy sits —
+ *    the nav and stadium badge above, the slider controls below. Those bands
+ *    are black, not crimson: neutral darkening buys contrast per unit of
+ *    obscuring, where a saturated colour mostly just tints.
+ * 2. The MIDDLE is where the stadium actually is, so it is left nearly clear.
+ *    A faint crimson tint survives to tie the hero to the brand, but it is a
+ *    tint now rather than the wash it used to be.
+ *
+ * Everything is expressed in the stop alphas with `opacity: 1`, deliberately.
+ * This used to be alpha stops multiplied by a layer opacity, which meant no
+ * value in the rule was the value you actually got (a "0.9" crimson rendered
+ * at 0.27) and tuning it required mental arithmetic. What you read here is
+ * what paints.
+ *
+ * Contrast is measured, not assumed — see the commit that introduced these
+ * numbers. Re-check the nav and badge against the brightest slide in the set
+ * (currently Amaan, a daytime shot) if you change the top stops.
+ */
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
-    /* 30% lighter than the original 0.85 so the stadium photography reads
-       through — the gradient is there to keep the hero copy legible, not to
-       hide the background. */
-    opacity: 0.6;
+    opacity: 1;
     background: linear-gradient(to bottom,
-        rgba(0,0,0,1) 0%,
-        rgba(220,20,60,0.9) 20%,
-        rgba(220,20,60,0.7) 50%,
-        rgba(220,20,60,0.4) 65%,
-        rgba(0,0,0,0.6) 80%,
-        rgba(0,0,0,1) 100%
+        /* Nav + stadium badge sit in this band. */
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0.34) 12%,
+        /* The stadium itself — brand tint only. */
+        rgba(190, 20, 55, 0.13) 30%,
+        rgba(190, 20, 55, 0.08) 50%,
+        rgba(190, 20, 55, 0.05) 68%,
+        /* Slider controls + the section boundary below. */
+        rgba(0, 0, 0, 0.30) 85%,
+        rgba(0, 0, 0, 0.62) 100%
     );
 }
 
