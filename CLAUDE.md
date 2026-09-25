@@ -639,6 +639,55 @@ a broken image. Changing a tournament's config (e.g. this path) needs the
 `TournamentService` cache cleared — `php artisan cache:clear` or the admin
 **Settings → Refresh tournaments** button — since the payload is cached 24h.
 
+### Stadium imagery (Sprint 44)
+
+Venue photography is **ours, not Wikipedia's**. The hero slider used to render
+whatever thumbnail the Wikipedia summary returned per venue — slow on a cold
+cache, and the "thumbnail" was sometimes a crowd shot or a logo.
+
+- **Catalogue**: `config/stadiums.php`, keyed by tournament id → slug → entry
+  (`name`, `city`, `country`, `lat`, `lng`, `image`, `aliases`). A tournament
+  with no set here keeps its old behaviour untouched.
+- **Files**: `public/stadiums/<SET>/<slug>_hero.webp` — committed (see that
+  directory's README). `/public/storage` is gitignored, so images must NOT
+  live there or they never deploy.
+- **Service**: `StadiumImageService` resolves a free-text venue name to a URL.
+  Names arrive as Wikipedia wikitext ("Moi International Sports Centre",
+  "Kasarani Stadium", …) and there is no stadium table to join on, hence the
+  `aliases` list. `normalize()` + `matches()` are mirrored exactly by
+  `resources/js/Data/stadiumImages.js`; **change both in the same commit** —
+  `tests/JS/stadiumImages.test.mjs` and `tests/Feature/StadiumImageResolutionTest.php`
+  assert shared fixtures against each side.
+- **Matching is deliberately conservative**: a containment match needs a shared
+  run of ≥2 words, so "Zanzibar Fumba Stadium" does *not* resolve to Amaan
+  Stadium. Showing the wrong ground's photo is worse than showing none — a miss
+  returns null and each surface uses its own placeholder.
+- **Overlay**: `TournamentService::assemble` runs `applyToVenues()` over the
+  Wikipedia venue rows, replacing `image`/`thumbnail` and backfilling `lat`/`lng`
+  where Wikipedia's infobox parse failed. An unmatched row is nulled rather than
+  left pointing at a remote thumbnail — that also suppresses the city names
+  ("Nairobi") Wikipedia's venue parser emits as if they were grounds.
+- **Shared prop**: `HandleInertiaRequests` exposes `stadiumImages`, a flat
+  `normalized name => url` map, for surfaces that resolve by venue string rather
+  than from the venue rows (`MatchCard`, the budget calculator's picker). The
+  alias table stays server-side so there is no JS copy to drift.
+- **Consumers**: `Hero.jsx` (active slide eager + `fetchPriority="high"`, next
+  slide warmed via `preloadImage`, rest unfetched — a 12-venue tournament no
+  longer pulls ~1.5MB on first paint), `Fan/BudgetCalculator.jsx`,
+  `Fan/MatchCard.jsx` (falls back to the legacy WC2026 exact-name map),
+  `Fan/ItineraryMap.jsx` (coordinates).
+- **Admin**: **Content → Stadium Images** (`Admin/Content.jsx` +
+  `Components/Admin/StadiumImageCard.jsx`). Uploading stores `SiteSetting`
+  `stadium_image_{slug}`, which wins over the committed default; **Reset to
+  Default** deletes that row (`admin.content.stadium-images.reset`) rather than
+  saving an empty string, so the shipped image comes back without a redeploy.
+  Both caches are invalidated on save — the service's 15min resolved map *and*
+  the 24h tournament payload.
+
+Every surface degrades gracefully on a 404 (`onError` → tournament backdrop,
+generic stadium shot, or an inline empty state), so a slug mismatch can never
+blank the hero.
+
 ### Tournament single-view pages
 
 `/tournaments/{slug}` (`HomeController@tournament`, name `tournaments.show`)
@@ -744,6 +793,13 @@ tests/
   "TRAVEL PARTNER" in the header is embarrassing on demo day. Read from
   `PARTNER_TYPE_LABEL` in both `DashboardHeader.jsx` and
   `Partner/Sidebar.jsx` (Sprint 23).
+- Never put stadium images under `public/storage/` — it's gitignored, so they
+  look fine locally and 404 on prod. They belong in `public/stadiums/<SET>/`,
+  committed (Sprint 44).
+- Never edit `StadiumImageService::normalize()`/`matches()` without editing
+  their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
+  the two sides index the same shared map, so a drift means the server
+  resolves a venue the client can't.
 
 ## Sprint log (very short)
 
@@ -781,6 +837,7 @@ tests/
 | 41     | Contact-form dialogs, gated header switcher, hero declutter, airline + betting partners & seeded offerings |
 | 42     | Partner dashboard polish: 4-col partner grids, self-serve branding editor, publish-on-save + contextual listing form, TfeModal + ImageUpload primitives, Dribbble-inspired admin dashboard restructure |
 | 43     | Fan financing surface rebuild: shoddy inline form removed, partner financing offerings surfaced as AccentCard grid, TfeModal wizard collects wallet + consent against a saved budget then redirects newcomers to the calculator |
+| 44     | Locally-hosted stadium imagery: Wikipedia thumbnail fetch replaced by committed WebP catalogue + `StadiumImageService`, lazy hero slider, admin Stadium Images editor, reuse on budget calculator / match cards / itinerary map |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

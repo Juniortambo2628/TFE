@@ -1152,3 +1152,22 @@
         animation: none;
     }
 }
+
+/* Hero stadium slide image.
+   The slider used to paint the venue photo as a CSS background-image. It is an
+   <img> now for two reasons: onError gives us a real failure signal (a missing
+   or 404'd stadium file falls back to the tournament backdrop instead of
+   leaving a blank hero), and fetchpriority/decoding hints are available on the
+   element. object-fit/position reproduce the previous
+   background-size:cover + background-position:center exactly. */
+.hero-stadium-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    /* Non-interactive decoration sitting under the hero content. */
+    pointer-events: none;
+    user-select: none;
+}

@@ -3,7 +3,9 @@ import React, { useMemo, useState } from 'react';
 /**
  * ItineraryMap — SVG-projected venue map with route lines and distances.
  *
- * Given the tournament's venues (each with lat/lng from Wikipedia) and
+ * Given the tournament's venues (each with lat/lng — supplied by
+ * config/stadiums.php where we catalogue the ground, with Wikipedia's parsed
+ * infobox coordinates preferred when they exist) and
  * a list of selected matches, projects the venues onto a rectangular
  * SVG canvas (Web Mercator, clamped to the bounding box of the visible
  * venues) and connects consecutive selected match venues with a
@@ -54,7 +56,8 @@ export default function ItineraryMap({ venues = [], selectedMatches = [], height
                 }}
             >
                 <i className="fas fa-map-marker-alt me-2"></i>
-                Venue coordinates not available yet — we'll pin the map once Wikipedia data lands.
+                Venue coordinates aren't available for this tournament yet — the map will
+                pin itself once its venues are published.
             </div>
         );
     }

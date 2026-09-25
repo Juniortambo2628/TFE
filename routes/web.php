@@ -266,6 +266,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/content', [ContentController::class, 'index'])->name('content');
     Route::post('/content/settings', [ContentController::class, 'updateSettings'])->name('content.settings.update');
     Route::delete('/content/posts/{post}', [ContentController::class, 'deletePost'])->name('content.posts.delete');
+    Route::post('/content/stadium-images/reset', [ContentController::class, 'resetStadiumImage'])->name('content.stadium-images.reset');
 
     // News Management
     Route::get('/news', [App\Http\Controllers\Admin\NewsController::class, 'index'])->name('news.index');

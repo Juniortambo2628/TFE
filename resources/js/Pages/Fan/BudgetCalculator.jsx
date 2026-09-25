@@ -13,7 +13,7 @@ import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
 import '../../../css/fan/travel-preferences-wizard.css';
-import { Head, router, Link } from '@inertiajs/react';
+import { Head, router, Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import DashboardHero from '@/Components/Common/DashboardHero';
@@ -22,6 +22,7 @@ import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 import { iataForOrigin, iataForDestination, destinationCityForHotel } from '@/Data/airports';
+import { resolveStadiumImage } from '@/Data/stadiumImages';
 
 export default function BudgetCalculator({
     auth,
@@ -35,6 +36,8 @@ export default function BudgetCalculator({
     // undefined; Inertia fills it in via a background partial reload.
     fixtureBundle = null,
 }) {
+    // Shared, name-keyed stadium imagery (see HandleInertiaRequests).
+    const { stadiumImages } = usePage().props;
     // Package the fan picked at step 0. null = they're building custom.
     const [selectedPackage, setSelectedPackage] = useState(null);
     // Unpack the deferred bundle with sane defaults so the component
@@ -216,20 +219,28 @@ export default function BudgetCalculator({
     const allStages = stages;
     const allGroups = groups;
 
-    // Stadium image lookup — resolves the Wikipedia thumbnail for a venue name
-    // from the tournament payload. Any tournament that has Wikipedia venues
-    // gets rich imagery for free; a missing lookup falls through to the
-    // component's local placeholder.
-    const wikipediaVenueImages = React.useMemo(function () {
+    // Stadium image lookup for a venue name. The tournament's venue rows come
+    // first (StadiumImageService has already overlaid the locally-hosted WebP
+    // onto them server-side), then the shared name-keyed map catches venues
+    // that appear on a fixture but not in the venue list — fixture venue
+    // strings and Wikipedia venue titles don't always agree. A miss falls
+    // through to the component's existing placeholder, unchanged.
+    const venueImages = React.useMemo(function () {
         var map = {};
         var venuesList = (tournament && tournament.venues) || [];
         venuesList.forEach(function (v) {
             if (v && v.name) {
-                map[v.name] = v.thumbnail || v.image || null;
+                map[v.name] = v.image || v.thumbnail || null;
             }
         });
         return map;
     }, [tournament]);
+
+    const venueImageFor = React.useCallback(function (venueName) {
+        if (!venueName) return null;
+
+        return venueImages[venueName] || resolveStadiumImage(venueName, stadiumImages);
+    }, [venueImages, stadiumImages]);
 
     // Favorite matches based on fixture_id
     const favoriteMatches = allFixtures.filter(match => {
@@ -1269,10 +1280,11 @@ export default function BudgetCalculator({
 
                         {(() => {
                             // Prefer a real selected image where the fan picked one; otherwise fall
-                            // back to the venue's Wikipedia image for the first selected match's
-                            // stadium so the accommodation/flight cards still land with a real photo.
+                            // back to the locally-hosted stadium image for the first selected
+                            // match's venue so the accommodation/flight cards still land with a
+                            // real photo.
                             const firstSelectedMatch = allFixtures.find((m) => selectedMatchIds.includes(m.id));
-                            const stadiumBg = firstSelectedMatch ? (wikipediaVenueImages[firstSelectedMatch.venue] || null) : null;
+                            const stadiumBg = firstSelectedMatch ? venueImageFor(firstSelectedMatch.venue) : null;
                             const hotelBg = selectedHotel?.images?.[0] || null;
                             const flightBg = selectedFlight?.airline_logo || null;
                             const basePath = window.location.pathname.includes('/TFE/') ? '/TFE/public' : '';
@@ -1472,9 +1484,9 @@ export default function BudgetCalculator({
                                         const basePath = window.location.pathname.includes('/TFE/')
                                             ? '/TFE/public'
                                             : '';
-                                        // Prefer the Wikipedia thumbnail resolved from the active
-                                        // tournament; fall back to a generic backdrop.
-                                        const imgSrc = wikipediaVenueImages[venue]
+                                        // Prefer the locally-hosted stadium image for this venue;
+                                        // fall back to a generic backdrop.
+                                        const imgSrc = venueImageFor(venue)
                                             || `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
 
                                         return (
@@ -1483,7 +1495,18 @@ export default function BudgetCalculator({
                                                 className={`selection-card stadium-card ${selectedStadiums.includes(venue) ? 'selected' : ''}`}
                                                 onClick={() => toggleStadium(venue)}
                                             >
-                                                <img src={imgSrc} className="card-image" alt={venue} />
+                                                <img
+                                                    src={imgSrc}
+                                                    className="card-image"
+                                                    alt={venue}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    onError={(e) => {
+                                                        // A missing stadium file must not leave a
+                                                        // torn-image icon in the picker grid.
+                                                        e.currentTarget.src = `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
+                                                    }}
+                                                />
                                                 <div className="card-label">{venue}</div>
                                             </div>
                                         );

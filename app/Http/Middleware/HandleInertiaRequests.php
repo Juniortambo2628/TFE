@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\ContactMessage;
 use App\Models\SiteSetting;
+use App\Services\StadiumImageService;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -86,6 +87,17 @@ class HandleInertiaRequests extends Middleware
                 ? $tournamentService->get($tournamentId)
                 : $tournamentService->current(),
             'tournament_list' => fn () => $tournamentService->all(),
+            // Normalized venue name => local stadium image url, for the
+            // surfaces that resolve imagery by match venue string rather than
+            // from the tournament's venue rows (MatchCard, the budget
+            // calculator's venue picker). Keeping the alias table server-side
+            // and shipping only the resolved map means config/stadiums.php
+            // stays the single source of truth — there is no JS copy to drift.
+            // A closure, not Inertia::optional — an optional prop is withheld
+            // from the initial render, and MatchCard needs this on first paint.
+            // It is one short-TTL cache read of a ~60-key map.
+            'stadiumImages' => fn () => app(StadiumImageService::class)
+                ->lookup($tournamentId ?: $tournamentService->resolveFromRequest($request)),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

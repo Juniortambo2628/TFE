@@ -20,7 +20,10 @@ use Illuminate\Support\Facades\Schema;
  */
 class TournamentService
 {
-    public function __construct(protected WikipediaService $wikipedia) {}
+    public function __construct(
+        protected WikipediaService $wikipedia,
+        protected StadiumImageService $stadiumImages,
+    ) {}
 
     /**
      * Resolve the active tournament from a request.
@@ -91,19 +94,36 @@ class TournamentService
     }
 
     /**
+     * The "nothing overridden" shape. Single source of truth for the override
+     * key set: loadOverrides() starts from it and clearCache() hashes it to
+     * find the un-overridden payload variant. Keep them derived from this,
+     * never spelled out separately — they silently drift otherwise, and a
+     * drifted hash means clearCache() forgets a key nothing ever wrote.
+     */
+    protected static function emptyOverrides(): array
+    {
+        return [
+            'hero_image' => null,
+            'tagline' => null,
+            'trophy_image' => null,
+            'color_accent' => null,
+            'organizer_card_bg' => null,
+            // Per-stadium hero image overrides. Folded in here purely so they
+            // participate in the assembled-payload cache key — an admin
+            // swapping a stadium image changes this hash and the 24h payload
+            // cache rebuilds on the next request instead of going stale.
+            'stadium_images' => [],
+        ];
+    }
+
+    /**
      * Load admin overrides for a tournament from the site_settings table.
      * All keys are optional — a missing key means "fall back to config".
      * Silently tolerates a missing site_settings table (fresh installs).
      */
     protected function loadOverrides(string $id): array
     {
-        $overrides = [
-            'hero_image' => null,
-            'tagline' => null,
-            'trophy_image' => null,
-            'color_accent' => null,
-            'organizer_card_bg' => null,
-        ];
+        $overrides = self::emptyOverrides();
         try {
             if (Schema::hasTable('site_settings')) {
                 $overrides['hero_image'] = SiteSetting::get("hero_bg_{$id}");
@@ -111,6 +131,17 @@ class TournamentService
                 $overrides['trophy_image'] = SiteSetting::get("tournament_trophy_{$id}");
                 $overrides['color_accent'] = SiteSetting::get("tournament_accent_{$id}");
                 $overrides['organizer_card_bg'] = SiteSetting::get("tournament_card_bg_{$id}");
+
+                $slugs = array_keys(config("stadiums.sets.{$id}", []));
+                if (! empty($slugs)) {
+                    $keys = array_map(
+                        fn ($slug) => StadiumImageService::SETTING_PREFIX.$slug,
+                        $slugs
+                    );
+                    $overrides['stadium_images'] = SiteSetting::whereIn('key', $keys)
+                        ->pluck('value', 'key')
+                        ->toArray();
+                }
             }
         } catch (\Throwable $e) {
             // best-effort — config values still apply.
@@ -169,10 +200,17 @@ class TournamentService
         $colorAccent = $overrides['color_accent'] ?: ($config['color_accent'] ?? null);
         $organizerCardBg = $overrides['organizer_card_bg'] ?: ($config['organizer_card_bg'] ?? null);
 
+        // Stadium imagery is ours, not Wikipedia's. Overlay the locally-hosted
+        // hero images (and backfill any coordinates Wikipedia failed to parse)
+        // onto the venue rows before they reach the Hero slider, the budget
+        // calculator and the itinerary map. Tournaments with no catalogue in
+        // config/stadiums.php pass straight through unchanged.
+        $venues = $this->stadiumImages->applyToVenues($wikipedia['venues'] ?? [], $id);
+
         return array_merge($config, [
             'status' => self::computedStatus($config),
             'wikipedia' => $wikipedia,
-            'venues' => $wikipedia['venues'] ?? [],
+            'venues' => $venues,
             'teams' => $wikipedia['teams'] ?? [],
             'team_flag_codes' => $config['team_flag_codes'] ?? [],
             'facts' => $wikipedia['facts'] ?? [],
@@ -335,13 +373,17 @@ class TournamentService
         Cache::forget("tournament:{$id}:wikipedia");
         Cache::forget('tournament:list:all');
 
+        // Stadium imagery has its own short-lived cache; drop it first so the
+        // payload we are about to rebuild picks up current overrides.
+        $this->stadiumImages->clearCache($id);
+
         // Clear the current-overrides variant AND the empty-overrides
         // variant so an admin who just cleared an override still sees
-        // the fresh payload on the next request.
-        $emptyKey = 'tournament:'.$id.':full:'.md5(json_encode([
-            'hero_image' => null, 'tagline' => null, 'trophy_image' => null, 'color_accent' => null,
-        ]));
-        Cache::forget($emptyKey);
+        // the fresh payload on the next request. The empty shape is derived
+        // from self::emptyOverrides() rather than spelled out again — the
+        // hardcoded copy that used to live here had already drifted out of
+        // sync with loadOverrides(), so the empty variant was never cleared.
+        Cache::forget('tournament:'.$id.':full:'.md5(json_encode(self::emptyOverrides())));
         Cache::forget('tournament:'.$id.':full:'.md5(json_encode($this->loadOverrides($id))));
     }
 }
