@@ -59,7 +59,10 @@
 
 /* ── Top Bar: Flag Carousel + Stadium Badge (horizontal) ── */
 .hero-top-bar {
-    padding-top: 70px; /* clear the header/navbar */
+    /* Clears the header/navbar. The badge is centred on its own now that the
+       flag carousel moved to the bottom bar, which puts it directly under the
+       centred nav links — 70px left the two touching, so it sits lower. */
+    padding-top: 104px;
     z-index: 5;
     pointer-events: none;
 }
@@ -83,6 +86,31 @@
 .hero-top-bar-inner {
     pointer-events: auto;
     flex-wrap: nowrap;
+}
+
+/* Bottom centre bar — the team flag carousel.
+   It moved down here from beside the stadium badge once the lighter overlay
+   freed up the lower third of the hero. Mirrors .hero-top-bar: the bar itself
+   is click-through so it never steals pointer events from the hero, and only
+   the inner strip takes them back for the flags' click/hover handlers. */
+.hero-bottom-bar {
+    z-index: 5;
+    pointer-events: none;
+    padding-bottom: 28px;
+}
+
+.hero-bottom-bar-inner {
+    pointer-events: auto;
+    flex-wrap: nowrap;
+}
+
+/* The slider arrows sit bottom-right. Keep the centred carousel clear of them
+   so a wide marquee can't slide under the controls on narrower desktops. */
+@media (min-width: 768px) {
+    .hero-bottom-bar-inner {
+        max-width: calc(100% - 320px);
+        margin-inline: auto;
+    }
 }
 
 /* Compact flag carousel for top bar */
@@ -1122,16 +1150,42 @@
 }
 
 /* Sprint 41 — the hero's bottom stats strip was removed, so Row 1 is now the
-   sole hero row. With the freed vertical space, the world map and tournament
-   card both scale up on xl. The map is behind the card column, so a modest
-   scale reads as a larger map without colliding (the card paints on top). */
+   sole hero row, and the map takes the freed space.
+ *
+ * That size used to come from transform: scale(1.14) on the inner map. Because
+ * .hero-worldmap-viewport clips with overflow:hidden, scaling past 100% simply
+ * cropped the map — roughly 7% off each edge, which is why the Americas were
+ * sliced down the left margin. Scale is the wrong tool here: it grows the
+ * drawing without growing the box it has to fit in.
+ *
+ * The width comes from the grid instead. The map column is widened past the
+ * Bootstrap col-xl-8 (66.7%) and the card column narrows to match, so the map
+ * is drawn larger AND fits inside its viewport uncropped. The card keeps
+ * ~27% of a ≥1200px container, comfortably more than the ~440px it renders at.
+ */
 @media (min-width: 1200px) {
     .hero-content-stack--roomy {
         gap: 0 !important;
     }
+
+    /* 71/29 rather than Bootstrap's 8/4 (66.7/33.3): the map gains real width,
+       while the card keeps enough to hold "Africa Cup of Nations 2027" on two
+       lines and the four countdown dials on one row. At 27% the title wrapped
+       to three lines and the dials crowded. */
+    .hero-primary-row > .hero-map-col {
+        flex: 0 0 71%;
+        max-width: 71%;
+    }
+
+    .hero-primary-row > .hero-card-col {
+        flex: 0 0 29%;
+        max-width: 29%;
+    }
+
+    /* No scale: the column width above is what makes the map bigger now.
+       Anything above 1 here reintroduces the clipping described above. */
     .hero-worldmap--xl .hero-worldmap-inner {
-        transform: scale(1.14);
-        transform-origin: center center;
+        transform: none;
     }
 }
 

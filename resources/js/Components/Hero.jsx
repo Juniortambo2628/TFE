@@ -338,16 +338,36 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 <div className="stadium-slide-overlay hero-overlay-gradient"></div>
             </div>
 
-            {/* Top Center: Flag Carousel & Stadium Badge — horizontal row */}
+            {/* Top Center: Stadium Badge.
+                Rendered independently of the flag carousel — it used to share
+                the carousel's `flagTrack.length > 0` guard, which meant a
+                tournament with no flag data silently lost its stadium label
+                too. */}
+            <div className="hero-top-bar position-absolute top-0 start-0 w-100 z-1">
+                <div className="d-flex align-items-center justify-content-center gap-3 py-2 px-3 hero-top-bar-inner">
+                    <motion.div
+                        key={`badge-top-${currentSlide}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="hero-stadium-badge hero-stadium-badge-sm"
+                    >
+                        <div className="badge-dot"></div>
+                        <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
+                        <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* Bottom Center: Flag Carousel — CSS-animated marquee.
+                Previously a framer-motion infinite x:[0,-50%] tween that
+                repainted every frame on the main thread and made the hero
+                janky; now a GPU-composited CSS keyframe (see
+                .hero-flag-track-auto), paused on hover via the is-paused
+                class. */}
             {flagTrack.length > 0 && (
-                <div className="hero-top-bar position-absolute top-0 start-0 w-100 z-1">
-                    <div className="d-flex align-items-center justify-content-center gap-3 py-2 px-3 hero-top-bar-inner">
-                        {/* Flag Carousel (compact) — CSS-animated marquee.
-                            Previously a framer-motion infinite x:[0,-50%] tween
-                            that repainted every frame on the main thread and
-                            made the hero janky; now a GPU-composited CSS
-                            keyframe (see .hero-flag-track-auto), paused on hover
-                            via the is-paused class. */}
+                <div className="hero-bottom-bar position-absolute bottom-0 start-0 w-100 z-1">
+                    <div className="d-flex align-items-center justify-content-center px-3 hero-bottom-bar-inner">
                         <div
                             className="flag-carousel-container flag-carousel-compact mb-0 hero-flag-carousel-pointer"
                             ref={carouselRef}
@@ -381,19 +401,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 ))}
                             </div>
                         </div>
-
-                        {/* Stadium Badge (compact) */}
-                        <motion.div 
-                            key={`badge-top-${currentSlide}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="hero-stadium-badge hero-stadium-badge-sm"
-                        >
-                            <div className="badge-dot"></div>
-                            <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
-                            <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
-                        </motion.div>
                     </div>
                 </div>
             )}
@@ -405,7 +412,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         both the map and the tournament card take more room. */}
                     <div className="row align-items-center gx-0 hero-primary-row">
                         {/* Left: World Map — host countries highlighted */}
-                        <div className="col-xl-8 d-none d-xl-block">
+                        <div className="col-xl-8 hero-map-col d-none d-xl-block">
                             <HeroWorldMap
                                 tournament={tournament}
                                 className="hero-worldmap--xl"
@@ -417,7 +424,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         {/* Right Content: the active tournament, countdown + CTAs
                             wrapped in the shared tournament card (AccentCard),
                             echoing the AFCON compare card. */}
-                        <div className="col-xl-4">
+                        <div className="col-xl-4 hero-card-col">
                             <motion.div
                                 key={`countdown-${tournament ? tournament.id : 'default'}`}
                                 initial={{ opacity: 0, y: 10 }}

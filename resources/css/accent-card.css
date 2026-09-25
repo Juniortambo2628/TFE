@@ -351,6 +351,47 @@
     padding: 1.6rem 1.7rem;
 }
 
+/* The hero card shows its organiser visual (the CAF / FIFA / UEFA artwork) at
+   full strength rather than the 0.4 watermark the other cards use — on the
+   hero it is the card's identity, not a texture behind content.
+   Scoped to --hero deliberately: .tfe-acard__bg is shared by the landing
+   section cards, partner-hub offerings and the tournament pages, where the
+   image genuinely is a watermark and must stay muted so copy reads over it. */
+.tfe-acard--hero .tfe-acard__bg {
+    opacity: 1;
+}
+
+/* Legibility scrim for the above.
+ *
+ * Fading the image to 0.4 was doing two jobs at once: it set how vivid the
+ * artwork looked AND it kept white copy readable over it. Taking the image to
+ * full strength removes the second job with the first, and the tagline and
+ * countdown become unreadable over the bright CAF green and yellow.
+ *
+ * So the two jobs are separated. The image stays at 1, and this scrim sits
+ * between it and the content (z-index -1: above __bg at -2, below the text) to
+ * buy back contrast. It is angled — heaviest on the left where the copy is,
+ * lightest on the right where the trophy and logo are — so the artwork still
+ * reads at full saturation exactly where you look at it.
+ *
+ * Tuning note: lighten this and re-measure the tagline, which is the smallest
+ * and lowest-contrast text on the card.
+ */
+.tfe-acard--hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(103deg,
+        rgba(4, 9, 6, 0.90) 0%,
+        rgba(4, 9, 6, 0.80) 38%,
+        rgba(4, 9, 6, 0.58) 72%,
+        rgba(4, 9, 6, 0.40) 100%
+    );
+}
+
 /* Sprint 41 — with the hero's bottom stats strip gone, the tournament card
    is the hero's focal panel on xl, so it grows to fill the reclaimed space. */
 @media (min-width: 1200px) {
