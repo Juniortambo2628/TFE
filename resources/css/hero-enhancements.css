@@ -230,7 +230,20 @@
     pointer-events: none; /* Prevent image drag interfering with carousel drag */
 }
 
-/* Attribution Glass Pill */
+/* Attribution Glass Pill.
+ *
+ * Lives inside .hero-bottom-bar rather than being pinned to the hero section's
+ * corner. It used to be `position-absolute bottom-0 end-0` on the section,
+ * which collided with the tournament card's last CTA *and* the flag carousel
+ * at 375x667 — the shortest phone viewport, where the card fills the width so
+ * no corner is free. Being a child of the bar lets it flow on phones and be
+ * positioned on wider screens, which a section-pinned element could not do.
+ *
+ * Phones: normal flow, centred under the flags (the default below).
+ * sm and up: positioned into the bar's bottom-right, exactly where it has
+ * always sat — the bar is itself absolutely positioned at the section bottom,
+ * so 16px from its bottom/right matches the previous m-3 offset.
+ */
 .stadium-attribution {
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
@@ -239,6 +252,17 @@
     border-radius: 50px;
     padding: 4px 12px;
     pointer-events: none;
+    width: fit-content;
+    margin: 0.5rem auto 0;
+}
+
+@media (min-width: 576px) {
+    .stadium-attribution {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        margin: 0;
+    }
 }
 
 .stadium-attribution small {
@@ -965,6 +989,27 @@
     overflow-y: hidden;
     height: 100vh;
     max-height: 100vh;
+}
+
+/* Phones — let the hero grow instead of clipping.
+ *
+ * The fixed 100vh above plus overflow:hidden means content taller than the
+ * viewport is cut off rather than flowed. On a 375x667 iPhone SE the hero
+ * needs ~788px (the tournament card alone is ~640px), so the card was being
+ * clipped straight over the bottom bar: its last CTA landed on top of both
+ * the flag carousel and the attribution pill, and no amount of padding or
+ * repositioning could escape it — the section simply refused to grow.
+ *
+ * min-height keeps the full-bleed look wherever the content does fit, and the
+ * background layers are inset:0 on a h-100 wrapper so they stretch with it.
+ * Kept to phones: from sm up the content fits 100vh and the cap is harmless.
+ */
+@media (max-width: 575.98px) {
+    .tfe-hero-slider {
+        height: auto;
+        max-height: none;
+        min-height: 100vh;
+    }
 }
 
 /* CTA buttons container — flex-wrap on mobile */

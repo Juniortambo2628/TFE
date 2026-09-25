@@ -365,8 +365,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 janky; now a GPU-composited CSS keyframe (see
                 .hero-flag-track-auto), paused on hover via the is-paused
                 class. */}
-            {flagTrack.length > 0 && (
-                <div className="hero-bottom-bar position-absolute bottom-0 start-0 w-100 z-1">
+            {/* The bar itself is unconditional: it also hosts the attribution,
+                which must not disappear just because a tournament has no flag
+                data. Only the carousel inside is gated. */}
+            <div className="hero-bottom-bar position-absolute bottom-0 start-0 w-100 z-1">
+                {flagTrack.length > 0 && (
                     <div className="d-flex align-items-center justify-content-center px-3 hero-bottom-bar-inner">
                         <div
                             className="flag-carousel-container flag-carousel-compact mb-0 hero-flag-carousel-pointer"
@@ -402,8 +405,27 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Attribution — a child of the bottom bar, not pinned to the
+                    section corner, which is what lets it change layout per
+                    breakpoint (see .stadium-attribution). On phones it flows
+                    centred under the flags; from sm up it is positioned into
+                    the bar's bottom-right, where it has always appeared.
+                    Skipped when empty so the fallback slide doesn't render a
+                    blank glass pill. */}
+                {activeStadium.attribution ? (
+                    <motion.div
+                        key={`attr-${currentSlide}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="stadium-attribution"
+                    >
+                        <small className="text-white text-opacity-60">{activeStadium.attribution}</small>
+                    </motion.div>
+                ) : null}
+            </div>
 
             {/* Content Layer - Persistent across slide changes */}
             <div className="container flex-grow-1 d-flex flex-column position-relative z-1">
@@ -571,17 +593,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
 
             {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
-
-            {/* Attribution Glass Pill */}
-            <motion.div 
-                key={`attr-${currentSlide}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="stadium-attribution position-absolute bottom-0 end-0 m-3 z-1"
-            >
-                <small className="text-white text-opacity-60">{activeStadium.attribution}</small>
-            </motion.div>
 
             {/* Refactored Match Modal using DashboardModal */}
             <DashboardModal
