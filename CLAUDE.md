@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 54. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 55. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -789,7 +789,10 @@ new card / table / list CSS:
   `TfeModal` with drag-to-reposition + zoom onto a square canvas, exporting
   WebP (JPEG fallback). Hand-rolled on pointer events rather than a cropper
   package. Its preview is the real `TeamAvatar`, so the fan frames what they
-  will actually get.
+  will actually get. **Transparency is preserved** (Sprint 55): `detectAlpha()`
+  samples the source, and a transparent one skips the backing fill, previews
+  as PNG and falls back to PNG rather than JPEG — JPEG has no alpha channel
+  and would flatten a cut-out avatar to a black square inside the ring.
 - **`HubPreview`** (moved to `Components/Common/` in Sprint 53) — the live
   partner-hub preview. Used by `/admin/partners/{user}` AND the partner's own
   `/partner/profile`. It imports its own stylesheet, so it looks right
@@ -1193,6 +1196,17 @@ tests/
   and `will-change: transform`.
 - Never hand-write a national colour table for team framing — sample the flag
   (`lib/flagAccent`), which cannot drift from the artwork (Sprint 54).
+- Never encode an avatar as JPEG without checking for alpha first. A cut-out
+  avatar (a Peeps export, a background-removed photo) loses its transparency
+  and lands as a black square inside the team ring (Sprint 55).
+- **Never embed UI8 Peeps — or any UI8 asset library — as source layers in a
+  TFE builder.** UI8's terms exclude "a UI Kit, theme, or template that allows
+  users to extract or edit UI8 assets" and anything that "competes with UI8"
+  (Peeps *is* a UI8 avatar builder), and §7 forbids sharing their files with
+  "anyone else". We link out to their hosted builder instead: the fan is the
+  licensee of the Peep they make, and TFE only ever receives an ordinary
+  uploaded PNG. Changing that needs written permission from support@ui8.net
+  (Sprint 55).
 - Never reference a `route()` name from a role page without checking it is
   registered — `route()` throws at click time, not render time, so the
   partner security page shipped four dead buttons for two sprints (Sprint 53).
@@ -1250,6 +1264,7 @@ tests/
 | 52     | SplitEditorLayout + IdentityPreview rolled onto the admin Profile and Settings (Site Identity) forms; other account forms left as-is (already grids/modals) |
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
+| 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

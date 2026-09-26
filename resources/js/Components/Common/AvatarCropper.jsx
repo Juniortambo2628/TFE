@@ -23,8 +23,39 @@ import TeamAvatar from '@/Components/Common/TeamAvatar';
 const OUTPUT_SIZE = 512;
 const STAGE = 280;
 
+/**
+ * Does this image carry real transparency?
+ *
+ * Matters because a transparent avatar — a Peeps character exported as
+ * "PNG + Alpha", say — must NOT be flattened onto a background: inside the
+ * circular team ring the fan should see the ring's own fill behind their
+ * character, not a grey square. Sampling beats trusting the MIME type, since
+ * most PNGs are fully opaque and would then needlessly lose the JPEG path.
+ */
+function detectAlpha(img) {
+    try {
+        const n = 32;
+        const c = document.createElement('canvas');
+        c.width = n;
+        c.height = n;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return false;
+        ctx.drawImage(img, 0, 0, n, n);
+        const { data } = ctx.getImageData(0, 0, n, n);
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] < 250) return true;
+        }
+        return false;
+    } catch {
+        // A tainted or unreadable canvas — assume opaque, which is the
+        // behaviour we had before and is safe either way.
+        return false;
+    }
+}
+
 export default function AvatarCropper({ file, open, onCancel, onCrop, name, team, teamFlag }) {
     const [image, setImage] = useState(null);
+    const [transparent, setTransparent] = useState(false);
     const [zoom, setZoom] = useState(1);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [preview, setPreview] = useState(null);
@@ -41,6 +72,7 @@ export default function AvatarCropper({ file, open, onCancel, onCrop, name, team
         const img = new Image();
         img.onload = () => {
             setImage(img);
+            setTransparent(detectAlpha(img));
             setZoom(1);
             setOffset({ x: 0, y: 0 });
         };
@@ -106,19 +138,27 @@ export default function AvatarCropper({ file, open, onCancel, onCrop, name, team
         const x = (OUTPUT_SIZE - w) / 2 + offset.x * k;
         const y = (OUTPUT_SIZE - h) / 2 + offset.y * k;
 
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        // Opaque sources get a backing colour so a photo narrower than the
+        // square never exposes the empty canvas. A transparent source keeps
+        // its alpha so the team ring shows through behind the character.
+        if (!transparent) {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        }
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(image, x, y, w, h);
         return canvas;
-    }, [image, scale, offset]);
+    }, [image, scale, offset, transparent]);
 
     // Keep the live preview in step with the stage.
     useEffect(() => {
         if (!image) { setPreview(null); return; }
         const canvas = render();
-        if (canvas) setPreview(canvas.toDataURL('image/jpeg', 0.7));
-    }, [image, render]);
+        if (!canvas) return;
+        // JPEG has no alpha channel — previewing a transparent avatar through
+        // it would paint the very black box this change exists to avoid.
+        setPreview(transparent ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.7));
+    }, [image, render, transparent]);
 
     const confirm = () => {
         const canvas = render();
@@ -135,6 +175,13 @@ export default function AvatarCropper({ file, open, onCancel, onCrop, name, team
             // Safari used to hand back a PNG for an unsupported type rather
             // than null, so check what actually came out, not just that it did.
             if (blob && blob.type === 'image/webp') { finish(blob, 'webp'); return; }
+            // Fall back to PNG, not JPEG, when the avatar has transparency —
+            // JPEG cannot carry alpha and would flatten it to black. Both are
+            // in MediaLibraryService::IMAGE_MIMES.
+            if (transparent) {
+                canvas.toBlob((png) => finish(png, 'png'), 'image/png');
+                return;
+            }
             canvas.toBlob((jpeg) => finish(jpeg, 'jpg'), 'image/jpeg', 0.9);
         }, 'image/webp', 0.9);
     };
