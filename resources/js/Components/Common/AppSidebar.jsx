@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Sidebar,
@@ -39,6 +39,90 @@ export default function AppSidebar({
     const getActiveStyles = (active) => {
         if (!active) return "text-white/70 hover:text-white hover:!bg-white/5";
         return `!bg-[${accentColor}26] !text-[${accentColor}] border-l-[3px] border-l-[${accentColor}] rounded-l-none`;
+    };
+
+    // Fold the flat menuItems (interleaved `{ heading }` markers + links) into
+    // groups. Items before the first heading are ungrouped and always shown;
+    // each heading becomes a collapsible bucket.
+    const groups = useMemo(() => {
+        const out = [];
+        let current = { heading: null, items: [] };
+        out.push(current);
+        for (const item of menuItems) {
+            if (item.heading) {
+                current = { heading: item.heading, items: [] };
+                out.push(current);
+            } else {
+                current.items.push(item);
+            }
+        }
+        return out.filter((g) => g.items.length > 0);
+    }, [menuItems]);
+
+    const storageKey = `tfe-sidebar-groups-${roleLabel}`;
+    const activeHeading = groups.find((g) => g.heading && g.items.some((it) => isUrlActive(it.path)))?.heading;
+
+    // Open state per heading. Default: only the group holding the active route
+    // is open; a persisted choice (localStorage) wins once the user toggles.
+    const [open, setOpen] = useState(() => {
+        const initial = {};
+        let stored = null;
+        try { stored = JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch { /* ignore */ }
+        for (const g of groups) {
+            if (!g.heading) continue;
+            initial[g.heading] = stored ? !!stored[g.heading] : g.heading === activeHeading;
+        }
+        return initial;
+    });
+
+    // Always keep the active group open (e.g. after navigating into it).
+    useEffect(() => {
+        if (activeHeading && !open[activeHeading]) {
+            setOpen((prev) => ({ ...prev, [activeHeading]: true }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeHeading]);
+
+    const toggleGroup = (heading) => {
+        setOpen((prev) => {
+            const next = { ...prev, [heading]: !prev[heading] };
+            try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* ignore */ }
+            return next;
+        });
+    };
+
+    const renderItem = (item) => {
+        const active = isUrlActive(item.path);
+        return (
+            <SidebarMenuItem
+                key={item.route}
+                className={item.mobileOnly ? 'md:hidden' : ''}
+            >
+                <Link
+                    id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                    href={route(item.route)}
+                    onClick={handleLinkClick}
+                    data-active={active}
+                    className={`tfe-sidebar-nav-item${active ? ' is-active' : ''}`}
+                >
+                    <i className={item.icon} />
+                    <span>{item.label}</span>
+                    {active && showActiveDot && (
+                        <span
+                            className="ml-auto"
+                            style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                background: accentColor,
+                                boxShadow: `0 0 8px ${accentColor}80`,
+                                display: 'inline-block',
+                            }}
+                        />
+                    )}
+                </Link>
+            </SidebarMenuItem>
+        );
     };
 
     return (
@@ -92,54 +176,37 @@ export default function AppSidebar({
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-1 px-2">
-                            {menuItems.map((item, i) => {
-                                if (item.heading) {
+                            {groups.map((group, gi) => {
+                                // Ungrouped items (before the first heading) render bare.
+                                if (!group.heading) {
                                     return (
-                                        <div
-                                            key={`heading-${i}`}
-                                            style={{
-                                                padding: '14px 12px 6px',
-                                                fontSize: '0.65rem',
-                                                fontWeight: 700,
-                                                letterSpacing: '0.12em',
-                                                textTransform: 'uppercase',
-                                                color: 'rgba(255,255,255,0.4)',
-                                            }}
-                                        >
-                                            {item.heading}
-                                        </div>
+                                        <React.Fragment key={`ungrouped-${gi}`}>
+                                            {group.items.map(renderItem)}
+                                        </React.Fragment>
                                     );
                                 }
-                                const active = isUrlActive(item.path);
+                                const isOpen = !!open[group.heading];
+                                const hasActive = group.items.some((it) => isUrlActive(it.path));
                                 return (
-                                    <SidebarMenuItem
-                                        key={item.route}
-                                        className={item.mobileOnly ? 'md:hidden' : ''}
-                                    >
-                                        <Link
-                                            id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                                            href={route(item.route)}
-                                            onClick={handleLinkClick}
-                                            data-active={active}
-                                            className={`tfe-sidebar-nav-item${active ? ' is-active' : ''}`}
+                                    <div key={group.heading} className="tfe-sidebar-group">
+                                        <button
+                                            type="button"
+                                            className={`tfe-sidebar-group__toggle${hasActive ? ' has-active' : ''}`}
+                                            aria-expanded={isOpen}
+                                            onClick={() => toggleGroup(group.heading)}
                                         >
-                                            <i className={item.icon} />
-                                            <span>{item.label}</span>
-                                            {active && showActiveDot && (
-                                                <span
-                                                    className="ml-auto"
-                                                    style={{
-                                                        width: 6,
-                                                        height: 6,
-                                                        borderRadius: '50%',
-                                                        background: accentColor,
-                                                        boxShadow: `0 0 8px ${accentColor}80`,
-                                                        display: 'inline-block',
-                                                    }}
-                                                />
-                                            )}
-                                        </Link>
-                                    </SidebarMenuItem>
+                                            <span>{group.heading}</span>
+                                            <i
+                                                className={`fas fa-chevron-down tfe-sidebar-group__chevron${isOpen ? ' is-open' : ''}`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {isOpen && (
+                                            <div className="tfe-sidebar-group__body">
+                                                {group.items.map(renderItem)}
+                                            </div>
+                                        )}
+                                    </div>
                                 );
                             })}
                         </SidebarMenu>

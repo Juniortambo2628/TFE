@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
+use App\Services\MediaLibraryService;
 use App\Traits\Uploadable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +30,7 @@ class AdController extends Controller
             'link_url' => 'nullable|url',
             'ad_type' => 'required|string',
             'partner_name' => 'nullable|string',
-            'image' => 'required|image|max:2048',
+            'image' => MediaLibraryService::imageRules(required: true),
         ]);
 
         if ($request->hasFile('image')) {
@@ -50,7 +51,7 @@ class AdController extends Controller
             'link_url' => 'nullable|url',
             'ad_type' => 'required|string',
             'partner_name' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => MediaLibraryService::imageRules(required: false),
             'is_active' => 'boolean',
         ]);
 

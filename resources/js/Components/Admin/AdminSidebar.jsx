@@ -2,12 +2,16 @@ import React from 'react';
 import AppSidebar from '@/Components/Common/AppSidebar';
 
 /**
- * Admin sidebar — Phase E buckets.
+ * Admin sidebar — grouped into collapsible buckets (AppSidebar renders each
+ * heading as a dropdown).
  *
  * REACH: Dashboard, Analytics, Partners, Users.
- * CONTENT: Content, Tournaments, News, Announcements, Ads, Events, Prizes, Products.
+ * CONTENT: Content, Tournaments, News, Announcements, Ads, Events, Media.
  * SAFETY: Listing safety, Tribes, Stories, Messages.
  * PLATFORM: Settings, Profile.
+ *
+ * Prizes and Products moved off the admin (Sprint 50) — they are partner/store
+ * concerns; the Prize + Product models still back the fan Predict and Store.
  */
 export default function AdminSidebar({ user }) {
     const menuItems = [
@@ -24,8 +28,7 @@ export default function AdminSidebar({ user }) {
         { label: 'Announcements', icon: 'fas fa-bullhorn', route: 'admin.announcements', path: '/admin/announcements' },
         { label: 'Ads', icon: 'fas fa-ad', route: 'admin.ads.index', path: '/admin/ads' },
         { label: 'Events', icon: 'fas fa-calendar', route: 'admin.events', path: '/admin/events' },
-        { label: 'Prizes', icon: 'fas fa-gift', route: 'admin.prizes.index', path: '/admin/prizes' },
-        { label: 'Products', icon: 'fas fa-box-open', route: 'admin.products.index', path: '/admin/products' },
+        { label: 'Media', icon: 'fas fa-photo-film', route: 'admin.media.index', path: '/admin/media' },
 
         { heading: 'Safety' },
         { label: 'Listing safety', icon: 'fas fa-shield-alt', route: 'admin.listing-approvals.index', path: '/admin/listing-approvals' },

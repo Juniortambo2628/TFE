@@ -648,7 +648,12 @@ new card / table / list CSS:
 - **`.tfe-pill`** — chip / badge. Variants: `--live / --upcoming /
   --concluded / --pending / --approved / --rejected / --info`.
   Use `a.tfe-pill` when it's a link.
-- **`.tfe-sidebar-nav-item`** — sidebar link (used by AppSidebar).
+- **`.tfe-sidebar-nav-item`** — sidebar link (used by AppSidebar). Heading
+  buckets in `menuItems` (`{ heading: 'Content' }`) render as **collapsible
+  groups** (`.tfe-sidebar-group*`, Sprint 50); open state persists per role in
+  localStorage and the active group auto-opens. Items before the first heading
+  stay ungrouped and always visible, so heading-less sidebars (fan/partner)
+  render flat as before.
 - **`.tfe-quick-action`** — Quick Actions grid tile (used by
   QuickActionsGrid). Wrapper: `.tfe-quick-actions-grid`.
 - **`.tfe-table`** (Sprint 39) — the shared table treatment. Wrap
@@ -750,6 +755,37 @@ relative value at render time, and the shared image primitives all run their
 `baseUrl + path` concatenation — `PageHero` and `LandingCard` each had their
 own copy before this, and `assetUrl` (which is absolute) then produced `//`
 double slashes once the config paths were fixed.
+
+### Media library + global image pipeline (Sprint 50)
+
+Every upload platform-wide funnels through **`App\Services\MediaLibraryService`**:
+
+- **Compression is global, server-side.** `store()` reads raster images with
+  Intervention Image (GD driver, `intervention/image` v3), scales them down to
+  a 1920px longest edge and re-encodes at quality 82 before they touch disk.
+  Optimization is wrapped in try/catch — if GD lacks an encoder (e.g. AVIF on
+  some builds) it falls back to the original bytes rather than failing the
+  upload. GIF and video are stored as-is (no re-encode, so animation survives).
+- **Every stored file is recorded** as a `MediaAsset` row, so the same photo is
+  re-pickable from the gallery instead of re-uploaded.
+- **Accepted types live here once** — `IMAGE_MIMES`/`VIDEO_MIMES` +
+  `imageRules()`/`mediaRules()`/`imageAccept()`/`mediaAccept()`. The client
+  mirror is `resources/js/lib/media.js` (`MEDIA_ACCEPT`); keep the two in step.
+  Raster set = jpg/jpeg/png/webp/gif/avif; media adds mp4/webm. **SVG stays
+  excluded** (same-origin /storage → stored-XSS).
+- **`Uploadable::uploadFile()` and `ContentController::updateSettings` both
+  delegate here**, so optimization + the library come for free to every
+  existing uploader. `uploadFile()` still returns the storage-relative path its
+  callers persist.
+
+**Admin → Media** (`Admin/MediaController`, `Admin/Media.jsx`) is the gallery:
+multi-upload, ListingGrid of assets, delete. The **`MediaPicker`**
+(`Components/Common/MediaPicker.jsx`) is the shared "choose from library"
+dialog, wired into `ImageUpload` behind a `gallery` prop and enabled on every
+CMS image field via `SettingField`. Picking an asset saves its URL as a plain
+string value (no re-upload) — exactly the legacy stored-path behaviour, which
+`assetPath()` already resolves at render. `admin.media.list` is the JSON feed
+the picker reads (`kind=image` keeps a background picker from offering videos).
 
 ### Public section cards (Sprint 49)
 
@@ -998,6 +1034,16 @@ tests/
   that is where the `/admin/assets/img/...` 404s came from (Sprint 49).
 - Never write a per-component `toUrl` helper or `baseUrl + path` for images.
   Use `assetPath()`; the shared primitives already apply it (Sprint 49).
+- Never call `->store()`/`storeAs()` on an upload directly, or add a raw
+  `mimes:` allowlist, in a controller. Route through `MediaLibraryService`
+  (directly, or via the `Uploadable` trait) so the file is compressed and
+  recorded in the library, and use its `imageRules()`/`mediaRules()` and
+  `IMAGE_MIMES`/`VIDEO_MIMES` so the accepted set stays in one place. Keep
+  `resources/js/lib/media.js` in step with it (Sprint 50).
+- Never re-add Prizes or Products to the admin — they were removed as
+  partner/store concerns (Sprint 50). The `Prize` + `Product` models and their
+  tables stay: the fan Predict flow (`Fan/PredictWinController`) and the fan
+  Store (`Fan/FanStoreController`) still use them.
 - Never declare a form-field component inside a page body. It becomes a new
   component type on every render, so React remounts it and the input loses
   its cursor mid-typing. Use `SettingField` (Sprint 49).
@@ -1072,6 +1118,7 @@ tests/
 | 46     | Ticketing archetype (MatchDay Africa) w/ end-to-end fan purchase pipeline; Ecobank multicurrency virtual card demo; GoalBet listings on Fan Predict; shared `.tfe-menu-surface` dropdown |
 | 48     | Passkey login hardening (+2FA parity), global form baseline, social feed + tribes rebuilt on primitives, tribes completed end-to-end (privacy, join requests, moderation) |
 | 49     | Admin CMS unification: SettingField + assetPath primitives, section-card CMS, dedicated Tournament management, ListingGrid rollout |
+| 50     | Global media library (MediaLibraryService: server-side compression, wider types incl. video, MediaAsset gallery + MediaPicker), collapsible sidebar groups, Content Page-Heroes sub-tabs, Events filter chips, Prizes/Products removed from admin |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

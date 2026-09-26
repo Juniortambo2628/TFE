@@ -82,6 +82,10 @@ export default function SettingField({
         post({ value: picked }, { hasFile: true });
     };
 
+    // Picked an existing asset from the media library — save its URL as a plain
+    // string value (no upload), exactly like the legacy stored-path behaviour.
+    const savePickedUrl = (url) => post({ value: url });
+
     const clearImage = () => {
         setFile(null);
         post({ value: '' });
@@ -100,9 +104,11 @@ export default function SettingField({
                     <ImageUpload
                         value={preview}
                         accept={accept}
-                        hint={hint || 'JPG, PNG or WebP — up to 4MB'}
+                        hint={hint || 'JPG, PNG, WebP, GIF or AVIF — auto-compressed'}
                         onFile={saveFile}
                         onClear={clearImage}
+                        gallery
+                        onPick={savePickedUrl}
                     />
                     <div className="admin-setting-field__foot">
                         {value ? (
