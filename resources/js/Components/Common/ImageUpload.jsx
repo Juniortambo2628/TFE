@@ -15,6 +15,12 @@ import { MEDIA_ACCEPT } from '@/lib/media';
  * Pass `gallery` to add a "Choose from library" button: the field can then
  * reuse a photo already in the media library instead of re-uploading it. The
  * picked URL comes back via `onPick(url)`.
+ *
+ * `variant="avatar"` (Sprint 56) draws the preview as a round 96px thumbnail
+ * beside its control, for a field whose subject is a face or a logo. Note
+ * that `compact` only shrinks the empty-state control — its preview is
+ * *larger* (320px) on purpose, for the feed composer where you want to see
+ * the photo you are about to post.
  */
 export default function ImageUpload({
     value,
@@ -25,6 +31,7 @@ export default function ImageUpload({
     hint = 'JPG, PNG, WebP, GIF or AVIF — auto-compressed',
     label = 'Click to upload',
     compact = false,
+    variant = '',
     gallery = false,
     galleryKind = 'image',
 }) {
@@ -49,7 +56,7 @@ export default function ImageUpload({
     };
 
     return (
-        <div className={`tfe-image-upload${compact ? ' tfe-image-upload--compact' : ''}`}>
+        <div className={`tfe-image-upload${compact ? ' tfe-image-upload--compact' : ''}${variant ? ` tfe-image-upload--${variant}` : ''}`}>
             {preview ? (
                 <div className="tfe-image-upload__preview">
                     <img src={preview} alt="Preview" />

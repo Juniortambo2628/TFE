@@ -1230,6 +1230,53 @@ button.tfe-menu-surface__badge:hover {
 
 .tfe-image-upload--compact .tfe-image-upload__preview img { max-height: 320px; }
 
+/* Avatar variant (Sprint 56) — a round thumbnail beside its control, for a
+   field whose subject is a face or a logo rather than a banner. The partner
+   profile used `--compact`, whose preview is 320px tall, so a default
+   silhouette filled half the form. */
+.tfe-image-upload--avatar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__preview {
+    flex: 0 0 auto;
+    width: 96px;
+    height: 96px;
+    border: 0;
+
+    /* The remove button rides the rim, so the circle must not clip it. */
+    overflow: visible;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__preview img {
+    width: 96px;
+    height: 96px;
+    max-height: none;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 50%;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__preview .tfe-btn {
+    top: -2px;
+    right: -2px;
+    padding: 4px 7px;
+    font-size: 0.7rem;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__drop {
+    width: auto;
+    min-height: 0;
+    flex-direction: row;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__drop i { font-size: 1rem; }
+.tfe-image-upload--avatar .tfe-image-upload__drop small { display: none; }
+
 /* ── Form helpers used inside TfeModal forms ─────────────────────────────── */
 .tfe-form-section {
     margin: 0 0 4px;
@@ -1789,6 +1836,47 @@ button.tfe-menu-surface__badge:hover {
     gap: 10px;
     justify-content: flex-end;
     margin-top: 18px;
+}
+
+/* Multi-column field rows (Sprint 56). Dashboard forms were laying these out
+   with Bootstrap's `row g-3` / `col-md-*`, which the dashboards are not
+   supposed to reach for — the landing stylesheet is gated to public pages, so
+   a Bootstrap class is a coin toss on a dashboard. Columns collapse to one
+   below 768px. */
+.tfe-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+/* `.tfe-form-field + .tfe-form-field` carries a 16px top margin for a stacked
+   form. Inside the grid every cell but the first is an adjacent sibling, so
+   that margin stepped each column down the page like a staircase. The grid's
+   own `gap` is the spacing here. */
+.tfe-form-grid > .tfe-form-field + .tfe-form-field {
+    margin-top: 0;
+}
+
+@media (min-width: 768px) {
+    .tfe-form-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tfe-form-grid--3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    /* A field that should keep the full width inside a multi-column grid. */
+    .tfe-form-grid > .tfe-form-field--wide {
+        grid-column: 1 / -1;
+    }
+}
+
+/* A colour input beside its hex field. */
+.tfe-color-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 /* Sticky variant — the save bar stays on screen while a long form scrolls,

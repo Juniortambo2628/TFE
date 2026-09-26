@@ -800,6 +800,17 @@ new card / table / list CSS:
   pushed that page's only Save button into the middle of the layout. A
   `<select>` would not do — the flag is what frames the fan's avatar, so
   picking one has to show the artwork.
+- **`.tfe-form-grid`** (Sprint 56) — multi-column field rows, `--2` / `--3`,
+  collapsing to one column below 768px, with `.tfe-form-field--wide` for a
+  field that spans. Use it instead of Bootstrap's `row` / `col-md-*`, which
+  the dashboards are not supposed to reach for. It also zeroes the
+  `.tfe-form-field + .tfe-form-field` top margin for its children — inside a
+  grid that margin stepped each column down the page.
+- **`ImageUpload variant="avatar"`** (Sprint 56) — round 96px thumbnail
+  beside its control, for a field whose subject is a face or a logo. Note
+  `compact` is NOT that: it shrinks the empty-state control but makes the
+  preview *larger* (320px, for the feed composer), which is why the partner
+  profile's default silhouette filled half the form.
 - **`.tfe-form-actions--sticky`** (Sprint 56) — the save bar variant that
   sticks to the bottom of the viewport while a long form scrolls, with a
   `.tfe-form-actions__note` saying whether anything is unsaved. Reach for it
@@ -1224,6 +1235,23 @@ tests/
 - Never let a concluded tournament become the active context. Read
   `tournament_switch_list` (or `switchableTournaments` from the context), not
   `tournament_list`, anywhere the pick CHANGES the session (Sprint 53).
+- Never read a form field with `$validated['x'] ?? $model->x`. Laravel's
+  `ConvertEmptyStringsToNull` turns a cleared field into null *before*
+  validation, so `??` cannot tell "emptied" from "not submitted" and writes
+  the old value straight back — a partner deleted their tagline, saved, and
+  watched it reappear. Check `array_key_exists()` on the validated set
+  (`Partner\ProfileController::submitted()`) (Sprint 56).
+- Never add a form field without checking it has somewhere to land. The fan
+  profile's Bio was validated and passed to `$user->update()` for three
+  sprints with no `users.bio` column and no `$fillable` key, so every bio was
+  silently dropped (Sprint 56).
+- Never give an ancestor of page content `overflow` other than `visible` or
+  `clip` unless it is genuinely the scroll container. A scroll container that
+  never scrolls is what `position: sticky` inside it measures against, so
+  every sticky descendant stops sticking — that is how the shell's `<main>`
+  silently disabled the sticky live-preview pane on every SplitEditorLayout
+  page. `overflow-x-clip` + `min-w-0` contains a wide child without becoming
+  one (Sprint 56).
 - Never feed `tournament.teams` to a picker unfiltered. That array is every
   wikilink in Wikipedia's "Qualified teams" **table**, so it carries previous
   appearance years, column headers and citation sites — AFCON 2027 offered
@@ -1290,7 +1318,7 @@ tests/
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
-| 56     | Fan profile layout: avatar first, one sticky save bar at the end of the form, read-only community panels moved below the editor; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved so no nation renders flagless |
+| 56     | Fan + partner profile cleanup: avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner form regrouped onto `.tfe-form-grid` with a round avatar field; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and two silent save bugs (fan bio had no column, partner fields could not be cleared) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 
