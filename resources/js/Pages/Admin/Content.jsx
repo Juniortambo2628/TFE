@@ -157,23 +157,36 @@ export default function Content({ auth, posts = { data: [] }, settings = {}, sta
                         </div>
                     ) : stadiums.map((set) => (
                         <div className="mb-5" key={set.tournament_id}>
-                            <div className="d-flex align-items-baseline justify-content-between mb-3">
+                            <div className="d-flex align-items-baseline justify-content-between mb-2">
                                 <h3 className="admin-section-title mb-0">{set.tournament_name}</h3>
                                 <span className="text-white-50 small">
                                     {set.venues.length} venue{set.venues.length === 1 ? '' : 's'}
+                                    {set.has_catalogue ? ' · Local catalogue' : ' · Wikipedia venues'}
                                 </span>
                             </div>
-
-                            <div className="row g-4">
-                                {set.venues.map((venue) => (
-                                    <div className="col-lg-4 col-md-6" key={venue.slug}>
-                                        <StadiumImageCard
-                                            venue={venue}
-                                            tournamentId={set.tournament_id}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
+                            {!set.has_catalogue && (
+                                <p className="tfe-form-help mb-3">
+                                    This tournament has no local stadium catalogue yet — venues are pulled from Wikipedia.
+                                    Upload a hero image per venue below to override the Wikipedia thumbnail.
+                                </p>
+                            )}
+                            {set.venues.length === 0 ? (
+                                <div className="tfe-empty tfe-empty--inline">
+                                    <div className="tfe-empty__icon"><i className="fas fa-image" /></div>
+                                    <p className="tfe-empty__body mb-0">No venues resolved yet — try the Refresh action on Settings → Tournament.</p>
+                                </div>
+                            ) : (
+                                <div className="row g-4">
+                                    {set.venues.map((venue) => (
+                                        <div className="col-lg-4 col-md-6" key={venue.slug}>
+                                            <StadiumImageCard
+                                                venue={venue}
+                                                tournamentId={set.tournament_id}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </>

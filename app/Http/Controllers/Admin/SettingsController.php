@@ -31,6 +31,17 @@ class SettingsController extends Controller
 
     public function update(Request $request)
     {
+        // Validate every file upload as a raster image only (SVG is a
+        // stored-XSS vector on same-origin storage — same rule the rest
+        // of the platform enforces).
+        $fileRules = [];
+        foreach ($request->allFiles() as $key => $_) {
+            $fileRules[$key] = ['file', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
+        }
+        if (! empty($fileRules)) {
+            $request->validate($fileRules);
+        }
+
         $data = $request->all();
         // Any tournament-scoped settings key (hero_bg / tagline / trophy /
         // accent / active_tournament) invalidates that tournament's cache

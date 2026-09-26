@@ -25,6 +25,14 @@ class StadiumImageService
 {
     public const SETTING_PREFIX = 'stadium_image_';
 
+    /**
+     * Sprint 48 — free-text venue image override, used for tournaments that
+     * don't have a config catalogue (WC 2026, Euro 2024). Key shape:
+     * `stadium_name_{tournament_id}_{normalized_venue_name}`. Reads from
+     * SiteSetting and is merged into lookup() alongside the catalogue.
+     */
+    public const NAME_PREFIX = 'stadium_name_';
+
     protected const CACHE_KEY = 'stadiums:resolved:';
 
     /**
@@ -180,7 +188,38 @@ class StadiumImageService
             }
         }
 
+        // Sprint 48 — layer per-name overrides on top so uncatalogued
+        // tournaments (or ad-hoc venues admin uploaded outside the config)
+        // also resolve. Config catalogue still wins if both are present.
+        foreach ($this->nameOverrides($tournamentId) as $normalized => $url) {
+            if (! isset($map[$normalized])) {
+                $map[$normalized] = $url;
+            }
+        }
+
         return $map;
+    }
+
+    /**
+     * @return array<string, string> normalized_venue_name => url
+     */
+    public function nameOverrides(string $tournamentId): array
+    {
+        try {
+            if (! Schema::hasTable('site_settings')) {
+                return [];
+            }
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $prefix = self::NAME_PREFIX.$tournamentId.'_';
+
+        return SiteSetting::query()
+            ->where('key', 'like', $prefix.'%')
+            ->pluck('value', 'key')
+            ->mapWithKeys(fn ($url, $key) => [substr($key, strlen($prefix)) => $this->toUrl($url)])
+            ->all();
     }
 
     /**
@@ -402,6 +441,16 @@ class StadiumImageService
     public function tournamentIds(): array
     {
         return array_keys(config('stadiums.sets', []));
+    }
+
+    /**
+     * True when a tournament has any config-level catalogue entries.
+     * Uncatalogued tournaments fall back to Wikipedia venues + admin
+     * per-name overrides (see nameOverrides()).
+     */
+    public function hasCatalogueSet(string $tournamentId): bool
+    {
+        return ! empty(config("stadiums.sets.{$tournamentId}", []));
     }
 
     public function clearCache(?string $tournamentId = null): void
