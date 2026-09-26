@@ -322,14 +322,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/listing-approvals/{listing}/approve', [ListingApprovalController::class, 'approve'])->name('listing-approvals.approve');
     Route::post('/listing-approvals/{listing}/reject', [ListingApprovalController::class, 'reject'])->name('listing-approvals.reject');
 
-    // Packages Management (fixed-price prepacked itineraries)
-    Route::get('/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages.index');
-    Route::get('/packages/fixtures', [App\Http\Controllers\Admin\PackageController::class, 'fixtures'])->name('packages.fixtures');
-    Route::post('/packages', [App\Http\Controllers\Admin\PackageController::class, 'store'])->name('packages.store');
-    Route::put('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'update'])->name('packages.update');
-    Route::delete('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'destroy'])->name('packages.destroy');
-
-    // Product Management
+// Product Management
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');

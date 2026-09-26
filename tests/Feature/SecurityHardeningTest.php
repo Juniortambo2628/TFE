@@ -68,32 +68,6 @@ class SecurityHardeningTest extends TestCase
             ->assertSessionHasNoErrors();
     }
 
-    public function test_admin_cannot_upload_svg_as_hero_image(): void
-    {
-        Storage::fake('public');
-        $admin = User::factory()->admin()->create();
-
-        $svg = UploadedFile::fake()->createWithContent(
-            'evil.svg',
-            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
-        );
-
-        $this->actingAs($admin)
-            ->post(route('admin.packages.store'), [
-                'tournament_id' => 'afcon_2027',
-                'name' => 'Weekend',
-                'base_price' => 1000,
-                'currency' => 'USD',
-                'nights' => 3,
-                'flight_class' => 'economy',
-                'accommodation_level' => '3_star',
-                'is_active' => true,
-                'is_featured' => false,
-                'hero_image_file' => $svg,
-            ])
-            ->assertSessionHasErrors('hero_image_file');
-    }
-
     // ── Vuln 2: fan cannot view unapproved / inactive listings ──
 
     public function test_fan_cannot_view_draft_partner_listing(): void

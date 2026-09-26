@@ -12,7 +12,6 @@ export default function AdminSidebar({ user }) {
         { label: 'Announcements', icon: 'fas fa-bullhorn', route: 'admin.announcements', path: '/admin/announcements' },
         { label: 'Analytics', icon: 'fas fa-chart-line', route: 'admin.analytics', path: '/admin/analytics' },
         { label: 'Profile', icon: 'fas fa-user-circle', route: 'admin.profile', path: '/admin/profile' },
-        { label: 'Packages', icon: 'fas fa-gift', route: 'admin.packages.index', path: '/admin/packages' },
         { label: 'Partners', icon: 'fas fa-handshake', route: 'admin.partners.index', path: '/admin/partners' },
         { label: 'Approvals', icon: 'fas fa-clipboard-check', route: 'admin.listing-approvals.index', path: '/admin/listing-approvals' },
         { label: 'Products', icon: 'fas fa-box-open', route: 'admin.products.index', path: '/admin/products' },
