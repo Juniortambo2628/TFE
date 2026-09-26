@@ -251,6 +251,36 @@ so a EUR-built request reads correctly. Guarded by
 `tests/Feature/Fan/SavingsGoalCurrencyTest.php`, and
 `tests/JS/exchangeRate.test.mjs`.
 
+### Tournament management (Sprint 49)
+
+Everything about a tournament lives under **Admin → Tournaments**
+(`Admin/TournamentController`, `Admin/Tournaments.jsx` +
+`Admin/TournamentEdit.jsx`), in the same index → edit shape as the partner
+directory. It used to be split three ways: a tab of Site Settings (featured
+pick, Wikipedia refresh, tagline, accent, trophy, hero background), a tab of
+Content Management (stadium imagery), and — for the organiser card watermark —
+nowhere at all, despite `TournamentService` reading it.
+
+`TournamentController::FIELD_KEYS` is the single source of truth for the
+override keys and **must stay in step with `TournamentService::loadOverrides()`**:
+
+| field               | SiteSetting key              |
+|---------------------|------------------------------|
+| `tagline`           | `tournament_tagline_{id}`    |
+| `accent`            | `tournament_accent_{id}`     |
+| `trophy_image`      | `tournament_trophy_{id}`     |
+| `hero_image`        | `hero_bg_{id}`               |
+| `organizer_card_bg` | `tournament_card_bg_{id}`    |
+
+An empty value means "fall back to config", which is how every reader treats
+it. Saving clears both the tournament payload cache and the stadium-image
+cache.
+
+**`TournamentService::get()` falls back to the default tournament for an
+unknown id**, so it can never double as an existence check — ask
+`config("tournaments.tournaments.{$id}")` directly (the controller's
+`exists()` helper).
+
 ### Notifications
 
 All notifications use `via: ['database']` only (SMTP not configured; adding
@@ -646,6 +676,20 @@ new card / table / list CSS:
   (a titled divider inside a form), `.tfe-color-swatch`, `.tfe-check`.
   A global `-webkit-autofill` guard (primitives.css) keeps Chrome/Safari
   from painting login-ish fields white over the dark fill.
+- **`assetPath()`** (Sprint 49, `resources/js/lib/assets.js`) — normalises any
+  stored image reference to a root-relative URL. `AccentCard`, `PageHero`,
+  `LandingCard` and `DashboardHero` all run their `src` through it, so a
+  relative path is corrected whoever passes it. See **Image paths** below.
+- **`SettingField`** (Sprint 49, `Components/Admin/SettingField.jsx`) — the ONE
+  self-saving SiteSetting editor (text / textarea / url / color / **image**).
+  `type="image"` renders `ImageUpload` with a live preview and a reset. Never
+  declare a setting-input closure inside a page body again — a component
+  defined there is a new type every render, so React remounts it and the field
+  loses its cursor mid-typing.
+- **`ListingGrid`** (Sprint 45) — grid is the default view; pass `tableView`
+  to get the Grid/Table toggle. Adopted by Partners, Listing safety, Tickets,
+  Users, Events, Prizes, Announcements, Tribes, Tournaments and Content→Posts.
+  Reach for it instead of hand-rolling a `<table>` or a bespoke card grid.
 - **`.tfe-rank`** (Sprint 48) — circular position chip for standings rows.
   `data-medal="1|2|3"` paints gold / silver / bronze; anything else stays
   neutral glass. Used by the Predict leaderboard and the feed's Trending list.
@@ -682,6 +726,44 @@ landing template's own field classes and any Tailwind utility all still win.
 **Do not raise the specificity in that file and do not reach for `!important`.**
 If a field needs a different look, give it a class. There is an escape hatch
 (`.tfe-field-native`) for the rare control that wants the browser widget.
+
+### Image paths (Sprint 49)
+
+**Every stored image path must be absolute or root-relative.** A bare
+`assets/img/x.jpg` is resolved by the browser against the CURRENT directory,
+so the moment it renders on a nested route it asks for the wrong URL:
+
+```
+on /                → /assets/img/backdrops/ball-on-field.jpg        ✓
+on /admin/content   → /admin/assets/img/backdrops/ball-on-field.jpg  ✗ 404
+```
+
+That is exactly why the three tournament backdrops 404'd on admin pages and
+nowhere else. `config/tournaments.php` and `config/site_sections.php` now
+store leading-slash paths, and two tests guard the catalogues
+(`TournamentManagementTest::test_config_tournament_images_are_root_relative`,
+`ContentCmsTest::test_config_card_images_are_root_relative`).
+
+Belt and braces: `assetPath()` (`resources/js/lib/assets.js`) corrects a
+relative value at render time, and the shared image primitives all run their
+`src` through it. Do NOT re-add per-component `toUrl` helpers or
+`baseUrl + path` concatenation — `PageHero` and `LandingCard` each had their
+own copy before this, and `assetUrl` (which is absolute) then produced `//`
+double slashes once the config paths were fixed.
+
+### Public section cards (Sprint 49)
+
+The content cards under each public section hero (`/about`, `/features`,
+`/services`, `/contact`) used to be hard-coded arrays inside the React
+components, so an admin could edit a section's hero from the CMS but not the
+cards beneath it. Defaults now live in `config/site_sections.php`;
+`HomeController::sectionCards()` overlays SiteSetting overrides keyed
+`section_card_{slug}_{index}_{field}` (field ∈ image, title, subtitle,
+description) and passes them as the `cards` prop.
+
+The components keep their constant as a **default prop value** so the landing
+sections still render when no `cards` are passed — keep it in step with the
+config if you change either.
 
 ### PurgeCSS safelist gotcha
 
@@ -911,6 +993,20 @@ tests/
 - Never put stadium images under `public/storage/` — it's gitignored, so they
   look fine locally and 404 on prod. They belong in `public/stadiums/<SET>/`,
   committed (Sprint 44).
+- Never store an image path without a leading slash. `assets/img/x.jpg`
+  resolves against the current directory and 404s on every nested route —
+  that is where the `/admin/assets/img/...` 404s came from (Sprint 49).
+- Never write a per-component `toUrl` helper or `baseUrl + path` for images.
+  Use `assetPath()`; the shared primitives already apply it (Sprint 49).
+- Never declare a form-field component inside a page body. It becomes a new
+  component type on every render, so React remounts it and the input loses
+  its cursor mid-typing. Use `SettingField` (Sprint 49).
+- Never add a tournament override key without adding it to
+  `TournamentController::FIELD_KEYS` AND
+  `TournamentService::loadOverrides()` — the organiser card watermark was
+  readable by the service for two sprints with no way to set it (Sprint 49).
+- Never use `TournamentService::get()` as an existence check — it falls back
+  to the default tournament for an unknown id (Sprint 49).
 - Never style a form field by adding `!important` or raising specificity in
   `resources/css/form-baseline.css` — it is an element-level floor on purpose so
   every component class still wins. Give the field a class instead (Sprint 48).
@@ -975,6 +1071,7 @@ tests/
 | 45     | Catalogue becomes the venue source (Wikipedia demoted to enrichment by our own titles), hero overlay lightened 30%, active slide highlights its host country on the world map + tournament card pill |
 | 46     | Ticketing archetype (MatchDay Africa) w/ end-to-end fan purchase pipeline; Ecobank multicurrency virtual card demo; GoalBet listings on Fan Predict; shared `.tfe-menu-surface` dropdown |
 | 48     | Passkey login hardening (+2FA parity), global form baseline, social feed + tribes rebuilt on primitives, tribes completed end-to-end (privacy, join requests, moderation) |
+| 49     | Admin CMS unification: SettingField + assetPath primitives, section-card CMS, dedicated Tournament management, ListingGrid rollout |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

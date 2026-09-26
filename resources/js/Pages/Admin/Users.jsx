@@ -10,13 +10,13 @@ import DashboardModal from '@/Components/Common/DashboardModal';
 import { useForm, usePage } from '@inertiajs/react';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
+import ListingGrid from '@/Components/Common/ListingGrid';
 
 export default function Users({ auth, users = { data: [] }, stats = {}, filters }) {
     const { assetUrl, adminTheme } = usePage().props;
     const safeFilters = (filters && !Array.isArray(filters)) ? filters : {};
     const [search, setSearch] = useState(safeFilters.search || '');
     const [sortBy, setSortBy] = useState(typeof safeFilters.sort === 'string' ? safeFilters.sort : 'newest');
-    const [viewMode, setViewMode] = useState('list');
     const [userToDelete, setUserToDelete] = useState(null);
     const [userToToggleAdmin, setUserToToggleAdmin] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -199,8 +199,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                 sortOptions={sortOptions}
                 sortValue={sortBy}
                 onSortChange={handleSort}
-                viewMode={viewMode}
-                onViewChange={setViewMode}
+                showViewToggle={false}
             />
 
             {/* Users Table/Grid */}
@@ -210,84 +209,34 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                     <span className="admin-badge admin-badge-gray">{users.data?.length || 0} users</span>
                 </div>
                 
-                {viewMode === 'list' ? (
-                    <div className="card-body p-0">
-                        <DataTable 
-                            columns={columns} 
-                            data={users.data || []} 
-                            search={search}
-                        />
-                    </div>
-                ) : (
-                    /* Grid View */
-                    <div className="card-body">
-                        <div className="row g-3">
-                            {users.data && users.data.length > 0 ? (
-                                users.data.map(user => (
-                                    <div key={user.id} className="col-md-6 col-lg-4">
-                                        <div 
-                                            className="p-3 rounded-3"
-                                            style={{ 
-                                                background: 'var(--admin-bg-dark)', 
-                                                border: '1px solid var(--admin-border)' 
-                                            }}
-                                        >
-                                            <div className="d-flex align-items-center gap-3 mb-3">
-                                                <div 
-                                                    className="rounded-circle d-flex align-items-center justify-content-center"
-                                                    style={{ 
-                                                        width: '48px', 
-                                                        height: '48px', 
-                                                        background: 'var(--admin-primary-light)',
-                                                        color: 'var(--admin-primary)',
-                                                        fontWeight: '700',
-                                                        fontSize: '1.2rem'
-                                                    }}
-                                                >
-                                                    {user.name?.charAt(0) || 'U'}
-                                                </div>
-                                                <div className="flex-grow-1">
-                                                    <div className="fw-semibold text-white">{user.name}</div>
-                                                    <small className="text-white opacity-75">{user.email}</small>
-                                                </div>
-                                            </div>
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                {user.is_admin ? (
-                                                    <span className="admin-badge admin-badge-amber">Admin</span>
-                                                ) : user.is_partner ? (
-                                                    <span className="admin-badge admin-badge-blue">Partner</span>
-                                                ) : (
-                                                    <span className="admin-badge admin-badge-gray">Fan</span>
-                                                )}
-                                                <div className="d-flex gap-2">
-                                                    <button 
-                                                        className={`btn-admin-icon ${user.is_admin ? 'active' : ''}`}
-                                                        onClick={() => setUserToToggleAdmin(user.id)}
-                                                    >
-                                                        <i className="fas fa-user-shield"></i>
-                                                    </button>
-                                                    <button 
-                                                        className="btn-admin-icon"
-                                                        onClick={() => setUserToDelete(user.id)}
-                                                    >
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-12">
-                                    <div className="admin-empty-state">
-                                        <i className="fas fa-users-slash"></i>
-                                        <h4>No users found</h4>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                <div className="card-body p-0">
+                    <ListingGrid
+                        items={(users.data || []).filter(
+                            (u) => !search
+                                || u.name?.toLowerCase().includes(search.toLowerCase())
+                                || u.email?.toLowerCase().includes(search.toLowerCase()),
+                        )}
+                        emptyIcon="fas fa-users-slash"
+                        emptyTitle="No users found"
+                        emptyBody="Try a different search term."
+                        to={(user) => ({
+                            title: user.name,
+                            eyebrow: user.is_admin ? 'Admin' : user.is_partner ? 'Partner' : 'Fan',
+                            desc: user.email,
+                            accent: user.is_admin ? '#f59e0b' : user.is_partner ? '#3b82f6' : '#6b7280',
+                            artwork: { icon: user.is_admin ? 'fas fa-user-shield' : 'fas fa-user' },
+                            meta: [{ label: 'Joined', value: user.created_at || '—' }],
+                            cornerButton: {
+                                icon: 'fas fa-eye',
+                                label: `Open ${user.name}`,
+                                onClick: () => setSelectedUser(user),
+                            },
+                        })}
+                        tableView={
+                            <DataTable columns={columns} data={users.data || []} search={search} />
+                        }
+                    />
+                </div>
             </div>
             {/* User Detail Modal — Tabbed Redesign */}
             <DashboardModal

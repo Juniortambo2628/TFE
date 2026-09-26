@@ -5,6 +5,7 @@ import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
+import ListingGrid from '@/Components/Common/ListingGrid';
 
 export default function Prizes({ auth, prizes = [] }) {
     const [showForm, setShowForm] = useState(false);
@@ -97,56 +98,66 @@ export default function Prizes({ auth, prizes = [] }) {
                 </div>
                 
                 <div className="card-body">
-                    <table className="admin-table-dark">
-                        <thead>
-                            <tr>
-                                <th style={{ width: '80px' }}>Pos</th>
-                                <th>Prize Name</th>
-                                <th>Value</th>
-                                <th>Status</th>
-                                <th style={{ width: '120px' }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {prizes.length > 0 ? (
-                                prizes.map(prize => (
-                                    <tr key={prize.id}>
-                                        <td className="fw-bold text-white">#{prize.position}</td>
-                                        <td>
-                                            <div className="text-white fw-medium">{prize.name}</div>
-                                            <div className="text-xs text-medium-contrast">{prize.description}</div>
-                                        </td>
-                                        <td className="text-blue-400 fw-semibold">{prize.value_formatted}</td>
-                                        <td>
-                                            <span className={`admin-badge ${prize.active ? 'admin-badge-blue' : 'admin-badge-gray'}`}>
-                                                {prize.active ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="d-flex gap-2">
-                                                <button className="btn-admin-icon" title="Edit" onClick={() => handleEdit(prize)}>
-                                                    <i className="fas fa-edit"></i>
-                                                </button>
-                                                <button className="btn-admin-icon" title="Delete" onClick={() => setPrizeToDelete(prize.id)}>
-                                                    <i className="fas fa-trash text-danger"></i>
-                                                </button>
-                                            </div>
-                                        </td>
+                    <ListingGrid
+                        items={prizes}
+                        emptyIcon="fas fa-trophy"
+                        emptyTitle="No prizes configured"
+                        emptyBody="Click 'Add Prize' to get started."
+                        to={(prize) => ({
+                            title: prize.name,
+                            eyebrow: `Position ${prize.position}`,
+                            desc: prize.description,
+                            accent: prize.position === 1 ? '#fbbf24' : '#8b5cf6',
+                            status: prize.active ? 'Active' : 'Inactive',
+                            artwork: { icon: 'fas fa-medal' },
+                            meta: [{ label: 'Value', value: prize.value_formatted }],
+                            cornerButton: {
+                                icon: 'fas fa-edit',
+                                label: `Edit ${prize.name}`,
+                                onClick: () => handleEdit(prize),
+                            },
+                        })}
+                        tableView={
+                            <table className="tfe-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: 80 }}>Pos</th>
+                                        <th>Prize Name</th>
+                                        <th>Value</th>
+                                        <th>Status</th>
+                                        <th style={{ width: 120 }}>Actions</th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="text-center py-5">
-                                        <div className="admin-empty-state">
-                                            <i className="fas fa-trophy opacity-20 fa-3x mb-3"></i>
-                                            <h4>No prizes configured</h4>
-                                            <p className="text-medium-contrast">Click 'Add Prize' to get started.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {prizes.map((prize) => (
+                                        <tr key={prize.id}>
+                                            <td className="fw-bold">#{prize.position}</td>
+                                            <td>
+                                                <div className="fw-semibold">{prize.name}</div>
+                                                <small className="text-white-50">{prize.description}</small>
+                                            </td>
+                                            <td>{prize.value_formatted}</td>
+                                            <td>
+                                                <span className={`tfe-pill ${prize.active ? 'tfe-pill--approved' : 'tfe-pill--concluded'}`}>
+                                                    {prize.active ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="d-flex gap-2">
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Edit prize" onClick={() => handleEdit(prize)}>
+                                                        <i className="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Delete prize" onClick={() => setPrizeToDelete(prize.id)}>
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        }
+                    />
                 </div>
             </div>
 
