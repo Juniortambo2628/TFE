@@ -3,7 +3,6 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import AdminCategoryCard from '@/Components/Admin/AdminCategoryCard';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -32,13 +31,14 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
         { label: 'Events' }
     ];
 
-    // Event categories
+    // Event categories — filter chips on the shared design system (no more
+    // one-off bgimageNN.jpg art). `icon` drives the chip glyph.
     const categories = [
-        { key: 'all', label: 'All Events', image: '/assets/images/bgimage05.jpg' },
-        { key: 'match_day', label: 'Match Day', image: '/assets/images/bgimage01.jpg' },
-        { key: 'watch_party', label: 'Watch Party', image: '/assets/images/bgimage02.jpg' },
-        { key: 'tournament', label: 'Tournament', image: '/assets/images/bgimage03.jpg' },
-        { key: 'community', label: 'Community', image: '/assets/images/bgimage04.jpg' }
+        { key: 'all', label: 'All Events', icon: 'fas fa-calendar-alt' },
+        { key: 'match_day', label: 'Match Day', icon: 'fas fa-futbol' },
+        { key: 'watch_party', label: 'Watch Party', icon: 'fas fa-tv' },
+        { key: 'tournament', label: 'Tournament', icon: 'fas fa-trophy' },
+        { key: 'community', label: 'Community', icon: 'fas fa-users' }
     ];
 
     const handleSubmit = (e) => {
@@ -132,19 +132,24 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                 { label: 'Attendees', value: stats.attendees || 0, icon: 'fa-users', accent: 'teal' },
             ]} className="mb-4" />
 
-            <div className="admin-visual-cards mb-4 dash-visual-cards">
-                {categories.map(cat => (
-                    <AdminCategoryCard
-                        key={cat.key}
-                        label={cat.label}
-                        subtitle={`${cat.key === 'all' 
-                            ? eventsList.length 
-                            : eventsList.filter(e => e.type === cat.key).length} events`}
-                        image={cat.image}
-                        active={selectedCategory === cat.key}
-                        onClick={() => setSelectedCategory(cat.key)}
-                    />
-                ))}
+            <div className="feed-tabs mb-4">
+                {categories.map(cat => {
+                    const count = cat.key === 'all'
+                        ? eventsList.length
+                        : eventsList.filter(e => e.type === cat.key).length;
+                    return (
+                        <button
+                            key={cat.key}
+                            type="button"
+                            className={`tfe-btn tfe-btn--sm${selectedCategory === cat.key ? ' is-active' : ''}`}
+                            onClick={() => setSelectedCategory(cat.key)}
+                        >
+                            <i className={`${cat.icon} me-2`}></i>
+                            {cat.label}
+                            <span className="tfe-pill tfe-pill--info ms-2">{count}</span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Premium Tabbed Modal for Create/Edit */}

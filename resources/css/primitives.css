@@ -271,6 +271,98 @@ a.tfe-sidebar-nav-item.is-active {
     color: var(--accent);
 }
 
+/* ── Collapsible sidebar group (heading acts as a dropdown) ──────────── */
+.tfe-sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tfe-sidebar-group__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 12px 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.15s ease;
+}
+
+.tfe-sidebar-group__toggle:hover,
+.tfe-sidebar-group__toggle.has-active {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.tfe-sidebar-group__chevron {
+    font-size: 0.6rem;
+    transition: transform 0.2s ease;
+}
+
+.tfe-sidebar-group__chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.tfe-sidebar-group__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ── Media library picker grid ───────────────────────────────────────── */
+.tfe-media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.tfe-media-tile {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.tfe-media-tile:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+    transform: translateY(-2px);
+}
+
+.tfe-media-tile img,
+.tfe-media-tile video {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    background: #000;
+}
+
+.tfe-media-tile__name {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.72);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tfe-image-upload__gallery-btn {
+    margin-top: 8px;
+    width: 100%;
+    justify-content: center;
+}
+
 /* ── Quick-action tile (pill-shaped, matches Ref B / C) ──────────────── */
 
 .tfe-quick-action {

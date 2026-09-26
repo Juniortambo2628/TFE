@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\SiteSetting;
+use App\Services\MediaLibraryService;
 use App\Services\StadiumImageService;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ class ContentController extends Controller
     public function __construct(
         protected StadiumImageService $stadiumImages,
         protected TournamentService $tournaments,
+        protected MediaLibraryService $media,
     ) {}
 
     public function index()
@@ -129,7 +131,7 @@ class ContentController extends Controller
         // a stored-XSS vector. Applying that rule unconditionally would reject
         // every text setting, hence the branch.
         $valueRules = $request->hasFile('value')
-            ? ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096']
+            ? MediaLibraryService::imageRules()
             : ['nullable'];
 
         $data = $request->validate([
@@ -138,14 +140,14 @@ class ContentController extends Controller
             'type' => 'required|string', // text, image, etc.
             'group' => 'required|string',
         ], [
-            'value.mimes' => 'Images must be a JPG, PNG or WebP file.',
-            'value.max' => 'Images must be 4MB or smaller.',
+            'value.mimes' => 'Images must be a JPG, PNG, WebP, GIF or AVIF file.',
+            'value.max' => 'Images must be 12MB or smaller.',
         ]);
 
-        // Handle file upload if type is image
+        // Handle file upload if type is image — routes through the media
+        // library so it is compressed and re-pickable from the gallery.
         if ($request->hasFile('value') && $data['type'] === 'image') {
-            $path = $request->file('value')->store('assets/uploads', 'public');
-            $data['value'] = '/storage/'.$path;
+            $data['value'] = $this->media->store($request->file('value'), 'assets/uploads')->url;
         }
 
         SiteSetting::set(

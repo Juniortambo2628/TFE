@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class AdminDashboardTest extends TestCase
@@ -113,17 +114,18 @@ class AdminDashboardTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_admin_can_access_prizes(): void
+    public function test_prizes_and_products_are_no_longer_admin_routes(): void
     {
-        $admin = $this->createAdmin();
-        $response = $this->actingAs($admin)->get(route('admin.prizes.index'));
-        $response->assertStatus(200);
+        // Sprint 50 — Prizes and Products moved off the admin (partner/store
+        // concerns). The named routes should no longer exist.
+        $this->assertFalse(Route::has('admin.prizes.index'));
+        $this->assertFalse(Route::has('admin.products.index'));
     }
 
-    public function test_admin_can_access_products(): void
+    public function test_admin_can_access_media(): void
     {
         $admin = $this->createAdmin();
-        $response = $this->actingAs($admin)->get(route('admin.products.index'));
+        $response = $this->actingAs($admin)->get(route('admin.media.index'));
         $response->assertStatus(200);
     }
 

@@ -4,10 +4,9 @@ use App\Helpers\DashboardHelper;
 use App\Http\Controllers\Admin\AnnouncementsController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ListingApprovalController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MessagesController;
 use App\Http\Controllers\Admin\PartnerController;
-use App\Http\Controllers\Admin\PrizeController;
-use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\TournamentController;
@@ -315,11 +314,12 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     // Analytics
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics');
 
-    // Prizes Management
-    Route::get('/prizes', [PrizeController::class, 'index'])->name('prizes.index');
-    Route::post('/prizes', [PrizeController::class, 'store'])->name('prizes.store');
-    Route::put('/prizes/{prize}', [PrizeController::class, 'update'])->name('prizes.update');
-    Route::delete('/prizes/{prize}', [PrizeController::class, 'destroy'])->name('prizes.destroy');
+    // Media library — the shared gallery of uploaded photos/videos. Every
+    // image field can pick from here instead of re-uploading.
+    Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    Route::get('/media/list', [MediaController::class, 'list'])->name('media.list');
+    Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+    Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
 
     // Partner directory (Sprint 9) — verify, feature, edit branded hub.
     Route::get('/partners', [PartnerController::class, 'index'])->name('partners.index');
@@ -331,12 +331,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/listing-approvals/bulk/reject', [ListingApprovalController::class, 'bulkReject'])->name('listing-approvals.bulk-reject');
     Route::post('/listing-approvals/{listing}/approve', [ListingApprovalController::class, 'approve'])->name('listing-approvals.approve');
     Route::post('/listing-approvals/{listing}/reject', [ListingApprovalController::class, 'reject'])->name('listing-approvals.reject');
-
-    // Product Management
-    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
     // Tribes Management
     Route::get('/tribes', [App\Http\Controllers\Admin\TribeController::class, 'index'])->name('tribes.index');

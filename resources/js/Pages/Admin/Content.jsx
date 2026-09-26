@@ -62,6 +62,7 @@ export default function Content({
     const [mainTab, setMainTab] = useState('heroes');
     const [search, setSearch] = useState('');
     const [postToDelete, setPostToDelete] = useState(null);
+    const [openHero, setOpenHero] = useState(HERO_PAGES[0].slug);
     const [openSection, setOpenSection] = useState(sectionCards[0]?.slug || null);
 
     const breadcrumbs = [
@@ -91,39 +92,58 @@ export default function Content({
             </div>
 
             {/* ── Page heroes ─────────────────────────────────────────── */}
+            {/* One sub-tab per public page (same picker as Section Cards) so
+                the tab shows a single hero editor at a time instead of all
+                five stacked. */}
             {mainTab === 'heroes' && (
-                <div className="admin-cms-grid">
-                    {HERO_PAGES.map((page) => (
-                        <section className="tfe-slab" key={page.slug}>
-                            <div className="tfe-slab__header">
-                                <div>
-                                    <h2 className="tfe-slab__title">
-                                        <i className={page.icon}></i> {page.label} hero
-                                    </h2>
-                                    <p className="tfe-slab__title-sub">
-                                        Leave a field blank to use the built-in default.
-                                    </p>
+                <>
+                    <div className="feed-tabs mb-4">
+                        {HERO_PAGES.map((page) => (
+                            <button
+                                key={page.slug}
+                                type="button"
+                                className={`tfe-btn tfe-btn--sm${openHero === page.slug ? ' is-active' : ''}`}
+                                onClick={() => setOpenHero(page.slug)}
+                            >
+                                <i className={`${page.icon} me-2`}></i>
+                                {page.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {HERO_PAGES.filter((page) => page.slug === openHero).map((page) => (
+                        <div className="admin-cms-grid" key={page.slug}>
+                            <section className="tfe-slab">
+                                <div className="tfe-slab__header">
+                                    <div>
+                                        <h2 className="tfe-slab__title">
+                                            <i className={page.icon}></i> {page.label} hero
+                                        </h2>
+                                        <p className="tfe-slab__title-sub">
+                                            Leave a field blank to use the built-in default.
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="tfe-slab__body">
-                                {HERO_FIELDS.map((f) => (
-                                    <SettingField
-                                        key={f.field}
-                                        group="page_hero"
-                                        settingKey={`${page.slug}_${f.field}`}
-                                        label={f.label}
-                                        type={f.type}
-                                        hint={f.hint}
-                                        rows={f.rows}
-                                        value={settings[`page_hero_${page.slug}_${f.field}`] || ''}
-                                        defaultValue={heroDefaults?.[page.slug]?.[f.field] || null}
-                                        placeholder={heroDefaults?.[page.slug]?.[f.field] || ''}
-                                    />
-                                ))}
-                            </div>
-                        </section>
+                                <div className="tfe-slab__body">
+                                    {HERO_FIELDS.map((f) => (
+                                        <SettingField
+                                            key={f.field}
+                                            group="page_hero"
+                                            settingKey={`${page.slug}_${f.field}`}
+                                            label={f.label}
+                                            type={f.type}
+                                            hint={f.hint}
+                                            rows={f.rows}
+                                            value={settings[`page_hero_${page.slug}_${f.field}`] || ''}
+                                            defaultValue={heroDefaults?.[page.slug]?.[f.field] || null}
+                                            placeholder={heroDefaults?.[page.slug]?.[f.field] || ''}
+                                        />
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
                     ))}
-                </div>
+                </>
             )}
 
             {/* ── Section cards ───────────────────────────────────────── */}

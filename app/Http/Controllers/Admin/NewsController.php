@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\News;
+use App\Services\MediaLibraryService;
 use App\Traits\Uploadable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,7 +27,7 @@ class NewsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => MediaLibraryService::imageRules(required: false),
             'category' => 'nullable|string',
         ]);
 
@@ -44,7 +45,7 @@ class NewsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => MediaLibraryService::imageRules(required: false),
             'category' => 'nullable|string',
         ]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Services\MediaLibraryService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -9,6 +10,11 @@ trait Uploadable
 {
     /**
      * Store an uploaded file and optionally delete the old one.
+     *
+     * Routes through MediaLibraryService, so images are compressed + scaled
+     * down and every upload is recorded in the media library — for free, for
+     * every controller that already used this trait. Returns the storage
+     * path (no /storage prefix), which is what the callers persist.
      */
     protected function uploadFile(
         UploadedFile $file,
@@ -20,7 +26,7 @@ trait Uploadable
             Storage::disk('public')->delete($existingPath);
         }
 
-        return $file->store($directory, 'public');
+        return app(MediaLibraryService::class)->store($file, $directory)->path;
     }
 
     /**
