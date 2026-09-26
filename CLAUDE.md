@@ -1241,10 +1241,17 @@ tests/
   the old value straight back — a partner deleted their tagline, saved, and
   watched it reappear. Check `array_key_exists()` on the validated set
   (`Partner\ProfileController::submitted()`) (Sprint 56).
+- Never leave a second surface for something the shared one owns. The admin
+  profile carried its own Change Password form (and an `admin.profile.password`
+  route) after Sprint 53 gave every role the shared `AccountSecurity` page —
+  two password endpoints is exactly how the partner security page drifted into
+  four dead buttons. Link to the shared page instead (Sprint 56).
 - Never add a form field without checking it has somewhere to land. The fan
   profile's Bio was validated and passed to `$user->update()` for three
   sprints with no `users.bio` column and no `$fillable` key, so every bio was
-  silently dropped (Sprint 56).
+  silently dropped; the admin profile's "Phone Number" had neither a column
+  nor a line in its controller. Type, save, gone — with no error either time
+  (Sprint 56).
 - Never give an ancestor of page content `overflow` other than `visible` or
   `clip` unless it is genuinely the scroll container. A scroll container that
   never scrolls is what `position: sticky` inside it measures against, so
@@ -1318,7 +1325,7 @@ tests/
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
-| 56     | Fan + partner profile cleanup: avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner form regrouped onto `.tfe-form-grid` with a round avatar field; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and two silent save bugs (fan bio had no column, partner fields could not be cleared) |
+| 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

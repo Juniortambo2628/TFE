@@ -1276,6 +1276,14 @@ button.tfe-menu-surface__badge:hover {
 
 .tfe-image-upload--avatar .tfe-image-upload__drop i { font-size: 1rem; }
 .tfe-image-upload--avatar .tfe-image-upload__drop small { display: none; }
+.tfe-image-upload--avatar .tfe-image-upload__drop span { white-space: nowrap; }
+
+/* The library button sits beside the control, not stretched under it — the
+   avatar row is horizontal. */
+.tfe-image-upload--avatar .tfe-image-upload__gallery-btn {
+    width: auto;
+    margin-top: 0;
+}
 
 /* ── Form helpers used inside TfeModal forms ─────────────────────────────── */
 .tfe-form-section {

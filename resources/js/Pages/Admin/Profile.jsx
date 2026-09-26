@@ -1,170 +1,194 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { Link, useForm } from '@inertiajs/react';
+import { toast } from 'sonner';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
 import IdentityPreview from '@/Components/Common/IdentityPreview';
-import { useForm } from '@inertiajs/react';
+import ImageUpload from '@/Components/Common/ImageUpload';
 
-export default function Profile({ auth, status }) {
-    const { user } = auth;
-    
-    const { data: profileData, setData: setProfileData, put: putProfile, processing: profileProcessing, errors: profileErrors } = useForm({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
+/**
+ * Admin profile — Sprint 56.
+ *
+ * The page was already on SplitEditorLayout, but it was the last account
+ * surface still wearing its own chrome (`admin-card-dark`, `card-header`,
+ * `admin-form-group`, `btn-admin`, `text-danger small`) instead of the shared
+ * primitives every other form on the platform uses. Three things were also
+ * wrong underneath:
+ *
+ *  - **Phone Number went nowhere.** There is no `users.phone` column and the
+ *    controller never validated or saved it, so an admin could type a number,
+ *    save, and find it blank — the same silent discard as the fan's Bio.
+ *    Nothing on the platform reads a user phone number, so the field is gone
+ *    rather than given a column.
+ *  - **Change Password was a second password surface.** Sprint 53 moved
+ *    password, 2FA, passkeys and login history onto one shared
+ *    AccountSecurity page, which the admin has at /admin/security. This page
+ *    links there now, exactly as the fan profile does.
+ *  - **There was no way to set an avatar**, though `users.avatar` has always
+ *    existed and both other roles could.
+ *
+ * Plus the fan/partner treatment: avatar first, one sticky save bar at the
+ * end that says whether there is anything to save.
+ */
+export default function Profile({ profile }) {
+    const form = useForm({
+        _method: 'put',
+        name: profile.name || '',
+        email: profile.email || '',
+        avatar: profile.avatar || '',
+        avatar_file: null,
     });
+    const { data, setData, processing, errors, isDirty } = form;
 
-    const { data: passwordData, setData: setPasswordData, put: putPassword, processing: passwordProcessing, errors: passwordErrors, reset: resetPassword } = useForm({
-        current_password: '',
-        password: '',
-        password_confirmation: '',
-    });
-
-    const handleProfileUpdate = (e) => {
+    const submit = (e) => {
         e.preventDefault();
-        putProfile(route('admin.profile.update'), {
-            preserveScroll: true
-        });
-    };
-
-    const handlePasswordUpdate = (e) => {
-        e.preventDefault();
-        putPassword(route('admin.profile.password'), {
+        form.post(route('admin.profile.update'), {
+            forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => resetPassword(),
+            onSuccess: () => toast.success('Profile updated.'),
         });
     };
 
-    const breadcrumbs = [
-        { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
-        { label: 'Profile Settings' }
-    ];
+    const emailChanged = data.email.trim().toLowerCase() !== (profile.email || '').toLowerCase();
+
+    const preview = (
+        <>
+            <IdentityPreview
+                name={data.name}
+                sub={data.email}
+                avatar={data.avatar || undefined}
+                badge="System Admin"
+                rows={[
+                    { icon: 'fas fa-envelope', value: data.email },
+                    { icon: 'fas fa-calendar-alt', value: `Admin since ${profile.created_at}` },
+                ]}
+            />
+
+            <div className="tfe-slab">
+                <div className="tfe-slab__body">
+                    <div className="tfe-security-stat">
+                        <span>Email</span>
+                        <span className={`tfe-pill ${profile.email_verified ? 'tfe-pill--approved' : 'tfe-pill--pending'}`}>
+                            {profile.email_verified ? 'Verified' : 'Unverified'}
+                        </span>
+                    </div>
+                    <div className="tfe-security-stat">
+                        <span>Role</span>
+                        <strong>System Admin</strong>
+                    </div>
+                </div>
+                <div className="tfe-slab__body pt-0">
+                    <Link href={route('admin.security')} className="tfe-btn tfe-btn--sm w-100 justify-content-center">
+                        <i className="fas fa-shield-alt" /> Security settings
+                    </Link>
+                </div>
+            </div>
+        </>
+    );
 
     return (
         <AdminLayout title="Profile Settings">
-            <DashboardHero role="admin" 
-                title="Account Settings" 
+            <DashboardHero
+                role="admin"
+                title="Account Settings"
                 subtitle="Manage your personal information and account security."
-                breadcrumbs={breadcrumbs}
+                breadcrumbs={[
+                    { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
+                    { label: 'Profile Settings' },
+                ]}
             />
 
-            <SplitEditorLayout
-                preview={(
-                    <IdentityPreview
-                        name={profileData.name}
-                        sub={profileData.email}
-                        badge="System Admin"
-                        accent="#3b82f6"
-                        rows={[
-                            { icon: 'fas fa-envelope', value: profileData.email },
-                            { icon: 'fas fa-phone', value: profileData.phone },
-                        ]}
-                    />
-                )}
-            >
-                <div className="admin-editor-stack">
-                    {/* Profile Info */}
-                    <div className="admin-card-dark">
-                        <div className="card-header">
-                            <h3><i className="fas fa-user-circle me-2"></i> Personal Information</h3>
+            <SplitEditorLayout previewTitle="Live preview" preview={preview}>
+                <form onSubmit={submit} className="tfe-editor-stack">
+                    <section className="tfe-slab">
+                        <div className="tfe-slab__header">
+                            <h3 className="tfe-slab__title">
+                                <i className="fas fa-user-circle me-2" aria-hidden="true" /> Personal information
+                            </h3>
+                            <span className="tfe-slab__title-sub">Admin since {profile.created_at}</span>
                         </div>
-                        <div className="card-body">
-                            <form onSubmit={handleProfileUpdate}>
-                                <div className="admin-form-group">
-                                    <label className="tfe-form-label">Full Name</label>
-                                    <input 
-                                        type="text" 
-                                        className="tfe-input" 
-                                        value={profileData.name} 
-                                        onChange={e => setProfileData('name', e.target.value)} 
-                                        required 
-                                    />
-                                    {profileErrors.name && <div className="text-danger small mt-1">{profileErrors.name}</div>}
-                                </div>
+                        <div className="tfe-slab__body">
+                            <div className="tfe-form-field">
+                                <label className="tfe-form-label">Profile picture</label>
+                                <ImageUpload
+                                    variant="avatar"
+                                    label="Choose image"
+                                    value={data.avatar}
+                                    onFile={(f) => setData('avatar_file', f)}
+                                    onClear={() => { setData('avatar', ''); setData('avatar_file', null); }}
+                                    gallery
+                                    onPick={(url) => { setData('avatar', url); setData('avatar_file', null); }}
+                                />
+                                {errors.avatar_file && <div className="tfe-form-error">{errors.avatar_file}</div>}
+                            </div>
 
-                                <div className="admin-form-group">
-                                    <label className="tfe-form-label">Email Address</label>
-                                    <input 
-                                        type="email" 
-                                        className="tfe-input" 
-                                        value={profileData.email} 
-                                        onChange={e => setProfileData('email', e.target.value)} 
-                                        required 
+                            <div className="tfe-form-grid tfe-form-grid--2">
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label" htmlFor="admin-name">Full name</label>
+                                    <input
+                                        id="admin-name"
+                                        type="text"
+                                        className="tfe-input"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        required
                                     />
-                                    {profileErrors.email && <div className="text-danger small mt-1">{profileErrors.email}</div>}
+                                    {errors.name && <div className="tfe-form-error">{errors.name}</div>}
                                 </div>
-
-                                <div className="admin-form-group">
-                                    <label className="tfe-form-label">Phone Number</label>
-                                    <input 
-                                        type="text" 
-                                        className="tfe-input" 
-                                        value={profileData.phone} 
-                                        onChange={e => setProfileData('phone', e.target.value)} 
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label" htmlFor="admin-email">Email address</label>
+                                    <input
+                                        id="admin-email"
+                                        type="email"
+                                        className="tfe-input"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        required
                                     />
-                                    {profileErrors.phone && <div className="text-danger small mt-1">{profileErrors.phone}</div>}
+                                    {errors.email && <div className="tfe-form-error">{errors.email}</div>}
+                                    {emailChanged && (
+                                        <p className="tfe-form-help">
+                                            Saving a new address marks it unverified — you will need to confirm it
+                                            again.
+                                        </p>
+                                    )}
                                 </div>
-
-                                <div className="mt-4">
-                                    <button type="submit" className="btn-admin" disabled={profileProcessing}>
-                                        <i className="fas fa-save me-2"></i> Save Profile
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
+                    </section>
+
+                    {/* One security surface for all three roles (Sprint 53),
+                        so this page points at it instead of carrying its own
+                        password form. */}
+                    <section className="tfe-slab">
+                        <div className="tfe-slab__header">
+                            <h3 className="tfe-slab__title">
+                                <i className="fas fa-shield-alt me-2" aria-hidden="true" /> Security
+                            </h3>
+                        </div>
+                        <div className="tfe-slab__body">
+                            <div className="tfe-setting-row">
+                                <div>
+                                    <h4>Password, 2FA and passkeys</h4>
+                                    <p>Change your password, manage two-factor sign-in and review login history.</p>
+                                </div>
+                                <Link href={route('admin.security')} className="tfe-btn tfe-btn--sm">
+                                    Open security
+                                </Link>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="tfe-form-actions tfe-form-actions--sticky">
+                        <p className="tfe-form-actions__note">
+                            {isDirty ? 'You have unsaved changes.' : 'Everything is saved.'}
+                        </p>
+                        <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing || !isDirty}>
+                            {processing ? 'Saving…' : 'Save changes'}
+                        </button>
                     </div>
-
-                    {/* Password Change */}
-                    <div className="admin-card-dark">
-                        <div className="card-header">
-                            <h3><i className="fas fa-shield-alt me-2"></i> Change Password</h3>
-                        </div>
-                        <div className="card-body">
-                            <form onSubmit={handlePasswordUpdate}>
-                                <div className="admin-form-group">
-                                    <label className="tfe-form-label">Current Password</label>
-                                    <input 
-                                        type="password" 
-                                        className="tfe-input" 
-                                        value={passwordData.current_password} 
-                                        onChange={e => setPasswordData('current_password', e.target.value)} 
-                                        required 
-                                    />
-                                    {passwordErrors.current_password && <div className="text-danger small mt-1">{passwordErrors.current_password}</div>}
-                                </div>
-
-                                <div className="admin-form-group">
-                                    <label className="tfe-form-label">New Password</label>
-                                    <input 
-                                        type="password" 
-                                        className="tfe-input" 
-                                        value={passwordData.password} 
-                                        onChange={e => setPasswordData('password', e.target.value)} 
-                                        required 
-                                    />
-                                    {passwordErrors.password && <div className="text-danger small mt-1">{passwordErrors.password}</div>}
-                                </div>
-
-                                <div className="admin-form-group">
-                                    <label className="tfe-form-label">Confirm New Password</label>
-                                    <input 
-                                        type="password" 
-                                        className="tfe-input" 
-                                        value={passwordData.password_confirmation} 
-                                        onChange={e => setPasswordData('password_confirmation', e.target.value)} 
-                                        required 
-                                    />
-                                </div>
-
-                                <div className="mt-4">
-                                    <button type="submit" className="btn-admin" disabled={passwordProcessing}>
-                                        <i className="fas fa-key me-2"></i> Update Password
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                </form>
             </SplitEditorLayout>
         </AdminLayout>
     );
