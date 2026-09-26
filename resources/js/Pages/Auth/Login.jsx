@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
+import axios from 'axios';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { toast } from 'sonner';
 import AuthLayout from '@/Layouts/AuthLayout';
@@ -11,6 +12,8 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: false,
     });
+
+    const [passkeyBusy, setPasskeyBusy] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -24,35 +27,46 @@ export default function Login({ status, canResetPassword }) {
     };
 
     const loginWithPasskey = async () => {
+        setPasskeyBusy(true);
+
         try {
-            // 1. Get authentication options (challenge) from server
+            // 1. Ask the server for a challenge. The email is optional — without
+            //    it the browser offers whatever discoverable passkey it holds.
             const optionsResponse = await axios.get(route('webauthn.login.options'), {
-                params: { email: data.email } // Optional: email can help identify the user
+                params: data.email ? { email: data.email } : {},
             });
 
-            // 2. Start the biometric authentication ritual
+            // 2. Let the authenticator sign the challenge.
             const assertion = await startAuthentication({ optionsJSON: optionsResponse.data });
 
-            // 3. Send the assertion back to the server to verify and log in
-            router.post(route('webauthn.login'), assertion, {
-                onSuccess: () => {
-                    // Redirect is handled by backend or intended path
-                },
+            // 3. Hand the signed assertion back; the server redirects on success.
+            router.post(route('webauthn.login'), { ...assertion, remember: data.remember }, {
                 onError: (err) => {
-                    console.error('Passkey authentication failed:', err);
-                    toast.error('Passkey authentication failed. Ensure you have registered this device.');
-                }
+                    toast.error(err.passkey || 'That passkey could not be verified. Try your password instead.');
+                },
+                onFinish: () => setPasskeyBusy(false),
             });
-        } catch (error) {
-            console.error('Passkey login error details:', error);
-            let message = error.response?.data?.message || error.message || 'Unknown error';
 
-            if (error.name === 'SecurityError') {
-                message = "WebAuthn (Passkeys) requires a secure domain (like localhost or a real domain). IP addresses (like 127.0.0.1) are NOT allowed.";
+            return;
+        } catch (error) {
+            // The fan dismissed the browser/OS prompt — not worth an error toast.
+            if (error?.name === 'NotAllowedError' || error?.name === 'AbortError') {
+                setPasskeyBusy(false);
+
+                return;
             }
 
-            const errorName = error.name ? `[${error.name}] ` : '';
-            toast.error(`Could not start Passkey login: ${errorName}${message}. Ensure you are on a secure connection (HTTPS) and your email is entered if required.`);
+            if (error?.name === 'SecurityError') {
+                toast.error('Passkeys need a real domain or localhost — a bare IP address will not work.');
+            } else if (error?.response?.status === 422) {
+                toast.error(error.response.data?.message || 'Passkey sign-in is unavailable. Please use your password.');
+            } else if (error?.name === 'InvalidStateError') {
+                toast.error('No passkey is registered for this device yet. Sign in with your password and add one under Security.');
+            } else {
+                toast.error(error?.message || 'Could not start passkey sign-in. Please use your password.');
+            }
+
+            setPasskeyBusy(false);
         }
     };
 
@@ -66,6 +80,7 @@ export default function Login({ status, canResetPassword }) {
             heroTagline="Your saved fixtures, budgets and trips are ready when you are."
         >
             {status && <div className="tfe-auth__status">{status}</div>}
+            {errors.passkey && <div className="tfe-form-error">{errors.passkey}</div>}
 
             <form onSubmit={submit}>
                 <div className="tfe-auth__field">
@@ -134,8 +149,15 @@ export default function Login({ status, canResetPassword }) {
                 <a href={route('social.redirect', 'google')} className="tfe-btn justify-content-center" id="googleLoginBtn">
                     <i className="fab fa-google"></i> Google
                 </a>
-                <button onClick={loginWithPasskey} className="tfe-btn justify-content-center" id="passkeyLoginBtn" type="button">
-                    <i className="fas fa-fingerprint"></i> Passkey
+                <button
+                    onClick={loginWithPasskey}
+                    className="tfe-btn justify-content-center"
+                    id="passkeyLoginBtn"
+                    type="button"
+                    disabled={passkeyBusy}
+                >
+                    <i className={passkeyBusy ? 'fas fa-circle-notch fa-spin' : 'fas fa-fingerprint'}></i>{' '}
+                    {passkeyBusy ? 'Verifying…' : 'Passkey'}
                 </button>
             </div>
         </AuthLayout>

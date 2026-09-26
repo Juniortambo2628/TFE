@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('webauthn_credentials', function (Blueprint $table) {
-            // Using 191 as a safe length for unique indexes in utf8mb4
-            $table->string('id', 191)->primary();
+            // 510 mirrors Laragear's own migration. A credential ID is chosen by
+            // the authenticator and regularly runs past 191 characters once
+            // base64url-encoded, so a shorter column silently loses passkeys.
+            // 510 utf8mb4 chars = 2040 bytes, inside InnoDB's 3072-byte key limit.
+            $table->string('id', 510)->primary();
 
             // WebAuthn user relationship (Morph)
             $table->string('authenticatable_type');
