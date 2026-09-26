@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
+import { formatMoney } from '@/lib/utils';
+import '../../../css/betting-strip.css';
 
-export default function PredictWin({ auth, upcomingMatches, userStats, leaderboard, prizes }) {
+export default function PredictWin({ auth, upcomingMatches, userStats, leaderboard, prizes, bettingOffers = [] }) {
     const [selectedMatch, setSelectedMatch] = useState(null);
     const [prediction, setPrediction] = useState({ home_score: 0, away_score: 0 });
 
@@ -47,6 +49,21 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                     { label: 'Rank',        value: `#${userStats.rank}`,          icon: 'fa-trophy',       accent: 'teal',  subtext: 'Leaderboard Position' },
                 ]}
             />
+
+            {bettingOffers.length > 0 && (
+                <section className="betting-strip">
+                    <header className="betting-strip__head">
+                        <div>
+                            <span className="betting-strip__eyebrow">Featured odds from our partners</span>
+                            <h3 className="betting-strip__title">Back your prediction with a boosted bundle</h3>
+                        </div>
+                        <span className="betting-strip__age">18+ · Gamble responsibly</span>
+                    </header>
+                    <div className="betting-strip__grid">
+                        {bettingOffers.map((o) => <BettingOffer key={o.id} offer={o} />)}
+                    </div>
+                </section>
+            )}
 
             <div className="content-cards-grid mt-4">
                 {/* Upcoming Matches */}
@@ -186,3 +203,35 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
         </FanLayout>
     );
 }
+
+function BettingOffer({ offer }) {
+    const accent = offer.partner?.theme_accent || '#16a34a';
+    const remaining = Math.max(0, (offer.capacity || 0) - (offer.sold_count || 0));
+    return (
+        <article className="betting-card" style={{ '--betting-accent': accent }}>
+            {offer.hero_image && <div className="betting-card__cover" style={{ backgroundImage: `url(/${offer.hero_image})` }} />}
+            <div className="betting-card__body">
+                <div className="betting-card__partner">
+                    <span className="betting-card__dot" />
+                    <span>{offer.partner?.display_name || 'Betting partner'}</span>
+                    {offer.partner?.verified && <i className="fas fa-check-circle" title="Verified partner" />}
+                </div>
+                <h4 className="betting-card__title">{offer.name}</h4>
+                <p className="betting-card__desc">{offer.description}</p>
+                <div className="betting-card__foot">
+                    <div className="betting-card__price">
+                        <span>from</span><strong>{formatMoney(offer.base_price, offer.currency)}</strong>
+                    </div>
+                    {remaining > 0 && <span className="betting-card__stock">{remaining.toLocaleString()} spots left</span>}
+                </div>
+                {offer.partner?.slug && (
+                    <Link href={`/partners/${offer.partner.slug}`} className="tfe-btn tfe-btn--sm betting-card__cta">
+                        Claim on {offer.partner.display_name} <i className="fas fa-external-link-alt"></i>
+                    </Link>
+                )}
+                <p className="betting-card__legal">18+ only. Gamble responsibly. Terms apply.</p>
+            </div>
+        </article>
+    );
+}
+
