@@ -39,6 +39,26 @@ import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
  * shared Security page (one surface, one implementation) and this page links
  * to it.
  */
+/**
+ * UI8's hosted Peeps builder (Sprint 55).
+ *
+ * We LINK OUT rather than embedding it, and that is a licence decision, not a
+ * convenience one. UI8's terms say an End Product is not "a UI Kit, theme, or
+ * template that allows users to extract or edit UI8 assets", forbid sharing
+ * their files with "anyone else", and exclude anything that "competes with
+ * UI8" — and Peeps itself is a UI8 avatar builder. Rebuilding it inside TFE
+ * from their parts would run at all three.
+ *
+ * Sending the fan to UI8's own builder sidesteps every one of those: their
+ * page grants each user free personal and commercial use of the Peep they
+ * make, including "in your social profiles". TFE never holds or serves a UI8
+ * file — it receives an ordinary user-uploaded PNG, exactly like a photo.
+ *
+ * Do not turn this into an embedded builder without written permission from
+ * UI8 (support@ui8.net).
+ */
+const PEEPS_BUILDER_URL = 'https://peeps.ui8.net/';
+
 export default function Profile({
     auth,
     socialStats,
@@ -472,6 +492,14 @@ export default function Profile({
                                                     }}
                                                 />
                                             </label>
+                                            <a
+                                                className="tfe-btn tfe-btn--sm"
+                                                href={PEEPS_BUILDER_URL}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <i className="fas fa-user-astronaut" /> Make a 3D avatar
+                                            </a>
                                             {hasPhoto && (
                                                 <button type="button" className="tfe-btn tfe-btn--sm" onClick={clearAvatar}>
                                                     <i className="fas fa-trash-alt" /> Remove
@@ -479,6 +507,12 @@ export default function Profile({
                                             )}
                                         </div>
                                     </div>
+                                    <p className="tfe-form-help mt-3">
+                                        Don&apos;t want to use a photo? Build a 3D character on Peeps, download the
+                                        <strong> PNG&nbsp;+&nbsp;Alpha (transparent)</strong> version, then choose it
+                                        here — the transparent background lets your team&apos;s colours show through
+                                        the ring.
+                                    </p>
                                     {avatarForm.errors.avatar && (
                                         <div className="tfe-form-error mt-2">{avatarForm.errors.avatar}</div>
                                     )}
