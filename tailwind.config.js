@@ -76,6 +76,12 @@ export default {
         },
     },
 
-    plugins: [forms, require("tailwindcss-animate")],
+    plugins: [
+        // Class strategy: the plugin no longer rewrites every bare input with a
+        // solid white background. Field looks come from resources/css/form-baseline.css
+        // (element-level baseline) and .tfe-input/.tfe-select/.tfe-textarea on top.
+        forms({ strategy: "class" }),
+        require("tailwindcss-animate"),
+    ],
 };
 

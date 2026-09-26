@@ -8,13 +8,13 @@ import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
+import ListingGrid from '@/Components/Common/ListingGrid';
 
 export default function Events({ auth, events = { data: [] }, stats = {}, filters }) {
     const safeFilters = (filters && !Array.isArray(filters)) ? filters : {};
     // State management for events
     const [showForm, setShowForm] = useState(false);
     const [search, setSearch] = useState(safeFilters.search || '');
-    const [viewMode, setViewMode] = useState('grid');
     const [imageFiles, setImageFiles] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [eventToDelete, setEventToDelete] = useState(null);
@@ -327,8 +327,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                 search={search}
                 onSearchChange={setSearch}
                 searchPlaceholder="Search events..."
-                viewMode={viewMode}
-                onViewChange={setViewMode}
+                showViewToggle={false}
                 showSort={false}
             />
 
@@ -343,147 +342,69 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                 </div>
                 
                 <div className="card-body">
-                    {viewMode === 'grid' ? (
-                        <div className="row g-4">
-                            {filteredEvents.length > 0 ? (
-                                filteredEvents.map(event => (
-                                    <div key={event.id} className="col-md-6 col-lg-4">
-                                        <div 
-                                            className="position-relative overflow-hidden"
-                                            style={{
-                                                borderRadius: '16px',
-                                                height: '240px',
-                                                background: event.image_url 
-                                                    ? `linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(139, 92, 246, 0.4)), url(${event.image_url}) center/cover`
-                                                    : 'linear-gradient(135deg, #1e40af, #7c3aed)',
-                                                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                                                transition: 'transform 0.3s, box-shadow 0.3s'
-                                            }}
-                                            onMouseEnter={e => {
-                                                e.currentTarget.style.transform = 'translateY(-4px)';
-                                                e.currentTarget.style.boxShadow = '0 12px 40px rgba(59, 130, 246, 0.3)';
-                                            }}
-                                            onMouseLeave={e => {
-                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)';
-                                            }}
-                                        >
-                                            <div style={{
-                                                position: 'absolute',
-                                                inset: 0,
-                                                background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 60%)'
-                                            }}></div>
-
-                                            <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                                                <span className="admin-badge admin-badge-blue">
-                                                    {event.type?.replace('_', ' ') || 'Event'}
-                                                </span>
-                                            </div>
-
-                                            <div className="d-flex gap-2" style={{ position: 'absolute', top: '12px', right: '12px' }}>
-                                                <button 
-                                                    className="btn-admin-icon"
-                                                    style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
-                                                    onClick={() => handleView(event)}
-                                                    title="View Event"
-                                                >
-                                                    <i className="fas fa-eye text-white"></i>
-                                                </button>
-                                                <button 
-                                                    className="btn-admin-icon"
-                                                    style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
-                                                    onClick={() => handleEdit(event)}
-                                                    title="Edit Event"
-                                                >
-                                                    <i className="fas fa-edit text-white"></i>
-                                                </button>
-                                                <button 
-                                                    className="btn-admin-icon"
-                                                    style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
-                                                    onClick={() => setEventToDelete(event.id)}
-                                                    title="Delete Event"
-                                                >
-                                                    <i className="fas fa-trash text-danger"></i>
-                                                </button>
-                                            </div>
-
-                                            <div style={{
-                                                position: 'absolute',
-                                                bottom: '16px',
-                                                left: '16px',
-                                                right: '16px'
-                                            }}>
-                                                <h5 className="fw-bold text-white mb-2" style={{ fontSize: '1.1rem' }}>
-                                                    {event.title}
-                                                </h5>
-                                                <div className="d-flex gap-3 text-white" style={{ opacity: 0.8, fontSize: '0.85rem' }}>
-                                                    <span><i className="fas fa-calendar me-1"></i> {event.date_formatted}</span>
-                                                    {event.location && <span><i className="fas fa-map-marker-alt me-1"></i> {event.location}</span>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-12">
-                                    <div className="admin-empty-state">
-                                        <i className="fas fa-calendar-times"></i>
-                                        <h4>No events found</h4>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <table className="admin-table-dark">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Date</th>
-                                    <th>Location</th>
-                                    <th>Type</th>
-                                    <th style={{ width: '120px' }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredEvents.length > 0 ? (
-                                    filteredEvents.map(event => (
+                    <ListingGrid
+                        items={filteredEvents}
+                        emptyIcon="fas fa-calendar-times"
+                        emptyTitle="No events found"
+                        emptyBody="Create an event, or clear the filters above."
+                        to={(event) => ({
+                            title: event.title,
+                            eyebrow: event.type?.replace('_', ' ') || 'Event',
+                            desc: event.description,
+                            accent: '#3b82f6',
+                            cover: event.image_url || undefined,
+                            artwork: event.image_url ? undefined : { icon: 'fas fa-calendar' },
+                            meta: [
+                                { label: 'Date', value: event.date || event.start_date || '—' },
+                                { label: 'Location', value: event.location || '—' },
+                            ],
+                            cornerButton: {
+                                icon: 'fas fa-edit',
+                                label: `Edit ${event.title}`,
+                                onClick: () => handleEdit(event),
+                            },
+                        })}
+                        tableView={
+                            <table className="tfe-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Location</th>
+                                        <th>Type</th>
+                                        <th style={{ width: 130 }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredEvents.map((event) => (
                                         <tr key={event.id}>
-                                            <td className="fw-semibold text-white">{event.title}</td>
-                                            <td className="text-white opacity-75">{event.date_formatted}</td>
-                                            <td className="text-white opacity-75">{event.location || '-'}</td>
+                                            <td className="fw-semibold">{event.title}</td>
+                                            <td>{event.date || event.start_date || '—'}</td>
+                                            <td>{event.location || '—'}</td>
                                             <td>
-                                                <span className="admin-badge admin-badge-blue">
+                                                <span className="tfe-pill tfe-pill--info">
                                                     {event.type?.replace('_', ' ') || 'General'}
                                                 </span>
                                             </td>
                                             <td>
                                                 <div className="d-flex gap-2">
-                                                    <button className="btn-admin-icon" title="View" onClick={() => handleView(event)}>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="View event" onClick={() => handleView(event)}>
                                                         <i className="fas fa-eye"></i>
                                                     </button>
-                                                    <button className="btn-admin-icon" title="Edit" onClick={() => handleEdit(event)}>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Edit event" onClick={() => handleEdit(event)}>
                                                         <i className="fas fa-edit"></i>
                                                     </button>
-                                                    <button className="btn-admin-icon" title="Delete" onClick={() => setEventToDelete(event.id)}>
-                                                        <i className="fas fa-trash text-danger"></i>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Delete event" onClick={() => setEventToDelete(event.id)}>
+                                                        <i className="fas fa-trash"></i>
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-5">
-                                            <div className="admin-empty-state">
-                                                <i className="fas fa-calendar-times"></i>
-                                                <h4>No events found</h4>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    )}
+                                    ))}
+                                </tbody>
+                            </table>
+                        }
+                    />
                 </div>
             </div>
 

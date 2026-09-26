@@ -1,0 +1,223 @@
+/* ==========================================================================
+   GLOBAL FORM BASELINE
+   --------------------------------------------------------------------------
+   Every form control on the platform gets the dark glass treatment by
+   default, whether or not someone remembered to add `.tfe-input`.
+
+   Why this file exists
+   --------------------
+   `@tailwindcss/forms` used to run in its default ("base") strategy, which
+   rewrites `[type="text"]`, `<select>`, `<textarea>` and friends with a
+   SOLID WHITE background. Any field that had not opted into `.tfe-input`
+   therefore rendered as a white box on the dark canvas — the unstyled boxes
+   on the social feed, the tribes forms and a long tail of older pages.
+   Adding `.tfe-input` one field at a time only ever fixed the fields someone
+   noticed; the next hand-written form started the cycle again.
+
+   The plugin now runs with `strategy: 'class'` (see tailwind.config.js), so
+   it only styles fields that explicitly ask for `form-input` etc. — which
+   nothing here does. That frees the element selectors below to be the
+   platform default.
+
+   Cascade contract
+   ----------------
+   Everything here is deliberately kept at ELEMENT specificity (0,0,1), so:
+
+     - it styles every bare field, and
+     - ANY class-based styling beats it — `.tfe-input` (0,1,1), the admin
+       `.admin-form-input` (0,1,0), the landing template's own field classes,
+       a one-off Tailwind `bg-*` utility.
+
+   So this is a floor, never a ceiling. Do not raise the specificity here and
+   do not reach for `!important`; if a field needs a different look, give it a
+   class.
+   ========================================================================== */
+
+/* ── Text-ish fields, selects and textareas ──────────────────────────── */
+
+input,
+select,
+textarea {
+    /* Native date/time/number pickers and scrollbars follow this. Without it
+       the OS paints a light widget inside an otherwise dark field. */
+    color-scheme: dark;
+    font-family: inherit;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--text-primary, #fff);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="hidden"]),
+select,
+textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: border-color var(--dur-fast, 140ms) var(--ease-out, ease),
+                background var(--dur-fast, 140ms) var(--ease-out, ease),
+                box-shadow var(--dur-fast, 140ms) var(--ease-out, ease);
+}
+
+/* `:is()` takes the specificity of its most specific argument, which for a
+   bare element list is still 0,0,1 — so hover/focus stay at the floor. */
+:is(input, select, textarea):hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+:is(input, select, textarea):focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.32);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+:is(input, textarea)::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+    opacity: 1; /* Firefox dims placeholders by default. */
+}
+
+:is(input, select, textarea):disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+:is(input, select, textarea):read-only:not([type="date"]):not([type="time"]):not([type="datetime-local"]) {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+/* ── Select ──────────────────────────────────────────────────────────── */
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23ffffff' opacity='0.5'%3E%3Cpath d='M5.516 7.548l4.484 4.484 4.484-4.484-1.061-1.061L10 9.911 6.577 6.487z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px 18px;
+}
+
+select[multiple] {
+    background-image: none;
+    padding-right: 14px;
+}
+
+/* The popup list is drawn by the OS and inherits nothing, so it has to be
+   pinned explicitly or it renders white-on-white on some Chromium builds. */
+option,
+optgroup {
+    background: #111;
+    color: #fff;
+}
+
+/* ── Checkboxes, radios, range ───────────────────────────────────────── */
+
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] {
+    accent-color: var(--accent, #dc143c);
+    cursor: pointer;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* ── File input ──────────────────────────────────────────────────────── */
+
+input[type="file"] {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.82rem;
+}
+
+input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--dur-fast, 140ms) var(--ease-out, ease);
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Colour input ────────────────────────────────────────────────────── */
+
+input[type="color"] {
+    width: 44px;
+    height: 32px;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ── Autofill ────────────────────────────────────────────────────────── */
+
+/* Chrome/Safari paint their own near-white fill over any dark field once
+   autofill kicks in — the classic "my login box went white" report. There is
+   no property to disable it, so the fill is faked with a giant inset shadow
+   and the transition is parked far in the future. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill,
+textarea:-webkit-autofill {
+    -webkit-text-fill-color: #fff;
+    -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset;
+    box-shadow: 0 0 0 1000px #1a1a1a inset;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+}
+
+/* ── Opt-outs ────────────────────────────────────────────────────────── */
+
+/* The command palette draws its own frameless field, and cmdk owns the
+   markup, so there is no class to hang styling on — target its attribute. */
+input[cmdk-input] {
+    width: 100%;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+input[cmdk-input]:hover,
+input[cmdk-input]:focus {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+/* Escape hatch for a field that genuinely wants the browser's own widget
+   (rare — a third-party embed, say). */
+.tfe-field-native {
+    all: revert;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    input,
+    select,
+    textarea {
+        transition: none;
+    }
+}

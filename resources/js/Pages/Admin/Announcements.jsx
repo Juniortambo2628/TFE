@@ -4,6 +4,15 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import ListingGrid from '@/Components/Common/ListingGrid';
+
+// Card accent per announcement type — mirrors the old badge colours.
+const TYPE_ACCENT = {
+    info: '#3b82f6',
+    success: '#10b981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+};
 
 export default function Announcements({ auth, announcements = { data: [] } }) {
     const [showForm, setShowForm] = useState(false);
@@ -192,72 +201,67 @@ export default function Announcements({ auth, announcements = { data: [] } }) {
                             <span className="admin-badge admin-badge-gray">{filteredAnnouncements.length} active</span>
                         </div>
                         <div className="card-body p-0">
-                            <table className="admin-table-dark">
-                                <thead>
-                                    <tr>
-                                        <th>Status</th>
-                                        <th>Type</th>
-                                        <th>Message</th>
-                                        <th>Posted On</th>
-                                        <th style={{ width: '120px' }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredAnnouncements.length > 0 ? (
-                                        filteredAnnouncements.map(ann => (
-                                            <tr key={ann.id}>
-                                                <td>
-                                                    <div className="admin-toggle" onClick={() => handleToggle(ann.id)}>
-                                                        <input type="checkbox" readOnly checked={ann.is_active} />
-                                                        <span className="admin-toggle-slider"></span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span className={`admin-badge admin-badge-${ann.type === 'info' ? 'blue' : (ann.type === 'success' ? 'green' : (ann.type === 'warning' ? 'amber' : 'red'))}`}>
-                                                        {ann.type}
-                                                    </span>
-                                                </td>
-                                                <td className="text-white" style={{ maxWidth: '400px' }}>
-                                                    <div className="fw-semibold">{ann.title}</div>
-                                                    <div className="text-truncate small opacity-75">{ann.content}</div>
-                                                </td>
-                                                <td className="text-white" style={{ opacity: 0.7 }}>
-                                                    {new Date(ann.created_at).toLocaleDateString()}
-                                                </td>
-                                                <td>
-                                                    <div className="d-flex gap-2">
-                                                        <button 
-                                                            className="btn-admin-icon" 
-                                                            title="Edit"
-                                                            onClick={() => handleEdit(ann)}
-                                                        >
-                                                            <i className="fas fa-edit"></i>
-                                                        </button>
-                                                        <button 
-                                                            className="btn-admin-icon" 
-                                                            title="Delete"
-                                                            onClick={() => setAnnToDelete(ann.id)}
-                                                            style={{ color: 'var(--admin-danger)' }}
-                                                        >
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
+                            <ListingGrid
+                                items={filteredAnnouncements}
+                                emptyIcon="fas fa-bullhorn"
+                                emptyTitle="No announcements found"
+                                emptyBody="Create your first broadcast message using the button above."
+                                to={(ann) => ({
+                                    title: ann.title,
+                                    eyebrow: ann.type,
+                                    desc: ann.content,
+                                    accent: TYPE_ACCENT[ann.type] || TYPE_ACCENT.info,
+                                    status: ann.is_active ? 'Active' : 'Inactive',
+                                    artwork: { icon: 'fas fa-bullhorn' },
+                                    meta: [{ label: 'Posted', value: new Date(ann.created_at).toLocaleDateString() }],
+                                    cornerButton: {
+                                        icon: 'fas fa-edit',
+                                        label: `Edit ${ann.title}`,
+                                        onClick: () => handleEdit(ann),
+                                    },
+                                })}
+                                tableView={
+                                    <table className="tfe-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Status</th>
+                                                <th>Type</th>
+                                                <th>Message</th>
+                                                <th>Posted On</th>
+                                                <th style={{ width: 120 }}>Actions</th>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="5">
-                                                <div className="admin-empty-state">
-                                                    <i className="fas fa-bullhorn"></i>
-                                                    <h4>No announcements found</h4>
-                                                    <p>Create your first broadcast message using the button above.</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody>
+                                            {filteredAnnouncements.map((ann) => (
+                                                <tr key={ann.id}>
+                                                    <td>
+                                                        <div className="admin-toggle" onClick={() => handleToggle(ann.id)}>
+                                                            <input type="checkbox" readOnly checked={ann.is_active} />
+                                                            <span className="admin-toggle-slider"></span>
+                                                        </div>
+                                                    </td>
+                                                    <td><span className="tfe-pill tfe-pill--info">{ann.type}</span></td>
+                                                    <td style={{ maxWidth: 400 }}>
+                                                        <div className="fw-semibold">{ann.title}</div>
+                                                        <small className="text-white-50">{ann.content}</small>
+                                                    </td>
+                                                    <td>{new Date(ann.created_at).toLocaleDateString()}</td>
+                                                    <td>
+                                                        <div className="d-flex gap-2">
+                                                            <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Edit announcement" onClick={() => handleEdit(ann)}>
+                                                                <i className="fas fa-edit"></i>
+                                                            </button>
+                                                            <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Delete announcement" onClick={() => setAnnToDelete(ann.id)}>
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                }
+                            />
                         </div>
                     </div>
                 </>

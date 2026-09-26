@@ -2,197 +2,195 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
+import SettingField from '@/Components/Admin/SettingField';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import StadiumImageCard from '@/Components/Admin/StadiumImageCard';
+import ListingGrid from '@/Components/Common/ListingGrid';
 
 /**
- * Content Management Page — Page Heroes (public /about, /features, /services,
- * /news, /contact), Stadium Images (hero-slider venue photography) and
- * community Posts moderation.
+ * Content Management — the CMS for public page content.
+ *
+ * Tabs: Page Heroes (the /about, /features, /services, /news, /contact hero
+ * band), Section Cards (the content cards beneath each of those heroes) and
+ * Posts moderation.
+ *
+ * Every editor on this page is a <SettingField>, so an image setting is an
+ * upload with a live preview rather than a text box asking an admin to type a
+ * file path. Stadium imagery used to be a fourth tab here; it now sits with
+ * everything else about a tournament under Admin → Tournaments.
  */
-export default function Content({ auth, posts = { data: [] }, settings = {}, stadiums = [] }) {
+
+// The standalone public section pages that render the shared PageHero.
+const HERO_PAGES = [
+    { slug: 'about', label: 'About', icon: 'fas fa-info-circle' },
+    { slug: 'features', label: 'Features', icon: 'fas fa-star' },
+    { slug: 'services', label: 'Services', icon: 'fas fa-concierge-bell' },
+    { slug: 'news', label: 'News', icon: 'fas fa-newspaper' },
+    { slug: 'contact', label: 'Contact', icon: 'fas fa-envelope' },
+];
+
+// One row per hero field, so the five cards below are a map rather than five
+// copies of the same six inputs.
+const HERO_FIELDS = [
+    { field: 'eyebrow', label: 'Eyebrow', type: 'text' },
+    { field: 'title', label: 'Title', type: 'text' },
+    { field: 'tagline', label: 'Tagline', type: 'textarea' },
+    { field: 'background', label: 'Background image', type: 'image', hint: '1920×800 landscape — JPG, PNG or WebP' },
+    { field: 'cta_label', label: 'CTA label', type: 'text' },
+    { field: 'cta_href', label: 'CTA link', type: 'text' },
+];
+
+const CARD_FIELDS = [
+    { field: 'image', label: 'Card image', type: 'image', hint: 'Square or 4:3 — JPG, PNG or WebP' },
+    { field: 'title', label: 'Title', type: 'text' },
+    { field: 'subtitle', label: 'Subtitle', type: 'text' },
+    { field: 'description', label: 'Description', type: 'textarea', rows: 4 },
+];
+
+const TABS = [
+    { key: 'heroes', label: 'Page Heroes', icon: 'fas fa-image' },
+    { key: 'cards', label: 'Section Cards', icon: 'fas fa-th-large' },
+    { key: 'posts', label: 'Posts', icon: 'fas fa-newspaper' },
+];
+
+export default function Content({
+    posts = { data: [] },
+    settings = {},
+    heroDefaults = {},
+    sectionCards = [],
+}) {
     const [mainTab, setMainTab] = useState('heroes');
     const [search, setSearch] = useState('');
     const [postToDelete, setPostToDelete] = useState(null);
+    const [openSection, setOpenSection] = useState(sectionCards[0]?.slug || null);
 
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
-        { label: 'Content' }
+        { label: 'Content' },
     ];
-
-    // The standalone public section pages that render the shared PageHero.
-    const heroPages = [
-        { slug: 'about', label: 'About', icon: 'fas fa-info-circle' },
-        { slug: 'features', label: 'Features', icon: 'fas fa-star' },
-        { slug: 'services', label: 'Services', icon: 'fas fa-concierge-bell' },
-        { slug: 'news', label: 'News', icon: 'fas fa-newspaper' },
-        { slug: 'contact', label: 'Contact', icon: 'fas fa-envelope' },
-    ];
-
-    // Reusable setting input
-    const SettingInput = ({ label, settingKey, type = 'text', placeholder = '', rows = 3, group = 'landing' }) => {
-        const [value, setValue] = useState(settings[`${group}_${settingKey}`] || '');
-        const [saving, setSaving] = useState(false);
-
-        const handleSave = () => {
-            setSaving(true);
-            // `type` and `group` are required server-side; omitting them
-            // made every save here fail validation silently.
-            router.post(route('admin.content.settings.update'), {
-                key: `${group}_${settingKey}`,
-                value: value,
-                type: type === 'textarea' ? 'text' : type,
-                group: group,
-            }, {
-                preserveScroll: true,
-                onFinish: () => setSaving(false)
-            });
-        };
-
-        return (
-            <div className="admin-form-group">
-                <label className="admin-form-label">{label}</label>
-                {type === 'textarea' ? (
-                    <textarea
-                        className="admin-form-input admin-form-textarea"
-                        rows={rows}
-                        value={value}
-                        onChange={e => setValue(e.target.value)}
-                        placeholder={placeholder}
-                    />
-                ) : (
-                    <input
-                        type={type}
-                        className="admin-form-input"
-                        value={value}
-                        onChange={e => setValue(e.target.value)}
-                        placeholder={placeholder}
-                    />
-                )}
-                <button
-                    className="btn-admin-outline btn-admin-sm mt-2"
-                    onClick={handleSave}
-                    disabled={saving}
-                >
-                    {saving ? 'Saving...' : 'Save'}
-                </button>
-            </div>
-        );
-    };
 
     return (
         <AdminLayout title="Content Management">
-            <DashboardHero role="admin"
+            <DashboardHero
+                role="admin"
                 title="Content Management"
-                subtitle="Manage public page heroes and community posts."
+                subtitle="Public page heroes, section cards and community posts."
                 breadcrumbs={breadcrumbs}
             />
 
-            {/* Main Tabs */}
             <div className="admin-tabs mb-4">
-                <button
-                    className={`admin-tab ${mainTab === 'heroes' ? 'active' : ''}`}
-                    onClick={() => setMainTab('heroes')}
-                >
-                    <i className="fas fa-image"></i> Page Heroes
-                </button>
-                <button
-                    className={`admin-tab ${mainTab === 'stadiums' ? 'active' : ''}`}
-                    onClick={() => setMainTab('stadiums')}
-                >
-                    <i className="fas fa-futbol"></i> Stadium Images
-                </button>
-                <button
-                    className={`admin-tab ${mainTab === 'posts' ? 'active' : ''}`}
-                    onClick={() => setMainTab('posts')}
-                >
-                    <i className="fas fa-newspaper"></i> Posts
-                </button>
+                {TABS.map((tab) => (
+                    <button
+                        key={tab.key}
+                        className={`admin-tab ${mainTab === tab.key ? 'active' : ''}`}
+                        onClick={() => setMainTab(tab.key)}
+                    >
+                        <i className={tab.icon}></i> {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Page Heroes — the /about, /features, /services, /news, /contact
-                hero content (leave a field blank to fall back to
-                config/site_pages.php). */}
+            {/* ── Page heroes ─────────────────────────────────────────── */}
             {mainTab === 'heroes' && (
-                <div className="row g-4">
-                    {heroPages.map((page) => (
-                        <div className="col-lg-6" key={page.slug}>
-                            <div className="admin-card-dark h-100">
-                                <div className="card-header">
-                                    <h3><i className={page.icon}></i> {page.label} Hero</h3>
-                                </div>
-                                <div className="card-body">
-                                    <SettingInput label="Eyebrow" settingKey={`${page.slug}_eyebrow`} placeholder={`${page.label}`} group="page_hero" />
-                                    <SettingInput label="Title" settingKey={`${page.slug}_title`} placeholder={`${page.label} page title`} group="page_hero" />
-                                    <SettingInput label="Tagline" settingKey={`${page.slug}_tagline`} type="textarea" placeholder="Short intro line" group="page_hero" />
-                                    <SettingInput label="Background image (public path or /storage URL)" settingKey={`${page.slug}_background`} placeholder="assets/img/backdrops/stadium-fans.jpg" group="page_hero" />
-                                    <div className="row g-3">
-                                        <div className="col-6">
-                                            <SettingInput label="CTA label" settingKey={`${page.slug}_cta_label`} placeholder="Get started" group="page_hero" />
-                                        </div>
-                                        <div className="col-6">
-                                            <SettingInput label="CTA link" settingKey={`${page.slug}_cta_href`} placeholder="/services" group="page_hero" />
-                                        </div>
-                                    </div>
+                <div className="admin-cms-grid">
+                    {HERO_PAGES.map((page) => (
+                        <section className="tfe-slab" key={page.slug}>
+                            <div className="tfe-slab__header">
+                                <div>
+                                    <h2 className="tfe-slab__title">
+                                        <i className={page.icon}></i> {page.label} hero
+                                    </h2>
+                                    <p className="tfe-slab__title-sub">
+                                        Leave a field blank to use the built-in default.
+                                    </p>
                                 </div>
                             </div>
-                        </div>
+                            <div className="tfe-slab__body">
+                                {HERO_FIELDS.map((f) => (
+                                    <SettingField
+                                        key={f.field}
+                                        group="page_hero"
+                                        settingKey={`${page.slug}_${f.field}`}
+                                        label={f.label}
+                                        type={f.type}
+                                        hint={f.hint}
+                                        rows={f.rows}
+                                        value={settings[`page_hero_${page.slug}_${f.field}`] || ''}
+                                        defaultValue={heroDefaults?.[page.slug]?.[f.field] || null}
+                                        placeholder={heroDefaults?.[page.slug]?.[f.field] || ''}
+                                    />
+                                ))}
+                            </div>
+                        </section>
                     ))}
                 </div>
             )}
 
-            {/* Stadium Images — the hero-slider venue photography. Images ship
-                committed under public/stadiums/; anything uploaded here
-                overrides one of them and can be reset back. */}
-            {mainTab === 'stadiums' && (
+            {/* ── Section cards ───────────────────────────────────────── */}
+            {mainTab === 'cards' && (
                 <>
-                    {stadiums.length === 0 ? (
-                        <div className="tfe-empty">
-                            <div className="tfe-empty__icon"><i className="fas fa-futbol" /></div>
-                            <h4 className="tfe-empty__title">No stadium catalogue</h4>
-                            <p className="tfe-empty__body">
-                                No tournament in <code>config/stadiums.php</code> has a stadium set yet.
-                            </p>
-                        </div>
-                    ) : stadiums.map((set) => (
-                        <div className="mb-5" key={set.tournament_id}>
-                            <div className="d-flex align-items-baseline justify-content-between mb-2">
-                                <h3 className="admin-section-title mb-0">{set.tournament_name}</h3>
-                                <span className="text-white-50 small">
-                                    {set.venues.length} venue{set.venues.length === 1 ? '' : 's'}
-                                    {set.has_catalogue ? ' · Local catalogue' : ' · Wikipedia venues'}
-                                </span>
-                            </div>
-                            {!set.has_catalogue && (
-                                <p className="tfe-form-help mb-3">
-                                    This tournament has no local stadium catalogue yet — venues are pulled from Wikipedia.
-                                    Upload a hero image per venue below to override the Wikipedia thumbnail.
-                                </p>
-                            )}
-                            {set.venues.length === 0 ? (
-                                <div className="tfe-empty tfe-empty--inline">
-                                    <div className="tfe-empty__icon"><i className="fas fa-image" /></div>
-                                    <p className="tfe-empty__body mb-0">No venues resolved yet — try the Refresh action on Settings → Tournament.</p>
-                                </div>
-                            ) : (
-                                <div className="row g-4">
-                                    {set.venues.map((venue) => (
-                                        <div className="col-lg-4 col-md-6" key={venue.slug}>
-                                            <StadiumImageCard
-                                                venue={venue}
-                                                tournamentId={set.tournament_id}
-                                            />
+                    <div className="feed-tabs mb-4">
+                        {sectionCards.map((section) => (
+                            <button
+                                key={section.slug}
+                                type="button"
+                                className={`tfe-btn tfe-btn--sm${openSection === section.slug ? ' is-active' : ''}`}
+                                onClick={() => setOpenSection(section.slug)}
+                            >
+                                {section.label}
+                                <span className="tfe-pill tfe-pill--info ms-2">{section.cards.length}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {sectionCards
+                        .filter((section) => section.slug === openSection)
+                        .map((section) => (
+                            <div className="admin-cms-grid" key={section.slug}>
+                                {section.cards.map((card) => (
+                                    <section className="tfe-slab" key={card.index}>
+                                        <div className="tfe-slab__header">
+                                            <div>
+                                                <h2 className="tfe-slab__title">
+                                                    {card.fields.title.value || card.label}
+                                                </h2>
+                                                <p className="tfe-slab__title-sub">
+                                                    Card {card.index + 1} on /{section.slug}
+                                                </p>
+                                            </div>
+                                            {card.tags?.length > 0 && (
+                                                <span className="tfe-pill tfe-pill--concluded">
+                                                    {card.tags.join(' · ')}
+                                                </span>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                                        <div className="tfe-slab__body">
+                                            {CARD_FIELDS.map((f) => {
+                                                const meta = card.fields[f.field];
+                                                return (
+                                                    <SettingField
+                                                        key={f.field}
+                                                        group="section_card"
+                                                        settingKey={meta.field_key}
+                                                        label={f.label}
+                                                        type={f.type}
+                                                        hint={f.hint}
+                                                        rows={f.rows}
+                                                        value={meta.value}
+                                                        defaultValue={meta.default}
+                                                        placeholder={meta.default}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </section>
+                                ))}
+                            </div>
+                        ))}
                 </>
             )}
 
-            {/* Posts Tab */}
+            {/* ── Posts ───────────────────────────────────────────────── */}
             {mainTab === 'posts' && (
                 <>
                     <AdminToolbar
@@ -203,62 +201,58 @@ export default function Content({ auth, posts = { data: [] }, settings = {}, sta
                         showViewToggle={false}
                     />
 
-                    <div className="admin-card-dark">
-                        <div className="card-header">
-                            <h3><i className="fas fa-newspaper"></i> Community Posts</h3>
-                            <span className="admin-badge admin-badge-gray">{posts.data?.length || 0} posts</span>
-                        </div>
-                        <div className="card-body p-0">
-                            <table className="admin-table-dark">
+                    <ListingGrid
+                        items={(posts.data || []).filter(
+                            (p) => !search || (p.content || '').toLowerCase().includes(search.toLowerCase()),
+                        )}
+                        emptyIcon="fas fa-newspaper"
+                        emptyTitle="No posts yet"
+                        emptyBody="Community posts will appear here."
+                        to={(post) => ({
+                            title: post.content?.substring(0, 60) || 'Post',
+                            eyebrow: post.author,
+                            desc: post.content,
+                            accent: '#3b82f6',
+                            artwork: { icon: 'fas fa-comment' },
+                            meta: [{ label: 'Posted', value: post.created_at }],
+                            cornerButton: {
+                                icon: 'fas fa-trash',
+                                label: 'Delete post',
+                                onClick: () => setPostToDelete(post.id),
+                            },
+                        })}
+                        tableView={
+                            <table className="tfe-table">
                                 <thead>
                                     <tr>
-                                        <th>Title</th>
+                                        <th>Content</th>
                                         <th>Author</th>
-                                        <th>Tribe</th>
-                                        <th>Likes</th>
                                         <th>Date</th>
-                                        <th style={{ width: '100px' }}>Actions</th>
+                                        <th style={{ width: 90 }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {posts.data && posts.data.length > 0 ? (
-                                        posts.data
-                                            .filter(p => !search || p.title?.toLowerCase().includes(search.toLowerCase()))
-                                            .map(post => (
-                                                <tr key={post.id}>
-                                                    <td className="fw-semibold">{post.title || post.content?.substring(0, 50) + '...'}</td>
-                                                    <td className="text-muted">{post.user?.name || 'Unknown'}</td>
-                                                    <td>
-                                                        <span className="admin-badge admin-badge-blue">{post.tribe?.name || 'General'}</span>
-                                                    </td>
-                                                    <td>{post.likes_count || 0}</td>
-                                                    <td className="text-muted small">{post.created_at}</td>
-                                                    <td>
-                                                        <button
-                                                            className="btn-admin-icon"
-                                                            title="Delete Post"
-                                                            onClick={() => setPostToDelete(post.id)}
-                                                        >
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="6">
-                                                <div className="admin-empty-state">
-                                                    <i className="fas fa-newspaper"></i>
-                                                    <h4>No posts yet</h4>
-                                                    <p>Community posts will appear here.</p>
-                                                </div>
+                                    {(posts.data || []).map((post) => (
+                                        <tr key={post.id}>
+                                            <td>{post.content}</td>
+                                            <td>{post.author}</td>
+                                            <td>{post.created_at}</td>
+                                            <td>
+                                                <button
+                                                    type="button"
+                                                    className="tfe-btn tfe-btn--sm tfe-btn--icon"
+                                                    aria-label="Delete post"
+                                                    onClick={() => setPostToDelete(post.id)}
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr>
-                                    )}
+                                    ))}
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
+                        }
+                    />
                 </>
             )}
 
@@ -270,7 +264,7 @@ export default function Content({ auth, posts = { data: [] }, settings = {}, sta
                 onConfirm={() => {
                     if (postToDelete) {
                         router.delete(route('admin.content.posts.delete', postToDelete), {
-                            onSuccess: () => setPostToDelete(null)
+                            onSuccess: () => setPostToDelete(null),
                         });
                     }
                 }}

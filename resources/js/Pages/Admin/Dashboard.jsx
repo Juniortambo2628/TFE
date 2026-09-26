@@ -19,8 +19,7 @@ const shortDate = (iso) => {
  * platform, not ours; every tile here reflects reach on TFE.
  */
 export default function Dashboard({ stats = {}, recentUsers = [], recentPartners = [], usersByRole = [] }) {
-    const { auth, assetUrl, tournament_list = [] } = usePage().props;
-    const baseUrl = assetUrl || '';
+    const { auth, tournament_list = [] } = usePage().props;
 
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
@@ -93,7 +92,7 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentPartners
                 <div className="admin-card-dark mb-4">
                     <div className="card-header">
                         <h3><i className="fas fa-trophy"></i> Tournaments</h3>
-                        <Link href={route('admin.settings')} className="btn-admin-outline btn-admin-sm">Manage</Link>
+                        <Link href={route('admin.tournaments.index')} className="tfe-btn tfe-btn--sm">Manage</Link>
                     </div>
                     <div className="admin-tourn-row">
                         {tournament_list.map((t) => {
@@ -104,9 +103,9 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentPartners
                                 <div key={t.id} className="admin-tourn-row__item">
                                     <AccentCard
                                         LinkComponent={Link}
-                                        href={`/tournaments/${t.slug || t.id}`}
+                                        href={route('admin.tournaments.edit', t.id)}
                                         accent={ACCENT_BY_ID[t.id] || '#dc143c'}
-                                        artwork={t.trophy_image ? { src: baseUrl + t.trophy_image } : undefined}
+                                        artwork={t.trophy_image ? { src: t.trophy_image } : undefined}
                                         status={t.status}
                                         title={t.name}
                                         pills={t.hosts || []}
@@ -114,7 +113,7 @@ export default function Dashboard({ stats = {}, recentUsers = [], recentPartners
                                             { label: 'Dates', value: `${shortDate(t.start_date)} → ${shortDate(t.end_date)}` },
                                             { label: 'Length', value: days ? `${days} days` : '—' },
                                         ]}
-                                        cta={{ label: 'View page', icon: 'fas fa-arrow-right' }}
+                                        cta={{ label: 'Manage', icon: 'fas fa-arrow-right' }}
                                     />
                                 </div>
                             );

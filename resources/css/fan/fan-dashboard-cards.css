@@ -1897,152 +1897,16 @@ body {
   margin-top: 16px;
 }
 
-/* Tribes page specific styles */
-.tribes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
+/* Tribes page styles live in resources/css/fan/tribes.css (Sprint 48).
+   The old tribe-card block that used to sit here (.tribes-grid, .tribe-card,
+   .tribe-cover, .tribe-privacy, .tribe-content, .tribe-name,
+   .tribe-description, .tribe-stats, .tribe-members, .tribe-posts,
+   .tribe-creator, .tribe-join-btn) was left behind when the pages were
+   rebuilt on the shared primitives. It was not merely dead: `.tribe-members`
+   set `display: flex` on what is now the member LIST, laying its rows out
+   side by side inside the sidebar card. Removed rather than renamed so the
+   next rebuild does not trip over it again. */
 
-.tribe-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-  border-radius: 14px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.tribe-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
-  border-color: rgba(184, 11, 30, 0.2);
-}
-
-.tribe-cover {
-  height: 120px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tribe-privacy {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  padding: 6px 12px;
-  border-radius: 20px;
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tribe-privacy i {
-  font-size: 10px;
-}
-
-.tribe-content {
-  padding: 20px;
-}
-
-.tribe-name {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.tribe-description {
-  margin: 0 0 16px 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.tribe-stats {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.tribe-members,
-.tribe-posts {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.tribe-members i,
-.tribe-posts i {
-  font-size: 12px;
-}
-
-.tribe-creator {
-  margin-bottom: 16px;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.tribe-join-btn {
-  width: 100%;
-  background: linear-gradient(90deg, var(--accent), #ef4050);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tribe-join-btn:hover {
-  background: linear-gradient(90deg, #a00a1a, #d63646);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(184, 11, 30, 0.3);
-}
-
-.tribe-join-btn.joined {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
-}
-
-.tribe-join-btn.joined:hover {
-  background: linear-gradient(90deg, #16a34a, #15803d);
-  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
-}
-
-.tribe-join-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.tribe-join-btn:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* Responsive tribes grid */
-@media (max-width: 768px) {
-  .tribes-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .tribe-stats {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
 @media (max-width: 991px) {
   .dashboard-layout {
     grid-template-columns: 1fr;

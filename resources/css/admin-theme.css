@@ -898,3 +898,114 @@
     background: rgba(255, 255, 255, 0.06);
     color: rgba(255, 255, 255, 0.5);
 }
+
+/* ── Admin CMS (Sprint 49) ──────────────────────────────────────────────
+   Shared layout for the setting-editor pages (Content, Tournaments). The
+   editors themselves are <SettingField>, so these only own the grid and the
+   per-field footer row. */
+
+.admin-cms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+/* Denser variant for compact cards (stadium venue tiles). */
+.admin-cms-grid--tight {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .admin-cms-grid,
+    .admin-cms-grid--tight {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* One self-saving setting: label, control, then a footer with the save
+   action and its confirmation. */
+.admin-setting-field + .admin-setting-field {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-setting-field__foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.admin-setting-field__saved {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--success, #10b981);
+}
+
+.admin-setting-field .tfe-color-swatch {
+    width: 100%;
+    height: 44px;
+}
+
+/* ── Admin → Tournaments (Sprint 49) ────────────────────────────────────
+   The index toolbar and the edit page's sticky preview column. The edit
+   page itself reuses .partner-edit-grid, so the two management surfaces
+   share one layout. */
+
+.admin-tournament-toolbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.admin-tournament-toolbar .tfe-form-field + .tfe-form-field {
+    margin-top: 0;
+}
+
+.admin-refresh-output {
+    margin: 16px 0 0;
+    padding: 14px 16px;
+    max-height: 260px;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.76rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.admin-tournament-preview {
+    position: sticky;
+    top: 88px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.admin-tournament-preview__title {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: var(--label-letter-spacing, 0.06em);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.admin-tournament-preview__hero img {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}

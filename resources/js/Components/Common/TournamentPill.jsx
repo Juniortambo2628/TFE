@@ -7,9 +7,15 @@ import React from 'react';
  *   - non-null: blue trophy pill labelled `shortName || id`
  *   - null    : green globe pill labelled "Open to all" (cross-tournament)
  *
- * `size` controls dot vs badge: 'sm' is the compact fan-card version,
- * 'md' is the admin-table version. `className` composes with the
- * built-in tone classes so callers can tweak layout (margin, wrap).
+ * Built on `.tfe-pill` like every other badge on the platform. It used to
+ * carry its own inline `background`/`color`/`padding` plus the Bootstrap
+ * helpers `d-inline-flex align-items-center gap-1` — and Bootstrap is not
+ * loaded on the dashboards, so the span had no display of its own and
+ * stretched to the full width of any flex-column card it sat in (a colour
+ * *bar* across the tribe cards rather than a pill).
+ *
+ * `size` controls the scale: 'sm' is the compact fan-card version, 'md' the
+ * admin-table version. `className` composes so callers can tweak layout.
  */
 export default function TournamentPill({
     tournamentId,
@@ -19,25 +25,21 @@ export default function TournamentPill({
     title,
 }) {
     const scoped = !!tournamentId;
-    const label = shortName || tournamentId || 'Open to all';
-    const icon = scoped ? 'fa-trophy' : 'fa-globe';
-
-    const style = size === 'md'
-        ? { fontSize: '0.75rem', padding: '4px 10px', borderRadius: 999, fontWeight: 600 }
-        : { fontSize: '0.65rem', padding: '2px 8px',  borderRadius: 999, fontWeight: 600, letterSpacing: 0.3 };
-
-    const tone = scoped
-        ? { background: 'rgba(59,130,246,0.15)', color: '#3b82f6' }
-        : { background: 'rgba(16,185,129,0.15)', color: '#10b981' };
+    const label = scoped ? (shortName || tournamentId) : 'Open to all';
 
     return (
         <span
-            className={`d-inline-flex align-items-center gap-1 ${className}`}
-            style={{ ...style, ...tone }}
+            className={[
+                'tfe-pill',
+                scoped ? 'tfe-pill--info' : 'tfe-pill--approved',
+                'tfe-pill--standalone',
+                size === 'md' ? 'tfe-pill--md' : '',
+                className,
+            ].filter(Boolean).join(' ')}
             title={title || (scoped ? tournamentId : 'Visible across every tournament')}
         >
-            <i className={`fas ${icon}`} style={{ fontSize: size === 'md' ? '0.65rem' : '0.55rem' }}></i>
-            {scoped ? label : 'Open to all'}
+            <i className={`fas ${scoped ? 'fa-trophy' : 'fa-globe'}`} />
+            {label}
         </span>
     );
 }

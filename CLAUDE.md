@@ -144,6 +144,48 @@ admin-authored rows. Always eager-load with
 `->with('publisher.partnerProfile')` when calling in a loop — it's N+1
 without it.
 
+### Tribes (completed Sprint 48)
+
+Fan communities, scoped per tournament (`tournament_id` nullable — NULL means
+"open to fans of every tournament"). Models: `Tribe`, `TribeMember`,
+`TribePost`, `TribePostReply`, `TribeJoinRequest`.
+
+**Privacy is enforced, not decorative.** Until Sprint 48 `join()` added the
+member regardless of privacy, so "Private (Approval required)" and "Invite
+Only" let anyone straight in. Now:
+
+| privacy       | read              | join                                   |
+|---------------|-------------------|----------------------------------------|
+| `public`      | anyone            | immediate                              |
+| `private`     | members only      | `TribeJoinRequest` → admin approves    |
+| `invite_only` | members only      | admin adds them; a fan cannot even ask |
+
+A tribe the fan may not read renders `Fan/TribeLocked` (with the request form
+where applicable) instead of `back()`, which used to dump anyone following a
+shared link at the site root with no explanation.
+
+Other things to know:
+
+- **`syncCounts()` owns `member_count` + `posts_count`.** They are columns the
+  tribe cards read directly, and they were maintained with `increment()` in one
+  place and not at all in others — creating a discussion never touched
+  `posts_count`, so every card read "0 posts" forever. Always go through
+  `addMember` / `removeMember` / `syncCounts`, never `increment()` by hand.
+- **The last admin cannot leave** — promote someone first, or the tribe becomes
+  unmanageable. Platform admins (`user.is_admin`) can always manage a tribe.
+- **The owner cannot be demoted or removed**, and only the owner (or a platform
+  admin) can delete a tribe.
+- **`view_count` is counted on `showPost`**, once per reader per session. It
+  used to be incremented when someone *replied*, which measured nothing.
+- `Fan/TribePost` is the full thread page — the tribe page shows the first
+  three replies and links here for the rest.
+- `TribeAlert` is the notification (database channel, queued). Its payload uses
+  the `title`/`body`/`icon`/`action_url` shape `DashboardHeader.jsx` reads; the
+  old one used a `message` key the bell never rendered.
+- Do NOT reintroduce a `getRepliesCountAttribute()` accessor on `TribePost` — an
+  accessor of that name shadows the column `withCount('replies')` adds, so every
+  listing silently ran one COUNT per post despite eager-loading it.
+
 ### Finance-partner archetype (Sprint 14–16)
 
 `finance_partner` users behave differently — their Convert queue is
@@ -209,6 +251,36 @@ so a EUR-built request reads correctly. Guarded by
 `tests/Feature/Fan/SavingsGoalCurrencyTest.php`, and
 `tests/JS/exchangeRate.test.mjs`.
 
+### Tournament management (Sprint 49)
+
+Everything about a tournament lives under **Admin → Tournaments**
+(`Admin/TournamentController`, `Admin/Tournaments.jsx` +
+`Admin/TournamentEdit.jsx`), in the same index → edit shape as the partner
+directory. It used to be split three ways: a tab of Site Settings (featured
+pick, Wikipedia refresh, tagline, accent, trophy, hero background), a tab of
+Content Management (stadium imagery), and — for the organiser card watermark —
+nowhere at all, despite `TournamentService` reading it.
+
+`TournamentController::FIELD_KEYS` is the single source of truth for the
+override keys and **must stay in step with `TournamentService::loadOverrides()`**:
+
+| field               | SiteSetting key              |
+|---------------------|------------------------------|
+| `tagline`           | `tournament_tagline_{id}`    |
+| `accent`            | `tournament_accent_{id}`     |
+| `trophy_image`      | `tournament_trophy_{id}`     |
+| `hero_image`        | `hero_bg_{id}`               |
+| `organizer_card_bg` | `tournament_card_bg_{id}`    |
+
+An empty value means "fall back to config", which is how every reader treats
+it. Saving clears both the tournament payload cache and the stadium-image
+cache.
+
+**`TournamentService::get()` falls back to the default tournament for an
+unknown id**, so it can never double as an existence check — ask
+`config("tournaments.tournaments.{$id}")` directly (the controller's
+`exists()` helper).
+
 ### Notifications
 
 All notifications use `via: ['database']` only (SMTP not configured; adding
@@ -245,6 +317,35 @@ Current notifications:
 `HandleInertiaRequests` exposes `auth.notifications` (last 5) + `auth.unreadNotificationsCount`
 to every page as lazy Inertia props. The bell dropdown in `DashboardHeader.jsx`
 reads them directly.
+
+## Passkey sign-in (WebAuthn)
+
+`laragear/webauthn` v4. Both endpoints share the URI `webauthn/login` (GET =
+challenge, POST = assertion), which is why a browser console only ever says
+"webauthn/login" when either fails.
+
+- **Laragear's assertion pipeline only catches `AssertionException`.** Anything
+  else escaped as a bare 500 with nothing logged and nothing shown to the fan.
+  The most reachable case: `webauthn_credentials.public_key` is an `encrypted`
+  cast, so a credential stored under a different `APP_KEY` throws
+  `DecryptException` on every attempt. `WebAuthnLoginController` now translates
+  any unexpected throw into a 422 the client can render and logs the real cause
+  to `storage/logs/laravel.log`; an undecryptable credential is disabled so it
+  cannot 500 again, and the fan is told to re-register it.
+- **Never answer a passkey login with `noContent()`.** Inertia cannot navigate
+  on a 204, so the session was established and the fan stayed parked on the
+  login screen. It returns `redirect()->intended(...)` like the password flow.
+- **A passkey is one factor.** Both login paths share
+  `App\Traits\HandlesPostLogin` (two-factor gate, login history,
+  role-based landing) so they cannot drift apart again — the passkey route
+  used to skip 2FA entirely.
+- `webauthn_credentials.id` is **VARCHAR(510)**, matching Laragear's own
+  migration. Ours capped it at 191, and a credential ID is authenticator-chosen
+  and routinely longer once base64url-encoded — on MySQL that truncated or
+  errored, after which the browser's full-length ID matched no stored row.
+
+Regression coverage: `tests/Feature/Auth/WebAuthnLoginTest.php` builds real
+ECDSA assertions rather than fixtures.
 
 ## Production queue worker
 
@@ -575,6 +676,27 @@ new card / table / list CSS:
   (a titled divider inside a form), `.tfe-color-swatch`, `.tfe-check`.
   A global `-webkit-autofill` guard (primitives.css) keeps Chrome/Safari
   from painting login-ish fields white over the dark fill.
+- **`assetPath()`** (Sprint 49, `resources/js/lib/assets.js`) — normalises any
+  stored image reference to a root-relative URL. `AccentCard`, `PageHero`,
+  `LandingCard` and `DashboardHero` all run their `src` through it, so a
+  relative path is corrected whoever passes it. See **Image paths** below.
+- **`SettingField`** (Sprint 49, `Components/Admin/SettingField.jsx`) — the ONE
+  self-saving SiteSetting editor (text / textarea / url / color / **image**).
+  `type="image"` renders `ImageUpload` with a live preview and a reset. Never
+  declare a setting-input closure inside a page body again — a component
+  defined there is a new type every render, so React remounts it and the field
+  loses its cursor mid-typing.
+- **`ListingGrid`** (Sprint 45) — grid is the default view; pass `tableView`
+  to get the Grid/Table toggle. Adopted by Partners, Listing safety, Tickets,
+  Users, Events, Prizes, Announcements, Tribes, Tournaments and Content→Posts.
+  Reach for it instead of hand-rolling a `<table>` or a bespoke card grid.
+- **`.tfe-rank`** (Sprint 48) — circular position chip for standings rows.
+  `data-medal="1|2|3"` paints gold / silver / bronze; anything else stays
+  neutral glass. Used by the Predict leaderboard and the feed's Trending list.
+  Companions: `.tfe-leaderboard*`, `.tfe-prize*`, `.predict-match`.
+- **`.tfe-pill--standalone`** (Sprint 48) — add to any `.tfe-pill` that is a
+  direct child of a flex-column container, or `align-items: stretch` turns it
+  into a full-width colour bar.
 - **`TfeModal`** (Sprint 42, `Components/Common/TfeModal.jsx`) — the ONE
   shared dashboard dialog. Centered glass panel (`.tfe-modal*`), Escape +
   click-outside to close, `size="sm|md|lg"`. Every create/edit form on the
@@ -586,6 +708,62 @@ new card / table / list CSS:
   `mimes:jpg,jpeg,png,webp` rule). Parent posts the File with
   `forceFormData`; the controller stores it and keeps the string field as a
   fallback for existing URLs.
+
+### Global form baseline (Sprint 48)
+
+`@tailwindcss/forms` runs with **`strategy: 'class'`** (tailwind.config.js). In
+its default "base" strategy it rewrote every `[type="text"]`, `<select>` and
+`<textarea>` with a **solid white background**, so any field that had not opted
+into `.tfe-input` rendered as a white box on the dark canvas. Adding
+`.tfe-input` one field at a time only fixed the fields someone noticed.
+
+`resources/css/form-baseline.css` (imported from `app.css` between the tokens
+and the primitives) is now the platform default for every form control. It is
+deliberately kept at **element specificity (0,0,1)**, so it is a floor and
+never a ceiling — `.tfe-input` (0,1,1), `.admin-form-input` (0,1,0), the
+landing template's own field classes and any Tailwind utility all still win.
+
+**Do not raise the specificity in that file and do not reach for `!important`.**
+If a field needs a different look, give it a class. There is an escape hatch
+(`.tfe-field-native`) for the rare control that wants the browser widget.
+
+### Image paths (Sprint 49)
+
+**Every stored image path must be absolute or root-relative.** A bare
+`assets/img/x.jpg` is resolved by the browser against the CURRENT directory,
+so the moment it renders on a nested route it asks for the wrong URL:
+
+```
+on /                → /assets/img/backdrops/ball-on-field.jpg        ✓
+on /admin/content   → /admin/assets/img/backdrops/ball-on-field.jpg  ✗ 404
+```
+
+That is exactly why the three tournament backdrops 404'd on admin pages and
+nowhere else. `config/tournaments.php` and `config/site_sections.php` now
+store leading-slash paths, and two tests guard the catalogues
+(`TournamentManagementTest::test_config_tournament_images_are_root_relative`,
+`ContentCmsTest::test_config_card_images_are_root_relative`).
+
+Belt and braces: `assetPath()` (`resources/js/lib/assets.js`) corrects a
+relative value at render time, and the shared image primitives all run their
+`src` through it. Do NOT re-add per-component `toUrl` helpers or
+`baseUrl + path` concatenation — `PageHero` and `LandingCard` each had their
+own copy before this, and `assetUrl` (which is absolute) then produced `//`
+double slashes once the config paths were fixed.
+
+### Public section cards (Sprint 49)
+
+The content cards under each public section hero (`/about`, `/features`,
+`/services`, `/contact`) used to be hard-coded arrays inside the React
+components, so an admin could edit a section's hero from the CMS but not the
+cards beneath it. Defaults now live in `config/site_sections.php`;
+`HomeController::sectionCards()` overlays SiteSetting overrides keyed
+`section_card_{slug}_{index}_{field}` (field ∈ image, title, subtitle,
+description) and passes them as the `cards` prop.
+
+The components keep their constant as a **default prop value** so the landing
+sections still render when no `cards` are passed — keep it in step with the
+config if you change either.
 
 ### PurgeCSS safelist gotcha
 
@@ -815,6 +993,39 @@ tests/
 - Never put stadium images under `public/storage/` — it's gitignored, so they
   look fine locally and 404 on prod. They belong in `public/stadiums/<SET>/`,
   committed (Sprint 44).
+- Never store an image path without a leading slash. `assets/img/x.jpg`
+  resolves against the current directory and 404s on every nested route —
+  that is where the `/admin/assets/img/...` 404s came from (Sprint 49).
+- Never write a per-component `toUrl` helper or `baseUrl + path` for images.
+  Use `assetPath()`; the shared primitives already apply it (Sprint 49).
+- Never declare a form-field component inside a page body. It becomes a new
+  component type on every render, so React remounts it and the input loses
+  its cursor mid-typing. Use `SettingField` (Sprint 49).
+- Never add a tournament override key without adding it to
+  `TournamentController::FIELD_KEYS` AND
+  `TournamentService::loadOverrides()` — the organiser card watermark was
+  readable by the service for two sprints with no way to set it (Sprint 49).
+- Never use `TournamentService::get()` as an existence check — it falls back
+  to the default tournament for an unknown id (Sprint 49).
+- Never style a form field by adding `!important` or raising specificity in
+  `resources/css/form-baseline.css` — it is an element-level floor on purpose so
+  every component class still wins. Give the field a class instead (Sprint 48).
+- Never use a Bootstrap utility (`badge bg-*`, `border-secondary`, `btn btn-*`,
+  `d-inline-flex`) on a dashboard surface. The landing template stylesheet is
+  gated to public pages, so those classes resolve to nothing and the element
+  renders unstyled — that is where the bare "#1" on the Predict leaderboard and
+  the colour-bar tournament pill came from (Sprint 48).
+- Never answer an Inertia POST with `noContent()`/204 — the client has nothing
+  to navigate to and silently stays put (Sprint 48, passkey login).
+- Never pin the CSRF token once at module load. Logging in regenerates the
+  session, Inertia never reloads the document, and the stale `X-CSRF-TOKEN`
+  header beats the fresh `XSRF-TOKEN` cookie — every later axios POST 419s.
+  `bootstrap.js` reads the cookie per request (Sprint 48).
+- Never assume a FontAwesome name exists: the bundle is **FA 6.0.0**
+  (`public/assets/libs/font-awesome.min.css`). `fa-ranking-star` and friends
+  landed in 6.1 and render as blank squares.
+- Never maintain `tribes.member_count` / `posts_count` by hand — go through
+  `Tribe::syncCounts()` (Sprint 48).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server
@@ -859,6 +1070,8 @@ tests/
 | 44     | Locally-hosted stadium imagery: Wikipedia thumbnail fetch replaced by committed WebP catalogue + `StadiumImageService`, lazy hero slider, admin Stadium Images editor, reuse on budget calculator / match cards / itinerary map |
 | 45     | Catalogue becomes the venue source (Wikipedia demoted to enrichment by our own titles), hero overlay lightened 30%, active slide highlights its host country on the world map + tournament card pill |
 | 46     | Ticketing archetype (MatchDay Africa) w/ end-to-end fan purchase pipeline; Ecobank multicurrency virtual card demo; GoalBet listings on Fan Predict; shared `.tfe-menu-surface` dropdown |
+| 48     | Passkey login hardening (+2FA parity), global form baseline, social feed + tribes rebuilt on primitives, tribes completed end-to-end (privacy, join requests, moderation) |
+| 49     | Admin CMS unification: SettingField + assetPath primitives, section-card CMS, dedicated Tournament management, ListingGrid rollout |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

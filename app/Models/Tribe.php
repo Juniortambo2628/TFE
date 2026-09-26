@@ -55,6 +55,67 @@ class Tribe extends Model
             ->withPivot('role', 'joined_at');
     }
 
+    public function posts(): HasMany
+    {
+        return $this->hasMany(TribePost::class);
+    }
+
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(TribeJoinRequest::class);
+    }
+
+    // ── Privacy ────────────────────────────────────────────────────────
+    //
+    // public       — anyone may join immediately, anyone may read.
+    // private      — readable only by members; joining needs an admin's
+    //                approval (that is what the form has always promised).
+    // invite_only  — readable only by members; a fan cannot ask at all, an
+    //                admin has to add them.
+
+    public function isPublic(): bool
+    {
+        return $this->privacy === 'public';
+    }
+
+    public function requiresApproval(): bool
+    {
+        return $this->privacy === 'private';
+    }
+
+    public function isInviteOnly(): bool
+    {
+        return $this->privacy === 'invite_only';
+    }
+
+    /**
+     * Can this user read the tribe's discussions and member list?
+     */
+    public function canBeViewedBy(User $user): bool
+    {
+        return $this->isPublic() || $this->hasMember($user) || $user->is_admin;
+    }
+
+    /**
+     * Can this user manage the tribe (edit it, moderate posts, decide on
+     * join requests)? Platform admins can, so moderation is never stuck
+     * behind an abandoned tribe.
+     */
+    public function canBeManagedBy(User $user): bool
+    {
+        return $this->isAdmin($user) || $user->is_admin;
+    }
+
+    /**
+     * A tribe's other admins, excluding the given user.
+     */
+    public function otherAdmins(User $user)
+    {
+        return $this->members()
+            ->where('role', 'admin')
+            ->where('user_id', '!=', $user->id);
+    }
+
     /**
      * Check if a user is a member of this tribe
      */
@@ -68,12 +129,14 @@ class Tribe extends Model
      */
     public function addMember(User $user, string $role = 'member'): TribeMember
     {
-        $member = $this->members()->create([
-            'user_id' => $user->id,
-            'role' => $role,
-            'joined_at' => now(),
-        ]);
-        $this->increment('member_count');
+        // firstOrCreate, not create: a double-submitted join used to insert a
+        // second membership row and inflate member_count for good.
+        $member = $this->members()->firstOrCreate(
+            ['user_id' => $user->id],
+            ['role' => $role, 'joined_at' => now()],
+        );
+
+        $this->syncCounts();
 
         return $member;
     }
@@ -84,11 +147,28 @@ class Tribe extends Model
     public function removeMember(User $user): bool
     {
         $deleted = $this->members()->where('user_id', $user->id)->delete();
+
         if ($deleted) {
-            $this->decrement('member_count');
+            $this->syncCounts();
         }
 
         return $deleted > 0;
+    }
+
+    /**
+     * Recompute the denormalised counters from the rows themselves.
+     *
+     * member_count and posts_count are columns the listing reads directly.
+     * They were maintained with increment()/decrement() in one place and not at
+     * all in others — creating a discussion never touched posts_count, so every
+     * tribe card reported "0 posts" forever. Deriving them removes the drift.
+     */
+    public function syncCounts(): void
+    {
+        $this->forceFill([
+            'member_count' => $this->members()->count(),
+            'posts_count' => $this->posts()->count(),
+        ])->saveQuietly();
     }
 
     /**

@@ -3,8 +3,9 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import TournamentPill from '@/Components/Common/TournamentPill';
+import ListingGrid from '@/Components/Common/ListingGrid';
 
 /**
  * Admin Tribes — list + reassign tournament + delete.
@@ -63,76 +64,86 @@ export default function Tribes({ auth, tribes = { data: [] }, tournaments = [] }
                 breadcrumbs={breadcrumbs}
             />
 
-            {rows.length === 0 ? (
-                <div className="admin-card-dark">
-                    <div className="admin-empty-state">
-                        <i className="fas fa-layer-group"></i>
-                        <h4>No tribes yet</h4>
-                        <p className="text-white-50">Fans can create tribes from their dashboard once they're logged in.</p>
-                    </div>
-                </div>
-            ) : (
-                <div className="admin-card-dark">
-                    <div className="card-body p-0">
-                        <table className="admin-table-dark">
-                            <thead>
-                                <tr>
-                                    <th>Tribe</th>
-                                    <th>Tournament</th>
-                                    <th>Creator</th>
-                                    <th>Members</th>
-                                    <th>Privacy</th>
-                                    <th>Created</th>
-                                    <th className="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {rows.map((tribe) => (
-                                    <tr key={tribe.id}>
-                                        <td>
-                                            <div className="fw-semibold text-white">{tribe.name}</div>
-                                            <small className="text-white-50">{tribe.slug}</small>
-                                        </td>
-                                        <td>
-                                            <TournamentPill
-                                                tournamentId={tribe.tournament_id}
-                                                shortName={tribe.tournament_short}
-                                                size="md"
-                                            />
-                                        </td>
-                                        <td className="text-white">{tribe.creator_name}</td>
-                                        <td className="text-white">{tribe.member_count}</td>
-                                        <td>
-                                            <span className="admin-badge">
-                                                {tribe.privacy}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <small className="text-white-50">{tribe.created_at}</small>
-                                        </td>
-                                        <td className="text-end">
+            <ListingGrid
+                items={rows}
+                LinkComponent={Link}
+                emptyIcon="fas fa-layer-group"
+                emptyTitle="No tribes yet"
+                emptyBody="Fans can create tribes from their dashboard once they're logged in."
+                to={(tribe) => ({
+                    href: route('admin.tribes.show', tribe.id),
+                    title: tribe.name,
+                    eyebrow: tribe.slug,
+                    desc: `Created by ${tribe.creator_name}`,
+                    accent: '#8b5cf6',
+                    status: tribe.privacy,
+                    artwork: { icon: 'fas fa-layer-group' },
+                    pills: tribe.tournament_short ? [tribe.tournament_short] : ['Open to all'],
+                    meta: [
+                        { label: 'Members', value: tribe.member_count },
+                        { label: 'Created', value: tribe.created_at },
+                    ],
+                    cta: { label: 'Open', icon: 'fas fa-arrow-right' },
+                })}
+                tableView={
+                    <table className="tfe-table">
+                        <thead>
+                            <tr>
+                                <th>Tribe</th>
+                                <th>Tournament</th>
+                                <th>Creator</th>
+                                <th>Members</th>
+                                <th>Privacy</th>
+                                <th>Created</th>
+                                <th style={{ width: 110 }}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((tribe) => (
+                                <tr key={tribe.id}>
+                                    <td>
+                                        <div className="fw-semibold text-white">{tribe.name}</div>
+                                        <small className="text-white-50">{tribe.slug}</small>
+                                    </td>
+                                    <td>
+                                        <TournamentPill
+                                            tournamentId={tribe.tournament_id}
+                                            shortName={tribe.tournament_short}
+                                            size="md"
+                                        />
+                                    </td>
+                                    <td>{tribe.creator_name}</td>
+                                    <td>{tribe.member_count}</td>
+                                    <td><span className="tfe-pill tfe-pill--concluded">{tribe.privacy}</span></td>
+                                    <td>{tribe.created_at}</td>
+                                    <td>
+                                        <div className="d-flex gap-2">
                                             <button
-                                                className="btn-admin-outline btn-admin-sm me-2"
+                                                type="button"
+                                                className="tfe-btn tfe-btn--sm tfe-btn--icon"
                                                 onClick={() => openReassign(tribe)}
+                                                aria-label="Reassign tournament"
                                                 title="Reassign tournament"
                                             >
                                                 <i className="fas fa-random"></i>
                                             </button>
                                             <button
-                                                className="btn-admin-outline btn-admin-sm"
+                                                type="button"
+                                                className="tfe-btn tfe-btn--sm tfe-btn--icon"
                                                 onClick={() => setToDelete(tribe)}
+                                                aria-label="Delete tribe"
                                                 title="Delete tribe"
                                             >
-                                                <i className="fas fa-trash text-danger"></i>
+                                                <i className="fas fa-trash"></i>
                                             </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                }
+            />
 
             {/* Reassign modal */}
             <DashboardModal

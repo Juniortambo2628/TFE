@@ -195,13 +195,9 @@ class PredictWinController extends Controller
             ];
         }
 
-        // If no data, provide placeholder
-        if (empty($leaderboard)) {
-            $leaderboard = [
-                ['rank' => 1, 'name' => 'Be the first!', 'points' => 0, 'correct' => 0],
-            ];
-        }
-
+        // Deliberately NOT padded with a placeholder row. A synthetic
+        // "rank 1 — Be the first!" entry reads as a real standing, and the
+        // page renders a proper empty state when nobody has predicted yet.
         return $leaderboard;
     }
 

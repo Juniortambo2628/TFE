@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { usePage } from '@inertiajs/react';
+
 import { useTournament } from '@/Context/TournamentContext';
 import AccentCard from '@/Components/Common/AccentCard';
 import '../../../css/tournament-compare.css';
@@ -25,8 +25,6 @@ const ACCENT_BY_ID = {
 
 export default function TournamentCompare() {
     const { tournamentList = [], tournament: active } = useTournament();
-    const { assetUrl } = usePage().props;
-    const baseUrl = assetUrl || '';
 
     const rows = useMemo(() => {
         return (tournamentList || []).map((t) => {
@@ -68,7 +66,7 @@ export default function TournamentCompare() {
                             accent={t.accent}
                             active={t.isActive}
                             aria-label={`${t.name} — ${t.cta.label}`}
-                            artwork={t.trophy_image ? { src: baseUrl + t.trophy_image } : undefined}
+                            artwork={t.trophy_image ? { src: t.trophy_image } : undefined}
                             status={t.status}
                             title={t.name}
                             pills={t.hosts || []}

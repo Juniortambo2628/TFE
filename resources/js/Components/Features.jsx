@@ -4,6 +4,9 @@ import LandingCard from '@/Components/Common/LandingCard';
 import LandingModal from '@/Components/Common/LandingModal';
 import { useTournament } from '@/Context/TournamentContext';
 
+// Defaults only. The CMS copy lives in config/site_sections.php and arrives
+// as the `cards` prop; these keep the landing sections rendering when a
+// caller does not pass any (and must stay in step with that config).
 const FEATURE_CARDS = [
     {
         image: 'assets/img/IMG-11.jpg',
@@ -35,7 +38,7 @@ const FEATURE_CARDS = [
     },
 ];
 
-export default function Features({ variant = 'split', hideHeader = false }) {
+export default function Features({ variant = 'split', hideHeader = false, cards = FEATURE_CARDS }) {
     const { tournament } = useTournament();
     const tournamentName = tournament ? tournament.name : 'the next tournament';
     const [modalData, setModalData] = useState(null);
@@ -52,7 +55,7 @@ export default function Features({ variant = 'split', hideHeader = false }) {
                 variant={variant}
                 hideHeader={hideHeader}
             >
-                {FEATURE_CARDS.map((card) => (
+                {cards.map((card) => (
                     <LandingCard
                         key={card.title}
                         image={card.image}

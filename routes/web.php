@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PrizeController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StoryController;
+use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
@@ -186,14 +187,30 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/share/options', [ShareController::class, 'getShareOptions'])->name('share.options');
     Route::post('/share', [ShareController::class, 'share'])->name('share');
 
-    // Tribes
+    // Tribes — the whole feature lives in this one block so the shape of the
+    // surface is readable at a glance (the discussion routes used to sit 40
+    // lines further down under "Communication").
     Route::get('/tribes', [TribeController::class, 'index'])->name('tribes');
-    Route::get('/tribes/{tribe}', [TribeController::class, 'show'])->name('tribes.show');
     Route::post('/tribes', [TribeController::class, 'store'])->name('tribes.store');
+    Route::get('/tribes/{tribe}', [TribeController::class, 'show'])->name('tribes.show');
+    Route::put('/tribes/{tribe}', [TribeController::class, 'update'])->name('tribes.update');
+    Route::delete('/tribes/{tribe}', [TribeController::class, 'destroy'])->name('tribes.destroy');
+
+    // Membership
     Route::post('/tribes/{tribe}/join', [TribeController::class, 'join'])->name('tribes.join');
     Route::post('/tribes/{tribe}/leave', [TribeController::class, 'leave'])->name('tribes.leave');
-    Route::put('/tribes/{tribe}', [TribeController::class, 'update'])->name('tribes.update');
+    Route::post('/tribes/{tribe}/requests/{joinRequest}/approve', [TribeController::class, 'approveRequest'])->name('tribes.requests.approve');
+    Route::post('/tribes/{tribe}/requests/{joinRequest}/reject', [TribeController::class, 'rejectRequest'])->name('tribes.requests.reject');
     Route::post('/tribes/{tribe}/members/{user}/toggle-role', [TribeController::class, 'toggleRole'])->name('tribes.members.toggle-role');
+    Route::delete('/tribes/{tribe}/members/{user}', [TribeController::class, 'removeMember'])->name('tribes.members.remove');
+
+    // Discussions
+    Route::post('/tribes/{tribe}/posts', [TribeController::class, 'createPost'])->name('tribes.posts.store');
+    Route::get('/tribes/{tribe}/posts/{post}', [TribeController::class, 'showPost'])->name('tribes.posts.show');
+    Route::delete('/tribes/{tribe}/posts/{post}', [TribeController::class, 'destroyPost'])->name('tribes.posts.destroy');
+    Route::post('/tribes/{tribe}/posts/{post}/pin', [TribeController::class, 'togglePin'])->name('tribes.posts.pin');
+    Route::post('/tribes/{tribe}/posts/{post}/reply', [TribeController::class, 'replyToPost'])->name('tribes.posts.reply');
+    Route::delete('/tribes/{tribe}/replies/{reply}', [TribeController::class, 'destroyReply'])->name('tribes.replies.destroy');
 
     // Fan Store
     Route::get('/store', [FanStoreController::class, 'index'])->name('store');
@@ -226,10 +243,6 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Communication Routes (Enhanced)
     Route::post('/communication/{message}/read', [CommunicationController::class, 'markAsRead'])->name('communication.read');
     Route::delete('/communication/{message}', [CommunicationController::class, 'deleteMessage'])->name('communication.delete');
-
-    // Tribe Posts (Discussions)
-    Route::post('/tribes/{tribe}/posts', [TribeController::class, 'createPost'])->name('tribes.posts.store');
-    Route::post('/tribes/{tribe}/posts/{post}/reply', [TribeController::class, 'replyToPost'])->name('tribes.posts.reply');
 
     // Notifications & Messages
     Route::post('/notifications/read-all', [NotificationController::class, 'markNotificationsRead'])->name('notifications.read-all');
@@ -330,6 +343,14 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/tribes/{tribe}', [App\Http\Controllers\Admin\TribeController::class, 'show'])->name('tribes.show');
     Route::put('/tribes/{tribe}', [App\Http\Controllers\Admin\TribeController::class, 'update'])->name('tribes.update');
     Route::delete('/tribes/{tribe}', [App\Http\Controllers\Admin\TribeController::class, 'destroy'])->name('tribes.destroy');
+
+    // Tournament management (Sprint 49) — everything about a tournament in one
+    // place: featured pick, Wikipedia refresh, branding, imagery and venues.
+    Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
+    Route::post('/tournaments/feature', [TournamentController::class, 'feature'])->name('tournaments.feature');
+    Route::post('/tournaments/refresh', [TournamentController::class, 'refresh'])->name('tournaments.refresh');
+    Route::get('/tournaments/{tournament}', [TournamentController::class, 'edit'])->name('tournaments.edit');
+    Route::post('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
 
     // Stories Management
     Route::get('/stories', [StoryController::class, 'index'])->name('stories.index');
