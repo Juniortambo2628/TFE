@@ -6,11 +6,13 @@ import { Head, router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
-import DataTable from '@/Components/DataTable';
+import ListingGrid from '@/Components/Common/ListingGrid';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
 import { toast } from 'sonner';
 
 export default function Products({ auth, products, stats }) {
+    const items = products?.data || [];
+
     const [showForm, setShowForm] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
     const [productToEdit, setProductToEdit] = useState(null);
@@ -30,6 +32,8 @@ export default function Products({ auth, products, stats }) {
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
         { label: 'Products' }
     ];
+
+    const money = (value) => `KES ${new Intl.NumberFormat().format(value || 0)}`;
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -82,69 +86,10 @@ export default function Products({ auth, products, stats }) {
         setShowForm(true);
     };
 
-    const columns = [
-        {
-            accessorKey: "name",
-            header: "Product",
-            cell: ({ row }) => (
-                <div className="d-flex align-items-center gap-3">
-                    <div className="rounded overflow-hidden bg-dark" style={{ width: '40px', height: '40px' }}>
-                        {row.original.image_url ? (
-                            <img src={row.original.image_url} alt={row.original.name} className="w-100 h-100 object-fit-cover" />
-                        ) : (
-                            <div className="w-100 h-100 d-flex align-items-center justify-content-center text-secondary">
-                                <i className="fas fa-image"></i>
-                            </div>
-                        )}
-                    </div>
-                    <div className="text-white fw-medium">{row.original.name}</div>
-                </div>
-            )
-        },
-        {
-            accessorKey: "category",
-            header: "Category",
-            cell: ({ row }) => <span className="text-white opacity-75">{row.original.category}</span>
-        },
-        {
-            accessorKey: "price",
-            header: "Price",
-            cell: ({ row }) => <span className="text-blue-400 fw-semibold">KES {new Intl.NumberFormat().format(row.original.price)}</span>
-        },
-        {
-            accessorKey: "stock_quantity",
-            header: "Stock",
-            cell: ({ row }) => <span className="text-white">{row.original.stock_quantity} units</span>
-        },
-        {
-            accessorKey: "in_stock",
-            header: "Status",
-            cell: ({ row }) => (
-                <span className={`admin-badge ${row.original.in_stock ? 'admin-badge-blue' : 'admin-badge-red'}`}>
-                    {row.original.in_stock ? 'In Stock' : 'Out of Stock'}
-                </span>
-            )
-        },
-        {
-            id: "actions",
-            header: "Actions",
-            cell: ({ row }) => (
-                <div className="d-flex gap-2">
-                    <button className="btn-admin-icon" title="Edit" onClick={() => handleEdit(row.original)}>
-                        <i className="fas fa-edit"></i>
-                    </button>
-                    <button className="btn-admin-icon" title="Delete" onClick={() => setProductToDelete(row.original.id)}>
-                        <i className="fas fa-trash text-danger"></i>
-                    </button>
-                </div>
-            )
-        }
-    ];
-
     return (
         <AdminLayout title="Product Management">
             <Head title="Products" />
-            <DashboardHero role="admin" 
+            <DashboardHero role="admin"
                 title="Product Management"
                 subtitle="Manage your store inventory, jerseys, and accessories."
                 breadcrumbs={breadcrumbs}
@@ -163,19 +108,91 @@ export default function Products({ auth, products, stats }) {
             <SummaryTiles items={[
                 { label: 'Total Items', value: stats.total, icon: 'fa-boxes', accent: 'blue' },
                 { label: 'Out of Stock', value: stats.out_of_stock, icon: 'fa-exclamation-triangle', accent: 'red' },
-                { label: 'Inventory Value', value: `KES ${new Intl.NumberFormat().format(stats.total_value)}`, icon: 'fa-coins', accent: 'teal' },
+                { label: 'Inventory Value', value: money(stats.total_value), icon: 'fa-coins', accent: 'teal' },
             ]} className="mb-4" />
 
             <div className="admin-card-dark">
                 <div className="card-header">
                     <h3><i className="fas fa-store me-2"></i> Inventory List</h3>
-                    <span className="admin-badge admin-badge-gray">{products.data.length} items</span>
+                    <span className="admin-badge admin-badge-gray">{items.length} items</span>
                 </div>
-                
-                <div className="card-body p-0">
-                    <DataTable 
-                        columns={columns} 
-                        data={products.data} 
+
+                <div className="card-body">
+                    <ListingGrid
+                        items={items}
+                        emptyIcon="fas fa-box-open"
+                        emptyTitle="No products yet"
+                        emptyBody="Click 'Add Product' to stock your store."
+                        to={(product) => ({
+                            title: product.name,
+                            eyebrow: product.category,
+                            desc: product.description,
+                            accent: '#3b82f6',
+                            cover: product.image_url || undefined,
+                            artwork: product.image_url ? undefined : { icon: 'fas fa-tshirt' },
+                            status: product.in_stock ? 'In Stock' : 'Out of Stock',
+                            meta: [
+                                { label: 'Price', value: money(product.price) },
+                                { label: 'Stock', value: `${product.stock_quantity} units` },
+                            ],
+                            cornerButton: {
+                                icon: 'fas fa-edit',
+                                label: `Edit ${product.name}`,
+                                onClick: () => handleEdit(product),
+                            },
+                        })}
+                        tableView={
+                            <table className="tfe-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                        <th style={{ width: 100 }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map((product) => (
+                                        <tr key={product.id}>
+                                            <td>
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <div className="rounded overflow-hidden bg-dark" style={{ width: '40px', height: '40px' }}>
+                                                        {product.image_url ? (
+                                                            <img src={product.image_url} alt={product.name} className="w-100 h-100 object-fit-cover" />
+                                                        ) : (
+                                                            <div className="w-100 h-100 d-flex align-items-center justify-content-center text-secondary">
+                                                                <i className="fas fa-image"></i>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <span className="fw-semibold">{product.name}</span>
+                                                </div>
+                                            </td>
+                                            <td>{product.category}</td>
+                                            <td>{money(product.price)}</td>
+                                            <td>{product.stock_quantity} units</td>
+                                            <td>
+                                                <span className={`tfe-pill ${product.in_stock ? 'tfe-pill--approved' : 'tfe-pill--rejected'}`}>
+                                                    {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="d-flex gap-2">
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Edit product" onClick={() => handleEdit(product)}>
+                                                        <i className="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Delete product" onClick={() => setProductToDelete(product.id)}>
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        }
                     />
                 </div>
             </div>
@@ -235,9 +252,9 @@ export default function Products({ auth, products, stats }) {
                             <div className="admin-form-group">
                                 <label className="tfe-form-label">Status</label>
                                 <div className="form-check form-switch mt-2">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="checkbox" 
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
                                         id="inStockSwitch"
                                         checked={data.in_stock}
                                         onChange={e => setData('in_stock', e.target.checked)}
@@ -251,8 +268,8 @@ export default function Products({ auth, products, stats }) {
                         <div className="col-12">
                             <div className="admin-form-group">
                                 <label className="tfe-form-label">Description</label>
-                                <textarea 
-                                    className="tfe-input" 
+                                <textarea
+                                    className="tfe-input"
                                     rows={3}
                                     value={data.description}
                                     onChange={e => setData('description', e.target.value)}
@@ -262,7 +279,7 @@ export default function Products({ auth, products, stats }) {
                         <div className="col-12">
                             <div className="admin-form-group">
                                 <label className="tfe-form-label">Product Image</label>
-                                <FilePondUploader 
+                                <FilePondUploader
                                     files={imageFiles}
                                     onUpdateFiles={(files) => {
                                         setImageFiles(files);

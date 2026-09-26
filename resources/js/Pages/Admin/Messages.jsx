@@ -3,6 +3,8 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
+import ListingGrid from '@/Components/Common/ListingGrid';
+import DashboardModal from '@/Components/Common/DashboardModal';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
@@ -64,7 +66,7 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
         }))
     ].sort((a, b) => new Date(b.raw.created_at) - new Date(a.raw.created_at));
 
-    const currentData = activeTab === 'notifications' 
+    const currentData = activeTab === 'notifications'
         ? notifications.data.map(n => ({
             id: n.id,
             from: 'System',
@@ -89,13 +91,17 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
         }))
         : normalizedMessages;
 
-    const filteredItems = currentData.filter(m => 
+    const filteredItems = currentData.filter(m =>
         (!search || m.subject?.toLowerCase().includes(search.toLowerCase()) || m.from?.toLowerCase().includes(search.toLowerCase()))
     );
 
+    const iconFor = (msg) => (msg.type === 'notifications' ? 'fas fa-bell' : 'fas fa-envelope');
+    // Only inbox messages and internal sent messages have a delete/read route.
+    const isDeletable = (msg) => msg.source === 'external' || msg.source === 'internal';
+
     return (
         <AdminLayout title="Messages">
-            <DashboardHero role="admin" 
+            <DashboardHero role="admin"
                 title="Messages & Notifications"
                 subtitle="Manage contact messages and system notifications."
                 breadcrumbs={breadcrumbs}
@@ -139,141 +145,113 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
                     <h3><i className={activeTab === 'notifications' ? 'fas fa-bell' : 'fas fa-envelope'}></i> {activeTab === 'notifications' ? 'Notifications' : 'Messages'}</h3>
                     <span className="admin-badge admin-badge-gray">{filteredItems.length} items</span>
                 </div>
-                <div className="card-body p-0">
-                    {filteredItems.length > 0 ? (
-                        <div className="d-flex flex-column">
-                            {filteredItems.map(msg => (
-                                <div 
-                                    key={msg.id}
-                                    className="d-flex align-items-start gap-3 p-3"
-                                    style={{ 
-                                        borderBottom: '1px solid var(--admin-border)',
-                                        background: msg.read ? 'transparent' : 'rgba(59, 130, 246, 0.05)',
-                                        cursor: 'pointer'
-                                    }}
-                                    onClick={() => setSelectedMessage(msg)}
-                                >
-                                    <div 
-                                        className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                        style={{ 
-                                            width: '40px', 
-                                            height: '40px', 
-                                            background: msg.read ? 'var(--admin-bg-dark)' : 'var(--admin-primary-light)',
-                                            color: msg.read ? 'var(--admin-text-muted)' : 'var(--admin-primary)',
-                                            fontWeight: '600'
-                                        }}
-                                    >
-                                        {msg.type === 'notifications' ? (
-                                            <i className="fas fa-bell"></i>
-                                        ) : (
-                                            msg.from?.charAt(0) || 'M'
-                                        )}
-                                    </div>
-                                    <div className="flex-grow-1 min-w-0">
-                                        <div className="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <div className="fw-semibold text-white" style={{ opacity: msg.read ? 0.7 : 1 }}>
-                                                    {msg.from}
-                                                    {!msg.read && (
-                                                        <span 
-                                                            className="ms-2" 
-                                                            style={{ 
-                                                                width: '8px', 
-                                                                height: '8px', 
-                                                                background: 'var(--admin-primary)', 
-                                                                borderRadius: '50%',
-                                                                display: 'inline-block'
-                                                            }}
-                                                        ></span>
+                <div className="card-body">
+                    <ListingGrid
+                        items={filteredItems}
+                        emptyIcon={activeTab === 'notifications' ? 'fas fa-bell-slash' : 'fas fa-inbox'}
+                        emptyTitle={`No ${activeTab === 'notifications' ? 'notifications' : 'messages'} yet`}
+                        emptyBody="Messages will appear here when users contact you."
+                        to={(msg) => ({
+                            title: msg.subject,
+                            eyebrow: msg.from,
+                            desc: msg.excerpt,
+                            accent: msg.read ? '#64748b' : '#3b82f6',
+                            artwork: { icon: iconFor(msg) },
+                            status: msg.read ? 'Read' : 'Unread',
+                            meta: [{ label: 'Date', value: msg.date }],
+                            onClick: () => setSelectedMessage(msg),
+                            cornerButton: isDeletable(msg) ? {
+                                icon: 'fas fa-trash',
+                                label: 'Delete message',
+                                onClick: () => setMessageToDelete({ id: msg.id, source: msg.source }),
+                            } : undefined,
+                        })}
+                        tableView={
+                            <table className="tfe-table">
+                                <thead>
+                                    <tr>
+                                        <th>From</th>
+                                        <th>Subject</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th style={{ width: 110 }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredItems.map((msg) => (
+                                        <tr key={`${msg.type}-${msg.id}`} style={{ cursor: 'pointer' }} onClick={() => setSelectedMessage(msg)}>
+                                            <td className="fw-semibold">{msg.from}</td>
+                                            <td>{msg.subject}</td>
+                                            <td>{msg.date}</td>
+                                            <td>
+                                                <span className={`tfe-pill ${msg.read ? 'tfe-pill--concluded' : 'tfe-pill--info'}`}>
+                                                    {msg.read ? 'Read' : 'Unread'}
+                                                </span>
+                                            </td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                <div className="d-flex gap-2">
+                                                    {!msg.read && isDeletable(msg) && (
+                                                        <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Mark as read" onClick={() => handleMarkRead(msg.id, msg.source)}>
+                                                            <i className="fas fa-check"></i>
+                                                        </button>
+                                                    )}
+                                                    {isDeletable(msg) && (
+                                                        <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Delete message" onClick={() => setMessageToDelete({ id: msg.id, source: msg.source })}>
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
                                                     )}
                                                 </div>
-                                                <div className="text-white small" style={{ opacity: msg.read ? 0.6 : 0.9 }}>
-                                                    {msg.subject}
-                                                </div>
-                                            </div>
-                                            <small className="text-white flex-shrink-0" style={{ opacity: 0.6 }}>{msg.date}</small>
-                                        </div>
-                                        <p className="text-white small mb-0 mt-1 text-truncate" style={{ opacity: 0.8 }}>{msg.excerpt}</p>
-                                    </div>
-                                    <div className="d-flex gap-2 flex-shrink-0">
-                                        {!msg.read && (
-                                            <button 
-                                                className="btn-admin-icon"
-                                                title="Mark as read"
-                                                onClick={(e) => { e.stopPropagation(); handleMarkRead(msg.id, msg.source); }}
-                                                style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--admin-primary)', borderColor: 'var(--admin-primary)' }}
-                                            >
-                                                <i className="fas fa-check"></i>
-                                            </button>
-                                        )}
-                                        <button 
-                                            className="btn-admin-icon"
-                                            title="Delete"
-                                            onClick={(e) => { e.stopPropagation(); setMessageToDelete({ id: msg.id, source: msg.source }); }}
-                                        >
-                                            <i className="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="admin-empty-state">
-                            <i className={activeTab === 'notifications' ? 'fas fa-bell-slash' : 'fas fa-inbox'}></i>
-                            <h4>No {activeTab === 'notifications' ? 'notifications' : 'messages'} yet</h4>
-                            <p>Messages will appear here when users contact you.</p>
-                        </div>
-                    )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        }
+                    />
                 </div>
             </div>
 
             {/* Message Detail Modal */}
-            {selectedMessage && (
-                <div 
-                    className="dash-modal-overlay"
-                    onClick={() => setSelectedMessage(null)}
-                >
-                    <div 
-                        className="admin-card-dark"
-                        style={{ width: '600px', maxWidth: '90vw', maxHeight: '80vh', overflow: 'auto' }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="card-header">
-                            <h3><i className="fas fa-envelope-open"></i> {selectedMessage.subject}</h3>
-                            <button className="btn-admin-icon" onClick={() => setSelectedMessage(null)}>
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div className="card-body">
-                                    <div className="d-flex gap-3 mb-3 pb-3 dash-top-divider">
-                                        <div 
-                                            className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 dash-avatar dash-avatar-lg"
-                                            style={{ 
-                                                background: 'var(--admin-primary-light)',
-                                                color: 'var(--admin-primary)',
-                                            }}
-                                >
-                                    {selectedMessage.from?.charAt(0) || 'M'}
-                                </div>
-                                <div>
-                                    <div className="fw-semibold text-white">{selectedMessage.from}</div>
-                                    <small className="text-white" style={{ opacity: 0.6 }}>{selectedMessage.date}</small>
-                                </div>
+            <DashboardModal
+                open={!!selectedMessage}
+                onOpenChange={(open) => !open && setSelectedMessage(null)}
+                title={selectedMessage?.subject || 'Message'}
+                label={selectedMessage?.type === 'notifications' ? 'Notification' : 'Message'}
+                activeTab="detail"
+                onTabChange={() => {}}
+                tabs={[{ id: 'detail', label: 'Details', icon: 'fas fa-envelope-open' }]}
+            >
+                {selectedMessage && (
+                    <div className="p-4">
+                        <div className="d-flex gap-3 mb-3 pb-3 dash-top-divider">
+                            <div
+                                className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 dash-avatar dash-avatar-lg"
+                                style={{ background: 'var(--admin-primary-light)', color: 'var(--admin-primary)' }}
+                            >
+                                {selectedMessage.type === 'notifications' ? <i className="fas fa-bell"></i> : (selectedMessage.from?.charAt(0) || 'M')}
                             </div>
-                            <p className="text-white">{selectedMessage.excerpt}</p>
-                            <p className="text-white" style={{ opacity: 0.7 }}>This is a preview. Full message content will be displayed from the database.</p>
+                            <div>
+                                <div className="fw-semibold text-white">{selectedMessage.from}</div>
+                                <small className="text-white" style={{ opacity: 0.6 }}>{selectedMessage.date}</small>
+                            </div>
                         </div>
-                        <div className="card-footer d-flex gap-2">
-                            <button className="btn-admin">
-                                <i className="fas fa-reply"></i> Reply
-                            </button>
-                            <button className="btn-admin-outline" onClick={() => setSelectedMessage(null)}>
-                                Close
-                            </button>
+                        <p className="text-white">{selectedMessage.excerpt}</p>
+
+                        <div className="mt-4 d-flex justify-content-end gap-2">
+                            {!selectedMessage.read && isDeletable(selectedMessage) && (
+                                <button
+                                    type="button"
+                                    className="tfe-btn tfe-btn--sm"
+                                    onClick={() => { handleMarkRead(selectedMessage.id, selectedMessage.source); setSelectedMessage(null); }}
+                                >
+                                    <i className="fas fa-check me-2"></i> Mark as read
+                                </button>
+                            )}
+                            <button type="button" className="btn-cancel" onClick={() => setSelectedMessage(null)}>Close</button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </DashboardModal>
 
             <ConfirmationDialog
                 open={!!messageToDelete}
