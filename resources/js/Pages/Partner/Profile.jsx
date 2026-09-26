@@ -33,8 +33,10 @@ import ImageUpload from '@/Components/Common/ImageUpload';
  *    visible at all — is a labelled setting row at the end, not a bare
  *    checkbox under the logo field;
  *  - and the Bootstrap `row` / `col-md-*` grid is gone in favour of
- *    `.tfe-form-grid`, since the landing stylesheet that defines those
- *    classes is gated to public pages.
+ *    `.tfe-form-grid`. (Those classes do work here — dashboards load
+ *    Bootstrap's utilities + grid deliberately, Sprint 32 — but they are a
+ *    second layout system with their own breakpoints, and the platform's
+ *    own grid is what every other form should reach for.)
  */
 export default function Profile({ profile }) {
     const { flash } = usePage().props;

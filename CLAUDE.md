@@ -802,10 +802,11 @@ new card / table / list CSS:
   picking one has to show the artwork.
 - **`.tfe-form-grid`** (Sprint 56) — multi-column field rows, `--2` / `--3`,
   collapsing to one column below 768px, with `.tfe-form-field--wide` for a
-  field that spans. Use it instead of Bootstrap's `row` / `col-md-*`, which
-  the dashboards are not supposed to reach for. It also zeroes the
-  `.tfe-form-field + .tfe-form-field` top margin for its children — inside a
-  grid that margin stepped each column down the page.
+  field that spans. Prefer it over Bootstrap's `row` / `col-md-*`: those DO
+  work on a dashboard (see the utilities/grid note below) but they are a
+  parallel layout system with their own breakpoints and gutters. It also
+  zeroes the `.tfe-form-field + .tfe-form-field` top margin for its children
+  — inside a grid that margin stepped each column down the page.
 - **`ImageUpload variant="avatar"`** (Sprint 56) — round 96px thumbnail
   beside its control, for a field whose subject is a face or a logo. Note
   `compact` is NOT that: it shrinks the empty-state control but makes the
@@ -1185,11 +1186,19 @@ tests/
 - Never style a form field by adding `!important` or raising specificity in
   `resources/css/form-baseline.css` — it is an element-level floor on purpose so
   every component class still wins. Give the field a class instead (Sprint 48).
-- Never use a Bootstrap utility (`badge bg-*`, `border-secondary`, `btn btn-*`,
-  `d-inline-flex`) on a dashboard surface. The landing template stylesheet is
-  gated to public pages, so those classes resolve to nothing and the element
-  renders unstyled — that is where the bare "#1" on the Predict leaderboard and
-  the colour-bar tournament pill came from (Sprint 48).
+- Never use a Bootstrap **component** class (`badge bg-*`, `btn btn-*`,
+  `spinner-border`, `border-secondary`) on a dashboard surface. Dashboards load
+  `bootstrap-utilities.css` + `bootstrap-grid.css` only (the blade gate in
+  `app.blade.php`, Sprint 32), so layout utilities — `d-flex`, `gap-*`, `p-*`,
+  `row`, `col-md-*` — DO resolve, but component styles do not and the element
+  renders unstyled. That is the bare "#1" on the Predict leaderboard and the
+  colour-bar tournament pill (Sprint 48), and the invisible passkey spinner on
+  the security page (Sprint 56).
+- Never use an `admin-*` class in a shared component. `admin-theme.css` is
+  loaded by AdminLayout alone, so the 2FA dialog's `admin-card-dark` panel was
+  a no-op on the fan and partner security pages and the QR dialog came up in
+  shadcn's navy instead of the platform's near-black. The house dialog classes
+  are the ones StatusDialog / ConfirmationDialog use (Sprint 56).
 - Never answer an Inertia POST with `noContent()`/204 — the client has nothing
   to navigate to and silently stays put (Sprint 48, passkey login).
 - Never pin the CSRF token once at module load. Logging in regenerates the
@@ -1325,7 +1334,7 @@ tests/
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
-| 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
+| 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

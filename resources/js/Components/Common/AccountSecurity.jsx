@@ -32,9 +32,25 @@ import ConfirmationDialog from '@/Components/ConfirmationDialog';
  * `webauthn.*` routes are global and identical for everyone, so they are
  * referenced directly rather than passed in.
  *
+ * Sprint 56 gave it the same pass as the three profile pages:
+ *
+ *  - the password form moved out of the "Security preferences" card into its
+ *    own, instead of unfolding between the toggles, and states the rule the
+ *    server enforces before it rejects you;
+ *  - the preview pane reads the `stats` the service has always sent. "Recent
+ *    logins" was `loginHistory.length` — the ten rows the page fetched — so
+ *    an account with 400 sign-ins reported 10, and failed attempts were
+ *    counted server-side and shown nowhere;
+ *  - the 2FA dialog no longer wears `admin-card-dark`, an admin-only class
+ *    that left the QR panel shadcn-navy on the fan and partner pages;
+ *  - and the passkey button's Bootstrap `spinner-border` (a component class
+ *    the dashboards do not load) is a FontAwesome spinner that actually
+ *    spins.
+ *
  * @param {string}  role          'fan' | 'partner' | 'admin' — drives accent + hero.
  * @param {Object}  routes        Route NAMES for this role's security actions.
  * @param {Array}   breadcrumbs   Passed straight to DashboardHero.
+ * @param {Object}  stats         SecurityService counters (logins, failures).
  */
 export default function AccountSecurity({
     role = 'fan',
@@ -43,6 +59,7 @@ export default function AccountSecurity({
     security_settings: securitySettings = {},
     loginHistory = [],
     passkeys = [],
+    stats = {},
 }) {
     const { flash, auth } = usePage().props;
     const user = auth?.user || {};
@@ -209,9 +226,22 @@ export default function AccountSecurity({
                                     <span>Passkeys</span>
                                     <strong>{passkeys.length}</strong>
                                 </div>
+                                {/* `stats` comes from SecurityService and
+                                    counts every login ever recorded. This
+                                    used to read `loginHistory.length`, which
+                                    is the ten rows the page fetched — so an
+                                    account with 400 sign-ins reported 10, and
+                                    failed attempts, which the service also
+                                    counts, were never shown at all. */}
                                 <div className="tfe-security-stat">
-                                    <span>Recent logins</span>
-                                    <strong>{loginHistory.length}</strong>
+                                    <span>Sign-ins</span>
+                                    <strong>{stats.login_count ?? loginHistory.length}</strong>
+                                </div>
+                                <div className="tfe-security-stat">
+                                    <span>Failed attempts</span>
+                                    <strong className={stats.failed_logins > 0 ? 'text-danger' : undefined}>
+                                        {stats.failed_logins ?? 0}
+                                    </strong>
                                 </div>
                                 <div className="tfe-security-stat">
                                     <span>Password changed</span>
@@ -261,58 +291,92 @@ export default function AccountSecurity({
                                 </div>
                             )}
 
-                            <div className="tfe-setting-row">
-                                <div>
-                                    <h4>Password</h4>
-                                    <p>Last changed {securitySettings.last_password_change || 'never'}.</p>
-                                </div>
-                                <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setShowPassForm(!showPassForm)}>
-                                    <i className="fas fa-key me-2" aria-hidden="true" />
-                                    {showPassForm ? 'Close' : 'Change Password'}
-                                </button>
-                            </div>
+                        </div>
+                    </section>
 
-                            {showPassForm && (
-                                <form onSubmit={handlePasswordChange} className="tfe-form-section">
+                    {/* Its own card (Sprint 56). The form used to unfold
+                        inside "Security preferences", between the toggles and
+                        the card's edge, so a three-field form with its own
+                        Cancel/Update row appeared in the middle of a list of
+                        switches. A password change is its own task. */}
+                    <section className="tfe-slab">
+                        <div className="tfe-slab__header">
+                            <h3 className="tfe-slab__title">
+                                <i className="fas fa-key me-2" aria-hidden="true" /> Password
+                            </h3>
+                            <span className="tfe-slab__title-sub">
+                                Last changed {securitySettings.last_password_change || 'never'}
+                            </span>
+                        </div>
+                        <div className="tfe-slab__body">
+                            {showPassForm ? (
+                                <form onSubmit={handlePasswordChange}>
                                     <div className="tfe-form-field">
-                                        <label className="tfe-form-label">Current Password</label>
+                                        <label className="tfe-form-label" htmlFor="current-password">Current password</label>
                                         <input
+                                            id="current-password"
                                             type="password"
                                             className="tfe-input"
+                                            autoComplete="current-password"
                                             value={passData.current_password}
                                             onChange={(e) => setPassData('current_password', e.target.value)}
                                             required
                                         />
                                         {passErrors.current_password && <div className="tfe-form-error">{passErrors.current_password}</div>}
                                     </div>
-                                    <div className="tfe-form-field">
-                                        <label className="tfe-form-label">New Password</label>
-                                        <input
-                                            type="password"
-                                            className="tfe-input"
-                                            value={passData.password}
-                                            onChange={(e) => setPassData('password', e.target.value)}
-                                            required
-                                        />
-                                        {passErrors.password && <div className="tfe-form-error">{passErrors.password}</div>}
+                                    <div className="tfe-form-grid tfe-form-grid--2">
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label" htmlFor="new-password">New password</label>
+                                            <input
+                                                id="new-password"
+                                                type="password"
+                                                className="tfe-input"
+                                                autoComplete="new-password"
+                                                value={passData.password}
+                                                onChange={(e) => setPassData('password', e.target.value)}
+                                                required
+                                            />
+                                            {passErrors.password && <div className="tfe-form-error">{passErrors.password}</div>}
+                                        </div>
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label" htmlFor="confirm-password">Confirm new password</label>
+                                            <input
+                                                id="confirm-password"
+                                                type="password"
+                                                className="tfe-input"
+                                                autoComplete="new-password"
+                                                value={passData.password_confirmation}
+                                                onChange={(e) => setPassData('password_confirmation', e.target.value)}
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="tfe-form-field">
-                                        <label className="tfe-form-label">Confirm New Password</label>
-                                        <input
-                                            type="password"
-                                            className="tfe-input"
-                                            value={passData.password_confirmation}
-                                            onChange={(e) => setPassData('password_confirmation', e.target.value)}
-                                            required
-                                        />
-                                    </div>
+                                    {/* What the server actually enforces
+                                        (SecurityService: min 8, mixed case,
+                                        a number), said before it rejects you
+                                        rather than after. */}
+                                    <p className="tfe-form-help mt-2">
+                                        At least 8 characters, with upper and lower case and a number.
+                                    </p>
                                     <div className="tfe-form-actions">
-                                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setShowPassForm(false)}>Cancel</button>
+                                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setShowPassForm(false)}>
+                                            Cancel
+                                        </button>
                                         <button type="submit" className="tfe-btn tfe-btn--filled tfe-btn--sm" disabled={passProcessing}>
-                                            {passProcessing ? 'Updating…' : 'Update Password'}
+                                            {passProcessing ? 'Updating…' : 'Update password'}
                                         </button>
                                     </div>
                                 </form>
+                            ) : (
+                                <div className="tfe-setting-row">
+                                    <div>
+                                        <h4>Change your password</h4>
+                                        <p>You will need your current password to set a new one.</p>
+                                    </div>
+                                    <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setShowPassForm(true)}>
+                                        <i className="fas fa-key me-2" aria-hidden="true" /> Change password
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </section>
@@ -365,8 +429,14 @@ export default function AccountSecurity({
                                 onClick={registerPasskey}
                                 disabled={isRegisteringPasskey}
                             >
+                                {/* `spinner-border` is a Bootstrap COMPONENT
+                                    class. Dashboards load Bootstrap's
+                                    utilities + grid only (Sprint 32), so it
+                                    rendered nothing at all — the button just
+                                    said "Registering…" with a blank space
+                                    where the spinner should be. */}
                                 {isRegisteringPasskey
-                                    ? <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" /> Registering…</>
+                                    ? <><i className="fas fa-spinner fa-spin" aria-hidden="true" /> Registering…</>
                                     : <><i className="fas fa-plus" /> Register new passkey</>}
                             </button>
                         </div>
@@ -405,7 +475,13 @@ export default function AccountSecurity({
 
             {/* 2FA setup */}
             <Dialog open={show2FAModal} onOpenChange={setShow2FAModal}>
-                <DialogContent className="admin-card-dark border-0 text-center twofa-modal">
+                {/* `admin-card-dark` lives in admin-theme.css, which only
+                    the admin dashboard loads — so on the fan and partner
+                    pages this panel fell back to the shadcn default and the
+                    QR dialog came up navy blue next to every other dialog on
+                    the platform. These are the classes StatusDialog and
+                    ConfirmationDialog use. */}
+                <DialogContent className="bg-[#0a0a0b] border-white/5 rounded-3xl shadow-2xl text-center twofa-modal">
                     <DialogHeader>
                         <DialogTitle className="twofa-modal__title">Setup Two-Factor Authentication</DialogTitle>
                     </DialogHeader>
