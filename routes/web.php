@@ -35,8 +35,8 @@ use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
 use App\Http\Controllers\Fan\TicketController as FanTicketController;
-use App\Http\Controllers\Fan\VirtualCardController;
 use App\Http\Controllers\Fan\TribeController;
+use App\Http\Controllers\Fan\VirtualCardController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
@@ -319,7 +319,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/listing-approvals/{listing}/approve', [ListingApprovalController::class, 'approve'])->name('listing-approvals.approve');
     Route::post('/listing-approvals/{listing}/reject', [ListingApprovalController::class, 'reject'])->name('listing-approvals.reject');
 
-// Product Management
+    // Product Management
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
