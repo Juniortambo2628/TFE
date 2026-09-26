@@ -92,7 +92,24 @@ export default function AppSidebar({
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-1 px-2">
-                            {menuItems.map((item) => {
+                            {menuItems.map((item, i) => {
+                                if (item.heading) {
+                                    return (
+                                        <div
+                                            key={`heading-${i}`}
+                                            style={{
+                                                padding: '14px 12px 6px',
+                                                fontSize: '0.65rem',
+                                                fontWeight: 700,
+                                                letterSpacing: '0.12em',
+                                                textTransform: 'uppercase',
+                                                color: 'rgba(255,255,255,0.4)',
+                                            }}
+                                        >
+                                            {item.heading}
+                                        </div>
+                                    );
+                                }
                                 const active = isUrlActive(item.path);
                                 return (
                                     <SidebarMenuItem
