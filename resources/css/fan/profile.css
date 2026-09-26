@@ -448,3 +448,23 @@
     display: flex;
     gap: 8px;
 }
+
+/* Sprint 54 — the avatar editor row: framed preview beside its actions. */
+.profile-avatar-editor {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.profile-avatar-editor__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* The "Choose photo" control is a <label> wrapping a hidden input, so it
+   needs the pointer a button would have had. */
+.profile-avatar-editor__actions label.tfe-btn {
+    cursor: pointer;
+}

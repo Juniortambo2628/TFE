@@ -8,7 +8,10 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
 import IdentityPreview from '@/Components/Common/IdentityPreview';
+import TeamAvatar from '@/Components/Common/TeamAvatar';
+import AvatarCropper from '@/Components/Common/AvatarCropper';
 import ImageUpload from '@/Components/Common/ImageUpload';
+import { MEDIA_ACCEPT } from '@/lib/media';
 import { useTournament } from '@/Context/TournamentContext';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 
@@ -96,15 +99,23 @@ export default function Profile({
 
     // ── Avatar (its own small form — one field, one endpoint) ───────────
     const avatarForm = useForm({ avatar: null, avatar_url: fanProfile.avatar || '' });
+    const [pendingPhoto, setPendingPhoto] = useState(null);
 
     const uploadAvatar = (file) => {
-        avatarForm.setData('avatar', file);
         avatarForm.transform(() => ({ avatar: file }));
         avatarForm.post(route('fan.profile.avatar.update'), {
             forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => toast.success('Avatar updated!'),
+            onSuccess: () => { setPendingPhoto(null); toast.success('Avatar updated!'); },
             onError: (errs) => toast.error(errs.avatar || 'Could not update your avatar.'),
+        });
+    };
+
+    const clearAvatar = () => {
+        avatarForm.transform(() => ({ avatar_url: '' }));
+        avatarForm.post(route('fan.profile.avatar.update'), {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Avatar reset to the default.'),
         });
     };
 
@@ -121,19 +132,41 @@ export default function Profile({
         { name: 'Other', icon: 'fas fa-globe' },
     ];
 
-    // A stored Ready Player Me `.glb` is not an image — render the default
-    // rather than a broken <img> for the handful of fans who have one.
-    const avatarSrc = (fanProfile.avatar || '').endsWith('.glb')
-        ? defaultAvatar
-        : (fanProfile.avatar || defaultAvatar);
+    // What TeamAvatar should actually draw.
+    //
+    // The controller always fills `avatar` — with the shipped placeholder file
+    // when the fan has none — so "no photo" arrives as a URL, not null. Map
+    // both that placeholder and a stored Ready Player Me `.glb` (not an image;
+    // it would render as a broken <img>) back to null, and TeamAvatar draws
+    // the fan's initial inside the team ring instead. A letter in your
+    // nation's colours beats a grey stock silhouette.
+    const rawAvatar = fanProfile.avatar || '';
+    const hasPhoto = rawAvatar && !rawAvatar.endsWith('.glb') && rawAvatar !== defaultAvatar
+        && !rawAvatar.includes('assets/img/avatars/default-avatar');
+    const avatarSrc = hasPhoto ? rawAvatar : null;
+
+    // The team whose colours frame the avatar. On your own profile this
+    // follows the unsaved form value, so picking a team in the grid re-rings
+    // the preview immediately (Sprint 54).
+    const activeTeamName = isOwnProfile ? data.team_support : fanProfile.team_support;
+    const activeTeam = teams.find((t) => t.name === activeTeamName);
+    const activeTeamFlag = activeTeam?.flag || null;
 
     const identity = (
         <>
             <IdentityPreview
                 name={isOwnProfile ? data.name : fanProfile.name}
                 sub={fanProfile.email}
-                avatar={avatarSrc}
-                badge={(isOwnProfile ? data.team_support : fanProfile.team_support) || undefined}
+                avatarSlot={(
+                    <TeamAvatar
+                        src={avatarSrc}
+                        name={isOwnProfile ? data.name : fanProfile.name}
+                        team={activeTeamName}
+                        teamFlag={activeTeamFlag}
+                        size={104}
+                    />
+                )}
+                badge={activeTeamName || undefined}
                 rows={[
                     { icon: 'fas fa-users', value: `${stats.followers} followers` },
                     { icon: 'fas fa-layer-group', value: `${stats.tribes} tribes` },
@@ -404,29 +437,51 @@ export default function Profile({
                                 </div>
                             </form>
 
-                            {/* Its own endpoint, so its own form — uploading a
+                            {/* Its own endpoint, so its own form — setting a
                                 picture should not require saving the rest. */}
                             <section className="tfe-slab">
                                 <div className="tfe-slab__header">
                                     <h3 className="tfe-slab__title">
                                         <i className="fas fa-camera me-2" aria-hidden="true" /> Profile picture
                                     </h3>
-                                    <span className="tfe-slab__title-sub">Saves as soon as you choose one</span>
+                                    <span className="tfe-slab__title-sub">
+                                        {activeTeamName ? `Framed in ${activeTeamName}'s colours` : 'Pick a team to frame it'}
+                                    </span>
                                 </div>
                                 <div className="tfe-slab__body">
-                                    <ImageUpload
-                                        compact
-                                        value={avatarSrc}
-                                        onFile={uploadAvatar}
-                                        onClear={() => {
-                                            avatarForm.transform(() => ({ avatar_url: '' }));
-                                            avatarForm.post(route('fan.profile.avatar.update'), {
-                                                preserveScroll: true,
-                                                onSuccess: () => toast.success('Avatar reset to the default.'),
-                                            });
-                                        }}
-                                        label="Upload a profile picture"
-                                    />
+                                    <div className="profile-avatar-editor">
+                                        <TeamAvatar
+                                            src={avatarSrc}
+                                            name={data.name}
+                                            team={activeTeamName}
+                                            teamFlag={activeTeamFlag}
+                                            size={96}
+                                        />
+                                        <div className="profile-avatar-editor__actions">
+                                            <label className="tfe-btn tfe-btn--sm">
+                                                <i className="fas fa-camera" /> Choose photo
+                                                <input
+                                                    type="file"
+                                                    accept={MEDIA_ACCEPT.image}
+                                                    hidden
+                                                    onChange={(e) => {
+                                                        const f = e.target.files?.[0];
+                                                        if (f) setPendingPhoto(f);
+                                                        // Reset so re-picking the same file re-opens the cropper.
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                            </label>
+                                            {hasPhoto && (
+                                                <button type="button" className="tfe-btn tfe-btn--sm" onClick={clearAvatar}>
+                                                    <i className="fas fa-trash-alt" /> Remove
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {avatarForm.errors.avatar && (
+                                        <div className="tfe-form-error mt-2">{avatarForm.errors.avatar}</div>
+                                    )}
                                     {avatarForm.processing && <p className="tfe-form-help mt-2">Uploading…</p>}
                                 </div>
                             </section>
@@ -452,6 +507,16 @@ export default function Profile({
                     )}
                 </SplitEditorLayout>
 
+                <AvatarCropper
+                    open={!!pendingPhoto}
+                    file={pendingPhoto}
+                    name={data.name}
+                    team={activeTeamName}
+                    teamFlag={activeTeamFlag}
+                    onCancel={() => setPendingPhoto(null)}
+                    onCrop={uploadAvatar}
+                />
+
                 {/* Network (followers / following) */}
                 <DashboardModal
                     open={showNetworkModal}
@@ -465,14 +530,18 @@ export default function Profile({
                                 (networkTab === 'followers' ? followers : followingList).map((person) => (
                                     <div key={person.id} className="user-list-item d-flex align-items-center justify-content-between p-3 rounded dash-modal-subtle">
                                         <div className="d-flex align-items-center gap-3">
-                                            <img
+                                            <TeamAvatar
                                                 src={person.avatar || `${assetUrl}assets/img/fan/avatars/default.png`}
-                                                className="user-list-avatar dash-avatar dash-avatar-md"
-                                                alt={person.name}
+                                                name={person.name}
+                                                team={person.team_support}
+                                                teamFlag={teams.find((t) => t.name === person.team_support)?.flag}
+                                                size={44}
                                             />
                                             <div>
                                                 <h4 className="h6 mb-0 text-white fw-bold">{person.name}</h4>
-                                                <small className="text-white-50">Fan Profile</small>
+                                                <small className="text-white-50">
+                                                    {person.team_support ? `Supports ${person.team_support}` : 'Fan Profile'}
+                                                </small>
                                             </div>
                                         </div>
                                         <Link

@@ -39,7 +39,7 @@ trait HasSocialStats
     protected function getFollowers($userId, $limit = null)
     {
         $query = Follow::where('following_id', $userId)
-            ->with(['follower:id,name,avatar']);
+            ->with(['follower:id,name,avatar,team_support']);
 
         if ($limit) {
             $query->take($limit);
@@ -58,7 +58,7 @@ trait HasSocialStats
     protected function getFollowing($userId, $limit = null)
     {
         $query = Follow::where('follower_id', $userId)
-            ->with(['following:id,name,avatar']);
+            ->with(['following:id,name,avatar,team_support']);
 
         if ($limit) {
             $query->take($limit);

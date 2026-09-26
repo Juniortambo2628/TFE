@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 53. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 54. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -772,6 +772,24 @@ new card / table / list CSS:
   again — the partner copy that did ended up with browser `confirm()`
   prompts, a password form posting to the PROFILE endpoint, and 2FA/passkey
   buttons bound to route names that were never registered.
+- **`TeamAvatar`** (Sprint 54, `Components/Common/TeamAvatar.jsx`) — a fan's
+  photo ringed in the colours of the team they support, with their flag as a
+  badge. Replaced the Ready Player Me 3D avatar: on a football platform the
+  identity signal is the team you back (`users.team_support`), so it rides on
+  the frame rather than a generic 3D humanoid — no third party, no `.glb`
+  pipeline, no `model-viewer` script. `--avatar-size` scales it from a 28px
+  row to a 140px header. Pass `src={null}` and it draws the name's initial.
+  **The ring colour is sampled from the flag PNG itself**
+  (`resources/js/lib/flagAccent.js`) — do NOT add a hand-written national
+  colour table; ~90 nations written from memory is a wrong-colour bug waiting
+  to happen, and the artwork is already committed and same-origin. The pure
+  reduction (`pickAccentFromPixels`) is guarded by
+  `tests/JS/flagAccent.test.mjs`; results are memoised per session.
+- **`AvatarCropper`** (Sprint 54, `Components/Common/AvatarCropper.jsx`) — a
+  `TfeModal` with drag-to-reposition + zoom onto a square canvas, exporting
+  WebP (JPEG fallback). Hand-rolled on pointer events rather than a cropper
+  package. Its preview is the real `TeamAvatar`, so the fan frames what they
+  will actually get.
 - **`HubPreview`** (moved to `Components/Common/` in Sprint 53) — the live
   partner-hub preview. Used by `/admin/partners/{user}` AND the partner's own
   `/partner/profile`. It imports its own stylesheet, so it looks right
@@ -1164,6 +1182,17 @@ tests/
   that and every sidebar click remounts the whole shell again (Sprint 53).
 - Never fork the security page per role, or hand-roll a shimmer placeholder.
   Use `Components/Common/AccountSecurity` and `Components/Common/Skeleton`.
+- **Never give `.tfe-page` (or any ancestor of page content) `animation-fill-mode:
+  both` on a keyframe that mentions `transform`.** The final frame's
+  `transform: none` computes to `matrix(1,0,0,1,0,0)` — an identity transform
+  is still a transform, so the element becomes a containing block for
+  `position: fixed`, and every modal/dialog/overlay rendered inside a page is
+  then positioned against the page wrapper instead of the viewport (they hang
+  off the bottom of tall pages). Use `backwards` (Sprint 54). Same trap
+  applies to the standalone `translate`/`scale`/`rotate` properties, `filter`
+  and `will-change: transform`.
+- Never hand-write a national colour table for team framing — sample the flag
+  (`lib/flagAccent`), which cannot drift from the artwork (Sprint 54).
 - Never reference a `route()` name from a role page without checking it is
   registered — `route()` throws at click time, not render time, so the
   partner security page shipped four dead buttons for two sprints (Sprint 53).
@@ -1220,6 +1249,7 @@ tests/
 | 51     | Shared SplitEditorLayout (form-left / sticky-live-preview-right) extracted from the tournament edit page and applied to the Content CMS (Page Heroes + Section Cards) with live previews; SettingField gains an onChange for live-as-you-type |
 | 52     | SplitEditorLayout + IdentityPreview rolled onto the admin Profile and Settings (Site Identity) forms; other account forms left as-is (already grids/modals) |
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
+| 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

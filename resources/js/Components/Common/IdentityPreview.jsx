@@ -6,14 +6,22 @@ import React from 'react';
  * name's initial), a name, a sub-line and optional contact rows, re-branded by
  * `accent`. Used by the admin profile + site-settings editors so the admin sees
  * their identity update as they type.
+ *
+ * Pass `avatarSlot` to substitute a custom portrait for the default circle.
  */
-export default function IdentityPreview({ name, sub, avatar, accent = '#3b82f6', badge, rows = [] }) {
+export default function IdentityPreview({ name, sub, avatar, accent = '#3b82f6', badge, rows = [], avatarSlot }) {
     const initial = (name || '?').trim().charAt(0).toUpperCase() || '?';
     return (
         <div className="tfe-identity" style={{ '--identity-accent': accent }}>
-            <div className="tfe-identity__avatar">
-                {avatar ? <img src={avatar} alt="" /> : initial}
-            </div>
+            {/* `avatarSlot` lets a caller drop in a richer portrait — the fan
+                profile passes a <TeamAvatar> so the preview carries the team
+                ring and flag badge (Sprint 54) — without every caller having
+                to rebuild the surrounding card. */}
+            {avatarSlot || (
+                <div className="tfe-identity__avatar">
+                    {avatar ? <img src={avatar} alt="" /> : initial}
+                </div>
+            )}
             <div className="tfe-identity__name">{name || '—'}</div>
             {sub && <div className="tfe-identity__sub">{sub}</div>}
             {badge && <span className="tfe-pill tfe-pill--info tfe-identity__badge">{badge}</span>}

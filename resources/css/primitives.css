@@ -1689,8 +1689,17 @@ button.tfe-menu-surface__badge:hover {
    Inertia component name, so each route change replays the enter animation
    while the shell around it stays put. */
 
+/* `backwards`, NEVER `both`.
+   With `both` the element keeps the animation's final state applied forever,
+   and `transform: none` in a keyframe computes to `matrix(1,0,0,1,0,0)` — an
+   identity transform, but still a transform, which makes the element a
+   containing block for `position: fixed`. Every modal, dialog and overlay
+   rendered inside a page was then positioned against the page wrapper
+   instead of the viewport, so they hung off the bottom of tall pages.
+   `backwards` applies the opening frame before the animation and lets the
+   element fall back to its own (transform-free) styles once it finishes. */
 .tfe-page {
-    animation: tfe-page-enter var(--dur, 220ms) var(--ease-out, ease-out) both;
+    animation: tfe-page-enter var(--dur, 220ms) var(--ease-out, ease-out) backwards;
 }
 
 @keyframes tfe-page-enter {
@@ -1708,7 +1717,7 @@ button.tfe-menu-surface__badge:hover {
 /* The skeleton state fades only — it is already a placeholder, and sliding
    it in then sliding the real content in reads as two separate loads. */
 .tfe-page--loading {
-    animation: tfe-page-fade var(--dur-fast, 140ms) var(--ease-out, ease-out) both;
+    animation: tfe-page-fade var(--dur-fast, 140ms) var(--ease-out, ease-out) backwards;
 }
 
 @keyframes tfe-page-fade {
@@ -1892,4 +1901,153 @@ button.tfe-menu-surface__badge:hover {
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 0.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Team-framed avatars — Sprint 54
+   ══════════════════════════════════════════════════════════════════════
+   A fan's photo ringed in the colours of the team they support, with their
+   flag as a badge. `--team-accent` is set by TeamAvatar from the flag
+   artwork itself; `--avatar-size` drives everything else, so one component
+   scales from a 28px comment row to a 140px profile header. */
+
+.tfe-team-avatar {
+    --avatar-size: 96px;
+    --team-accent: rgb(255 255 255 / 18%);
+
+    position: relative;
+    display: inline-block;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    flex: none;
+    line-height: 0;
+}
+
+.tfe-team-avatar__ring {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgb(255 255 255 / 6%);
+    border: max(2px, calc(var(--avatar-size) * 0.035)) solid var(--team-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color var(--dur, 220ms) var(--ease-out, ease);
+}
+
+/* Only a real team colour earns the glow — a neutral ring stays flat. */
+.tfe-team-avatar.is-framed .tfe-team-avatar__ring {
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 45%),
+                0 0 calc(var(--avatar-size) * 0.18) color-mix(in srgb, var(--team-accent) 45%, transparent);
+}
+
+.tfe-team-avatar__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tfe-team-avatar__initial {
+    font-size: calc(var(--avatar-size) * 0.38);
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+}
+
+.tfe-team-avatar__flag {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: calc(var(--avatar-size) * 0.32);
+    height: calc(var(--avatar-size) * 0.32);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #0a0a0a;
+    background: #0a0a0a;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 55%);
+}
+
+/* ── Avatar cropper ──────────────────────────────────────────────────── */
+
+.tfe-cropper {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: 1fr;
+    align-items: start;
+}
+
+@media (min-width: 640px) {
+    .tfe-cropper {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+}
+
+.tfe-cropper__stage {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #111;
+    cursor: grab;
+    touch-action: none; /* we handle the pan ourselves */
+    user-select: none;
+}
+
+.tfe-cropper__stage:active {
+    cursor: grabbing;
+}
+
+.tfe-cropper__img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -50%;
+    margin-left: -50%;
+    transform-origin: center;
+    max-width: none;
+    pointer-events: none;
+}
+
+/* Circular cut-out so the fan sees the crop, not a square guess. */
+.tfe-cropper__mask {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 16px;
+    box-shadow: inset 0 0 0 9999px rgb(0 0 0 / 55%);
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent 49.5%, #000 50%);
+    mask: radial-gradient(circle at 50% 50%, transparent 49.5%, #000 50%);
+}
+
+.tfe-cropper__zoom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px auto 0;
+    max-width: 280px;
+    color: rgb(255 255 255 / 55%);
+}
+
+.tfe-cropper__zoom input[type="range"] {
+    flex: 1;
+    accent-color: var(--team-accent, #dc143c);
+}
+
+.tfe-cropper__preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    min-width: 160px;
+}
+
+.tfe-cropper__preview .tfe-form-help {
+    max-width: 170px;
+    margin: 0;
 }
