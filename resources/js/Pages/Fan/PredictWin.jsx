@@ -73,16 +73,29 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                         <h3>Upcoming Matches</h3>
                     </div>
                     
+                    {upcomingMatches.length === 0 ? (
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-futbol"></i></div>
+                            <h4 className="tfe-empty__title">No fixtures to call yet</h4>
+                            <p className="tfe-empty__body">
+                                The schedule for this tournament has not been published. Check the
+                                match schedule once fixtures are confirmed and your predictions
+                                will open here.
+                            </p>
+                            <Link href={route('fan.match-schedule')} className="tfe-btn tfe-btn--sm tfe-empty__action">
+                                <i className="fas fa-calendar-days"></i> Match Schedule
+                            </Link>
+                        </div>
+                    ) : (
                     <div className="p-3">
                         {upcomingMatches.map(match => (
                             <div 
                                 key={match.id} 
-                                className={`p-3 mb-3 rounded border ${selectedMatch?.id === match.id ? 'border-danger bg-dark' : 'border-secondary'}`}
-                                style={{cursor: 'pointer'}}
+                                className={`predict-match${selectedMatch?.id === match.id ? ' is-selected' : ''}`}
                                 onClick={() => setSelectedMatch(match)}
                             >
                                 <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <span className="badge bg-secondary">{match.stage}</span>
+                                    <span className="tfe-pill tfe-pill--concluded">{match.stage}</span>
                                     <span className="text-white-50 small">{match.date}</span>
                                 </div>
                                 <div className="d-flex justify-content-between align-items-center">
@@ -90,7 +103,7 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                                         <div className="h5 mb-0 text-white">{match.home_team}</div>
                                     </div>
                                     <div className="px-3">
-                                        <span className="badge bg-danger">VS</span>
+                                        <span className="tfe-pill tfe-pill--upcoming">VS</span>
                                     </div>
                                     <div className="text-center flex-fill">
                                         <div className="h5 mb-0 text-white">{match.away_team}</div>
@@ -102,6 +115,7 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                             </div>
                         ))}
                     </div>
+                    )}
                 </div>
 
                 {/* Prediction Form / Leaderboard */}
@@ -114,7 +128,7 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                             </div>
                             <div className="p-3">
                                 <div className="text-center mb-4">
-                                    <span className="badge bg-secondary mb-2">{selectedMatch.stage}</span>
+                                    <span className="tfe-pill tfe-pill--concluded mb-2">{selectedMatch.stage}</span>
                                     <h5 className="text-white">{selectedMatch.home_team} vs {selectedMatch.away_team}</h5>
                                 </div>
                                 
@@ -158,22 +172,35 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                                 <i className="fas fa-trophy"></i>
                                 <h3>Leaderboard</h3>
                             </div>
-                            <div className="p-3">
-                                {leaderboard.map(user => (
-                                    <div key={user.rank} className="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <span className={`badge ${user.rank <= 3 ? 'bg-warning text-dark' : 'bg-secondary'}`}>
-                                                #{user.rank}
+                            {leaderboard.length === 0 ? (
+                                <div className="tfe-empty">
+                                    <div className="tfe-empty__icon"><i className="fas fa-trophy"></i></div>
+                                    <h4 className="tfe-empty__title">No standings yet</h4>
+                                    <p className="tfe-empty__body">
+                                        Nobody has scored a prediction for this tournament so far. Call a
+                                        scoreline above and you will be the one to beat.
+                                    </p>
+                                </div>
+                            ) : (
+                                <ol className="tfe-leaderboard">
+                                    {leaderboard.map(entry => (
+                                        <li key={entry.rank} className="tfe-leaderboard__row">
+                                            <span
+                                                className="tfe-rank"
+                                                data-medal={entry.rank <= 3 ? entry.rank : undefined}
+                                                aria-label={`Rank ${entry.rank}`}
+                                            >
+                                                {entry.rank}
                                             </span>
-                                            <span className="text-white">{user.name}</span>
-                                        </div>
-                                        <div className="text-end">
-                                            <div className="text-danger fw-bold">{user.points} pts</div>
-                                            <small className="text-white-50">{user.correct} correct</small>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                            <span className="tfe-leaderboard__name">{entry.name}</span>
+                                            <span className="tfe-leaderboard__score">
+                                                <strong>{entry.points}</strong>
+                                                <small>pts · {entry.correct} correct</small>
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ol>
+                            )}
                         </>
                     )}
                 </div>
@@ -185,20 +212,29 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                     <i className="fas fa-gift"></i>
                     <h3>Prizes</h3>
                 </div>
-                <div className="row g-4 p-3">
-                    {prizes.map(prize => (
-                        <div key={prize.position} className="col-md-4">
-                            <div className="p-4 text-center rounded border border-secondary">
-                                <div className={`h1 mb-3 ${prize.position === '1st' ? 'text-warning' : 'text-secondary'}`}>
-                                    <i className="fas fa-medal"></i>
-                                </div>
-                                <h5 className="text-white">{prize.position} Place</h5>
-                                <p className="text-white-50 mb-2">{prize.prize}</p>
-                                <span className="badge bg-danger">{prize.value}</span>
-                            </div>
-                        </div>
+                {prizes.length === 0 ? (
+                    <div className="tfe-empty">
+                        <div className="tfe-empty__icon"><i className="fas fa-gift"></i></div>
+                        <h4 className="tfe-empty__title">Prizes not announced yet</h4>
+                        <p className="tfe-empty__body">
+                            Prizes for this tournament's prediction game are still being confirmed.
+                            Keep calling scorelines — points earned now still count.
+                        </p>
+                    </div>
+                ) : (
+                <div className="tfe-prize-grid">
+                    {prizes.map((prize, index) => (
+                        <article key={prize.position} className="tfe-prize" data-medal={index + 1}>
+                            <span className="tfe-rank tfe-rank--lg" data-medal={index + 1}>
+                                <i className="fas fa-medal"></i>
+                            </span>
+                            <h4 className="tfe-prize__title">{prize.position} Place</h4>
+                            <p className="tfe-prize__body">{prize.prize}</p>
+                            <span className="tfe-pill tfe-pill--upcoming">{prize.value}</span>
+                        </article>
                     ))}
                 </div>
+                )}
             </div>
         </FanLayout>
     );
