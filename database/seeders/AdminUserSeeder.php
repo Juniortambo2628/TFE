@@ -22,8 +22,6 @@ class AdminUserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'is_admin' => true,
                 'is_partner' => false,
-                'phone' => '1234567890',
-                'country' => 'Kenya',
                 'first_name' => 'System',
                 'last_name' => 'Admin',
             ]

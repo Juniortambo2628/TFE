@@ -36,8 +36,6 @@ class DemoTicketingPartnerSeeder extends Seeder
                 'partner_type' => 'ticketing_partner',
                 'verification_status' => 'verified',
                 'services_offered' => ['Verified matchday tickets', 'Group bookings', 'Fan-zone bundles', 'e-Ticket delivery'],
-                'phone' => '+254733000000',
-                'country' => 'Kenya',
                 'company_name' => 'MatchDay Africa Ltd.',
             ]
         );

@@ -8,14 +8,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
+/**
+ * Sprint 47 Phase D — profile completion is now just team-support (opt).
+ * All PII (phone, country, DOB, address) was moved off users.
+ */
 class CompleteProfileController extends Controller
 {
     public function create()
     {
         $user = Auth::user();
-
-        // If profile is already complete, redirect to dashboard
-        if (! empty($user->phone) && ! empty($user->country)) {
+        if (! empty($user->team_support)) {
             return redirect()->route('fan.dashboard');
         }
 
@@ -27,20 +29,12 @@ class CompleteProfileController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'phone' => 'required|string|max:20',
-            'country' => 'required|string|max:100',
-            'country_code' => 'required|string|max:10',
             'team_support' => 'nullable|string|max:100',
             'terms_agreed' => 'required|accepted',
         ]);
 
         $user = User::find(Auth::id());
-        $user->update([
-            'phone' => $request->phone,
-            'country' => $request->country,
-            'country_code' => $request->country_code,
-            'team_support' => $request->team_support,
-        ]);
+        $user->update(['team_support' => $request->team_support]);
 
         return redirect()->route('fan.dashboard');
     }

@@ -7,21 +7,24 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * Admin user directory — Phase D slimmed edition.
+ *
+ * TFE holds only auth + identity (name, email, roles, consent flags,
+ * activity counts). Everything KYC (phone, DOB, address, country) lives
+ * on the partner platforms that service the fan.
+ */
 class UserController extends Controller
 {
     public function index(Request $request)
     {
         $query = User::query();
-
-        // Search
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%")
                     ->orWhere('email', 'like', "%{$request->search}%");
             });
         }
-
-        // Filter by status
         if ($request->status) {
             $query->where('status', $request->status);
         }
@@ -29,30 +32,24 @@ class UserController extends Controller
         $users = $query->latest()
             ->withCount(['posts', 'predictions', 'followers', 'eventRsvps'])
             ->paginate(15)
-            ->through(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'bio' => $user->bio,
-                    'country' => $user->country,
-                    'is_admin' => $user->is_admin ?? false,
-                    'is_partner' => $user->is_partner ?? false,
-                    'country_code' => $user->country_code,
-                    'team_support' => $user->team_support,
-                    'date_of_birth' => $user->date_of_birth?->format('Y-m-d'),
-                    'email_verified_at' => $user->email_verified_at,
-                    'created_at' => $user->created_at->format('Y-m-d H:i:s'),
-                    'posts_count' => $user->posts_count,
-                    'predictions_count' => $user->predictions_count,
-                    'followers_count' => $user->followers_count,
-                    'events_count' => $user->event_rsvps_count,
-                    'marketing_consent' => (bool) $user->marketing_consent,
-                    'community_consent' => (bool) $user->community_consent,
-                    'terms_agreed' => (bool) $user->terms_agreed,
-                ];
-            });
+            ->through(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'bio' => $user->bio,
+                'is_admin' => (bool) $user->is_admin,
+                'is_partner' => (bool) $user->is_partner,
+                'team_support' => $user->team_support,
+                'email_verified_at' => $user->email_verified_at,
+                'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                'posts_count' => $user->posts_count,
+                'predictions_count' => $user->predictions_count,
+                'followers_count' => $user->followers_count,
+                'events_count' => $user->event_rsvps_count,
+                'marketing_consent' => (bool) $user->marketing_consent,
+                'community_consent' => (bool) $user->community_consent,
+                'terms_agreed' => (bool) $user->terms_agreed,
+            ]);
 
         $stats = [
             'total' => User::count(),
@@ -73,11 +70,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
-            'phone' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
-            'country_code' => 'nullable|string|max:10',
             'team_support' => 'nullable|string|max:255',
-            'date_of_birth' => 'nullable|date',
             'bio' => 'nullable|string|max:1000',
             'is_admin' => 'boolean',
             'is_partner' => 'boolean',

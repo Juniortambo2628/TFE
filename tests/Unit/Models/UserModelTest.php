@@ -19,8 +19,6 @@ class UserModelTest extends TestCase
         $this->assertContains('email', $user->getFillable());
         $this->assertContains('is_admin', $user->getFillable());
         $this->assertContains('is_partner', $user->getFillable());
-        $this->assertContains('phone', $user->getFillable());
-        $this->assertContains('country', $user->getFillable());
         $this->assertContains('avatar', $user->getFillable());
         $this->assertContains('cover_image', $user->getFillable());
     }
@@ -77,14 +75,10 @@ class UserModelTest extends TestCase
         $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'phone' => '+254700000000',
-            'country' => 'Kenya',
         ]);
 
         $this->assertEquals('Test User', $user->name);
         $this->assertEquals('test@example.com', $user->email);
-        $this->assertEquals('+254700000000', $user->phone);
-        $this->assertEquals('Kenya', $user->country);
     }
 
     public function test_user_has_correct_casts(): void
