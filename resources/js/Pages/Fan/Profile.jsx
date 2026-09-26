@@ -4,8 +4,6 @@ import { Head, usePage, router, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { AvatarCreator } from '@readyplayerme/react-avatar-creator';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
-import SearchableSelect from '@/Components/SearchableSelect';
-import { countries } from '../../Data/countries';
 import '../../../css/fan/profile.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
@@ -57,11 +55,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
     const [editForm, setEditForm] = useState({
         name: fanProfile.name,
         email: fanProfile.email,
-        country: fanProfile.country,
-        country_code: fanProfile.country_code || '',
         team_support: fanProfile.team_support,
-        date_of_birth: fanProfile.date_of_birth || '',
-        phone: fanProfile.phone || '',
         bio: fanProfile.bio || '',
         cover_image: fanProfile.cover_image || '',
         marketing_consent: !!fanProfile.marketing_consent,
@@ -121,11 +115,7 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
         const formData = new FormData();
         formData.append('_method', 'PUT');
         formData.append('name', editForm.name);
-        formData.append('country', editForm.country || '');
-        formData.append('country_code', editForm.country_code || '');
         formData.append('team_support', editForm.team_support || '');
-        formData.append('date_of_birth', editForm.date_of_birth || '');
-        formData.append('phone', editForm.phone || '');
         formData.append('bio', editForm.bio || '');
         formData.append('marketing_consent', editForm.marketing_consent ? '1' : '0');
         formData.append('community_consent', editForm.community_consent ? '1' : '0');
@@ -235,7 +225,6 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                             <div className="profile-info mb-4">
                                 <h2 id="profileName" className="h3 mb-2 text-white">{fanProfile.name}</h2>
                                 <p id="profileEmail" className="text-medium-contrast mb-2">{fanProfile.email}</p>
-                                <p className="profile-country mb-2 text-high-contrast"><i className="fas fa-flag me-1"></i> {fanProfile.country}</p>
 
                                 {fanProfile.team_support && (
                                     <p className="profile-team mb-1">
@@ -502,67 +491,9 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                             title="Email cannot be changed"
                                         />
                                     </div>
-                                    <div className="mb-3">
-                                        <label className="tfe-form-label">Country</label>
-                                        <SearchableSelect
-                                            options={countries}
-                                            value={editForm.country}
-                                            onChange={(val) => setEditForm({...editForm, country: val})}
-                                            placeholder="Select Your Country"
-                                            labelKey="text"
-                                            valueKey="value"
-                                        />
-                                    </div>
-                                    <div className="d-flex gap-3">
-                                        <div className="flex-fill">
-                                            <label className="tfe-form-label">Date of Birth</label>
-                                            <input
-                                                type="date"
-                                                className="tfe-input profile-date-input"
-                                                value={editForm.date_of_birth}
-                                                onChange={e => setEditForm({...editForm, date_of_birth: e.target.value})}
-                                            />
-                                        </div>
-                                        <div className="flex-fill">
-                                            <label className="tfe-form-label">Phone Number</label>
-                                            <div className="d-flex gap-2">
-                                                <div className="profile-country-code-select">
-                                                    <SearchableSelect
-                                                        options={countries}
-                                                        value={editForm.country_code}
-                                                        onChange={(val) => {
-                                                            const countryObj = countries.find(c => c.code === val);
-                                                            setEditForm(prev => ({
-                                                                ...prev, 
-                                                                country_code: val,
-                                                                country: countryObj ? countryObj.value : prev.country
-                                                            }));
-                                                        }}
-                                                        placeholder="Code"
-                                                        labelKey="code"
-                                                        valueKey="code"
-                                                        searchKeysKey={['code', 'value', 'iso']}
-                                                        renderOption={(option) => (
-                                                            <div className="d-flex align-items-center justify-content-between w-100">
-                                                                <div className="d-flex align-items-center">
-                                                                    <span className="text-white me-2 small">{option.iso}</span>
-                                                                    <span className="text-white fw-bold">{option.code}</span>
-                                                                </div>
-                                                                <span className="text-white-50 small ms-1 text-truncate profile-country-code-name">{option.value}</span>
-                                                            </div>
-                                                        )}
-                                                    />
-                                                </div>
-                                                <input 
-                                                    type="tel" 
-                                                    className="tfe-input"
-                                                    value={editForm.phone}
-                                                    onChange={e => setEditForm({...editForm, phone: e.target.value})}
-                                                    placeholder="123 456 789"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <p className="tfe-form-help mt-2">
+                                        Contact + KYC details (phone, address, country) live with your booking, travel, finance and ticket partners — they collect and hold whatever they need to service you.
+                                    </p>
                                 </div>
                             )}
 

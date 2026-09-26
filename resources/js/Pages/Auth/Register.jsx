@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import '../../../css/register-dark.css';
-import { countries } from '../../Data/countries';
-import SearchableSelect from '../../Components/SearchableSelect';
 import axios from 'axios';
 import AuthLayout from '@/Layouts/AuthLayout';
 import DashboardModal from '@/Components/Common/DashboardModal';
@@ -12,14 +10,6 @@ import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 import { useTournament } from '@/Context/TournamentContext';
 
 const totalSteps = 3;
-
-// Turn a 2-letter ISO code into its emoji flag (regional indicator symbols),
-// so the country-code dropdown shows a flag instead of a bare abbreviation.
-function isoToFlag(iso) {
-    if (!iso || iso.length !== 2) return '';
-    const cp = iso.toUpperCase().split('').map((c) => 0x1f1e6 + c.charCodeAt(0) - 65);
-    return String.fromCodePoint(...cp);
-}
 
 export default function Register() {
     const { assetUrl } = usePage().props;
@@ -32,16 +22,10 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
-        
-        // Personal
-        phone: '',
-        country: '',
-        country_code: '',
-        date_of_birth: '',
-        
+
         // Preferences
         team_support: '',
-        
+
         // Consents
         terms_agreed: false,
         marketing_consent: false,
@@ -54,7 +38,7 @@ export default function Register() {
     const [emailSuggestions, setEmailSuggestions] = useState([]);
     const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
     const [validationState, setValidationState] = useState({
-        first_name: null, last_name: null, email: null, phone: null, country: null, date_of_birth: null
+        first_name: null, last_name: null, email: null
     });
     const [emailCheckLoading, setEmailCheckLoading] = useState(false);
 
@@ -164,7 +148,7 @@ export default function Register() {
 
     const validateStep = (step) => {
         if (step === 1) {
-            if (!data.first_name || !data.last_name || !data.email || !data.phone || !data.country || !data.date_of_birth || !data.password) {
+            if (!data.first_name || !data.last_name || !data.email || !data.password) {
                 toast.warning('Please fill in all required personal fields.');
                 return false;
             }
@@ -344,68 +328,7 @@ export default function Register() {
                                             </div>
                                             {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
                                         </div>
-                                        <div className="col-md-6">
-                                            <label className="tfe-form-label">Country <span className="text-danger">*</span></label>
-                                            <div className="text-white">
-                                                <SearchableSelect
-                                                    options={countries}
-                                                    value={data.country}
-                                                    onChange={(val) => setData('country', val)}
-                                                    placeholder="Select Your Country"
-                                                    labelKey="text"
-                                                    valueKey="value"
-                                                />
-                                                {errors.country && <div className="invalid-feedback d-block">{errors.country}</div>}
-                                            </div>
-                                        </div>
-                                        {/* Phone gets its own full-width row so the code selector and the
-                                            number input sit side by side without the input wrapping. */}
-                                        <div className="col-12">
-                                            <label className="tfe-form-label">Phone Number <span className="text-danger">*</span></label>
-                                            <div className="d-flex align-items-stretch gap-2">
-                                                <div style={{width: '160px', flex: '0 0 160px'}} className="text-white">
-                                                    <SearchableSelect
-                                                        options={countries}
-                                                        value={data.country_code}
-                                                        onChange={(val) => {
-                                                            const countryObj = countries.find(c => c.code === val);
-                                                            setData(prev => ({
-                                                                ...prev,
-                                                                country_code: val,
-                                                                country: countryObj ? countryObj.value : prev.country
-                                                            }));
-                                                        }}
-                                                        placeholder="Code"
-                                                        labelKey="code"
-                                                        valueKey="code"
-                                                        searchKeys={['code', 'value', 'iso']}
-                                                        renderOption={(option) => (
-                                                            <div className="d-flex align-items-center justify-content-between w-100">
-                                                                <div className="d-flex align-items-center">
-                                                                    <span className="me-2" style={{fontSize: '1.1rem', lineHeight: 1}}>{isoToFlag(option.iso)}</span>
-                                                                    <span className="text-white fw-bold">{option.code}</span>
-                                                                </div>
-                                                                <span className="text-white-50 small ms-2 text-truncate" style={{maxWidth: '110px'}}>{option.value}</span>
-                                                            </div>
-                                                        )}
-                                                    />
-                                                </div>
-                                                <input
-                                                    type="tel"
-                                                    className="tfe-input flex-grow-1"
-                                                    value={data.phone}
-                                                    onChange={e => handleInputChange('phone', e.target.value)}
-                                                    required
-                                                    placeholder="123 456 7890"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="tfe-form-label">Date of Birth <span className="text-danger">*</span></label>
-                                            <input type="date" className="tfe-input" value={data.date_of_birth} onChange={e => handleInputChange('date_of_birth', e.target.value)} required />
-                                            {errors.date_of_birth && <div className="invalid-feedback d-block">{errors.date_of_birth}</div>}
-                                        </div>
-                                        <div className="col-12 mt-4"><hr className="border-secondary" /></div>
+                                        <div className="col-12 mt-2"><hr className="border-secondary" /></div>
                                         <div className="col-md-6">
                                             <label className="tfe-form-label">Password <span className="text-danger">*</span></label>
                                             <input type="password" className="tfe-input" value={data.password} onChange={e => setData('password', e.target.value)} required />

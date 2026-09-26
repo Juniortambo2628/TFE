@@ -8,9 +8,7 @@ import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DataTable from '@/Components/DataTable';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import { useForm, usePage } from '@inertiajs/react';
-import SearchableSelect from '@/Components/SearchableSelect';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
-import { countries } from '../../Data/countries';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 
 export default function Users({ auth, users = { data: [] }, stats = {}, filters }) {
@@ -27,11 +25,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
     const { data, setData, put, processing, reset, errors } = useForm({
         name: '',
         email: '',
-        phone: '',
-        country: '',
-        country_code: '',
         team_support: '',
-        date_of_birth: '',
         bio: '',
         is_admin: false,
         is_partner: false,
@@ -99,11 +93,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
         setData({
             name: user.name || '',
             email: user.email || '',
-            phone: user.phone || '',
-            country: user.country || '',
-            country_code: user.country_code || '',
             team_support: user.team_support || '',
-            date_of_birth: user.date_of_birth || '',
             bio: user.bio || '',
             is_admin: !!user.is_admin,
             is_partner: !!user.is_partner,
@@ -134,11 +124,6 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
             accessorKey: "email",
             header: "Email",
             cell: ({ row }) => <span className="text-white" style={{ opacity: 0.8 }}>{row.original.email}</span>,
-        },
-        {
-            accessorKey: "country",
-            header: "Country",
-            cell: ({ row }) => row.original.country || "-",
         },
         {
             accessorKey: "created_at",
@@ -202,7 +187,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
             <SummaryTiles items={[
                 { label: 'Total Registered', value: stats.total || 0, icon: 'fa-users', accent: 'blue' },
                 { label: 'Platform Admins', value: stats.admins || 0, icon: 'fa-user-shield', accent: 'violet' },
-                { label: 'Travel Partners', value: stats.partners || 0, icon: 'fa-handshake', accent: 'teal' },
+                { label: 'Partners', value: stats.partners || 0, icon: 'fa-handshake', accent: 'teal' },
                 { label: 'Pending Consent', value: stats.pending_consent || 0, icon: 'fa-user-clock', accent: 'amber' },
             ]} className="mb-4" />
 
@@ -359,20 +344,9 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                                                 <div className="fw-medium">{selectedUser.email}</div>
                                             </div>
                                         </div>
-                                        <div className="text-white mb-3 d-flex align-items-center">
-                                            <div className="p-2 rounded-3 me-3" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#34d399' }}><i className="fas fa-phone"></i></div>
-                                            <div>
-                                                <div className="small text-muted">Phone Number</div>
-                                                <div className="fw-medium">{selectedUser.phone || 'Not provided'}</div>
-                                            </div>
-                                        </div>
-                                        <div className="text-white d-flex align-items-center">
-                                            <div className="p-2 rounded-3 me-3" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24' }}><i className="fas fa-map-marker-alt"></i></div>
-                                            <div>
-                                                <div className="small text-muted">Location</div>
-                                                <div className="fw-medium">{selectedUser.country || 'Not specified'}</div>
-                                            </div>
-                                        </div>
+                                        <p className="small text-muted mb-0" style={{ opacity: 0.6 }}>
+                                            Phone, address and other KYC details live with each fan's partner platforms — TFE holds only what's needed to run auth.
+                                        </p>
                                     </div>
                                 </div>
 
@@ -421,62 +395,6 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                                                 onChange={e => setData('email', e.target.value)}
                                                 error={errors.email}
                                             />
-                                        </div>
-                                        <div className="col-md-6">
-                                            <AdminInput
-                                                label="Phone"
-                                                value={data.phone}
-                                                onChange={e => setData('phone', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="col-md-6">
-                                            <AdminInput
-                                                label="Date of Birth"
-                                                type="date"
-                                                value={data.date_of_birth}
-                                                onChange={e => setData('date_of_birth', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="col-md-3">
-                                            <div className="admin-form-group">
-                                                <label className="admin-form-label text-white">Code</label>
-                                                <SearchableSelect
-                                                    options={countries}
-                                                    value={data.country_code}
-                                                    onChange={(val) => {
-                                                        const countryObj = countries.find(c => c.code === val);
-                                                        setData(prev => ({
-                                                            ...prev, 
-                                                            country_code: val,
-                                                            country: countryObj ? countryObj.value : prev.country
-                                                        }));
-                                                    }}
-                                                    placeholder="Code"
-                                                    labelKey="code"
-                                                    valueKey="code"
-                                                    searchKeys={['code', 'value', 'iso']}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-9">
-                                            <div className="admin-form-group">
-                                                <label className="admin-form-label text-white">Country</label>
-                                                <SearchableSelect
-                                                    options={countries}
-                                                    value={data.country}
-                                                    onChange={(val) => {
-                                                        const countryObj = countries.find(c => c.value === val);
-                                                        setData(prev => ({
-                                                            ...prev, 
-                                                            country: val,
-                                                            country_code: countryObj ? countryObj.code : prev.country_code
-                                                        }));
-                                                    }}
-                                                    placeholder="Select Country"
-                                                    labelKey="value"
-                                                    valueKey="value"
-                                                />
-                                            </div>
                                         </div>
                                         <div className="col-12 mt-4">
                                             <button className="btn-admin w-100 py-2" disabled={processing}>
