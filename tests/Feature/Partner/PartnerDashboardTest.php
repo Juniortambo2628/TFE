@@ -3,6 +3,7 @@
 namespace Tests\Feature\Partner;
 
 use App\Models\Budget;
+use App\Models\Listing;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,6 +15,14 @@ class PartnerDashboardTest extends TestCase
     private function createPartner(): User
     {
         return User::factory()->partner()->create();
+    }
+
+    private function listingFor(User $partner): Listing
+    {
+        return Listing::factory()->create([
+            'publisher_type' => User::class,
+            'publisher_id' => $partner->id,
+        ]);
     }
 
     private function createFan(): User
@@ -77,6 +86,10 @@ class PartnerDashboardTest extends TestCase
         $partner = $this->createPartner();
         $budget = Budget::create([
             'user_id' => User::factory()->create()->id,
+            // In the partner's own queue — i.e. a fan picked their listing.
+            // Sprint 56 scopes show()/update() to that; before, any partner
+            // could open any budget by id.
+            'listing_id' => $this->listingFor($partner)->id,
             'is_active' => true,
             'partner_status' => 'pending',
             'total_cost' => 50000,
@@ -96,6 +109,7 @@ class PartnerDashboardTest extends TestCase
         $partner = $this->createPartner();
         $budget = Budget::create([
             'user_id' => User::factory()->create()->id,
+            'listing_id' => $this->listingFor($partner)->id,
             'is_active' => true,
             'partner_status' => 'pending',
             'total_cost' => 50000,

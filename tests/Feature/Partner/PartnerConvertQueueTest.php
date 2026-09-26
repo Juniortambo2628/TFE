@@ -9,10 +9,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Sprint 10 Convert tab — Partner\DashboardController scopes the
- * budget queue by the partner's own listings once they publish
- * anything, and falls through to the global queue for legacy
- * partners with no inventory.
+ * Convert tab — Partner\DashboardController scopes the budget queue by the
+ * partner's own listings.
+ *
+ * Sprint 10 added a fallback so a partner with no published inventory saw
+ * the global queue instead of nothing ("legacy partners", mid-pivot).
+ * Sprint 56 removed it: the pivot is long done, the seeded ticketing partner
+ * publishes nothing, and the effect was that signing in as one showed every
+ * fan's travel brief with platform-wide totals on the dashboard tiles. An
+ * empty queue is the truth, and the page now says how to fill it.
  */
 class PartnerConvertQueueTest extends TestCase
 {
@@ -62,16 +67,27 @@ class PartnerConvertQueueTest extends TestCase
         $this->assertNotContains($orphan->id, $ids);
     }
 
-    public function test_partner_with_no_listings_falls_through_to_global_queue(): void
+    public function test_partner_with_no_listings_sees_an_empty_queue(): void
     {
         $me = User::factory()->partner()->create();
-        $someone = $this->seedBudget(null);
+        $orphan = $this->seedBudget(null);
+
+        $other = User::factory()->partner()->create();
+        $theirListing = Listing::factory()->create([
+            'publisher_type' => User::class,
+            'publisher_id' => $other->id,
+        ]);
+        $theirs = $this->seedBudget($theirListing->id);
 
         $response = $this->actingAs($me)->get(route('partner.requests'));
         $response->assertStatus(200);
         $requests = $response->viewData('page')['props']['requests'];
 
-        $this->assertContains($someone->id, collect($requests)->pluck('id')->all());
+        // Was: fell through to every active budget on the platform.
+        $ids = collect($requests)->pluck('id')->all();
+        $this->assertNotContains($orphan->id, $ids);
+        $this->assertNotContains($theirs->id, $ids);
+        $this->assertFalse($response->viewData('page')['props']['hasListings']);
     }
 
     public function test_dashboard_stats_use_the_scoped_queue(): void

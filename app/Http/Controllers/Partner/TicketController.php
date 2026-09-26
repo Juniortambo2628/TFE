@@ -21,18 +21,39 @@ class TicketController extends Controller
             ->map(fn (Ticket $t) => $this->format($t))
             ->all();
 
-        $sales = TicketPurchase::whereHas('ticket', fn ($q) => $q->where('partner_id', $partnerId))->get();
-        $stats = [
-            'seats_sold' => (int) $sales->sum('quantity'),
-            'orders' => $sales->count(),
-            'revenue' => round((float) $sales->sum('total'), 2),
-            'sellthrough' => $tickets ? (int) round(collect($tickets)->avg('sold_pct')) : 0,
-        ];
+        $stats = self::statsFor($partnerId);
 
         return Inertia::render('Partner/Tickets', [
             'tickets' => $tickets,
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * A ticketing partner's headline numbers.
+     *
+     * Public + static because the partner dashboard shows the same figures
+     * (Sprint 56) and two copies of "what does sold mean" would drift on the
+     * first change — `seats_sold` counts seats bought THROUGH TFE while
+     * `sellthrough` is measured against each fixture's own `sold` column,
+     * which also carries sales made before the fixture was listed here.
+     *
+     * @return array{seats_sold:int, orders:int, revenue:float, sellthrough:int, listings:int}
+     */
+    public static function statsFor(int $partnerId): array
+    {
+        $tickets = Ticket::query()->where('partner_id', $partnerId)->get();
+        $sales = TicketPurchase::query()
+            ->whereHas('ticket', fn ($q) => $q->where('partner_id', $partnerId))
+            ->get();
+
+        return [
+            'seats_sold' => (int) $sales->sum('quantity'),
+            'orders' => $sales->count(),
+            'revenue' => round((float) $sales->sum('total'), 2),
+            'sellthrough' => $tickets->isNotEmpty() ? (int) round($tickets->avg('sold_pct')) : 0,
+            'listings' => $tickets->count(),
+        ];
     }
 
     public function sales(Request $request)
