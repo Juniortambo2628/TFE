@@ -38,60 +38,56 @@ class ContentController extends Controller
         // and pre-fills them with saved values.
         $settings = SiteSetting::pluck('value', 'key');
 
-        // Stadium hero imagery, grouped per tournament, for the Stadium Images
-        // editor. Catalogued tournaments (config/stadiums.php) render their
-        // config-derived venues with a "reset to default" action; uncatalogued
-        // ones list the Wikipedia-parsed venues from the assembled tournament
-        // payload with per-name overrides. Sprint 48: every tournament shows
-        // up so admin can control WC 2026 / Euro 2024 imagery without a
-        // config edit.
-        $stadiums = [];
-        $overridePrefix = StadiumImageService::NAME_PREFIX;
-        foreach ($this->tournaments->all() as $tournament) {
-            $tournamentId = $tournament['id'];
-            $hasSet = $this->stadiumImages->hasCatalogueSet($tournamentId);
-            $section = [
-                'tournament_id' => $tournamentId,
-                'tournament_name' => $tournament['name'],
-                'has_catalogue' => $hasSet,
-                'venues' => [],
-            ];
-
-            if ($hasSet) {
-                $section['venues'] = $this->stadiumImages->all($tournamentId);
-            } else {
-                $tPrefix = $overridePrefix.$tournamentId.'_';
-                $overrides = SiteSetting::query()
-                    ->where('key', 'like', $tPrefix.'%')
-                    ->pluck('value', 'key');
-                foreach (($tournament['venues'] ?? []) as $venue) {
-                    $normalized = StadiumImageService::normalize($venue['name'] ?? '');
-                    if ($normalized === '') {
-                        continue;
-                    }
-                    $overrideKey = $tPrefix.$normalized;
-                    $override = $overrides[$overrideKey] ?? null;
-                    $section['venues'][] = [
-                        'slug' => $normalized,
-                        'setting_key' => $overrideKey,
-                        'name' => $venue['name'] ?? '',
-                        'city' => $venue['city'] ?? null,
-                        'country' => $venue['country'] ?? null,
-                        'default_url' => $venue['thumbnail'] ?? $venue['image'] ?? null,
-                        'url' => $override ?: ($venue['thumbnail'] ?? $venue['image'] ?? null),
-                        'is_overridden' => (bool) $override,
-                    ];
-                }
-            }
-
-            $stadiums[] = $section;
-        }
-
         return Inertia::render('Admin/Content', [
             'posts' => $posts,
             'settings' => $settings,
-            'stadiums' => $stadiums,
+            'heroDefaults' => config('site_pages', []),
+            'sectionCards' => $this->sectionCardsForEditor($settings),
         ]);
+    }
+
+    /**
+     * The public section cards, shaped for the CMS editor.
+     *
+     * Each card carries both the saved override and the config default, so the
+     * editor can preview what is live, show which fields are overridden, and
+     * offer "reset to default" without a second round-trip.
+     */
+    private function sectionCardsForEditor($settings): array
+    {
+        $sections = [];
+
+        foreach (config('site_sections', []) as $slug => $cards) {
+            $rows = [];
+
+            foreach ($cards as $index => $card) {
+                $fields = [];
+                foreach (['image', 'title', 'subtitle', 'description'] as $field) {
+                    $key = "section_card_{$slug}_{$index}_{$field}";
+                    $fields[$field] = [
+                        'setting_key' => $key,
+                        'field_key' => "{$slug}_{$index}_{$field}",
+                        'default' => $card[$field] ?? '',
+                        'value' => $settings[$key] ?? '',
+                    ];
+                }
+
+                $rows[] = [
+                    'index' => $index,
+                    'label' => $card['title'] ?? "Card {$index}",
+                    'tags' => $card['tags'] ?? [],
+                    'fields' => $fields,
+                ];
+            }
+
+            $sections[] = [
+                'slug' => $slug,
+                'label' => ucfirst($slug),
+                'cards' => $rows,
+            ];
+        }
+
+        return $sections;
     }
 
     /**

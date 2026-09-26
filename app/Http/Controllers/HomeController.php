@@ -34,17 +34,26 @@ class HomeController extends Controller
     // defaults + admin CMS overrides) plus the section component.
     public function about()
     {
-        return Inertia::render('Sections/About', ['hero' => $this->pageHero('about')]);
+        return Inertia::render('Sections/About', [
+            'hero' => $this->pageHero('about'),
+            'cards' => $this->sectionCards('about'),
+        ]);
     }
 
     public function features()
     {
-        return Inertia::render('Sections/Features', ['hero' => $this->pageHero('features')]);
+        return Inertia::render('Sections/Features', [
+            'hero' => $this->pageHero('features'),
+            'cards' => $this->sectionCards('features'),
+        ]);
     }
 
     public function services()
     {
-        return Inertia::render('Sections/Services', ['hero' => $this->pageHero('services')]);
+        return Inertia::render('Sections/Services', [
+            'hero' => $this->pageHero('services'),
+            'cards' => $this->sectionCards('services'),
+        ]);
     }
 
     public function news()
@@ -54,7 +63,10 @@ class HomeController extends Controller
 
     public function contact()
     {
-        return Inertia::render('Sections/Contact', ['hero' => $this->pageHero('contact')]);
+        return Inertia::render('Sections/Contact', [
+            'hero' => $this->pageHero('contact'),
+            'cards' => $this->sectionCards('contact'),
+        ]);
     }
 
     /**
@@ -143,6 +155,42 @@ class HomeController extends Controller
      * admin CMS override (SiteSetting `page_hero_{slug}_{field}`) laid over the
      * top. Tolerates a missing site_settings table (fresh installs).
      */
+    /**
+     * The content cards for a public section page.
+     *
+     * Defaults live in config/site_sections.php; each field is overridable per
+     * card from the CMS via `section_card_{slug}_{index}_{field}`. A blank
+     * override falls through to the default, same rule as pageHero().
+     */
+    private function sectionCards(string $slug): array
+    {
+        $cards = config("site_sections.{$slug}", []);
+
+        try {
+            if (! Schema::hasTable('site_settings')) {
+                return $cards;
+            }
+
+            // One query for the whole section rather than one per field.
+            $overrides = SiteSetting::query()
+                ->where('key', 'like', "section_card_{$slug}_%")
+                ->pluck('value', 'key');
+
+            foreach ($cards as $index => $card) {
+                foreach (['image', 'title', 'subtitle', 'description'] as $field) {
+                    $value = $overrides["section_card_{$slug}_{$index}_{$field}"] ?? null;
+                    if (! empty($value)) {
+                        $cards[$index][$field] = $value;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // best-effort — config defaults still apply.
+        }
+
+        return $cards;
+    }
+
     private function pageHero(string $slug): array
     {
         $hero = config("site_pages.{$slug}", []);

@@ -1,9 +1,12 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
 import LandingModal from '@/Components/Common/LandingModal';
 import { useTournament } from '@/Context/TournamentContext';
 
+// Defaults only. The CMS copy lives in config/site_sections.php and arrives
+// as the `cards` prop; these keep the landing sections rendering when a
+// caller does not pass any (and must stay in step with that config).
 const CONTACT_CARDS = [
     {
         image: 'assets/img/IMG-15.jpg',
@@ -28,7 +31,7 @@ const CONTACT_CARDS = [
     },
 ];
 
-export default function Contact({ hideHeader = false }) {
+export default function Contact({ hideHeader = false, cards = CONTACT_CARDS }) {
     var modalData = useState(null);
     var openCard = modalData[0];
     var setOpenCard = modalData[1];
@@ -47,7 +50,7 @@ export default function Contact({ hideHeader = false }) {
                 description={'Have questions about our packages or financing? Our team is here to help you plan your ' + tournamentName + ' — and beyond — with confidence.'}
                 hideHeader={hideHeader}
             >
-                {CONTACT_CARDS.map(function (card) {
+                {cards.map(function (card) {
                     return React.createElement(LandingCard, {
                         key: card.title,
                         image: card.image,
