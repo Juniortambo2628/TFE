@@ -281,7 +281,7 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                     <ContentCard id="quick-actions-card" title="Quick Actions">
                         <QuickActionsGrid
                             actions={[
-                                { id: 'qa-wallet',  label: 'My Wallet',  icon: 'fa-credit-card', href: route('fan.payments') },
+                                { id: 'qa-wallet',  label: 'My Wallet',  icon: 'fa-credit-card', href: route('fan.wallet') },
                                 { id: 'qa-travel',  label: 'Travel Info', icon: 'fa-plane',       href: route('fan.journey') },
                                 { id: 'qa-store',   label: 'Fan Store',   icon: 'fa-tshirt',      href: route('fan.store') },
                                 ...(!isConcluded ? [

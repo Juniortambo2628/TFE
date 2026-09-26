@@ -68,7 +68,7 @@ export default function Activities({ auth, activities }) {
                                                 
                                                 <div className="activity-footer-full mt-3 d-flex gap-3">
                                                     <Link
-                                                        href={activity.type === 'payment' ? route('fan.payments') : activity.type === 'booking' ? route('fan.journey') : route('fan.events')}
+                                                        href={activity.type === 'booking' ? route('fan.journey') : route('fan.events')}
                                                         className="tfe-btn tfe-btn--sm"
                                                     >
                                                         Details

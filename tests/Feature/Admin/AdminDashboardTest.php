@@ -57,13 +57,6 @@ class AdminDashboardTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_admin_can_access_payments(): void
-    {
-        $admin = $this->createAdmin();
-        $response = $this->actingAs($admin)->get(route('admin.payments'));
-        $response->assertStatus(200);
-    }
-
     public function test_admin_can_access_events(): void
     {
         $admin = $this->createAdmin();
@@ -120,31 +113,10 @@ class AdminDashboardTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_admin_can_access_loan_applications(): void
-    {
-        $admin = $this->createAdmin();
-        $response = $this->actingAs($admin)->get(route('admin.loan-applications'));
-        $response->assertStatus(200);
-    }
-
     public function test_admin_can_access_prizes(): void
     {
         $admin = $this->createAdmin();
         $response = $this->actingAs($admin)->get(route('admin.prizes.index'));
-        $response->assertStatus(200);
-    }
-
-    public function test_admin_can_access_savings_goals(): void
-    {
-        $admin = $this->createAdmin();
-        $response = $this->actingAs($admin)->get(route('admin.savings-goals.index'));
-        $response->assertStatus(200);
-    }
-
-    public function test_admin_can_access_bookings(): void
-    {
-        $admin = $this->createAdmin();
-        $response = $this->actingAs($admin)->get(route('admin.bookings.index'));
         $response->assertStatus(200);
     }
 
@@ -173,13 +145,6 @@ class AdminDashboardTest extends TestCase
     {
         $fan = $this->createFan();
         $response = $this->actingAs($fan)->get(route('admin.users'));
-        $response->assertStatus(403);
-    }
-
-    public function test_non_admin_cannot_access_admin_payments(): void
-    {
-        $fan = $this->createFan();
-        $response = $this->actingAs($fan)->get(route('admin.payments'));
         $response->assertStatus(403);
     }
 

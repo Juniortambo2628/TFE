@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\EventRsvp;
-use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -33,24 +32,6 @@ class ActivityController extends Controller
                 ];
             });
 
-        // Fetch Payments
-        $payments = PaymentTransaction::where('user_id', $userId)
-            ->where('status', 'completed')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($payment) {
-                return [
-                    'id' => 'payment_'.$payment->id,
-                    'type' => 'payment',
-                    'title' => $payment->description ?: 'Payment Successful',
-                    'description' => 'Reference: '.$payment->reference,
-                    'amount' => $payment->amount,
-                    'date' => $payment->created_at->format('M d, Y'),
-                    'raw_date' => $payment->created_at,
-                    'icon' => 'fa-credit-card',
-                ];
-            });
-
         // Fetch Event RSVPs
         $rsvps = EventRsvp::with('event')
             ->where('user_id', $userId)
@@ -70,7 +51,7 @@ class ActivityController extends Controller
             });
 
         // Combine and Sort
-        $activities = $bookings->concat($payments)->concat($rsvps)
+        $activities = $bookings->concat($rsvps)
             ->sortByDesc('raw_date')
             ->values();
 

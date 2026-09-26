@@ -12,7 +12,6 @@ export default function FanSidebar({ user }) {
         { label: 'Match Schedule', icon: 'fas fa-calendar-check', route: 'fan.match-schedule', path: '/fan/match-schedule' },
         { label: 'Tickets', icon: 'fas fa-ticket-alt', route: 'fan.tickets.index', path: '/fan/tickets' },
         { label: 'Messages', icon: 'fas fa-comments', route: 'fan.communication', path: '/fan/communication' },
-        { label: 'Payments', icon: 'fas fa-credit-card', route: 'fan.payments', path: '/fan/payments' },
         { label: 'Financing', icon: 'fas fa-hand-holding-usd', route: 'fan.loan-applications', path: '/fan/loan-applications' },
         { label: 'Virtual Card', icon: 'fas fa-credit-card', route: 'fan.virtual-card', path: '/fan/virtual-card' },
         { label: 'Security', icon: 'fas fa-shield-alt', route: 'fan.security', path: '/fan/security' },

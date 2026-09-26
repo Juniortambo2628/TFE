@@ -2,7 +2,6 @@
 
 use App\Helpers\DashboardHelper;
 use App\Http\Controllers\Admin\AnnouncementsController;
-use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ListingApprovalController;
 use App\Http\Controllers\Admin\MessagesController;
@@ -29,7 +28,6 @@ use App\Http\Controllers\Fan\LoanApplicationController;
 use App\Http\Controllers\Fan\MatchScheduleController;
 use App\Http\Controllers\Fan\NotificationController;
 use App\Http\Controllers\Fan\PackageController;
-use App\Http\Controllers\Fan\PaymentController;
 use App\Http\Controllers\Fan\PredictWinController;
 use App\Http\Controllers\Fan\ProfileController;
 use App\Http\Controllers\Fan\SavingsGoalController;
@@ -137,7 +135,6 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Feature Pages
     Route::get('/match-schedule', [MatchScheduleController::class, 'index'])->name('match-schedule');
     Route::get('/communication', [CommunicationController::class, 'index'])->name('communication');
-    Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
     Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
     Route::get('/events', [EventController::class, 'index'])->name('events');
     Route::get('/security', [SecurityController::class, 'index'])->name('security');
@@ -210,10 +207,6 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::post('/predict-win/predict', [PredictWinController::class, 'predict'])->name('predict-win.predict');
 
     // Payment Routes (Enhanced)
-    Route::post('/payments/method', [PaymentController::class, 'addPaymentMethod'])->name('payments.method.add');
-    Route::delete('/payments/method/{id}', [PaymentController::class, 'removePaymentMethod'])->name('payments.method.remove');
-    Route::post('/payments/initiate', [PaymentController::class, 'initiatePayment'])->name('payments.initiate');
-    Route::post('/payments/verify', [PaymentController::class, 'verifyPayment'])->name('payments.verify');
 
     // Security Routes (Enhanced)
     Route::post('/security/password', [SecurityController::class, 'changePassword'])->name('security.password');
@@ -264,10 +257,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'password'])->name('profile.password');
 
-    // Payments Management
-    Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments');
-    Route::put('/payments/{paymentTransaction}/status', [App\Http\Controllers\Admin\PaymentController::class, 'updateStatus'])->name('payments.status');
-
     // Events Management
     Route::get('/events', [App\Http\Controllers\Admin\EventController::class, 'index'])->name('events');
     Route::post('/events', [App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
@@ -313,11 +302,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     // Analytics
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics');
 
-    // Loan Applications
-    Route::get('/loan-applications', [App\Http\Controllers\Admin\LoanApplicationController::class, 'index'])->name('loan-applications');
-    Route::put('/loan-applications/{loanApplication}', [App\Http\Controllers\Admin\LoanApplicationController::class, 'update'])->name('loan-applications.update');
-    Route::delete('/loan-applications/{loanApplication}', [App\Http\Controllers\Admin\LoanApplicationController::class, 'destroy'])->name('loan-applications.destroy');
-
     // Prizes Management
     Route::get('/prizes', [PrizeController::class, 'index'])->name('prizes.index');
     Route::post('/prizes', [PrizeController::class, 'store'])->name('prizes.store');
@@ -344,16 +328,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/packages', [App\Http\Controllers\Admin\PackageController::class, 'store'])->name('packages.store');
     Route::put('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'update'])->name('packages.update');
     Route::delete('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'destroy'])->name('packages.destroy');
-
-    // Savings Goals Management
-    Route::get('/savings-goals', [App\Http\Controllers\Admin\SavingsGoalController::class, 'index'])->name('savings-goals.index');
-    Route::delete('/savings-goals/{savingsGoal}', [App\Http\Controllers\Admin\SavingsGoalController::class, 'destroy'])->name('savings-goals.destroy');
-
-    // Booking Management
-    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
-    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
-    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
     // Product Management
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');

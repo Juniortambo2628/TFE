@@ -153,23 +153,23 @@ export default function CommandMenu() {
                                 <Bell className="w-4 h-4 text-yellow-500" />
                                 <span>Feed & Activity</span>
                             </CommandItem>
-                            <CommandItem 
+                            <CommandItem
                                 value="wallet budgets"
-                                onSelect={() => runCommand(() => router.visit(route('fan.payments')))}
+                                onSelect={() => runCommand(() => router.visit(route('fan.wallet')))}
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer text-gray-300 aria-selected:bg-white/10 aria-selected:text-white transition-all"
                             >
                                 <Wallet className="w-4 h-4 text-emerald-500" />
                                 <span>My Wallet & Budgets</span>
                                 <CommandShortcut className="text-[10px] text-gray-600">G W</CommandShortcut>
                             </CommandItem>
-                            <CommandItem 
-                                value="payment history"
-                                onSelect={() => runCommand(() => router.visit(route('fan.payments')))}
+                            <CommandItem
+                                value="virtual card"
+                                onSelect={() => runCommand(() => router.visit(route('fan.virtual-card')))}
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer text-gray-300 aria-selected:bg-white/10 aria-selected:text-white transition-all"
                             >
                                 <CreditCard className="w-4 h-4 text-cyan-500" />
-                                <span>Payment History</span>
-                                <CommandShortcut className="text-[10px] text-gray-600">G B</CommandShortcut>
+                                <span>Virtual Card</span>
+                                <CommandShortcut className="text-[10px] text-gray-600">G C</CommandShortcut>
                             </CommandItem>
                         </CommandGroup>
 

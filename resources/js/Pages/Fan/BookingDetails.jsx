@@ -1,77 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { usePaystackPayment } from 'react-paystack';
-import axios from 'axios';
-import { toast } from 'sonner';
 import { formatMoney } from '@/lib/utils';
 
 export default function BookingDetails({ auth, booking, matches }) {
-    const [paystackConfig, setPaystackConfig] = useState({
-        reference: '',
-        email: auth.user.email,
-        amount: 0,
-        publicKey: '',
-    });
-
-    const initializePayment = usePaystackPayment(paystackConfig);
-
-    const onSuccessPaystack = (reference) => {
-        const loadingToast = toast.loading('Verifying booking payment...');
-        router.post(route('fan.payments.verify'), { reference: reference.reference }, {
-             onSuccess: () => {
-                 toast.dismiss(loadingToast);
-                 toast.success("Booking confirmed! Redirecting to your journey...");
-                 setPaystackConfig(prev => ({ ...prev, reference: '' }));
-                 // Redirect to journey or refresh page
-                 setTimeout(() => router.visit(route('fan.journey')), 2000);
-             },
-             onError: () => {
-                 toast.dismiss(loadingToast);
-                 toast.error("Verification failed. Please contact support.");
-             }
-        });
-    };
-
-    const onClosePaystack = () => {
-        toast.info('Payment cancelled.');
-        setPaystackConfig(prev => ({ ...prev, reference: '' }));
-    }
-
-    useEffect(() => {
-        if (paystackConfig.reference && paystackConfig.publicKey) {
-            initializePayment(onSuccessPaystack, onClosePaystack);
-        }
-    }, [paystackConfig]);
-
-    const handlePayment = () => {
-        const loadingToast = toast.loading('Preparing checkout...');
-        const amountToPay = booking.total_amount - booking.amount_paid;
-
-        axios.post(route('fan.payments.initiate'), {
-            amount: amountToPay,
-            booking_id: booking.id,
-            method: 'paystack',
-            description: `Payment for booking ${booking.package_name}`
-        })
-        .then(response => {
-            toast.dismiss(loadingToast);
-            const { reference, public_key } = response.data;
-            
-            setPaystackConfig({
-                reference,
-                email: auth.user.email,
-                amount: amountToPay * 100, // Paystack uses cents/kobo
-                publicKey: public_key,
-                currency: 'KES',
-            });
-        })
-        .catch(error => {
-             toast.dismiss(loadingToast);
-             toast.error(error.response?.data?.message || 'Payment initiation failed');
-        });
-    };
+    const partnerPayUrl = booking?.partner_pay_url || null;
 
     const getStatusPill = (status) => {
         switch (status) {
@@ -173,14 +107,17 @@ export default function BookingDetails({ auth, booking, matches }) {
                                 <>
                                     <div className="alert alert-warning border-warning bg-transparent text-warning-emphasis p-3 mb-4 rounded-3">
                                         <i className="fas fa-exclamation-triangle me-2"></i>
-                                        Payment is required to secure this booking. 
+                                        Payment is required to secure this booking. Complete it on the partner's platform.
                                     </div>
-                                    <button 
-                                        onClick={handlePayment}
-                                        className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3"
-                                    >
-                                        <i className="fas fa-credit-card me-2"></i> Confirm & Pay Now
-                                    </button>
+                                    {partnerPayUrl ? (
+                                        <a href={partnerPayUrl} target="_blank" rel="noreferrer" className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3">
+                                            <i className="fas fa-external-link-alt me-2"></i> Complete on partner
+                                        </a>
+                                    ) : (
+                                        <button className="tfe-btn tfe-btn--lg w-100 justify-content-center mb-3" disabled>
+                                            <i className="fas fa-clock me-2"></i> Awaiting partner checkout link
+                                        </button>
+                                    )}
                                 </>
                             )}
 

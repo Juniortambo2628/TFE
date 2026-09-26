@@ -8,7 +8,6 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\LoanApplication;
 use App\Models\PaymentSchedule;
-use App\Models\PaymentTransaction;
 use App\Models\Tribe;
 use App\Models\TribeMember;
 use App\Services\FixtureService;
@@ -48,12 +47,13 @@ class DashboardController extends Controller
             ->where('tournament_id', $tournamentId)
             ->count();
 
-        $totalPaid = PaymentTransaction::where('user_id', $userId)
-            ->where('status', 'completed')->sum('amount');
-        $totalDue = PaymentSchedule::where('user_id', $userId)
+        // Amount-paid is what partners tell us on bookings; TFE holds no payment records.
+        $totalPaid = (float) Booking::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)->sum('amount_paid');
+        $totalDue = (float) PaymentSchedule::where('user_id', $userId)
             ->where('status', 'pending')->sum('amount');
-        $completedPaymentsCount = PaymentTransaction::where('user_id', $userId)
-            ->where('status', 'completed')->count();
+        $completedPaymentsCount = Booking::where('user_id', $userId)
+            ->where('tournament_id', $tournamentId)->where('amount_paid', '>', 0)->count();
         $installmentsCount = PaymentSchedule::where('user_id', $userId)->count();
 
         // Joined-tribes count reflects what the fan can see on the Tribes
@@ -73,12 +73,10 @@ class DashboardController extends Controller
             'joined_tribes_count' => $joinedTribesCount,
         ];
 
-        // Fetch recent successful transactions (only the needed records)
-        $recentPayments = PaymentTransaction::where('user_id', $userId)
-            ->where('status', 'completed')
-            ->orderByDesc('created_at')
-            ->take(5)
-            ->get();
+        // Payment history lives with the fan's partners; TFE surfaces booking
+        // activity only. `recentPayments` is kept as an empty collection so
+        // downstream Inertia props don't need to be reshuffled.
+        $recentPayments = collect();
 
         // Fetch recent bookings for this tournament
         $recentBookings = Booking::where('user_id', $userId)
@@ -89,17 +87,6 @@ class DashboardController extends Controller
 
         // Prepare Activity Feed
         $activities = collect([]);
-        foreach ($recentPayments as $payment) {
-            $activities->push([
-                'id' => 'pay_'.$payment->id,
-                'type' => 'payment',
-                'title' => 'Payment Completed',
-                'description' => 'Payment via '.strtoupper($payment->method ?? 'Paystack'),
-                'date' => $payment->created_at->format('M d, Y'),
-                'amount' => $payment->amount,
-                'timestamp' => $payment->created_at->timestamp,
-            ]);
-        }
         foreach ($recentBookings as $booking) {
             $activities->push([
                 'id' => 'book_'.$booking->id,

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;
-use App\Models\PaymentTransaction;
 use App\Services\FixtureService;
 use App\Services\WeatherService;
 use App\Traits\ResolvesTournament;
@@ -35,30 +34,12 @@ class JourneyController extends Controller
             ->where('is_active', true)
             ->first();
 
-        // Calculate Totals using PaymentTransaction as source of truth
-        $totalPaid = PaymentTransaction::where('user_id', $userId)
-            ->where('status', 'completed')
-            ->sum('amount');
-
-        $paymentsCount = PaymentTransaction::where('user_id', $userId)
-            ->where('status', 'completed')
-            ->count();
-
-        $recentPayments = PaymentTransaction::where('user_id', $userId)
-            ->orderByDesc('created_at')
-            ->limit(10)
-            ->get()
-            ->map(function ($txn) {
-                return [
-                    'id' => $txn->id,
-                    'amount' => $txn->amount,
-                    'description' => $txn->description ?? 'Payment',
-                    'status' => $txn->status,
-                    'method' => $txn->method,
-                    'reference' => $txn->reference,
-                    'created_at' => $txn->created_at->format('M d, Y'),
-                ];
-            });
+        // Booking-derived totals; TFE never holds payment records — the
+        // partner's platform does. Amount-paid figures are what the
+        // partner has told us via booking updates.
+        $totalPaid = (float) $bookings->sum('amount_paid');
+        $paymentsCount = $bookings->filter(fn ($b) => $b->amount_paid > 0)->count();
+        $recentPayments = collect();
 
         // Total Due = Pending Installments + Balances on bookings without schedules
         $scheduledPending = $paymentSchedules->where('status', 'pending')->sum('amount');
