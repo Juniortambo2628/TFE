@@ -111,6 +111,15 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         return $this->hasMany(Prediction::class);
     }
 
+    /**
+     * The fan's tribe membership rows — lets a listing resolve "am I in this
+     * tribe?" for every tribe in one query instead of one per card.
+     */
+    public function tribeMemberships()
+    {
+        return $this->hasMany(TribeMember::class);
+    }
+
     public function followers()
     {
         return $this->hasMany(Follow::class, 'following_id');

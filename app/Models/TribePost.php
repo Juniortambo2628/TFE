@@ -29,8 +29,7 @@ class TribePost extends Model
         return $this->hasMany(TribePostReply::class);
     }
 
-    public function getRepliesCountAttribute()
-    {
-        return $this->replies()->count();
-    }
+    // NOTE: deliberately no getRepliesCountAttribute() accessor. An accessor of
+    // that name takes precedence over the column withCount('replies') adds, so
+    // every listing silently ran one COUNT per post despite eager-loading it.
 }

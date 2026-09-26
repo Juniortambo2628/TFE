@@ -1,31 +1,37 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import '../../../css/fan/tribes.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import TfeModal from '@/Components/Common/TfeModal';
 import { useTournament } from '@/Context/TournamentContext';
 import TournamentPill from '@/Components/Common/TournamentPill';
 
-export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cross' }) {
+/** Privacy → icon + copy, shared by the card badge and the create form. */
+export const PRIVACY = {
+    public: { icon: 'fa-globe', label: 'Public', blurb: 'Open to everyone' },
+    private: { icon: 'fa-lock', label: 'Private', blurb: 'Approval required' },
+    invite_only: { icon: 'fa-user-friends', label: 'Invite only', blurb: 'Admins add members' },
+};
+
+export default function Tribes({ tribes, stats, activeScope = 'this_and_cross', search = '' }) {
     const { tournament } = useTournament();
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newTribeData, setNewTribeData] = useState({
+    const [tribeToLeave, setTribeToLeave] = useState(null);
+    const [query, setQuery] = useState(search);
+
+    const createForm = useForm({
         name: '',
         description: '',
         privacy: 'public',
         cross_tournament: false,
     });
-    const [tribeToLeave, setTribeToLeave] = useState(null);
 
     // Scope chips: null = default (this + cross), 'this' = only current,
     // 'cross' = only cross-tournament, 'all' = every tribe.
-    const applyScope = (scope) => {
-        const url = scope ? `?scope=${scope}` : '';
-        router.get(route('fan.tribes') + url, {}, { preserveScroll: true, preserveState: false });
-    };
     const scopeChips = [
         { key: 'this_and_cross', label: `${tournament?.short_name || 'This'} + open`, param: null },
         { key: 'this', label: `Only ${tournament?.short_name || 'this'}`, param: 'this' },
@@ -33,272 +39,314 @@ export default function Tribes({ auth, tribes, stats, activeScope = 'this_and_cr
         { key: 'all', label: 'Every tribe', param: 'all' },
     ];
 
+    const navigate = (params) => {
+        router.get(route('fan.tribes'), params, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            only: ['tribes', 'stats', 'activeScope', 'search'],
+        });
+    };
+
+    const currentScopeParam = scopeChips.find((c) => c.key === activeScope)?.param ?? null;
+
+    const applyScope = (scope) => {
+        navigate({ ...(scope ? { scope } : {}), ...(query ? { q: query } : {}) });
+    };
+
+    const submitSearch = (e) => {
+        e.preventDefault();
+        navigate({ ...(currentScopeParam ? { scope: currentScopeParam } : {}), ...(query ? { q: query } : {}) });
+    };
+
     const handleJoin = (tribeId) => {
-        router.post(route('fan.tribes.join', tribeId));
+        router.post(route('fan.tribes.join', tribeId), {}, { preserveScroll: true });
     };
 
     const handleLeave = () => {
-        if (tribeToLeave) {
-            router.post(route('fan.tribes.leave', tribeToLeave), {
-                onSuccess: () => setTribeToLeave(null)
-            });
-        }
+        if (!tribeToLeave) return;
+        router.post(route('fan.tribes.leave', tribeToLeave), {}, {
+            preserveScroll: true,
+            onSuccess: () => setTribeToLeave(null),
+        });
     };
 
     const handleCreate = (e) => {
         e.preventDefault();
-        router.post(route('fan.tribes.store'), newTribeData, {
-            onSuccess: () => setShowCreateModal(false)
+        createForm.post(route('fan.tribes.store'), {
+            onSuccess: () => {
+                createForm.reset();
+                setShowCreateModal(false);
+            },
         });
     };
 
     return (
         <FanLayout title="Tribes">
-            <div className="container-fluid p-0">
-                <DashboardHero role="fan" 
-                    title="Tribes"
-                    subtitle="Join communities of fans who share your interests and passion for football."
-                    breadcrumbs={[{ label: 'Social' }, { label: 'Tribes' }]}
-                    bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
-                />
+            <DashboardHero
+                role="fan"
+                title="Tribes"
+                subtitle="Join communities of fans who share your interests and passion for football."
+                breadcrumbs={[{ label: 'Social' }, { label: 'Tribes' }]}
+                bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
+            >
+                <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={() => setShowCreateModal(true)}>
+                    <i className="fas fa-plus" /> New Tribe
+                </button>
+            </DashboardHero>
 
-                <div className="tribes-container pt-0">
-                    {/* Ad Placeholder */}
-                    <AdPlaceholder position="horizontal" className="mb-4" />
+            <AdPlaceholder position="horizontal" className="mb-4" />
 
-            {/* Summary Cards */}
             <SummaryTiles
                 className="mb-4"
                 items={[
-                    { label: 'Total Tribes',  value: stats.total_tribes,  icon: 'fa-layer-group', accent: 'red',   subtext: 'Available Communities' },
-                    { label: 'Joined Tribes', value: stats.joined_tribes, icon: 'fa-users',       accent: 'blue',  subtext: 'Your Communities' },
-                    { label: 'Public Tribes', value: stats.public_tribes, icon: 'fa-globe',       accent: 'rose',  subtext: 'Open to all' },
+                    { label: 'Total Tribes', value: stats.total_tribes, icon: 'fa-layer-group', accent: 'red', subtext: 'Available Communities' },
+                    { label: 'Joined Tribes', value: stats.joined_tribes, icon: 'fa-users', accent: 'blue', subtext: 'Your Communities' },
+                    { label: 'Public Tribes', value: stats.public_tribes, icon: 'fa-globe', accent: 'rose', subtext: 'Open to all' },
                 ]}
             />
 
-            <div className="d-flex justify-content-end mb-4">
-                <button
-                    type="button"
-                    className="tfe-btn tfe-btn--filled"
-                    onClick={() => setShowCreateModal(true)}
-                >
-                    <i className="fas fa-plus me-2"></i> New tribe
-                </button>
-            </div>
-
-            {/* Tribes Grid */}
-            <div className="content-card mt-4">
-                <div className="card-header">
-                    <i className="fas fa-layer-group"></i>
-                    <h3>Available Tribes</h3>
+            <section className="tfe-slab">
+                <div className="tfe-slab__header tribes-slab__header">
+                    <div>
+                        <h3 className="tfe-slab__title">Available Tribes</h3>
+                        <div className="tfe-slab__title-sub">
+                            Tribes are scoped to the tournament you're planning — cross-tournament tribes are open to every fan.
+                        </div>
+                    </div>
+                    <form className="tribes-search" onSubmit={submitSearch}>
+                        <input
+                            type="search"
+                            className="tfe-input tfe-input--sm"
+                            placeholder="Search tribes…"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            aria-label="Search tribes"
+                        />
+                        <button type="submit" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Search">
+                            <i className="fas fa-search" />
+                        </button>
+                    </form>
                 </div>
-                <p className="text-white-50 px-3 mb-3">
-                    Discover and join tribes that match your interests. Tribes are scoped to the tournament you're planning — "cross-tournament" tribes are open to every fan regardless of context.
-                </p>
 
-                {/* Scope filter chips */}
-                <div className="d-flex flex-wrap gap-2 px-3 mb-3">
-                    {scopeChips.map(chip => (
+                <div className="tribes-scope">
+                    {scopeChips.map((chip) => (
                         <button
                             key={chip.key}
                             type="button"
                             onClick={() => applyScope(chip.param)}
-                            className="btn-glass-pill"
-                            style={{
-                                fontSize: '0.75rem',
-                                padding: '4px 12px',
-                                background: activeScope === chip.key ? 'rgba(220,20,60,0.25)' : 'rgba(255,255,255,0.04)',
-                                borderColor: activeScope === chip.key ? 'rgba(220,20,60,0.5)' : 'rgba(255,255,255,0.08)',
-                            }}
+                            className={`tfe-btn tfe-btn--sm${activeScope === chip.key ? ' is-active' : ''}`}
+                            aria-pressed={activeScope === chip.key}
                         >
                             {chip.label}
                         </button>
                     ))}
                 </div>
-                
-                {tribes.length > 0 ? (
-                    <div className="tribes-grid">
-                        {tribes.map(tribe => (
-                            <div key={tribe.id} className="tribe-card">
-                                <Link href={route('fan.tribes.show', tribe.id)} className="tribe-link-wrapper">
-                                    <div className="tribe-cover" style={{
-                                        backgroundImage: `url(${tribe.banner || '/assets/img/logo/TFE-logo.png'})`,
-                                        backgroundSize: tribe.banner ? 'cover' : 'contain',
-                                        backgroundPosition: 'center',
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundColor: !tribe.banner ? '#1a1a1a' : 'transparent'
-                                    }}>
-                                        <div className="tribe-privacy">
-                                            <i className={`fas fa-${tribe.privacy === 'public' ? 'globe' : (tribe.privacy === 'private' ? 'lock' : 'user-friends')}`}></i>
-                                            <span>{tribe.privacy.charAt(0).toUpperCase() + tribe.privacy.slice(1)}</span>
-                                        </div>
-                                    </div>
-                                </Link>
-                                <div className="tribe-content">
-                                    <Link href={route('fan.tribes.show', tribe.id)} className="text-decoration-none">
-                                        <h3 className="tribe-name">{tribe.name}</h3>
-                                    </Link>
-                                    <TournamentPill
-                                        tournamentId={tribe.tournament_id}
-                                        shortName={tribe.tournament_short}
-                                        className="mb-2"
-                                    />
-                                    <p className="tribe-description">{tribe.description || 'A community for football fans'}</p>
-                                    
-                                    <div className="tribe-stats">
-                                        <div className="tribe-members">
-                                            <i className="fas fa-users"></i>
-                                            <span>{tribe.member_count} members</span>
-                                        </div>
-                                        <div className="tribe-posts">
-                                            <i className="fas fa-comments"></i>
-                                            <span>{tribe.posts_count} posts</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="tribe-creator">
-                                        Created by {tribe.creator?.name || 'Unknown'}
-                                    </div>
-                                    
-                                    <div className="d-flex gap-2">
-                                        {tribe.is_member ? (
-                                            <>
-                                                <Link 
-                                                    href={route('fan.tribes.show', tribe.id)}
-                                                    className="btn-glass-pill flex-1 justify-content-center"
-                                                >
-                                                    <i className="fas fa-eye me-2"></i>View
-                                                </Link>
-                                                <button 
-                                                    className="btn-glass-pill justify-content-center px-3"
-                                                    onClick={() => setTribeToLeave(tribe.id)}
-                                                    style={{ backgroundColor: 'rgba(220, 20, 60, 0.2)', borderColor: 'rgba(220, 20, 60, 0.4)' }}
-                                                    title="Leave Tribe"
-                                                >
-                                                    <i className="fas fa-sign-out-alt"></i>
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <button 
-                                                    className="btn-glass-pill flex-1 justify-content-center"
-                                                    onClick={() => handleJoin(tribe.id)}
-                                                >
-                                                    <i className="fas fa-sign-in-alt me-2"></i>Join
-                                                </button>
-                                                {(tribe.privacy === 'public' || tribe.is_member) && (
-                                                    <Link 
-                                                        href={route('fan.tribes.show', tribe.id)}
-                                                        className="btn-glass-pill justify-content-center px-3"
-                                                        title="Preview Tribe"
-                                                    >
-                                                        <i className="fas fa-eye"></i>
-                                                    </Link>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="empty-state py-5 text-center">
-                        <i className="fas fa-layer-group fa-3x mb-3 text-white-50"></i>
-                        <h4 className="text-white">No Tribes Available</h4>
-                        <p className="text-white-50">No tribes have been created yet. Be the first to create a community!</p>
-                        <button className="btn-glass-pill mt-3 mx-auto" onClick={() => setShowCreateModal(true)}>
-                            <i className="fas fa-plus me-2" style={{ fontSize: '0.9rem' }}></i>Create First Tribe
-                        </button>
-                    </div>
-                )}
-            </div>
 
-            {/* Create Tribe Modal */}
-            {showCreateModal && (
-                <div className="tribe-modal-overlay" onClick={() => setShowCreateModal(false)}>
-                    <div className="tribe-modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Create New Tribe</h3>
-                            <button className="close-modal-btn" onClick={() => setShowCreateModal(false)}>
-                                <i className="fas fa-times"></i>
+                <div className="tfe-slab__body">
+                    {tribes.length > 0 ? (
+                        <div className="tribes-grid">
+                            {tribes.map((tribe) => {
+                                const privacy = PRIVACY[tribe.privacy] || PRIVACY.public;
+
+                                return (
+                                    <article key={tribe.id} className="tribe-card">
+                                        <Link href={route('fan.tribes.show', tribe.id)} className="tribe-card__cover">
+                                            {tribe.banner ? (
+                                                <img src={tribe.banner} alt="" />
+                                            ) : (
+                                                <span className="tribe-card__cover-fallback">
+                                                    <i className="fas fa-layer-group" />
+                                                </span>
+                                            )}
+                                            <span className="tribe-card__privacy">
+                                                <i className={`fas ${privacy.icon}`} /> {privacy.label}
+                                            </span>
+                                        </Link>
+
+                                        <div className="tribe-card__body">
+                                            <Link href={route('fan.tribes.show', tribe.id)} className="tribe-card__name">
+                                                {tribe.name}
+                                            </Link>
+
+                                            <TournamentPill
+                                                tournamentId={tribe.tournament_id}
+                                                shortName={tribe.tournament_short}
+                                            />
+
+                                            <p className="tribe-card__desc">
+                                                {tribe.description || 'A community for football fans.'}
+                                            </p>
+
+                                            <div className="tribe-card__meta">
+                                                <span><i className="fas fa-users" /> {tribe.member_count} members</span>
+                                                <span><i className="fas fa-comments" /> {tribe.posts_count} posts</span>
+                                            </div>
+
+                                            <div className="tribe-card__creator">
+                                                Created by {tribe.creator?.name || 'Unknown'}
+                                            </div>
+
+                                            <div className="tribe-card__actions">
+                                                {tribe.is_member ? (
+                                                    <>
+                                                        <Link href={route('fan.tribes.show', tribe.id)} className="tfe-btn tfe-btn--sm tfe-btn--filled">
+                                                            <i className="fas fa-arrow-right" /> Open
+                                                        </Link>
+                                                        <button
+                                                            type="button"
+                                                            className="tfe-btn tfe-btn--sm tfe-btn--icon"
+                                                            onClick={() => setTribeToLeave(tribe.id)}
+                                                            aria-label={`Leave ${tribe.name}`}
+                                                            title="Leave tribe"
+                                                        >
+                                                            <i className="fas fa-sign-out-alt" />
+                                                        </button>
+                                                    </>
+                                                ) : tribe.has_pending_request ? (
+                                                    <span className="tfe-pill tfe-pill--pending">
+                                                        <i className="fas fa-user-clock" /> Request pending
+                                                    </span>
+                                                ) : tribe.privacy === 'invite_only' ? (
+                                                    <span className="tfe-pill tfe-pill--concluded">
+                                                        <i className="fas fa-user-friends" /> Invite only
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            className="tfe-btn tfe-btn--sm tfe-btn--filled"
+                                                            onClick={() => handleJoin(tribe.id)}
+                                                        >
+                                                            <i className="fas fa-sign-in-alt" />{' '}
+                                                            {tribe.can_request ? 'Request to Join' : 'Join'}
+                                                        </button>
+                                                        {tribe.privacy === 'public' && (
+                                                            <Link
+                                                                href={route('fan.tribes.show', tribe.id)}
+                                                                className="tfe-btn tfe-btn--sm tfe-btn--icon"
+                                                                aria-label={`Preview ${tribe.name}`}
+                                                                title="Preview tribe"
+                                                            >
+                                                                <i className="fas fa-eye" />
+                                                            </Link>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-layer-group" /></div>
+                            <h4 className="tfe-empty__title">
+                                {search ? 'No tribes match that search' : 'No tribes here yet'}
+                            </h4>
+                            <p className="tfe-empty__body">
+                                {search
+                                    ? 'Try a different name, or widen the scope to every tribe.'
+                                    : 'No tribes have been created for this scope. Be the first to start a community.'}
+                            </p>
+                            <button type="button" className="tfe-btn tfe-empty__action" onClick={() => setShowCreateModal(true)}>
+                                <i className="fas fa-plus" /> Create a Tribe
                             </button>
                         </div>
-                        
-                        <div className="modal-body">
-                            <form onSubmit={handleCreate}>
-                                <div className="mb-4">
-                                    <label className="tfe-form-label">Tribe Name</label>
-                                    <input 
-                                        type="text" 
-                                        className="tfe-input"
-                                        value={newTribeData.name}
-                                        onChange={e => setNewTribeData({...newTribeData, name: e.target.value})}
-                                        placeholder="e.g. Kenya Ultras"
-                                        required 
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label className="tfe-form-label">Description</label>
-                                    <textarea 
-                                        className="tfe-input"
-                                        value={newTribeData.description}
-                                        onChange={e => setNewTribeData({...newTribeData, description: e.target.value})}
-                                        rows="3"
-                                        placeholder="What is this community about?"
-                                    ></textarea>
-                                </div>
-                                <div className="mb-4">
-                                    <label className="tfe-form-label">Privacy</label>
-                                    <select 
-                                        className="tfe-select"
-                                        value={newTribeData.privacy}
-                                        onChange={e => setNewTribeData({...newTribeData, privacy: e.target.value})}
-                                    >
-                                        <option value="public">Public (Open to everyone)</option>
-                                        <option value="private">Private (Approval required)</option>
-                                        <option value="invite_only">Invite Only</option>
-                                    </select>
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="d-flex align-items-start gap-2 text-white" style={{ cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={newTribeData.cross_tournament}
-                                            onChange={e => setNewTribeData({ ...newTribeData, cross_tournament: e.target.checked })}
-                                            className="mt-1"
-                                        />
-                                        <span>
-                                            <span className="fw-semibold">Cross-tournament</span>
-                                            <span className="d-block text-white-50 small">
-                                                Open the tribe to fans of every tournament. Uncheck to scope it to <strong>{tournament?.short_name || tournament?.name || 'the current tournament'}</strong> only.
-                                            </span>
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button type="button" className="btn-cancel" onClick={() => setShowCreateModal(false)}>Cancel</button>
-                                    <button type="submit" className="btn-submit-tribe">Create Tribe</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                    )}
                 </div>
-            )}
+            </section>
+
+            <TfeModal open={showCreateModal} title="Create a new tribe" onClose={() => setShowCreateModal(false)}>
+                <form onSubmit={handleCreate}>
+                    <div className="tfe-form-field">
+                        <label className="tfe-form-label" htmlFor="tribe-name">Tribe name</label>
+                        <input
+                            id="tribe-name"
+                            type="text"
+                            className="tfe-input"
+                            value={createForm.data.name}
+                            onChange={(e) => createForm.setData('name', e.target.value)}
+                            placeholder="e.g. Kenya Ultras"
+                            required
+                        />
+                        {createForm.errors.name && <div className="tfe-form-error">{createForm.errors.name}</div>}
+                    </div>
+
+                    <div className="tfe-form-field">
+                        <label className="tfe-form-label" htmlFor="tribe-description">Description</label>
+                        <textarea
+                            id="tribe-description"
+                            className="tfe-textarea"
+                            value={createForm.data.description}
+                            onChange={(e) => createForm.setData('description', e.target.value)}
+                            rows="3"
+                            placeholder="What is this community about?"
+                        />
+                        {createForm.errors.description && <div className="tfe-form-error">{createForm.errors.description}</div>}
+                    </div>
+
+                    <div className="tfe-form-field">
+                        <label className="tfe-form-label" htmlFor="tribe-privacy">Privacy</label>
+                        <select
+                            id="tribe-privacy"
+                            className="tfe-select"
+                            value={createForm.data.privacy}
+                            onChange={(e) => createForm.setData('privacy', e.target.value)}
+                        >
+                            {Object.entries(PRIVACY).map(([value, meta]) => (
+                                <option key={value} value={value}>{meta.label} — {meta.blurb}</option>
+                            ))}
+                        </select>
+                        <p className="tfe-form-help">
+                            {PRIVACY[createForm.data.privacy]?.blurb}
+                            {createForm.data.privacy === 'private' && ' — fans ask to join and a tribe admin approves.'}
+                        </p>
+                    </div>
+
+                    <div className="tfe-form-field">
+                        <label className="tfe-check" htmlFor="tribe-cross">
+                            <input
+                                id="tribe-cross"
+                                type="checkbox"
+                                checked={createForm.data.cross_tournament}
+                                onChange={(e) => createForm.setData('cross_tournament', e.target.checked)}
+                            />
+                            <span>
+                                <strong>Cross-tournament</strong>
+                                <small>
+                                    Open the tribe to fans of every tournament. Leave it unchecked to scope it to{' '}
+                                    {tournament?.short_name || tournament?.name || 'the current tournament'} only.
+                                </small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div className="tribes-modal__foot">
+                        <button type="button" className="tfe-btn" onClick={() => setShowCreateModal(false)}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="tfe-btn tfe-btn--filled" disabled={createForm.processing}>
+                            {createForm.processing ? (
+                                <><i className="fas fa-spinner fa-spin" /> Creating…</>
+                            ) : (
+                                <><i className="fas fa-plus" /> Create Tribe</>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </TfeModal>
 
             <ConfirmationDialog
                 open={!!tribeToLeave}
                 onOpenChange={(open) => !open && setTribeToLeave(null)}
                 title="Leave Tribe?"
-                description="Are you sure you want to leave this tribe? You can rejoined anytime if it is public."
+                description="Are you sure you want to leave this tribe? You can rejoin any time if it is public."
                 onConfirm={handleLeave}
                 confirmText="Leave"
                 variant="destructive"
             />
-        </div>
-    </div>
-</FanLayout>
+        </FanLayout>
     );
 }

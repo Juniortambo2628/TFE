@@ -3,26 +3,24 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class TribeAlert extends Notification
+/**
+ * Tribe activity — a join request lodged, a request decided, a reply posted.
+ *
+ * Database channel only: SMTP is not configured on this platform and adding a
+ * `mail` channel makes the sending request 500. Queued like the other
+ * fan-out notifications so a busy tribe does not block the request that
+ * triggered it.
+ */
+class TribeAlert extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
-    public $alertData;
-
-    public function __construct($alertData)
-    {
-        $this->alertData = $alertData;
-    }
+    public function __construct(public array $alertData) {}
 
     /**
-     * Get the notification's delivery channels.
-     *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -31,29 +29,24 @@ class TribeAlert extends Notification
     }
 
     /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
-
-    /**
-     * Get the array representation of the notification.
+     * The shape DashboardHeader.jsx renders: title, body, icon, action_url,
+     * type. The old payload used a `message` key the bell never read, so every
+     * tribe notification rendered with an empty body.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        $tribeId = $this->alertData['tribe_id'] ?? null;
+
         return [
-            'title' => 'Tribe Alert',
-            'message' => $this->alertData['message'] ?? 'New activity in your tribe.',
-            'action_url' => route('fan.tribes'),
+            'title' => $this->alertData['title'] ?? 'Tribe update',
+            'body' => $this->alertData['body'] ?? 'New activity in your tribe.',
+            'icon' => $this->alertData['icon'] ?? 'fas fa-users',
+            'action_url' => $this->alertData['action_url']
+                ?? ($tribeId ? route('fan.tribes.show', $tribeId) : route('fan.tribes')),
             'type' => 'tribe',
-            'tribe_id' => $this->alertData['tribe_id'] ?? null,
+            'tribe_id' => $tribeId,
         ];
     }
 }
