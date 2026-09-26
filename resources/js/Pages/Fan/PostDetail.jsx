@@ -89,7 +89,7 @@ export default function PostDetail({ auth, post, comments, likers, threadReplies
                         </div>
                         {post.user.id === user.id && (
                             <button 
-                                className="btn btn-sm btn-outline-danger"
+                                className="tfe-btn tfe-btn--sm"
                                 onClick={() => setPostToDelete(true)}
                             >
                                 <i className="fas fa-trash me-1"></i>Delete
@@ -277,7 +277,7 @@ export default function PostDetail({ auth, post, comments, likers, threadReplies
                             />
                             <div style={{ flex: 1 }}>
                                 <textarea
-                                    className="comment-textarea"
+                                    className="tfe-textarea"
                                     placeholder="Write a comment..."
                                     value={commentData.content}
                                     onChange={e => setCommentData('content', e.target.value)}
@@ -286,7 +286,7 @@ export default function PostDetail({ auth, post, comments, likers, threadReplies
                                 <div className="d-flex justify-content-end mt-2">
                                     <button
                                         type="submit"
-                                        className="btn-comment-submit"
+                                        className="tfe-btn tfe-btn--filled"
                                         disabled={commentProcessing || !commentData.content.trim()}
                                     >
                                         {commentProcessing ? (

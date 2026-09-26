@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
+use App\Models\Follow;
 use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\PostComment;
@@ -18,18 +19,45 @@ class FeedController extends Controller
     use HasSocialStats;
 
     /**
-     * Display the social feed
+     * The feed tabs. Previously the Latest / Trending / Following buttons only
+     * toggled their own highlight — the post list never changed. Each one now
+     * maps to a real query.
      */
-    public function index()
+    private const FILTERS = ['latest', 'trending', 'following'];
+
+    public function index(Request $request)
     {
         $user = Auth::user();
         $userId = $user->id;
 
-        // Get posts with user info, ordered by latest (exclude thread replies from main feed)
-        // Eager-load likes to avoid N+1 on is_liked check
-        $posts = Post::with(['user', 'comments.user', 'parentPost', 'threadReplies.user', 'likes'])
-            ->whereNull('parent_post_id') // Only show top-level posts in main feed
-            ->orderByDesc('created_at')
+        $filter = in_array($request->query('filter'), self::FILTERS, true)
+            ? $request->query('filter')
+            : 'latest';
+
+        // Get posts with user info (exclude thread replies from the main feed).
+        // Eager-load likes to avoid N+1 on the is_liked check.
+        $query = Post::with(['user', 'comments.user', 'parentPost', 'threadReplies.user', 'likes'])
+            ->whereNull('parent_post_id'); // Only show top-level posts in main feed
+
+        if ($filter === 'following') {
+            // The fan's own posts stay in view so the tab is never blank for
+            // someone who posts but follows nobody yet.
+            $followingIds = Follow::where('follower_id', $userId)->pluck('following_id')->push($userId);
+
+            $query->whereIn('user_id', $followingIds);
+        }
+
+        if ($filter === 'trending') {
+            // Engagement over the last week, so "trending" means recent heat
+            // rather than whichever post has accumulated the most likes ever.
+            $query->where('created_at', '>=', now()->subWeek())
+                ->orderByRaw('(COALESCE(likes_count, 0) + COALESCE(comment_count, 0) + COALESCE(share_count, 0)) DESC')
+                ->orderByDesc('created_at');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        $posts = $query
             ->take(20)
             ->get()
             ->map(function ($post) use ($userId) {
@@ -123,6 +151,7 @@ class FeedController extends Controller
             'trendingHashtags' => $trendingHashtags,
             'feedAds' => $feedAds,
             'suggestedUsers' => $suggestedUsers,
+            'filter' => $filter,
         ]);
     }
 
