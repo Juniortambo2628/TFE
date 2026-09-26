@@ -9,13 +9,48 @@ import IntroLoader from './Components/IntroLoader';
 
 const appName = import.meta.env.VITE_APP_NAME || 'The Football Experience';
 
+// Page-name prefix -> the persistent role shell that wraps it. Every page
+// under these directories uses the matching layout, so the mapping is the
+// whole rule. Public pages have no prefix here and render unwrapped.
+const SHELLS = {
+    Admin: () => import('./Layouts/AdminLayout'),
+    Fan: () => import('./Layouts/FanLayout'),
+    Partner: () => import('./Layouts/PartnerLayout'),
+};
+
 createInertiaApp({
     title: (title) => title ? `${title} - ${appName}` : appName,
-    resolve: (name) =>
-        resolvePageComponent(
+    // Persistent layouts, assigned centrally from the page name.
+    //
+    // Every dashboard page renders its own <AdminLayout>/<FanLayout>/
+    // <PartnerLayout> inside its JSX. With the layout inside the page, an
+    // Inertia visit swapped the page component and React tore the whole
+    // subtree down — sidebar, header, providers — and built a new one, which
+    // is why clicking a sidebar link looked exactly like a full browser
+    // reload. Attaching the layout here instead keeps the shell mounted and
+    // swaps only the page under it. The role layouts detect the shell above
+    // them and stand down to a passthrough (see Layouts/ShellContext), so not
+    // one page file has to change — including pages added later.
+    //
+    // Imported lazily so a visitor on a public page never pays for a role's
+    // layout or its CSS stack; the page itself imports the same module, so
+    // this resolves to a chunk that is being fetched anyway.
+    resolve: async (name) => {
+        const page = await resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob('./Pages/**/*.jsx'),
-        ),
+        );
+
+        const loadShell = SHELLS[name.split('/')[0]];
+        // `=== undefined` and not a falsy check: a page can opt out of the
+        // shell entirely by exporting `layout = null`.
+        if (loadShell && page.default && page.default.layout === undefined) {
+            const Shell = (await loadShell()).default;
+            page.default.layout = (pageEl) => <Shell>{pageEl}</Shell>;
+        }
+
+        return page;
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 

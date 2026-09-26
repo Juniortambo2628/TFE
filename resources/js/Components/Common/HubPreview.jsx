@@ -1,10 +1,21 @@
 import React from 'react';
+// Self-contained: the partner dashboard does not load the admin stylesheet,
+// and a preview that only looks right on one surface is not a shared one.
+import '../../../css/admin-hub-preview.css';
 
 /**
- * Live-preview pane for /admin/partners/{user}. Reads directly from the
- * PartnerEdit form state and mirrors the essential visual pieces of
- * PartnerHub.jsx — hero + stats band + about + service tags — so admin
- * sees their edits land without saving + navigating.
+ * Live-preview pane for a partner hub. Reads directly from an edit form's
+ * state and mirrors the essential visual pieces of PartnerHub.jsx — hero +
+ * stats band + about + service tags — so the editor sees their changes land
+ * without saving and navigating.
+ *
+ * Used by BOTH `/admin/partners/{user}` and the partner's own
+ * `/partner/profile` (Sprint 53) — it moved out of Components/Admin for that
+ * second caller.
+ *
+ * `service_tags` and `stats_text` are accepted as newline-separated text
+ * (what the admin form edits) or as a ready array, since the partner form
+ * edits its tags as a comma-separated line.
  *
  * Not a byte-perfect mirror; skipping listings + "how we support" +
  * "how it works" since those don't depend on the edited fields.
@@ -89,10 +100,13 @@ export default function HubPreview({ data, partnerName, isVerified, partnerTypeL
 }
 
 function linesToArray(text) {
+    if (Array.isArray(text)) return text.filter(Boolean);
     return (text || '').split('\n').map((l) => l.trim()).filter(Boolean);
 }
 
 function parseStats(text) {
+    if (Array.isArray(text)) return text.filter((s) => s && s.label && s.value);
+
     return (text || '').split('\n')
         .map((l) => l.trim())
         .filter(Boolean)

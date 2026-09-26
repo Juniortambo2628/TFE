@@ -1,7 +1,7 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import HubPreview from '@/Components/Admin/HubPreview';
+import HubPreview from '@/Components/Common/HubPreview';
 import { Link, useForm } from '@inertiajs/react';
 
 /**

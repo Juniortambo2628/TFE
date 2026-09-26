@@ -86,7 +86,16 @@ class HandleInertiaRequests extends Middleware
             'tournament' => fn () => $tournamentId
                 ? $tournamentService->get($tournamentId)
                 : $tournamentService->current(),
+            // Every tournament, for surfaces that legitimately show the past
+            // too (the landing TournamentCompare cards, which deep-link to
+            // each tournament's own page).
             'tournament_list' => fn () => $tournamentService->all(),
+            // The subset a fan may switch their context to — ongoing and
+            // upcoming only (Sprint 53). The switcher reads THIS, not the
+            // full list: making a concluded tournament the active context
+            // rebuilt every context-aware surface, and its whole venue +
+            // stadium-imagery payload, around an event nobody can travel to.
+            'tournament_switch_list' => fn () => $tournamentService->switchable(),
             // Normalized venue name => local stadium image url, for the
             // surfaces that resolve imagery by match venue string rather than
             // from the tournament's venue rows (MatchCard, the budget

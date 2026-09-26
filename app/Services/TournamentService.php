@@ -20,6 +20,13 @@ use Illuminate\Support\Facades\Schema;
  */
 class TournamentService
 {
+    /**
+     * Statuses a tournament may hold and still be selectable as the active
+     * context. Concluded tournaments are deliberately absent — see
+     * switchable().
+     */
+    public const SWITCHABLE_STATUSES = ['ongoing', 'upcoming'];
+
     public function __construct(
         protected WikipediaService $wikipedia,
         protected StadiumImageService $stadiumImages,
@@ -160,12 +167,23 @@ class TournamentService
     {
         $wikiTitle = $config['wikipedia_title'] ?? $config['name'];
 
+        $status = self::computedStatus($config);
+
         // A catalogued tournament takes its venues from config/stadiums.php and
         // enriches them by our own article titles below, so there is no point
         // paying for Wikipedia's per-venue round-trips here — those rows are
         // discarded. Skipping them keeps the cold-cache cost of the swap at
         // roughly parity instead of doubling it.
-        $hydrateVenues = ! $this->stadiumImages->hasCatalogue($id);
+        //
+        // Sprint 53 — a concluded tournament skips them too. Since a past
+        // tournament can no longer become the active context, the only surface
+        // that renders it is its own page (`/tournaments/{slug}`), a recap that
+        // shows results and teams and never touches a venue row. Hydrating
+        // meant one Wikipedia summary + wikitext round-trip PER STADIUM for a
+        // photo and a capacity figure nothing displays. The venue NAMES still
+        // come back from the single tournament-article parse, so the admin
+        // venue counts and the stadium-image editor are unaffected.
+        $hydrateVenues = ! $this->stadiumImages->hasCatalogue($id) && $status !== 'concluded';
 
         $wikipedia = Cache::remember(
             "tournament:{$id}:wikipedia",
@@ -230,7 +248,7 @@ class TournamentService
         }
 
         return array_merge($config, [
-            'status' => self::computedStatus($config),
+            'status' => $status,
             'wikipedia' => $wikipedia,
             'venues' => $venues,
             'teams' => $wikipedia['teams'] ?? [],
@@ -356,6 +374,43 @@ class TournamentService
 
             return $tournaments;
         });
+    }
+
+    /**
+     * The tournaments a fan may switch their context to: ongoing and upcoming
+     * only (Sprint 53).
+     *
+     * A concluded tournament has nothing left to plan. Offering it in the
+     * switcher meant one click rebuilt the whole session around an event that
+     * already happened — and the landing hero then fetched and rendered that
+     * tournament's full venue set, stadium photography and Wikipedia
+     * enrichment for a trip nobody can take. A past tournament is still fully
+     * browsable; it just lives on its own read-only page
+     * (`/tournaments/{slug}`) rather than in the context switcher.
+     *
+     * Derived from all() so the row shape, sort order and cache stay in one
+     * place — there is no second list to drift.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function switchable(): array
+    {
+        return array_values(array_filter(
+            $this->all(),
+            fn (array $t) => in_array($t['status'] ?? null, self::SWITCHABLE_STATUSES, true),
+        ));
+    }
+
+    /**
+     * Whether a tournament id may be made the active context.
+     */
+    public function isSwitchable(string $id): bool
+    {
+        $config = config("tournaments.tournaments.{$id}");
+
+        return $config
+            ? in_array(self::computedStatus($config), self::SWITCHABLE_STATUSES, true)
+            : false;
     }
 
     /**

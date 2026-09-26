@@ -5,20 +5,10 @@
  * re-brands as admin changes theme_accent.
  */
 
-/* Two-column layout for /admin/partners/{user}: form on the left,
-   sticky preview on the right. CSS Grid because Bootstrap's grid
-   isn't reliably loaded on admin surfaces. Stacks on narrow. */
-.partner-edit-grid {
-    display: grid;
-    gap: 1.5rem;
-    grid-template-columns: 1fr;
-}
-
-@media (min-width: 1100px) {
-    .partner-edit-grid {
-        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    }
-}
+/* The two-column form/preview grid (`.partner-edit-grid`) moved to
+   primitives.css in Sprint 53 so the fan + partner account pages can use the
+   same SplitEditorLayout — this sheet is admin-only, so it could not. The old
+   name is still a valid alias there. */
 
 .hub-preview {
     --partner-accent: #dc143c;

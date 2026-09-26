@@ -1,691 +1,457 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { Head, usePage, router, Link } from '@inertiajs/react';
+import { usePage, router, Link, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { AvatarCreator } from '@readyplayerme/react-avatar-creator';
-import FilePondUploader from '@/Components/Common/FilePondUploader';
 import '../../../css/fan/profile.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DashboardModal from '@/Components/Common/DashboardModal';
+import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
+import IdentityPreview from '@/Components/Common/IdentityPreview';
+import ImageUpload from '@/Components/Common/ImageUpload';
 import { useTournament } from '@/Context/TournamentContext';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 
-export default function Profile({ auth, socialStats, profile, additionalSettings, isOwnProfile = true, isFollowing = false, userTribes = [], userPosts = [], followers = [], followingList = [], security_settings = {} }) {
+/**
+ * Fan profile — Sprint 53 rebuild.
+ *
+ * Two things were wrong with the page this replaces.
+ *
+ *  1. **You could not change your avatar.** "Change Avatar" opened Ready
+ *     Player Me's hosted 3D creator, embedded from `demo.readyplayer.me`.
+ *     That subdomain stopped resolving, so the button opened a browser DNS
+ *     error page — and it was the only way to set a picture. The avatar is an
+ *     ordinary image upload now, through the platform's own pipeline
+ *     (`ImageUpload` → `MediaLibraryService`: compressed, recorded in the
+ *     media library, no third party and no `model-viewer` script). Anyone who
+ *     already has a stored `.glb` avatar keeps it as their stored value; the
+ *     page just renders the fallback image instead of a 3D canvas.
+ *  2. **It looked like nothing else on the platform.** Editing happened in a
+ *     five-tab modal over a read-only card, so you could not see your changes
+ *     land. It now uses SplitEditorLayout — form left, live preview right —
+ *     the same arrangement as Admin → Tournaments, the Content CMS and the
+ *     partner profile.
+ *
+ * Security settings are not duplicated here any more either: 2FA lives on the
+ * shared Security page (one surface, one implementation) and this page links
+ * to it.
+ */
+export default function Profile({
+    auth,
+    socialStats,
+    profile,
+    isOwnProfile = true,
+    isFollowing = false,
+    userTribes = [],
+    userPosts = [],
+    followers = [],
+    followingList = [],
+}) {
     const { tournament } = useTournament();
     const { user } = auth;
-    const { flash, assetUrl } = usePage().props;
+    const { assetUrl } = usePage().props;
 
-    // Dynamically load model-viewer for 3D avatar rendering
-    useEffect(() => {
-        if (!document.querySelector('script[src*="model-viewer"]')) {
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
-            document.head.appendChild(script);
-        }
-    }, []);
+    const defaultAvatar = `${assetUrl}assets/img/avatars/default-avatar.png`;
 
-    // Use profile data from props or fallback to auth user
     const fanProfile = profile || {
         name: user.name,
         email: user.email,
-        avatar: user.avatar || `${assetUrl}assets/img/avatars/default-avatar.png`,
-        country: 'Kenya', // Default or fetch
+        avatar: user.avatar || defaultAvatar,
         team_support: 'Not Set',
     };
 
-    const [activeTab, setActiveTab] = useState('info');
-    const [showAvatarCreator, setShowAvatarCreator] = useState(false);
     const [following, setFollowing] = useState(isFollowing);
-    
-    // 2FA Modal State
-    const [show2FAModal, setShow2FAModal] = useState(false);
-    const [activeSecurityTab, setActiveSecurityTab] = useState('2fa');
-    const [setupCode, setSetupCode] = useState('');
-    const [confirmDisable2FA, setConfirmDisable2FA] = useState(false);
-    
-    // Edit Profile Modal State
-    const [showEditModal, setShowEditModal] = useState(false);
     const [showNetworkModal, setShowNetworkModal] = useState(false);
-    const [networkTab, setNetworkTab] = useState('followers'); // 'followers' or 'following'
-    const [editProfileTab, setEditProfileTab] = useState('personal');
-    const [coverFiles, setCoverFiles] = useState([]);
-    const [editForm, setEditForm] = useState({
-        name: fanProfile.name,
-        email: fanProfile.email,
-        team_support: fanProfile.team_support,
-        bio: fanProfile.bio || '',
-        cover_image: fanProfile.cover_image || '',
-        marketing_consent: !!fanProfile.marketing_consent,
-        community_consent: !!fanProfile.community_consent,
-        terms_agreed: !!fanProfile.terms_agreed
-    });
-
-    const toggle2FA = () => {
-        if (security_settings.two_factor_enabled) {
-            setConfirmDisable2FA(true);
-        } else {
-            router.post(route('fan.security.two-factor'), {}, { 
-                preserveScroll: true,
-                onSuccess: () => setShow2FAModal(true)
-            });
-        }
-    };
-
-    const handleDisable2FA = () => {
-        router.post(route('fan.security.two-factor'), {}, { 
-            preserveScroll: true,
-            onSuccess: () => setConfirmDisable2FA(false)
-        });
-    };
-
-    const confirm2FA = (e) => {
-        e.preventDefault();
-        router.post(route('fan.security.two-factor.confirm'), {
-            code: setupCode,
-            secret: flash.two_factor_setup?.secret
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setShow2FAModal(false);
-                setSetupCode('');
-            }
-        });
-    };
-
-    const handleAvatarExported = (event) => {
-        const avatarUrl = event.data.url;
-        // Close modal
-        setShowAvatarCreator(false);
-        // Save to backend
-        router.post(route('fan.profile.avatar.update'), { 
-            avatar_url: avatarUrl 
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                // Inertia handles state updates automatically via prop refresh
-            }
-        });
-    };
-
-    const handleProfileUpdate = (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('_method', 'PUT');
-        formData.append('name', editForm.name);
-        formData.append('team_support', editForm.team_support || '');
-        formData.append('bio', editForm.bio || '');
-        formData.append('marketing_consent', editForm.marketing_consent ? '1' : '0');
-        formData.append('community_consent', editForm.community_consent ? '1' : '0');
-        
-        if (coverFiles.length > 0 && coverFiles[0].file) {
-            formData.append('cover_image', coverFiles[0].file);
-        } else {
-            formData.append('cover_image', editForm.cover_image || '');
-        }
-        router.post(route('fan.profile.update'), formData, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                setShowEditModal(false);
-                setCoverFiles([]);
-                toast.success('Profile updated successfully!');
-            }
-        });
-    };
+    const [networkTab, setNetworkTab] = useState('followers');
 
     const stats = socialStats || { followers: 0, tribes: 0, posts: 0 };
 
-    const editTabs = [
-        { id: 'personal', label: 'Personal', icon: 'fas fa-user' },
-        { id: 'team', label: 'My Team', icon: 'fas fa-futbol' },
-        { id: 'bio', label: 'Bio', icon: 'fas fa-pen' },
-        { id: 'appearance', label: 'Appearance', icon: 'fas fa-image' },
-        { id: 'legal', label: 'Preferences', icon: 'fas fa-shield-alt' }
-    ];
+    // ── Profile form ────────────────────────────────────────────────────
+    const form = useForm({
+        _method: 'put',
+        name: fanProfile.name || '',
+        team_support: fanProfile.team_support || '',
+        bio: fanProfile.bio || '',
+        cover_image: fanProfile.cover_image || '',
+        cover_image_file: null,
+        marketing_consent: !!fanProfile.marketing_consent,
+        community_consent: !!fanProfile.community_consent,
+    });
+    const { data, setData, processing, errors, isDirty } = form;
 
-    const securityTabs = [
-        { id: '2fa', label: 'Two-Factor Auth', icon: 'fas fa-shield-alt' }
-    ];
+    const handleProfileUpdate = (e) => {
+        e.preventDefault();
+        form.transform((d) => ({
+            ...d,
+            // The controller reads one `cover_image` key that is either an
+            // uploaded file or the existing URL string.
+            cover_image: d.cover_image_file || d.cover_image || '',
+        }));
+        form.post(route('fan.profile.update'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => toast.success('Profile updated successfully!'),
+        });
+    };
+
+    // ── Avatar (its own small form — one field, one endpoint) ───────────
+    const avatarForm = useForm({ avatar: null, avatar_url: fanProfile.avatar || '' });
+
+    const uploadAvatar = (file) => {
+        avatarForm.setData('avatar', file);
+        avatarForm.transform(() => ({ avatar: file }));
+        avatarForm.post(route('fan.profile.avatar.update'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => toast.success('Avatar updated!'),
+            onError: (errs) => toast.error(errs.avatar || 'Could not update your avatar.'),
+        });
+    };
 
     // Tournament-driven team list — reflects whichever tournament the fan
     // has active. Falls back to config team codes if Wikipedia is empty.
     const tournamentTeams = useTournamentTeams({ assetUrl });
     const teams = [
-        ...tournamentTeams.map(function (t) {
-            return {
-                name: t.value,
-                iso: t.iso || '',
-                flag: t.flag,
-                icon: t.flag ? null : 'fas fa-futbol',
-            };
-        }),
+        ...tournamentTeams.map((t) => ({
+            name: t.value,
+            iso: t.iso || '',
+            flag: t.flag,
+            icon: t.flag ? null : 'fas fa-futbol',
+        })),
         { name: 'Other', icon: 'fas fa-globe' },
     ];
 
+    // A stored Ready Player Me `.glb` is not an image — render the default
+    // rather than a broken <img> for the handful of fans who have one.
+    const avatarSrc = (fanProfile.avatar || '').endsWith('.glb')
+        ? defaultAvatar
+        : (fanProfile.avatar || defaultAvatar);
+
+    const identity = (
+        <>
+            <IdentityPreview
+                name={isOwnProfile ? data.name : fanProfile.name}
+                sub={fanProfile.email}
+                avatar={avatarSrc}
+                badge={(isOwnProfile ? data.team_support : fanProfile.team_support) || undefined}
+                rows={[
+                    { icon: 'fas fa-users', value: `${stats.followers} followers` },
+                    { icon: 'fas fa-layer-group', value: `${stats.tribes} tribes` },
+                    { icon: 'fas fa-comment-alt', value: `${stats.posts} posts` },
+                ]}
+            />
+
+            <div className="tfe-slab">
+                <div className="tfe-slab__body">
+                    <div className="profile-network-row">
+                        <button
+                            type="button"
+                            className="tfe-btn tfe-btn--sm flex-fill justify-content-center"
+                            onClick={() => { setNetworkTab('followers'); setShowNetworkModal(true); }}
+                        >
+                            Followers
+                        </button>
+                        <button
+                            type="button"
+                            className="tfe-btn tfe-btn--sm flex-fill justify-content-center"
+                            onClick={() => { setNetworkTab('following'); setShowNetworkModal(true); }}
+                        >
+                            Following
+                        </button>
+                    </div>
+
+                    {isOwnProfile ? (
+                        <Link href={route('fan.security')} className="tfe-btn tfe-btn--sm w-100 justify-content-center mt-2">
+                            <i className="fas fa-shield-alt" /> Security settings
+                        </Link>
+                    ) : (
+                        <div className="profile-network-row mt-2">
+                            <button
+                                type="button"
+                                className="tfe-btn tfe-btn--sm flex-fill justify-content-center"
+                                onClick={() => router.post(route('fan.follow.toggle', profile.id), {}, {
+                                    preserveScroll: true,
+                                    onSuccess: () => setFollowing(!following),
+                                })}
+                            >
+                                <i className={`fas ${following ? 'fa-check' : 'fa-user-plus'}`} />
+                                {following ? ' Following' : ' Follow'}
+                            </button>
+                            <button
+                                type="button"
+                                className="tfe-btn tfe-btn--sm flex-fill justify-content-center"
+                                onClick={() => router.visit(route('fan.communication'))}
+                            >
+                                <i className="fas fa-envelope" /> Message
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+
+    const community = (
+        <>
+            <section className="tfe-slab">
+                <div className="tfe-slab__header">
+                    <h3 className="tfe-slab__title">
+                        <i className="fas fa-users me-2" aria-hidden="true" /> {isOwnProfile ? 'My tribes' : 'Joined tribes'}
+                    </h3>
+                </div>
+                <div className="tfe-slab__body">
+                    {userTribes.length > 0 ? (
+                        <div className="tribes-grid-compact">
+                            {userTribes.map((tribe) => (
+                                <Link key={tribe.id} href={route('fan.tribes.show', tribe.slug)} className="compact-tribe-item">
+                                    <img src={tribe.avatar || '/assets/img/fan/tribes/default.png'} alt={tribe.name} className="compact-tribe-avatar" />
+                                    <span className="compact-tribe-name">{tribe.name}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="tfe-empty tfe-empty--inline">
+                            <div className="tfe-empty__icon"><i className="fas fa-users-slash" /></div>
+                            <div className="tfe-empty__body">Hasn&apos;t joined any tribes yet.</div>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            <section className="tfe-slab">
+                <div className="tfe-slab__header">
+                    <h3 className="tfe-slab__title">
+                        <i className="fas fa-comment-alt me-2" aria-hidden="true" /> Recent activity
+                    </h3>
+                </div>
+                <div className="tfe-slab__body">
+                    {userPosts.length > 0 ? userPosts.map((post) => (
+                        <div key={post.id} className="profile-post-item" onClick={() => router.visit(route('fan.feed.post.show', post.id))}>
+                            <div className="profile-post-header">
+                                <span className="profile-post-time">{post.created_at}</span>
+                            </div>
+                            <p className="profile-post-excerpt">
+                                {post.content.length > 80 ? `${post.content.substring(0, 80)}…` : post.content}
+                            </p>
+                            <div className="profile-post-stats">
+                                <span><i className="far fa-heart me-1" /> {post.likes_count}</span>
+                                <span><i className="far fa-comment me-1" /> {post.comment_count}</span>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="tfe-empty tfe-empty--inline">
+                            <div className="tfe-empty__icon"><i className="fas fa-pencil-alt" /></div>
+                            <div className="tfe-empty__body">No recent posts to show.</div>
+                        </div>
+                    )}
+                </div>
+            </section>
+        </>
+    );
+
     return (
-        <FanLayout title={isOwnProfile ? "My Profile" : `${fanProfile.name}'s Profile`}>
-             <div className="container-fluid profile-page">
-                {/* Profile Header Card */}
-                <DashboardHero role="fan" 
-                    title={isOwnProfile ? "My Profile" : fanProfile.name}
-                    subtitle={isOwnProfile 
-                        ? `Manage your personal information and preferences for your ${tournament?.short_name || 'tournament'} journey.` 
-                        : `Viewing the profile of ${fanProfile.name}. Supports ${fanProfile.team_support || 'the beautiful game'}.`
-                    }
+        <FanLayout title={isOwnProfile ? 'My Profile' : `${fanProfile.name}'s Profile`}>
+            <div className="profile-page">
+                <DashboardHero
+                    role="fan"
+                    title={isOwnProfile ? 'My Profile' : fanProfile.name}
+                    subtitle={isOwnProfile
+                        ? `Manage your personal information and preferences for your ${tournament?.short_name || 'tournament'} journey.`
+                        : `Viewing the profile of ${fanProfile.name}. Supports ${fanProfile.team_support || 'the beautiful game'}.`}
                     breadcrumbs={[{ label: isOwnProfile ? 'Profile' : fanProfile.name }]}
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 />
 
-                {/* Ad Placeholder */}
                 <div className="mb-4">
                     <AdPlaceholder position="horizontal" />
                 </div>
 
-                <div className="profile-summary-grid">
-                    
-                    {/* Profile Information Card */}
-                    <div className="content-card profile-info-card h-100 p-0 overflow-hidden">
-                        {/* Cover Image Section */}
-                        <div
-                            className="profile-cover-section"
-                            style={{ backgroundImage: `url(${fanProfile.cover_image || `${assetUrl}assets/img/fan/backgrounds/default-cover.png`})` }}
-                        >
-                            <div className="profile-cover-overlay"></div>
-                        </div>
+                <SplitEditorLayout previewTitle={isOwnProfile ? 'Live preview' : 'Profile'} preview={identity}>
+                    {isOwnProfile ? (
+                        <div className="tfe-editor-stack">
+                            <form onSubmit={handleProfileUpdate} className="tfe-editor-stack">
+                                <section className="tfe-slab">
+                                    <div className="tfe-slab__header">
+                                        <h3 className="tfe-slab__title">
+                                            <i className="fas fa-user me-2" aria-hidden="true" /> Personal details
+                                        </h3>
+                                    </div>
+                                    <div className="tfe-slab__body">
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label">Full name</label>
+                                            <input
+                                                type="text"
+                                                className="tfe-input"
+                                                value={data.name}
+                                                onChange={(e) => setData('name', e.target.value)}
+                                                required
+                                            />
+                                            {errors.name && <div className="tfe-form-error">{errors.name}</div>}
+                                        </div>
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label">Email address</label>
+                                            <input
+                                                type="email"
+                                                className="tfe-input profile-input-disabled"
+                                                value={fanProfile.email}
+                                                disabled
+                                                title="Email cannot be changed"
+                                            />
+                                            <p className="tfe-form-help">
+                                                Contact + KYC details (phone, address, country) live with your booking,
+                                                travel, finance and ticket partners — they collect and hold whatever they
+                                                need to service you.
+                                            </p>
+                                        </div>
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label">Bio / about you</label>
+                                            <textarea
+                                                className="tfe-textarea"
+                                                rows={4}
+                                                value={data.bio}
+                                                onChange={(e) => setData('bio', e.target.value)}
+                                                placeholder="Tell fans about your journey…"
+                                            />
+                                            {errors.bio && <div className="tfe-form-error">{errors.bio}</div>}
+                                        </div>
+                                    </div>
+                                </section>
 
-                        <div className="profile-showcase text-center px-4 pt-0 profile-overlap-margin">
-                            {/* Large Avatar Display */}
-                            <div className="profile-avatar-display d-flex justify-content-center mb-3">
-                                <div className="profile-avatar-wrapper">
-                                    {fanProfile.avatar.includes('.glb') ? (
-                                        <model-viewer 
-                                            id="profileAvatar"
-                                            src={fanProfile.avatar}
-                                            alt={fanProfile.name}
-                                            auto-rotate
-                                            camera-controls
-                                            shadow-intensity="1"
-                                            class="profile-model-viewer">
-                                        </model-viewer>
-                                    ) : (
-                                        <img 
-                                            id="profileAvatar" 
-                                            src={fanProfile.avatar} 
-                                            alt={fanProfile.name} 
-                                            className="profile-avatar-img"
+                                <section className="tfe-slab">
+                                    <div className="tfe-slab__header">
+                                        <h3 className="tfe-slab__title">
+                                            <i className="fas fa-futbol me-2" aria-hidden="true" /> Supporting team
+                                        </h3>
+                                        <span className="tfe-slab__title-sub">{tournament?.short_name || 'Tournament'}</span>
+                                    </div>
+                                    <div className="tfe-slab__body">
+                                        <div className="team-grid no-scrollbar dash-team-grid">
+                                            {teams.map((team) => (
+                                                <button
+                                                    type="button"
+                                                    key={team.name}
+                                                    className={`team-option dash-team-option ${data.team_support === team.name ? 'selected' : ''}`}
+                                                    onClick={() => setData('team_support', team.name)}
+                                                >
+                                                    {team.flag
+                                                        ? <img src={team.flag} alt="" className="team-flag dash-team-flag" />
+                                                        : <i className={`${team.icon} team-icon`} />}
+                                                    <span className="team-name text-white dash-team-name">{team.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="tfe-slab">
+                                    <div className="tfe-slab__header">
+                                        <h3 className="tfe-slab__title">
+                                            <i className="fas fa-image me-2" aria-hidden="true" /> Cover image
+                                        </h3>
+                                    </div>
+                                    <div className="tfe-slab__body">
+                                        <ImageUpload
+                                            value={data.cover_image}
+                                            onFile={(f) => setData('cover_image_file', f)}
+                                            onClear={() => { setData('cover_image', ''); setData('cover_image_file', null); }}
+                                            gallery
+                                            onPick={(url) => { setData('cover_image', url); setData('cover_image_file', null); }}
                                         />
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Profile Info */}
-                            <div className="profile-info mb-4">
-                                <h2 id="profileName" className="h3 mb-2 text-white">{fanProfile.name}</h2>
-                                <p id="profileEmail" className="text-medium-contrast mb-2">{fanProfile.email}</p>
-
-                                {fanProfile.team_support && (
-                                    <p className="profile-team mb-1">
-                                        Supports: {fanProfile.team_support}
-                                    </p>
-                                )}
-
-                                {fanProfile.bio && (
-                                    <div className="profile-bio mt-3 px-3">
-                                        <p className="text-white small opacity-75 italic mb-0">
-                                            "{fanProfile.bio}"
-                                        </p>
+                                        {errors.cover_image && <div className="tfe-form-error">{errors.cover_image}</div>}
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </section>
 
-                        <div className="profile-actions d-flex gap-3 justify-content-center pb-4">
-                            {isOwnProfile ? (
-                                <>
-                                    <button className="btn-glass-pill" onClick={() => setShowEditModal(true)}>
-                                        <i className="fas fa-edit me-2"></i>
-                                        <span>Edit Profile</span>
-                                    </button>
-                                    <button className="btn-glass-pill" onClick={() => setShowAvatarCreator(true)}>
-                                        <i className="fas fa-camera me-2"></i>
-                                        <span>Change Avatar</span>
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <button 
-                                        className={`btn-glass-pill ${following ? '' : ''}`}
-                                        onClick={() => {
-                                            router.post(route('fan.follow.toggle', profile.id), {}, {
-                                                preserveScroll: true,
-                                                onSuccess: () => setFollowing(!following)
-                                            });
-                                        }}
-                                    >
-                                        {following ? (
-                                            <>
-                                                <i className="fas fa-check me-2"></i>
-                                                <span>Following</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="fas fa-user-plus me-2"></i>
-                                                <span>Follow</span>
-                                            </>
-                                        )}
-                                    </button>
-                                    <button 
-                                        className="btn-glass-pill"
-                                        onClick={() => router.visit(route('fan.communication'))}
-                                    >
-                                        <i className="fas fa-envelope me-2"></i>
-                                        <span>Message</span>
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    
-                    {/* Ready Player Me Avatar Creator Modal */}
-                    {showAvatarCreator && (
-                        <div className="avatar-creator-modal-overlay">
-                            <div className="d-flex justify-content-end p-3">
-                                <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Close" onClick={() => setShowAvatarCreator(false)}>
-                                    <i className="fas fa-times me-2"></i> Close
-                                </button>
-                            </div>
-                            <div className="profile-avatar-creator-body">
-                                <AvatarCreator
-                                    subdomain="demo"
-                                    config={{
-                                        clearCache: true,
-                                        bodyType: 'fullbody',
-                                        quickStart: false,
-                                        language: 'en',
-                                    }}
-                                    style={{ width: '100%', height: '100%', border: 'none' }}
-                                    onAvatarExported={handleAvatarExported}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Right Column: Stats & Settings */}
-                    <div className="d-flex flex-column gap-4">
-                        
-                        {/* Social Stats Card */}
-                        <div className="content-card social-stats-card mb-4">
-                            <div className="card-header mb-3">
-                                <i className="fas fa-chart-bar text-info me-2"></i>
-                                <h3 className="m-0 text-white">Social Statistics</h3>
-                            </div>
-
-                            <div className="d-flex justify-content-around text-center py-3">
-                                <div 
-                                    className="stat-item cursor-pointer" 
-                                    onClick={() => { setNetworkTab('followers'); setShowNetworkModal(true); }}
-                                >
-                                    <div className="stat-value h2 fw-bold mb-0">{stats.followers}</div>
-                                    <div className="stat-label small">Followers</div>
-                                </div>
-                                <div className="stat-item border-start border-end border-secondary px-4">
-                                    <div className="stat-value h2 fw-bold mb-0">{stats.tribes}</div>
-                                    <div className="stat-label small">Tribes</div>
-                                </div>
-                                <div 
-                                    className="stat-item cursor-pointer"
-                                    onClick={() => { setNetworkTab('following'); setShowNetworkModal(true); }}
-                                >
-                                    <div className="stat-value h2 fw-bold mb-0">{socialStats.following_count || profile.following_count || 0}</div>
-                                    <div className="stat-label small">Following</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Account Settings Card - Only show if own profile */}
-                        {isOwnProfile && (
-                            <div className="content-card account-settings-card">
-                                <div className="card-header mb-3">
-                                    <i className="fas fa-cog text-secondary me-2"></i>
-                                    <h3 className="m-0 text-white">Account Settings</h3>
-                                </div>
-
-                                <div className="settings-grid d-flex flex-column gap-3">
-                                    <div className="setting-item d-flex justify-content-between align-items-center p-3 rounded">
-                                        <div className="setting-info">
-                                            <h4 className="h6 mb-0">Email Notifications</h4>
-                                            <p className="small mb-0">Receive updates about your journey</p>
-                                        </div>
-                                        <div className="form-check form-switch">
-                                            <input className="form-check-input" type="checkbox" defaultChecked />
-                                        </div>
+                                <section className="tfe-slab">
+                                    <div className="tfe-slab__header">
+                                        <h3 className="tfe-slab__title">
+                                            <i className="fas fa-envelope-open-text me-2" aria-hidden="true" /> Communication preferences
+                                        </h3>
                                     </div>
-
-                                    <div className="setting-item d-flex justify-content-between align-items-center p-3 rounded">
-                                        <div className="setting-info">
-                                            <h4 className="h6 mb-0">Two-Factor Authentication</h4>
-                                            <p className="small mb-0">Add extra security layer</p>
+                                    <div className="tfe-slab__body">
+                                        <div className="tfe-setting-row">
+                                            <div>
+                                                <h4>Marketing messages</h4>
+                                                <p>News, offers and promotions.</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={`toggle-switch ${data.marketing_consent ? 'active' : ''}`}
+                                                onClick={() => setData('marketing_consent', !data.marketing_consent)}
+                                                aria-pressed={data.marketing_consent}
+                                                aria-label="Toggle marketing messages"
+                                            />
                                         </div>
-                                        <div className="form-check form-switch">
-                                            <input 
-                                                className="form-check-input" 
-                                                type="checkbox" 
-                                                checked={security_settings.two_factor_enabled} 
-                                                onChange={toggle2FA}
+                                        <div className="tfe-setting-row">
+                                            <div>
+                                                <h4>Community access</h4>
+                                                <p>Tribe invitations and exclusive community events.</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={`toggle-switch ${data.community_consent ? 'active' : ''}`}
+                                                onClick={() => setData('community_consent', !data.community_consent)}
+                                                aria-pressed={data.community_consent}
+                                                aria-label="Toggle community access"
                                             />
                                         </div>
                                     </div>
+                                </section>
 
-                                     <div className="setting-item d-flex justify-content-between align-items-center p-3 rounded">
-                                        <div className="setting-info">
-                                            <h4 className="h6 mb-0">Marketing Communications</h4>
-                                            <p className="small mb-0">Promotional offers and updates</p>
-                                        </div>
-                                        <div className="form-check form-switch">
-                                            <input className="form-check-input" type="checkbox" defaultChecked={user.marketing_consent} />
-                                        </div>
-                                    </div>
+                                <div className="tfe-form-actions">
+                                    <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing || !isDirty}>
+                                        {processing ? 'Saving…' : 'Save changes'}
+                                    </button>
                                 </div>
+                            </form>
 
-                                 <div className="settings-actions d-flex gap-3 mt-4">
-                                    <Link href={route('fan.security')} className="btn-glass-pill flex-grow-1">
-                                        <i className="fas fa-cog me-2"></i>
-                                        Advanced
-                                    </Link>
-                                    <Link href={route('fan.security')} className="btn-glass-pill flex-grow-1">
-                                        <i className="fas fa-key me-2"></i>
-                                        Password
-                                    </Link>
+                            {/* Its own endpoint, so its own form — uploading a
+                                picture should not require saving the rest. */}
+                            <section className="tfe-slab">
+                                <div className="tfe-slab__header">
+                                    <h3 className="tfe-slab__title">
+                                        <i className="fas fa-camera me-2" aria-hidden="true" /> Profile picture
+                                    </h3>
+                                    <span className="tfe-slab__title-sub">Saves as soon as you choose one</span>
                                 </div>
-                            </div>
-                        )}
+                                <div className="tfe-slab__body">
+                                    <ImageUpload
+                                        value={avatarSrc}
+                                        onFile={uploadAvatar}
+                                        onClear={() => {
+                                            avatarForm.transform(() => ({ avatar_url: '' }));
+                                            avatarForm.post(route('fan.profile.avatar.update'), {
+                                                preserveScroll: true,
+                                                onSuccess: () => toast.success('Avatar reset to the default.'),
+                                            });
+                                        }}
+                                        label="Upload a profile picture"
+                                    />
+                                    {avatarForm.processing && <p className="tfe-form-help mt-2">Uploading…</p>}
+                                </div>
+                            </section>
 
-                        {/* Tribes Section */}
-                        <div className="content-card profile-tribes-card">
-                            <div className="card-header mb-3">
-                                <i className="fas fa-users text-warning me-2"></i>
-                                <h3 className="m-0 text-white">{isOwnProfile ? 'My Tribes' : 'Joined Tribes'}</h3>
-                            </div>
-                            <div className="tribes-grid-compact">
-                                {userTribes.length > 0 ? (
-                                    userTribes.map(tribe => (
-                                        <Link key={tribe.id} href={route('fan.tribes.show', tribe.slug)} className="compact-tribe-item">
-                                            <img src={tribe.avatar || '/assets/img/fan/tribes/default.png'} alt={tribe.name} className="compact-tribe-avatar" />
-                                            <span className="compact-tribe-name">{tribe.name}</span>
-                                        </Link>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-4 text-white-50">
-                                        <i className="fas fa-users-slash mb-2 d-block"></i>
-                                        <small>Hasn't joined any tribes yet</small>
-                                    </div>
-                                )}
-                            </div>
+                            {community}
                         </div>
-
-                        {/* Recent Activity / Posts Section */}
-                        <div className="content-card profile-posts-card">
-                            <div className="card-header mb-3">
-                                <i className="fas fa-comment-alt text-success me-2"></i>
-                                <h3 className="m-0 text-white">Recent Activity</h3>
-                            </div>
-                            <div className="profile-posts-list">
-                                {userPosts.length > 0 ? (
-                                    userPosts.map(post => (
-                                        <div key={post.id} className="profile-post-item" onClick={() => router.visit(route('fan.feed.post.show', post.id))}>
-                                            <div className="profile-post-header">
-                                                <span className="profile-post-time">{post.created_at}</span>
-                                            </div>
-                                            <p className="profile-post-excerpt">{post.content.length > 80 ? post.content.substring(0, 80) + '...' : post.content}</p>
-                                            <div className="profile-post-stats">
-                                                <span><i className="far fa-heart me-1"></i> {post.likes_count}</span>
-                                                <span><i className="far fa-comment me-1"></i> {post.comment_count}</span>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-4 text-white-50">
-                                        <i className="fas fa-pencil-alt mb-2 d-block"></i>
-                                        <small>No recent posts to show</small>
+                    ) : (
+                        <div className="tfe-editor-stack">
+                            {fanProfile.bio && (
+                                <section className="tfe-slab">
+                                    <div className="tfe-slab__header">
+                                        <h3 className="tfe-slab__title">
+                                            <i className="fas fa-quote-left me-2" aria-hidden="true" /> About
+                                        </h3>
                                     </div>
-                                )}
-                            </div>
+                                    <div className="tfe-slab__body">
+                                        <p className="mb-0 text-white-50">{fanProfile.bio}</p>
+                                    </div>
+                                </section>
+                            )}
+                            {community}
                         </div>
-                    </div>
-                 </div>
- 
-                {/* Edit Profile Modal */}
-                <DashboardModal
-                    open={showEditModal}
-                    onOpenChange={setShowEditModal}
-                    title={fanProfile.name}
-                    label="Profile Details"
-                    activeTab={editProfileTab}
-                    onTabChange={setEditProfileTab}
-                    tabs={editTabs}
-                >
-                    <form onSubmit={handleProfileUpdate} className="flex flex-col h-full">
-                        <div className="modal-body">
-                            {editProfileTab === 'personal' && (
-                                <div className="space-y-4 bounce-in">
-                                    <div className="mb-3">
-                                        <label className="tfe-form-label">Full Name</label>
-                                        <input 
-                                            type="text" 
-                                            className="tfe-input"
-                                            value={editForm.name}
-                                            onChange={e => setEditForm({...editForm, name: e.target.value})}
-                                            required 
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label className="tfe-form-label">Email Address</label>
-                                        <input
-                                            type="email"
-                                            className="tfe-input profile-input-disabled"
-                                            value={editForm.email}
-                                            disabled
-                                            title="Email cannot be changed"
-                                        />
-                                    </div>
-                                    <p className="tfe-form-help mt-2">
-                                        Contact + KYC details (phone, address, country) live with your booking, travel, finance and ticket partners — they collect and hold whatever they need to service you.
-                                    </p>
-                                </div>
-                            )}
+                    )}
+                </SplitEditorLayout>
 
-                            {editProfileTab === 'team' && (
-                                <div className="space-y-4 bounce-in">
-                                    <label className="tfe-form-label mb-3">Supporting Team</label>
-                                    <div className="team-grid no-scrollbar dash-team-grid">
-                                        {teams.map(team => (
-                                            <div
-                                                key={team.name}
-                                                className={`team-option dash-team-option ${editForm.team_support === team.name ? 'selected' : ''}`}
-                                                onClick={() => setEditForm({...editForm, team_support: team.name})}
-                                            >
-                                                {team.flag ? (
-                                                    <img src={team.flag} alt={team.name} className="team-flag dash-team-flag" />
-                                                ) : (
-                                                    <i className={`${team.icon} team-icon`}></i>
-                                                )}
-                                                <span className="team-name text-white dash-team-name">{team.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {editProfileTab === 'bio' && (
-                                <div className="space-y-4 bounce-in">
-                                    <div className="mb-3 mt-3">
-                                        <label className="tfe-form-label">Bio / About You</label>
-                                        <textarea 
-                                            className="tfe-textarea"
-                                            rows={8}
-                                            value={editForm.bio}
-                                            onChange={e => setEditForm({...editForm, bio: e.target.value})}
-                                            placeholder="Tell fans about your journey..."
-                                        ></textarea>
-                                    </div>
-                                </div>
-                            )}
-
-                            {editProfileTab === 'appearance' && (
-                                <div className="space-y-4 bounce-in text-white">
-                                    {/* Current cover preview */}
-                                    {editForm.cover_image && coverFiles.length === 0 && (
-                                        <div className="mb-3">
-                                            <label className="tfe-form-label">Current Cover</label>
-                                            <div className="profile-cover-preview">
-                                                <img
-                                                    src={editForm.cover_image}
-                                                    alt="Current cover"
-                                                    className="profile-cover-preview__img"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="mb-3">
-                                        <label className="tfe-form-label">Upload New Cover</label>
-                                        <FilePondUploader
-                                            files={coverFiles}
-                                            onUpdateFiles={setCoverFiles}
-                                            acceptedFileTypes={['image/*']}
-                                            labelIdle='Drag & Drop cover image or <span class="filepond--label-action">Browse</span>'
-                                            maxFiles={1}
-                                        />
-                                        <p className="form-hint small opacity-50 italic">Leave blank to use your team's flag as default.</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {editProfileTab === 'legal' && (
-                                <div className="space-y-4 bounce-in text-white">
-                                    <div className="p-4 rounded-4 dash-modal-subtle">
-                                        <h4 className="h6 mb-4 fw-bold text-white">Communication Preferences</h4>
-                                        
-                                        <div className="settings-grid d-flex flex-column gap-3">
-                                            <div className="setting-item d-flex justify-content-between align-items-center p-3 rounded-4 dash-modal-subtle-sm">
-                                                <div className="setting-info">
-                                                    <h4 className="h6 mb-1 text-white">Marketing Messages</h4>
-                                                    <p className="small mb-0 text-white-50">Receive news, offers and promotions</p>
-                                                </div>
-                                                <div className="form-check form-switch custom-switch">
-                                                    <input 
-                                                        className="form-check-input" 
-                                                        type="checkbox" 
-                                                        checked={editForm.marketing_consent} 
-                                                        onChange={e => setEditForm({...editForm, marketing_consent: e.target.checked})}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="setting-item d-flex justify-content-between align-items-center p-3 rounded-4 dash-modal-subtle-sm">
-                                                <div className="setting-info">
-                                                    <h4 className="h6 mb-1 text-white">Weekly Newsletter</h4>
-                                                    <p className="small mb-0 text-white-50">A summary of your journey and platform updates</p>
-                                                </div>
-                                                <div className="form-check form-switch custom-switch">
-                                                    <input 
-                                                        className="form-check-input" 
-                                                        type="checkbox" 
-                                                        checked={editForm.community_consent} 
-                                                        onChange={e => setEditForm({...editForm, community_consent: e.target.checked})}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="setting-item d-flex justify-content-between align-items-center p-3 rounded-4 dash-modal-subtle-sm">
-                                                <div className="setting-info">
-                                                    <h4 className="h6 mb-1 text-white">TFE Community Access</h4>
-                                                    <p className="small mb-0 text-white-50">Participate in exclusive community events</p>
-                                                </div>
-                                                <div className="form-check form-switch custom-switch">
-                                                    <input 
-                                                        className="form-check-input" 
-                                                        type="checkbox" 
-                                                        checked={editForm.terms_agreed} 
-                                                        disabled
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 p-3 rounded-4 border border-info border-opacity-10 profile-legal-callout">
-                                            <div className="d-flex gap-3">
-                                                <i className="fas fa-info-circle text-info mt-1"></i>
-                                                <p className="small text-white-50 mb-0">
-                                                    {`By keeping these enabled, you ensure you don't miss out on match tickets, exclusive tribes, and ${tournament?.short_name || 'tournament'} prizes. You can change these at any time.`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="modal-footer">
-                            <button type="button" className="btn-cancel" onClick={() => setShowEditModal(false)}>Cancel</button>
-                            <button type="submit" className="btn-submit-modal">Save Changes</button>
-                        </div>
-                    </form>
-                </DashboardModal>
-
-                {/* 2FA Setup Modal */}
-                 <DashboardModal
-                    open={show2FAModal}
-                    onOpenChange={setShow2FAModal}
-                    title="Setup 2FA"
-                    label="Security"
-                    activeTab={activeSecurityTab}
-                    onTabChange={setActiveSecurityTab}
-                    tabs={securityTabs}
-                >
-                    <div className="modal-body text-center">
-                        <div className="bg-[#111] p-4 rounded-xl border border-white/5 mb-4 inline-block">
-                             <i className="fas fa-shield-alt fa-3x text-green-500 mb-2"></i>
-                             <h4 className="text-white mb-1">Two-Factor Authentication</h4>
-                             <p className="text-gray-400 text-sm">Scan the QR code below</p>
-                        </div>
-
-                        {flash?.two_factor_setup?.qr_code && (
-                            <div 
-                                className="bg-white p-3 rounded-2xl mb-4 d-inline-block shadow-lg"
-                                dangerouslySetInnerHTML={{ __html: flash.two_factor_setup.qr_code }}
-                            />
-                        )}
-
-                        <form onSubmit={confirm2FA} className="max-w-xs mx-auto">
-                            <div className="space-y-4">
-                                <label className="block text-sm font-medium text-gray-400 text-center">Enter Verification Code</label>
-                                <input 
-                                    type="text" 
-                                    className="w-full text-center text-3xl font-bold tracking-[0.5rem] py-4 bg-[#1a1a1a] border border-white/10 rounded-2xl text-[#d97706] focus:outline-none focus:ring-2 focus:ring-[#d97706]/50 transition-all"
-                                    placeholder="000 000"
-                                    maxLength="6"
-                                    value={setupCode}
-                                    onChange={e => setSetupCode(e.target.value)}
-                                    required 
-                                />
-                            </div>
-                            <button 
-                                type="submit" 
-                                className="w-full mt-4 py-3 bg-[#10b981] hover:bg-[#059669] rounded-xl text-white font-bold shadow-lg shadow-[#10b981]/20 transition-all"
-                            >
-                                Confirm & Enable
-                            </button>
-                        </form>
-                    </div>
-                     <div className="modal-footer">
-                        <button type="button" className="btn-cancel" onClick={() => setShow2FAModal(false)}>Cancel</button>
-                    </div>
-                </DashboardModal>
-                
-                {/* Network Modal (Followers/Following) */}
+                {/* Network (followers / following) */}
                 <DashboardModal
                     open={showNetworkModal}
                     onOpenChange={setShowNetworkModal}
@@ -695,13 +461,13 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                     <div className="network-modal-content p-2">
                         <div className="user-list-container d-flex flex-column gap-2">
                             {(networkTab === 'followers' ? followers : followingList).length > 0 ? (
-                                (networkTab === 'followers' ? followers : followingList).map(person => (
+                                (networkTab === 'followers' ? followers : followingList).map((person) => (
                                     <div key={person.id} className="user-list-item d-flex align-items-center justify-content-between p-3 rounded dash-modal-subtle">
                                         <div className="d-flex align-items-center gap-3">
-                                            <img 
-                                                src={person.avatar || `${assetUrl}assets/img/fan/avatars/default.png`} 
+                                            <img
+                                                src={person.avatar || `${assetUrl}assets/img/fan/avatars/default.png`}
                                                 className="user-list-avatar dash-avatar dash-avatar-md"
-                                                alt={person.name} 
+                                                alt={person.name}
                                             />
                                             <div>
                                                 <h4 className="h6 mb-0 text-white fw-bold">{person.name}</h4>
@@ -710,31 +476,23 @@ export default function Profile({ auth, socialStats, profile, additionalSettings
                                         </div>
                                         <Link
                                             href={route('fan.profile.show', person.id)}
-                                            className="btn-glass-pill btn-sm py-1 px-3 profile-network-view-btn"
+                                            className="tfe-btn tfe-btn--sm"
                                         >
                                             View Profile
                                         </Link>
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-5">
-                                    <i className={`fas ${networkTab === 'followers' ? 'fa-user-friends' : 'fa-users'} fa-3x mb-3 text-white-50 profile-network-empty-icon`}></i>
-                                    <p className="text-white-50">No {networkTab} found.</p>
+                                <div className="tfe-empty tfe-empty--inline">
+                                    <div className="tfe-empty__icon">
+                                        <i className={`fas ${networkTab === 'followers' ? 'fa-user-friends' : 'fa-users'}`} />
+                                    </div>
+                                    <div className="tfe-empty__body">No {networkTab} found.</div>
                                 </div>
                             )}
                         </div>
                     </div>
                 </DashboardModal>
-
-                <ConfirmationDialog
-                    open={confirmDisable2FA}
-                    onOpenChange={setConfirmDisable2FA}
-                    title="Disable 2FA?"
-                    description="Are you sure you want to disable 2FA? This will make your account less secure."
-                    onConfirm={handleDisable2FA}
-                    confirmText="Disable"
-                    variant="destructive"
-                />
             </div>
         </FanLayout>
     );

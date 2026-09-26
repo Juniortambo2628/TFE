@@ -21,12 +21,22 @@ const STATUS_COLORS = {
  *     (/tournaments/{slug}) instead of switching context in place.
  */
 export default function TournamentSwitcher({ variant = 'landing' }) {
-    const { tournament, tournamentList, switchTournament, isActive } = useTournament();
+    const { tournament, tournamentList, switchableTournaments, switchTournament, isActive } = useTournament();
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
     const isLanding = variant === 'landing';
     const isTournamentPage = variant === 'tournament';
+
+    // Which tournaments this switcher may offer (Sprint 53).
+    //
+    // The landing + dashboard variants CHANGE THE ACTIVE CONTEXT, so they show
+    // ongoing and upcoming only — a concluded pick rebuilt the hero, the venue
+    // slider, its stadium photography and the whole fan dashboard around an
+    // event nobody can travel to. The `tournament` variant only NAVIGATES to
+    // `/tournaments/{slug}`, which is exactly where a past tournament belongs,
+    // so it keeps the full list.
+    const options = isTournamentPage ? tournamentList : switchableTournaments;
 
     useEffect(() => {
         if (!open) return;
@@ -39,7 +49,10 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
         return () => document.removeEventListener('mousedown', handler);
     }, [open]);
 
-    if (!tournamentList || tournamentList.length === 0) {
+    // Nothing to choose between — render the current tournament as a static
+    // badge (dashboard) or nothing at all (landing) rather than a dropdown
+    // that opens onto a single row.
+    if (!options || options.length <= 1) {
         if (isLanding) return null;
         return tournament ? (
             <div className="fan-tournament-badge">
@@ -89,7 +102,7 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
 
             {open && (
                 <ul className="tournament-switcher-menu" role="menu">
-                    {tournamentList.map((item) => (
+                    {options.map((item) => (
                         <li key={item.id} role="none">
                             <button
                                 className={`tournament-switcher-item${isActive?.(item.id) ? ' active' : ''}`}

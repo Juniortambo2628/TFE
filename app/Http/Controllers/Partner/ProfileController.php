@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
 use App\Http\Controllers\Controller;
 use App\Models\PartnerProfile;
+use App\Services\MediaLibraryService;
+use App\Traits\Uploadable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +15,8 @@ use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
+    use Uploadable;
+
     /**
      * Display the partner profile page — account details plus the branding
      * that drives the partner's public card (/partners) and hub
@@ -70,9 +74,12 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'company_name' => 'nullable|string|max:255',
             'avatar' => 'nullable|string|max:255',
-            'avatar_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:5120',
+            // Accepted types + size live in MediaLibraryService, not spelled
+            // out per controller (Sprint 50) — so a format added there is
+            // added everywhere at once.
+            'avatar_file' => MediaLibraryService::imageRules(5120, false),
             'cover_image' => 'nullable|string',
-            'cover_image_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:5120',
+            'cover_image_file' => MediaLibraryService::imageRules(5120, false),
             // Branding (public card + hub)
             'display_name' => 'nullable|string|max:255',
             'tagline' => 'nullable|string|max:500',
@@ -85,9 +92,9 @@ class ProfileController extends Controller
             'service_tags.*' => 'string|max:40',
             'is_public' => 'nullable|boolean',
             'logo_url' => 'nullable|string',
-            'logo_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:5120',
+            'logo_file' => MediaLibraryService::imageRules(5120, false),
             'hero_image' => 'nullable|string',
-            'hero_image_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:5120',
+            'hero_image_file' => MediaLibraryService::imageRules(5120, false),
         ]);
 
         // ── Account fields ──────────────────────────────────────────────
@@ -138,7 +145,10 @@ class ProfileController extends Controller
     private function resolveImage(Request $request, string $fileKey, string $stringKey, ?string $current): ?string
     {
         if ($request->hasFile($fileKey)) {
-            return Storage::url($request->file($fileKey)->store('partners', 'public'));
+            // Through MediaLibraryService (Sprint 50): the file is scaled +
+            // re-encoded and recorded in the media library, instead of being
+            // dropped on disk at whatever size the partner's phone produced.
+            return Storage::url($this->uploadFile($request->file($fileKey), 'partners'));
         }
 
         return $request->filled($stringKey) ? $request->input($stringKey) : $current;
