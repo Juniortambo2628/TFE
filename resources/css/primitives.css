@@ -877,6 +877,36 @@ button.tfe-menu-surface__badge:hover {
     }
 }
 
+/* ── .tfe-listing-grid — shared dashboard listing surface (Sprint 48) ─────
+   Any collection (partners, listings, tickets, users) renders through
+   ListingGrid, which uses this class + optional AccentCards. Grid is the
+   default; a table toggle appears when a caller provides one. */
+.tfe-listing-grid {
+    margin: 4px 0 24px;
+}
+
+.tfe-listing-grid__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.tfe-listing-grid__viewtoggle {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+}
+
+.tfe-listing-grid__cards {
+    display: grid;
+    gap: 20px;
+}
+
 /* ── .tfe-modal — the one shared dashboard dialog (TfeModal.jsx) ──────────
    Centered glass panel with a title bar, scrollable body and click-outside
    / Escape to close. Every create/edit form on the dashboards renders through

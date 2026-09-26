@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import TfeModal from '@/Components/Common/TfeModal';
+import ListingGrid from '@/Components/Common/ListingGrid';
 import { formatMoney } from '@/lib/utils';
 
 /**
@@ -53,66 +54,42 @@ export default function ListingApprovals({ listings = [], filter_status = 'live'
                 <FilterChip active={filter_status === 'taken_down'} onClick={() => switchFilter('taken_down')} label="Taken down" count={counts.taken_down} />
             </div>
 
-            <div className="tfe-slab">
-                <div className="tfe-slab__body tfe-slab__body--flush">
-                    <div className="table-responsive">
-                        <table className="tfe-table tfe-table--compact">
-                            <thead>
-                                <tr>
-                                    <th>Listing</th>
-                                    <th>Partner</th>
-                                    <th>Tournament</th>
-                                    <th>Price</th>
-                                    <th>Updated</th>
-                                    <th>Notes</th>
-                                    <th style={{ width: 140 }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {listings.length === 0 ? (
-                                    <tr><td colSpan="7">
-                                        <div className="tfe-empty tfe-empty--inline">
-                                            <div className="tfe-empty__icon"><i className="fas fa-shield-alt"></i></div>
-                                            <h3 className="tfe-empty__title">
-                                                {filter_status === 'taken_down' ? 'Nothing taken down.' : 'No listings to review.'}
-                                            </h3>
-                                        </div>
-                                    </td></tr>
-                                ) : listings.map((l) => (
-                                    <tr key={l.id}>
-                                        <td>
-                                            <strong>{l.name}</strong>
-                                            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)' }}>{l.type}</div>
-                                        </td>
-                                        <td>
-                                            {l.publisher_name}
-                                            {l.publisher_verified && <i className="fas fa-check-circle ms-1" style={{ color: '#22c55e' }} title="Verified" />}
-                                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>{l.publisher_email}</div>
-                                        </td>
-                                        <td>{l.tournament_name}</td>
-                                        <td>{formatMoney(l.base_price, l.currency)}</td>
-                                        <td style={{ fontSize: '0.72rem' }}>{l.updated_at}</td>
-                                        <td style={{ maxWidth: 220, fontSize: '0.72rem', color: 'rgba(255,255,255,0.65)' }}>
-                                            {l.moderation_notes || '—'}
-                                        </td>
-                                        <td>
-                                            {filter_status === 'live' ? (
-                                                <button className="tfe-btn tfe-btn--sm" onClick={() => setTakingDown(l)}>
-                                                    <i className="fas fa-ban"></i> Take down
-                                                </button>
-                                            ) : (
-                                                <button className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={() => restore(l)}>
-                                                    <i className="fas fa-redo"></i> Restore
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+            <ListingGrid
+                items={listings}
+                emptyIcon="fas fa-shield-alt"
+                emptyTitle={filter_status === 'taken_down' ? 'Nothing taken down' : 'No listings to review'}
+                render={(l) => (
+                    <div className="tfe-acard" onClick={() => filter_status === 'live' ? setTakingDown(l) : restore(l)} style={{ cursor: 'pointer', '--acard-accent': '#3b82f6' }}>
+                        {l.hero_image && <img src={l.hero_image.startsWith('http') ? l.hero_image : `/${l.hero_image}`} alt="" className="tfe-acard__bg" loading="lazy" onError={(e) => e.currentTarget.style.display = 'none'} />}
+                        <div className="tfe-acard__body">
+                            <div className="tfe-acard__eyebrow">{l.type} · {l.tournament_name}</div>
+                            <div className="tfe-acard__title">{l.name}</div>
+                            <div className="tfe-acard__desc">
+                                By <strong>{l.publisher_name}</strong>
+                                {l.publisher_verified && <i className="fas fa-check-circle ms-1" style={{ color: '#22c55e' }} />}
+                            </div>
+                            <div className="tfe-acard__meta">
+                                <div><span>Price</span><strong>{formatMoney(l.base_price, l.currency)}</strong></div>
+                                <div><span>Updated</span><strong>{l.updated_at}</strong></div>
+                            </div>
+                            {l.moderation_notes && (
+                                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', marginTop: 8 }}>
+                                    <i className="fas fa-comment-alt"></i> {l.moderation_notes}
+                                </p>
+                            )}
+                            {filter_status === 'live' ? (
+                                <button className="tfe-btn tfe-btn--sm" style={{ marginTop: 8 }}>
+                                    <i className="fas fa-ban"></i> Take down
+                                </button>
+                            ) : (
+                                <button className="tfe-btn tfe-btn--sm tfe-btn--filled" style={{ marginTop: 8 }}>
+                                    <i className="fas fa-redo"></i> Restore
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
-            </div>
+                )}
+            />
 
             <TfeModal open={!!takingDown} title={`Take down "${takingDown?.name || ''}"`} onClose={() => { setTakingDown(null); setNotes(''); }}>
                 <div className="tfe-form-field">
