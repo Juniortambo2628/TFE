@@ -9,6 +9,7 @@ use App\Services\VisaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class BudgetApiController extends Controller
 {
@@ -25,7 +26,7 @@ class BudgetApiController extends Controller
     public function estimate(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'tournament_id' => 'required|string|exists:config:config/tournaments.php',
+            'tournament_id' => ['required', 'string', Rule::in(array_keys(config('tournaments.tournaments', [])))],
             'origin_code' => 'required|string|size:3',
             'destination_city' => 'required|string',
             'departure_date' => 'required|date|after:today',

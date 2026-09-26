@@ -150,6 +150,15 @@ class ContentController extends Controller
             $data['value'] = $this->media->store($request->file('value'), 'assets/uploads')->url;
         }
 
+        // Image settings must be stored root-relative. A value picked from the
+        // MediaPicker (or an older relative path) would otherwise be saved as
+        // e.g. `assets/img/IMG-15.jpg`, which a browser resolves against the
+        // current directory — so it 404s the moment it renders on a nested
+        // route (`/fan/assets/img/IMG-15.jpg`). Mirror of the JS `assetPath`.
+        if ($data['type'] === 'image') {
+            $data['value'] = self::normalizeAssetPath($data['value']);
+        }
+
         SiteSetting::set(
             $data['key'],
             $data['value'],
@@ -180,5 +189,30 @@ class ContentController extends Controller
         }
 
         return back()->with('success', 'Setting updated');
+    }
+
+    /**
+     * Turn a stored image reference into a root-relative URL — the PHP mirror of
+     * `resources/js/lib/assets.js`. Absolute URLs (http/https/protocol-relative),
+     * data:/blob: URIs and already-rooted paths are left untouched; a bare
+     * relative path gets a leading slash so it resolves from any route.
+     */
+    public static function normalizeAssetPath(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return $trimmed;
+        }
+
+        // Already absolute, a data/blob URI, or already root-relative.
+        if (preg_match('#^(?:[a-z][a-z0-9+.-]*:|//|/)#i', $trimmed)) {
+            return $trimmed;
+        }
+
+        return '/'.preg_replace('#^\.?/#', '', $trimmed);
     }
 }

@@ -1,8 +1,23 @@
 import React, { useState, useRef } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import { useForm, Link, router } from '@inertiajs/react';
+import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
 import LoanReviewPanel from '@/Components/Partner/LoanReviewPanel';
+
+/**
+ * Partner request review — adjust a fan's travel package and approve / modify /
+ * reject the quote. Rebuilt on the shared primitives (`DashboardHero` /
+ * `tfe-slab` / `tfe-table` / `tfe-pill` / `tfe-btn`) so it matches the Profile
+ * and the rest of the partner surfaces, instead of the bespoke
+ * `partner-hero-dynamic` / `partner-content-card` / `partner-btn-*` chrome.
+ */
+const STATUS_PILL = {
+    approved: 'tfe-pill--approved',
+    modified: 'tfe-pill--pending',
+    rejected: 'tfe-pill--rejected',
+    pending: 'tfe-pill--info',
+};
 
 export default function RequestView({ budget, variant = 'travel', loan = null }) {
     // Sprint 14 — finance-partner variant renders a completely different
@@ -22,22 +37,20 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
     const initialBreakdown = budget.partner_breakdown || budget.original_breakdown || {};
     const breakdownArray = Object.entries(initialBreakdown).map(([category, cost]) => ({
         category,
-        cost: parseFloat(cost) || 0
+        cost: parseFloat(cost) || 0,
     }));
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, processing } = useForm({
         partner_cost: budget.partner_cost || budget.original_cost,
         partner_breakdown: initialBreakdown,
         partner_notes: budget.partner_notes || '',
         status: budget.partner_status || 'pending',
-        document: null
+        document: null,
     });
 
     const [breakdown, setBreakdown] = useState(breakdownArray);
 
-    const calculateTotal = (items) => {
-        return items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
-    };
+    const calculateTotal = (items) => items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
 
     const updateBreakdownItem = (index, newCost) => {
         const updatedBreakdown = [...breakdown];
@@ -45,14 +58,14 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
         setBreakdown(updatedBreakdown);
 
         const breakdownObj = {};
-        updatedBreakdown.forEach(item => {
+        updatedBreakdown.forEach((item) => {
             breakdownObj[item.category] = item.cost;
         });
 
         setData({
             ...data,
             partner_breakdown: breakdownObj,
-            partner_cost: calculateTotal(updatedBreakdown)
+            partner_cost: calculateTotal(updatedBreakdown),
         });
     };
 
@@ -69,7 +82,7 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
 
         router.post(route('partner.requests.update', budget.id), {
             ...data,
-            status: status,
+            status,
             _method: 'PUT',
         }, {
             forceFormData: true,
@@ -84,127 +97,109 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
         transport: { icon: 'fa-car', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },
         meals: { icon: 'fa-utensils', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)' },
         misc: { icon: 'fa-ellipsis-h', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.15)' },
-        default: { icon: 'fa-tag', color: '#d97706', bg: 'rgba(217, 119, 6, 0.15)' }
+        default: { icon: 'fa-tag', color: '#d97706', bg: 'rgba(217, 119, 6, 0.15)' },
     };
 
-    const getCategoryStyle = (category) => {
-        const cat = category.toLowerCase();
-        return categoryIcons[cat] || categoryIcons.default;
-    };
-
-    const statusPillClass = (status) =>
-        `partner-status-pill partner-status-pill-${status || 'pending'}`;
+    const getCategoryStyle = (category) => categoryIcons[category.toLowerCase()] || categoryIcons.default;
 
     const costDiffClass = (diff) =>
         diff < 0 ? 'cost-diff-negative' : diff > 0 ? 'cost-diff-positive' : 'cost-diff-zero';
 
+    const status = budget.partner_status || 'pending';
+
     return (
         <PartnerLayout title={`Request ${budget.reference_id}`}>
-            <div className="partner-layout">
-                {/* Hero Section */}
-                <div className="partner-hero-dynamic mb-4" style={{
-                    '--hero-border': budget.partner_status === 'approved' ? '#10b981' :
-                                     budget.partner_status === 'rejected' ? '#ef4444' :
-                                     budget.partner_status === 'modified' ? '#d97706' : '#3b82f6',
-                    '--hero-shadow': budget.partner_status === 'approved' ? 'rgba(16,185,129,0.15)' :
-                                    budget.partner_status === 'rejected' ? 'rgba(239,68,68,0.15)' :
-                                    budget.partner_status === 'modified' ? 'rgba(217,119,6,0.15)' : 'rgba(59,130,246,0.15)',
-                }}>
-                    <div className="dash-flex-between dash-flex-wrap dash-gap-lg">
-                        <div>
-                            <Link href={route('partner.dashboard')} className="dash-text-muted dash-text-base partner-back-link">
-                                <i className="fas fa-arrow-left"></i> Back to Dashboard
-                            </Link>
-                            <h1 className="dash-text-primary partner-request-title">
-                                {budget.reference_id}
-                            </h1>
-                            <p className="dash-text-muted dash-text-base dash-no-margin">
-                                Review and adjust the travel package details
-                            </p>
+            <DashboardHero
+                role="partner"
+                title={budget.reference_id}
+                subtitle="Review and adjust the travel package details."
+                breadcrumbs={[
+                    { label: 'Partner', icon: 'fas fa-home', href: route('partner.dashboard') },
+                    { label: 'Requests', href: route('partner.requests') },
+                    { label: budget.reference_id },
+                ]}
+            >
+                <span className={`tfe-pill tfe-pill--standalone ${STATUS_PILL[status]}`}>
+                    {status === 'pending' ? 'Needs Review' : status}
+                </span>
+            </DashboardHero>
+
+            {/* Summary Cards — Sprint 36 tile primitive */}
+            <div className="tfe-stat-grid">
+                {[
+                    { icon: 'fa-futbol', value: budget.match_ids?.length || 0, label: 'Matches',       variant: 'blue' },
+                    { icon: 'fa-bed',    value: budget.nights || 0,           label: 'Nights',        variant: 'violet' },
+                    { icon: 'fa-star',   value: budget.accommodation_level,   label: 'Accommodation', variant: 'teal', capitalize: true },
+                    { icon: 'fa-plane',  value: budget.flight_class,          label: 'Flight Class',  variant: 'amber', capitalize: true },
+                ].map((t, i) => (
+                    <div key={i} className={`tfe-tile tfe-tile--${t.variant}`}>
+                        <div className="tfe-tile__head">
+                            <div className="tfe-tile__icon"><i className={`fas ${t.icon}`} /></div>
                         </div>
-                        <div className="dash-text-right">
-                            <div className={statusPillClass(budget.partner_status)}>
-                                {budget.partner_status === 'pending' ? 'Needs Review' : budget.partner_status}
-                            </div>
+                        <div
+                            className="tfe-tile__value"
+                            style={t.capitalize ? { textTransform: 'capitalize' } : undefined}
+                        >
+                            {t.value}
                         </div>
+                        <div className="tfe-tile__label">{t.label}</div>
                     </div>
+                ))}
+            </div>
+
+            {/* Cost Breakdown */}
+            <section className="tfe-slab mt-4">
+                <div className="tfe-slab__header">
+                    <h3 className="tfe-slab__title"><i className="fas fa-calculator me-2" /> Cost Breakdown</h3>
+                    <span className="tfe-slab__title-sub">
+                        Original Estimate: {formatMoney(budget.original_cost)}
+                    </span>
                 </div>
+                <div className="tfe-slab__body tfe-slab__body--flush">
+                    <div className="table-responsive">
+                        <table className="tfe-table cost-breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Original Cost</th>
+                                    <th>Your Quote</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {breakdown.map((item, index) => {
+                                    const style = getCategoryStyle(item.category);
+                                    const originalCost = budget.original_breakdown?.[item.category] || 0;
+                                    const difference = item.cost - originalCost;
 
-                {/* Summary Cards — Sprint 36 tile primitive */}
-                <div className="tfe-stat-grid">
-                    {[
-                        { icon: 'fa-futbol', value: budget.match_ids?.length || 0, label: 'Matches',       variant: 'blue' },
-                        { icon: 'fa-bed',    value: budget.nights || 0,           label: 'Nights',        variant: 'violet' },
-                        { icon: 'fa-star',   value: budget.accommodation_level,   label: 'Accommodation', variant: 'teal', capitalize: true },
-                        { icon: 'fa-plane',  value: budget.flight_class,          label: 'Flight Class',  variant: 'amber', capitalize: true },
-                    ].map((t, i) => (
-                        <div key={i} className={`tfe-tile tfe-tile--${t.variant}`}>
-                            <div className="tfe-tile__head">
-                                <div className="tfe-tile__icon"><i className={`fas ${t.icon}`} /></div>
-                            </div>
-                            <div
-                                className="tfe-tile__value"
-                                style={t.capitalize ? { textTransform: 'capitalize' } : undefined}
-                            >
-                                {t.value}
-                            </div>
-                            <div className="tfe-tile__label">{t.label}</div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Cost Breakdown Card */}
-                <div className="partner-content-card">
-                    <div className="card-header">
-                        <h3><i className="fas fa-calculator"></i> Cost Breakdown</h3>
-                        <span className="dash-text-muted dash-text-base">
-                            Original Estimate: {formatMoney(budget.original_cost)}
-                        </span>
-                    </div>
-
-                    <table className="cost-breakdown-table">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Original Cost</th>
-                                <th>Your Quote</th>
-                                <th>Difference</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {breakdown.map((item, index) => {
-                                const style = getCategoryStyle(item.category);
-                                const originalCost = budget.original_breakdown?.[item.category] || 0;
-                                const difference = item.cost - originalCost;
-
-                                return (
-                                    <tr key={index}>
-                                        <td>
-                                            <div className="category-name">
-                                                <div className="category-icon" style={{ background: style.bg, color: style.color }}>
-                                                    <i className={`fas ${style.icon}`}></i>
+                                    return (
+                                        <tr key={index}>
+                                            <td>
+                                                <div className="category-name">
+                                                    <div className="category-icon" style={{ background: style.bg, color: style.color }}>
+                                                        <i className={`fas ${style.icon}`}></i>
+                                                    </div>
+                                                    <span className="category-label">{item.category.replace(/_/g, ' ')}</span>
                                                 </div>
-                                                <span className="category-label">{item.category.replace(/_/g, ' ')}</span>
-                                            </div>
-                                        </td>
-                                        <td className="dash-text-muted">{formatMoney(originalCost)}</td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                className="cost-input"
-                                                value={item.cost}
-                                                onChange={(e) => updateBreakdownItem(index, e.target.value)}
-                                            />
-                                        </td>
-                                        <td className={costDiffClass(difference)}>
-                                            {difference === 0 ? '—' : (difference > 0 ? '+' : '') + formatMoney(difference)}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-
+                                            </td>
+                                            <td className="dash-text-muted">{formatMoney(originalCost)}</td>
+                                            <td>
+                                                <input
+                                                    type="number"
+                                                    className="tfe-input tfe-input--sm cost-input"
+                                                    value={item.cost}
+                                                    onChange={(e) => updateBreakdownItem(index, e.target.value)}
+                                                />
+                                            </td>
+                                            <td className={costDiffClass(difference)}>
+                                                {difference === 0 ? '—' : (difference > 0 ? '+' : '') + formatMoney(difference)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                     <div className="cost-total-row">
                         <span className="total-label">
                             <i className="fas fa-coins"></i>
@@ -213,24 +208,30 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
                         <span className="total-value">{formatMoney(calculateTotal(breakdown))}</span>
                     </div>
                 </div>
+            </section>
 
-                {/* Notes & Documents */}
-                <div className="dash-form-grid">
-                    <div className="partner-content-card partner-notes-section">
-                        <div className="card-header">
-                            <h3><i className="fas fa-sticky-note"></i> Notes & Comments</h3>
-                        </div>
+            {/* Notes & Documents */}
+            <div className="dash-form-grid mt-4">
+                <section className="tfe-slab">
+                    <div className="tfe-slab__header">
+                        <h3 className="tfe-slab__title"><i className="fas fa-sticky-note me-2" /> Notes &amp; Comments</h3>
+                    </div>
+                    <div className="tfe-slab__body">
                         <textarea
-                            placeholder="Add notes for the fan about pricing, inclusions, special offers, or any important details..."
+                            className="tfe-textarea"
+                            rows={5}
+                            placeholder="Add notes for the fan about pricing, inclusions, special offers, or any important details…"
                             value={data.partner_notes}
                             onChange={(e) => setData('partner_notes', e.target.value)}
                         ></textarea>
                     </div>
+                </section>
 
-                    <div className="partner-content-card">
-                        <div className="card-header">
-                            <h3><i className="fas fa-paperclip"></i> Attach Document</h3>
-                        </div>
+                <section className="tfe-slab">
+                    <div className="tfe-slab__header">
+                        <h3 className="tfe-slab__title"><i className="fas fa-paperclip me-2" /> Attach Document</h3>
+                    </div>
+                    <div className="tfe-slab__body">
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -257,35 +258,35 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
                             )}
                         </div>
                     </div>
-                </div>
+                </section>
+            </div>
 
-                {/* Action Buttons */}
-                <div className="partner-action-buttons">
-                    <button
-                        className="partner-btn partner-btn-approve"
-                        disabled={processing}
-                        onClick={() => handleSubmit('approved')}
-                    >
-                        <i className="fas fa-check-circle"></i>
-                        Approve Quote
-                    </button>
-                    <button
-                        className="partner-btn partner-btn-save"
-                        disabled={processing}
-                        onClick={() => handleSubmit('modified')}
-                    >
-                        <i className="fas fa-save"></i>
-                        Save Changes
-                    </button>
-                    <button
-                        className="partner-btn partner-btn-reject"
-                        disabled={processing}
-                        onClick={() => handleSubmit('rejected')}
-                    >
-                        <i className="fas fa-times-circle"></i>
-                        Reject Request
-                    </button>
-                </div>
+            {/* Action Buttons */}
+            <div className="tfe-form-actions mt-4">
+                <button
+                    className="tfe-btn tfe-btn--filled"
+                    disabled={processing}
+                    onClick={() => handleSubmit('approved')}
+                >
+                    <i className="fas fa-check-circle me-2"></i>
+                    Approve Quote
+                </button>
+                <button
+                    className="tfe-btn"
+                    disabled={processing}
+                    onClick={() => handleSubmit('modified')}
+                >
+                    <i className="fas fa-save me-2"></i>
+                    Save Changes
+                </button>
+                <button
+                    className="tfe-btn"
+                    disabled={processing}
+                    onClick={() => handleSubmit('rejected')}
+                >
+                    <i className="fas fa-times-circle me-2"></i>
+                    Reject Request
+                </button>
             </div>
         </PartnerLayout>
     );

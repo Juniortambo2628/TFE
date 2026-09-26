@@ -518,6 +518,23 @@
 
 .partner-comm-thread-item {
     cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--space-md) var(--space-lg);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+    color: inherit;
+    transition: background 0.15s ease;
+}
+
+.partner-comm-thread-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.partner-comm-thread-item.is-active {
+    background: var(--tint-amber, rgba(217, 119, 6, 0.12));
 }
 
 .partner-comm-thread-item .dash-flex-between {

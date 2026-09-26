@@ -83,12 +83,12 @@ export default function Listings({ listings = [], tournaments = [], status_count
                 ))}
             </div>
 
-            <div className="content-card mt-4">
-                <div className="card-header d-flex flex-wrap gap-3 align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                        <i className="fas fa-tags me-2" style={{ color: '#d97706' }}></i>
-                        <h3 className="mb-0">Your listings</h3>
-                    </div>
+            <div className="tfe-slab mt-4">
+                <div className="tfe-slab__header flex-wrap gap-3">
+                    <h3 className="tfe-slab__title">
+                        <i className="fas fa-tags me-2" aria-hidden="true"></i>
+                        Your listings
+                    </h3>
                     <div className="d-flex gap-2 flex-wrap">
                         {['all', 'published', 'hidden'].map((f) => (
                             <button
@@ -111,7 +111,7 @@ export default function Listings({ listings = [], tournaments = [], status_count
                     </div>
                 </div>
 
-                <div className="p-3">
+                <div className="tfe-slab__body">
                     {filtered.length === 0 ? (
                         <div className="tfe-empty">
                             <div className="tfe-empty__icon"><i className="fas fa-box-open" /></div>

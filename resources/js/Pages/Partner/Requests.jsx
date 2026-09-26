@@ -1,10 +1,29 @@
 import React, { useState } from 'react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import '../../../css/fan/fan-pages.css';
 import { formatMoney } from '@/lib/utils';
+
+/**
+ * Convert tab — travel requests routed to the partner. Rebuilt on the shared
+ * primitives (`tfe-slab` / `tfe-table` / `tfe-pill` / `tfe-btn` / `tfe-empty`
+ * + `feed-tabs` filter chips) so it reads as part of the same system as the
+ * Profile and every other partner surface, instead of the bespoke
+ * `dash-card` / `dash-table` / `dash-badge` chrome it used to carry.
+ */
+const STATUS_PILL = {
+    approved: 'tfe-pill--approved',
+    modified: 'tfe-pill--pending',
+    pending: 'tfe-pill--info',
+    rejected: 'tfe-pill--rejected',
+};
+
+const PRIORITY_PILL = {
+    high: 'tfe-pill--rejected',
+    medium: 'tfe-pill--pending',
+    low: 'tfe-pill--info',
+};
 
 export default function Requests({ budgets = [], stats = {} }) {
     const { flash } = usePage().props;
@@ -13,21 +32,12 @@ export default function Requests({ budgets = [], stats = {} }) {
 
     const filteredBudgets = budgets.filter((budget) => {
         const matchesStatus = statusFilter === 'all' || budget.partner_status === statusFilter;
-        const matchesSearch = searchQuery === '' ||
-            budget.id.toString().includes(searchQuery.toLowerCase()) ||
-            budget.fan?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        const q = searchQuery.trim().toLowerCase();
+        const matchesSearch = q === '' ||
+            budget.id.toString().includes(q) ||
+            budget.fan?.name?.toLowerCase().includes(q);
         return matchesStatus && matchesSearch;
     });
-
-    const getStatusBadgeClass = (status) => {
-        switch (status) {
-            case 'approved': return 'dash-badge-success';
-            case 'modified': return 'dash-badge-warning';
-            case 'pending': return 'dash-badge-info';
-            case 'rejected': return 'dash-badge-danger';
-            default: return 'dash-badge-neutral';
-        }
-    };
 
     return (
         <PartnerLayout title="Requests">
@@ -43,7 +53,6 @@ export default function Requests({ budgets = [], stats = {} }) {
                 ]}
             />
 
-            {/* Success/Error Message */}
             {flash?.success && (
                 <div className="dash-flash-success">
                     <i className="fas fa-check-circle me-2"></i>
@@ -57,7 +66,6 @@ export default function Requests({ budgets = [], stats = {} }) {
                 </div>
             )}
 
-            {/* Stats — shared summary tiles (same primitive as every dashboard) */}
             <SummaryTiles
                 className="mb-4"
                 items={[
@@ -67,89 +75,89 @@ export default function Requests({ budgets = [], stats = {} }) {
                 ]}
             />
 
-            {/* Filter/Search */}
-            <div className="dash-flex-between dash-mb-lg">
-                <div className="dash-flex dash-gap-sm">
+            <div className="tfe-slab__header mb-3">
+                <div className="feed-tabs">
                     {['all', 'pending', 'approved', 'modified'].map((status) => (
                         <button
                             key={status}
+                            type="button"
                             onClick={() => setStatusFilter(status)}
-                            className={`dash-btn partner-btn-filter ${statusFilter === status ? 'active' : ''}`}
+                            className={`tfe-btn tfe-btn--sm${statusFilter === status ? ' is-active' : ''}`}
                         >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                         </button>
                     ))}
                 </div>
-                <div>
-                    <input
-                        type="text"
-                        placeholder="Search by ID or Fan..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="tfe-input partner-search-input"
-                    />
-                </div>
+                <input
+                    type="text"
+                    placeholder="Search by ID or fan…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="tfe-input tfe-input--sm"
+                    style={{ maxWidth: 260 }}
+                />
             </div>
 
-            {/* Table */}
-            <div className="dash-card overflow-x-auto">
-                <table className="dash-table dash-table-hover">
-                    <thead>
-                        <tr>
-                            <th>Reference ID</th>
-                            <th>Fan</th>
-                            <th>Destination</th>
-                            <th>Group Size</th>
-                            <th>Priority</th>
-                            <th>Estimated Cost</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredBudgets.length > 0 ? (
-                            filteredBudgets.map((budget) => (
-                                <tr key={budget.id}>
-                                    <td>
-                                        <span className="accent-partner dash-fw-semibold">
-                                            {budget.id}
-                                        </span>
-                                    </td>
-                                    <td className="dash-text-muted">{budget.fan?.name || 'Anonymous'}</td>
-                                    <td className="dash-fw-semibold">{budget.destination}</td>
-                                    <td>{budget.group_size} {budget.group_size === 1 ? 'person' : 'people'}</td>
-                                    <td>
-                                        <span className={`dash-badge ${budget.priority === 'high' ? 'dash-badge-danger' : budget.priority === 'medium' ? 'dash-badge-warning' : 'dash-badge-info'}`}>
-                                            {budget.priority}
-                                        </span>
-                                    </td>
-                                    <td className="dash-fw-semibold">{formatMoney(budget.total_cost)}</td>
-                                    <td>
-                                        <span className={`dash-badge ${getStatusBadgeClass(budget.partner_status)}`}>
-                                            {budget.partner_status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <Link
-                                            href={route('partner.requests.show', budget.id)}
-                                            className="dash-btn dash-btn-outline accent-partner btn-review"
-                                        >
-                                            <i className="fas fa-eye me-2"></i>Review
-                                        </Link>
-                                    </td>
+            <div className="tfe-slab">
+                <div className="tfe-slab__body tfe-slab__body--flush">
+                    <div className="table-responsive">
+                        <table className="tfe-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference ID</th>
+                                    <th>Fan</th>
+                                    <th>Destination</th>
+                                    <th>Group Size</th>
+                                    <th>Priority</th>
+                                    <th>Estimated Cost</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="8" className="dash-empty">
-                                    <i className="fas fa-inbox"></i>
-                                    <h4>No requests found</h4>
-                                    <p>Check back later for new travel requests from fans.</p>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+                                {filteredBudgets.length > 0 ? (
+                                    filteredBudgets.map((budget) => (
+                                        <tr key={budget.id}>
+                                            <td><strong>{budget.id}</strong></td>
+                                            <td>{budget.fan?.name || 'Anonymous'}</td>
+                                            <td><strong>{budget.destination}</strong></td>
+                                            <td>{budget.group_size} {budget.group_size === 1 ? 'person' : 'people'}</td>
+                                            <td>
+                                                <span className={`tfe-pill ${PRIORITY_PILL[budget.priority] || 'tfe-pill--info'}`}>
+                                                    {budget.priority}
+                                                </span>
+                                            </td>
+                                            <td><strong>{formatMoney(budget.total_cost)}</strong></td>
+                                            <td>
+                                                <span className={`tfe-pill ${STATUS_PILL[budget.partner_status] || 'tfe-pill--info'}`}>
+                                                    {budget.partner_status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <Link
+                                                    href={route('partner.requests.show', budget.id)}
+                                                    className="tfe-btn tfe-btn--sm"
+                                                >
+                                                    <i className="fas fa-eye me-2"></i>Review
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="8">
+                                            <div className="tfe-empty tfe-empty--inline">
+                                                <div className="tfe-empty__icon"><i className="fas fa-inbox"></i></div>
+                                                <h4 className="tfe-empty__title">No requests found</h4>
+                                                <p className="tfe-empty__body">Check back later for new travel requests from fans.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </PartnerLayout>
     );
