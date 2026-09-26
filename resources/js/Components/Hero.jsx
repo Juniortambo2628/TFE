@@ -9,6 +9,7 @@ import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import { resolveStadiumImage, preloadImage } from '@/Data/stadiumImages';
+import { assetPath } from '@/lib/assets';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -84,8 +85,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
     var targetDate = tournament ? tournament.start_date : '2026-06-11T00:00:00';
-    var baseUrl = assetUrl || '';
-    var heroImage = (tournament && tournament.hero_image) ? baseUrl + tournament.hero_image : baseUrl + 'assets/img/backdrops/ball-on-field.jpg';
+    var heroImage = assetPath((tournament && tournament.hero_image) || '/assets/img/backdrops/ball-on-field.jpg');
     var tournamentStatus = tournament ? tournament.status : 'upcoming';
     var isConcluded = tournamentStatus === 'concluded';
     var wikipediaVenues = (tournament && tournament.venues) || [];
@@ -102,11 +102,11 @@ export default function Hero({ stadiums: stadiumsProp }) {
     // comes from config/tournaments.php `organizer_card_bg`, overridable in the
     // admin CMS (SiteSetting `tournament_card_bg_{id}`). Files live under
     // public/tournament-organizers-card-visuals/.
-    var heroBgImage = (tournament && tournament.organizer_card_bg) ? baseUrl + tournament.organizer_card_bg : null;
+    var heroBgImage = (tournament && tournament.organizer_card_bg) ? assetPath(tournament.organizer_card_bg) : null;
     var heroTrophy = (function () {
         var trophyPath = tournament && tournament.trophy_image;
         if (trophyPath) {
-            return { src: baseUrl + trophyPath, alt: (tournament.short_name || 'Tournament') + ' trophy' };
+            return { src: assetPath(trophyPath), alt: (tournament.short_name || 'Tournament') + ' trophy' };
         }
         if (wikipediaLogo) {
             return { src: wikipediaLogo, alt: '' };

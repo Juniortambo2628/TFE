@@ -1,6 +1,7 @@
 import React from 'react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import '../../../css/landing-section.css';
+import { assetPath } from '@/lib/assets';
 
 /**
  * LandingModal — the shared card-detail dialog for the landing page.
@@ -18,8 +19,6 @@ import '../../../css/landing-section.css';
  *     cta: { label, href }, partnerCta: { label, href }, form?: { subject } }
  */
 export default function LandingModal({ open, onClose, data }) {
-    const { assetUrl } = usePage().props;
-    const baseUrl = assetUrl || '';
 
     const form = useForm({ name: '', email: '', subject: '', message: '' });
     const [sent, setSent] = React.useState(false);
@@ -48,7 +47,7 @@ export default function LandingModal({ open, onClose, data }) {
 
     let imgSrc = null;
     if (data.image) {
-        imgSrc = (data.image.startsWith('http') || data.image.startsWith('/')) ? data.image : baseUrl + data.image;
+        imgSrc = assetPath(data.image);
     }
 
     const tags = data.tags || [];

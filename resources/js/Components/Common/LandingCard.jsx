@@ -1,5 +1,5 @@
-import { usePage } from '@inertiajs/react';
 import AccentCard from '@/Components/Common/AccentCard';
+import { assetPath } from '@/lib/assets';
 
 /**
  * LandingCard — a horizontal-scroll section card (Popular Experiences,
@@ -10,9 +10,7 @@ import AccentCard from '@/Components/Common/AccentCard';
  * Props: image, title, subtitle, tags[], alt, onClick(data), modalData.
  */
 export default function LandingCard({ image, title, subtitle, tags, alt, onClick, modalData }) {
-    const { assetUrl } = usePage().props;
-    const baseUrl = assetUrl || '';
-    const src = image.startsWith('http') || image.startsWith('/') ? image : baseUrl + image;
+    const src = assetPath(image);
 
     const handleClick = () => {
         if (!onClick) return;

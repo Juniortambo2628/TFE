@@ -1,5 +1,6 @@
 import React from 'react';
 import Breadcrumbs from './Breadcrumbs';
+import { assetPath } from '@/lib/assets';
 
 const HOME_ROUTE = {
     fan: 'fan.dashboard',
@@ -33,7 +34,7 @@ export default function DashboardHero({
     action = null,
 }) {
     const homeRoute = HOME_ROUTE[role] || HOME_ROUTE.fan;
-    const styleVars = bgImage ? { '--dash-hero-bg-image': `url(${bgImage})` } : undefined;
+    const styleVars = bgImage ? { '--dash-hero-bg-image': `url(${assetPath(bgImage)})` } : undefined;
 
     return (
         <div id={id} className="mb-4">

@@ -1,6 +1,6 @@
 import React from 'react';
-import { usePage } from '@inertiajs/react';
 import '../../../css/partner-hub.css';
+import { assetPath } from '@/lib/assets';
 
 /**
  * PageHero — the shared public-page hero, reusing the partner hub hero layout
@@ -17,10 +17,7 @@ import '../../../css/partner-hub.css';
  *  - children — extra hero content under the tagline (host pills, meta, …)
  */
 export default function PageHero({ eyebrow, title, tagline, background, accent = '#dc143c', cta, ctas, media, children }) {
-    const { assetUrl } = usePage().props;
-    const baseUrl = assetUrl || '';
-    const toUrl = (p) => (p ? (p.startsWith('http') || p.startsWith('/') ? p : baseUrl + p) : '');
-    const bg = toUrl(background);
+    const bg = assetPath(background) || '';
     const ctaList = (ctas && ctas.length) ? ctas : (cta ? [cta] : []);
 
     // A split hero (trophy on the right) keeps the organiser brand visible:
@@ -66,7 +63,7 @@ export default function PageHero({ eyebrow, title, tagline, background, accent =
                         <div className="page-hero__media-wrap">
                             <img
                                 className="page-hero__media"
-                                src={toUrl(media.src)}
+                                src={assetPath(media.src)}
                                 alt={media.alt || ''}
                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />

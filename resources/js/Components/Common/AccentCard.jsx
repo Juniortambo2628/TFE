@@ -1,5 +1,6 @@
 import GlassPill from '@/Components/Common/GlassPill';
 import '../../../css/accent-card.css';
+import { assetPath } from '@/lib/assets';
 
 /**
  * AccentCard — the shared tournament-style card used across the platform
@@ -52,7 +53,7 @@ export default function AccentCard({
         <Tag href={href} className={classes} style={{ '--acard-accent': accent }} {...props}>
             {bgImage && (
                 <img
-                    src={bgImage}
+                    src={assetPath(bgImage)}
                     alt=""
                     aria-hidden="true"
                     className="tfe-acard__bg"
@@ -63,7 +64,7 @@ export default function AccentCard({
 
             {isCover && (
                 <>
-                    <img src={cover} alt="" aria-hidden="true" className="tfe-acard__cover" loading="lazy" />
+                    <img src={assetPath(cover)} alt="" aria-hidden="true" className="tfe-acard__cover" loading="lazy" />
                     <span className="tfe-acard__cover-overlay" aria-hidden="true"></span>
                 </>
             )}
@@ -81,7 +82,7 @@ export default function AccentCard({
 
             {artwork?.src && (
                 <img
-                    src={artwork.src}
+                    src={assetPath(artwork.src)}
                     alt={artwork.alt || ''}
                     aria-hidden={artwork.alt ? undefined : 'true'}
                     className={'tfe-acard__art' + (artwork.variant === 'thumb' ? ' tfe-acard__art--thumb' : '')}
