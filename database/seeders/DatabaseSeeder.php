@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             DemoPartnerSeeder::class,
             DemoFinancePartnerSeeder::class,
             DemoExtraPartnersSeeder::class,
+            DemoTicketingPartnerSeeder::class,
             DemoPartnerOfferingsSeeder::class,
         ]);
     }

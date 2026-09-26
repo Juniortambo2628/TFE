@@ -1,0 +1,298 @@
+/* Ticketing — matchday cards + modal + wallet stubs.
+   Reads the same design tokens as the rest of the dashboard so no page
+   ships new colour/spacing decisions. */
+
+.ticket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 22px;
+    margin: 8px 0 32px;
+}
+
+.ticket-card {
+    --partner-accent: #8b5cf6;
+    background: linear-gradient(180deg, rgba(24, 18, 28, 0.85), rgba(12, 10, 14, 0.92));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    color: #fff;
+}
+.ticket-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--partner-accent) 40%, transparent);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+}
+
+.ticket-card__cover {
+    position: relative;
+    height: 140px;
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--partner-accent) 40%, #14101a),
+        rgba(20, 15, 26, 0.9)),
+        var(--partner-accent);
+    background-size: cover;
+    background-position: center;
+}
+.ticket-card__cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(10, 8, 14, 0), rgba(10, 8, 14, 0.85));
+}
+.ticket-card__stage {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 1;
+}
+
+.ticket-card__body {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ticket-card__matchup {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ticket-card__team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+.ticket-card__team img {
+    width: 28px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.ticket-card__vs {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.ticket-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+}
+.ticket-card__meta i {
+    color: var(--partner-accent);
+    margin-right: 6px;
+}
+.ticket-card__meta-sub {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.78rem;
+    padding-left: 22px;
+}
+
+.ticket-card__stock {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ticket-card__bar {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+.ticket-card__bar span {
+    display: block;
+    height: 100%;
+    background: var(--partner-accent);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+.ticket-card__stock-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+.ticket-card__stock-meta strong { color: #fff; margin-right: 4px; }
+
+.ticket-card__partner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    text-decoration: none;
+    align-self: flex-start;
+    transition: background 0.2s ease;
+}
+.ticket-card__partner:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.ticket-card__partner strong { color: #fff; }
+.ticket-card__partner-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--partner-accent);
+}
+.ticket-card__partner .fa-check-circle { color: var(--partner-accent); }
+
+.ticket-card__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ticket-card__price {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+.ticket-card__price-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.ticket-card__price strong {
+    font-size: 1.35rem;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Purchase modal — reuse the tfe-modal shell + form helpers. */
+.ticket-modal__summary {
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 16px;
+}
+.ticket-modal__match {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+}
+.ticket-modal__match span {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.ticket-modal__venue {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+}
+
+.ticket-modal__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    font-size: 0.95rem;
+}
+.ticket-modal__total strong {
+    font-size: 1.4rem;
+    color: #fff;
+}
+.ticket-modal__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+.ticket-modal__disclaimer {
+    margin: 12px 0 0;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+}
+
+/* Wallet — e-Ticket stubs on /fan/tickets/purchases. */
+.ticket-wallet {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 18px;
+    margin: 8px 0 32px;
+}
+.ticket-stub {
+    background: linear-gradient(135deg, rgba(30, 22, 40, 0.9), rgba(14, 10, 20, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    overflow: hidden;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+}
+.ticket-stub__band {
+    padding: 10px 14px;
+    background: rgba(139, 92, 246, 0.18);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.ticket-stub__ref { color: rgba(255, 255, 255, 0.65); font-weight: 600; }
+.ticket-stub__body { padding: 16px 18px; }
+.ticket-stub__match { font-size: 1.15rem; font-weight: 700; }
+.ticket-stub__match span {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.ticket-stub__meta {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.82rem;
+}
+.ticket-stub__meta i { color: rgba(139, 92, 246, 0.9); margin-right: 6px; }
+.ticket-stub__foot {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 12px 18px 16px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+.ticket-stub__foot > div { display: flex; flex-direction: column; }
+.ticket-stub__label {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.ticket-stub__foot strong { font-size: 0.95rem; text-transform: capitalize; }
+
+@media (max-width: 640px) {
+    .ticket-card__foot { flex-direction: column; align-items: stretch; }
+    .ticket-card__foot .tfe-btn { width: 100%; justify-content: center; }
+    .ticket-stub__foot { grid-template-columns: 1fr 1fr; }
+}

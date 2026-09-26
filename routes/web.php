@@ -36,12 +36,14 @@ use App\Http\Controllers\Fan\SavingsGoalController;
 use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
+use App\Http\Controllers\Fan\TicketController as FanTicketController;
 use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
+use App\Http\Controllers\Partner\TicketController as PartnerTicketController;
 use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
@@ -140,6 +142,11 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/security', [SecurityController::class, 'index'])->name('security');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+    // Ticketing (Sprint 46)
+    Route::get('/tickets', [FanTicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/purchases', [FanTicketController::class, 'purchases'])->name('tickets.purchases');
+    Route::post('/tickets/{ticket}/buy', [FanTicketController::class, 'store'])->name('tickets.buy');
 
     // Profile API
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
@@ -384,6 +391,10 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
     Route::post('/listings/{listing}/toggle', [ListingController::class, 'toggle'])->name('listings.toggle');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+
+    // Sprint 46 — ticketing partner inventory + sales queue.
+    Route::get('/tickets', [PartnerTicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/sales', [PartnerTicketController::class, 'sales'])->name('tickets.sales');
 
     // Sprint 10 — Measure tab: per-partner analytics.
     Route::get('/analytics', [App\Http\Controllers\Partner\AnalyticsController::class, 'index'])->name('analytics');

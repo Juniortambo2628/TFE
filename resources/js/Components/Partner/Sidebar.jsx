@@ -14,13 +14,19 @@ const ROLE_LABEL = {
     federation: 'Federation Partner',
     event_organiser: 'Event Organiser',
     sponsor: 'Sponsor',
+    ticketing_partner: 'Ticketing Partner',
 };
 
 export default function PartnerSidebar({ user }) {
+    const isTicketing = user?.partner_type === 'ticketing_partner';
     const menuItems = [
         { label: 'Dashboard', icon: 'fas fa-home', route: 'partner.dashboard', path: '/partner/dashboard' },
-        { label: 'Publish', icon: 'fas fa-tags', route: 'partner.listings.index', path: '/partner/listings' },
-        { label: 'Convert', icon: 'fas fa-suitcase', route: 'partner.requests', path: '/partner/requests' },
+        isTicketing
+            ? { label: 'Tickets', icon: 'fas fa-ticket-alt', route: 'partner.tickets.index', path: '/partner/tickets' }
+            : { label: 'Publish', icon: 'fas fa-tags', route: 'partner.listings.index', path: '/partner/listings' },
+        isTicketing
+            ? { label: 'Sales', icon: 'fas fa-cash-register', route: 'partner.tickets.sales', path: '/partner/tickets/sales' }
+            : { label: 'Convert', icon: 'fas fa-suitcase', route: 'partner.requests', path: '/partner/requests' },
         { label: 'Measure', icon: 'fas fa-chart-line', route: 'partner.analytics', path: '/partner/analytics' },
         { label: 'Messages', icon: 'fas fa-envelope', route: 'partner.messages', path: '/partner/messages' },
         { label: 'Profile', icon: 'fas fa-user', route: 'partner.profile', path: '/partner/profile' },

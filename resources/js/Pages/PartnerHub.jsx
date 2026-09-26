@@ -7,6 +7,7 @@ import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
+import '../../css/tickets.css';
 
 /**
  * PartnerHub — public /partners/{slug} page.
@@ -16,7 +17,7 @@ import '../../css/partner-hub.css';
  * the shared AccentCard. A slim "How it works" strip stays pinned to the
  * bottom of the viewport until the footer scrolls into view.
  */
-export default function PartnerHub({ profile, listings = [] }) {
+export default function PartnerHub({ profile, listings = [], tickets = [] }) {
     const { assetUrl } = usePage().props;
     const accent = profile?.theme_accent || '#dc143c';
     const heroBg = profile?.hero_image
@@ -119,6 +120,24 @@ export default function PartnerHub({ profile, listings = [] }) {
                 {/* How we support the sports ecosystem */}
                 <HowWeSupportStrip accent={accent} />
 
+                {tickets.length > 0 && (
+                    <section className="py-5">
+                        <div className="container">
+                            <div className="d-flex align-items-baseline justify-content-between mb-4">
+                                <h2 className="text-white fw-bold mb-0">On-sale fixtures</h2>
+                                <Link href={route('fan.tickets.index')} className="text-white-50 small">Buy tickets <i className="fas fa-arrow-right ms-1"></i></Link>
+                            </div>
+                            <div className="row g-4">
+                                {tickets.map((t) => (
+                                    <div key={t.id} className="col-md-6 col-lg-4">
+                                        <PartnerHubTicket ticket={t} accent={accent} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* Published listings — shared AccentCard */}
                 <section className="py-5" style={{ background: 'rgba(20,20,20,0.4)' }}>
                     <div className="container">
@@ -176,6 +195,55 @@ export default function PartnerHub({ profile, listings = [] }) {
 
 // Strip the trailing "_partner" before title-casing so "Official {type}
 // Partner" doesn't read "Official Finance Partner Partner".
+function PartnerHubTicket({ ticket, accent }) {
+    const KICK = new Date(ticket.kickoff_at).toLocaleString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+    return (
+        <article className="ticket-card" style={{ '--partner-accent': accent }}>
+            <div
+                className="ticket-card__cover"
+                style={ticket.hero_image ? { backgroundImage: `url(/${ticket.hero_image})` } : undefined}
+            >
+                <span className="tfe-pill tfe-pill--info ticket-card__stage">{ticket.stage}</span>
+            </div>
+            <div className="ticket-card__body">
+                <div className="ticket-card__matchup">
+                    <div className="ticket-card__team">
+                        {ticket.home_team_code && <img src={`https://flagcdn.com/w80/${ticket.home_team_code}.png`} alt={ticket.home_team} onError={(e) => { e.target.style.display = 'none'; }} />}
+                        <span>{ticket.home_team}</span>
+                    </div>
+                    <span className="ticket-card__vs">vs</span>
+                    <div className="ticket-card__team">
+                        {ticket.away_team_code && <img src={`https://flagcdn.com/w80/${ticket.away_team_code}.png`} alt={ticket.away_team} onError={(e) => { e.target.style.display = 'none'; }} />}
+                        <span>{ticket.away_team}</span>
+                    </div>
+                </div>
+                <div className="ticket-card__meta">
+                    <div><i className="fas fa-clock"></i> {KICK}</div>
+                    <div><i className="fas fa-map-marker-alt"></i> {ticket.venue_name}</div>
+                </div>
+                <div className="ticket-card__stock">
+                    <div className="ticket-card__bar"><span style={{ width: `${ticket.sold_pct}%` }} /></div>
+                    <div className="ticket-card__stock-meta">
+                        <strong>{ticket.remaining.toLocaleString()}</strong> seats left
+                        <span>{ticket.sold_pct}% sold</span>
+                    </div>
+                </div>
+                <div className="ticket-card__foot">
+                    <div className="ticket-card__price">
+                        <span className="ticket-card__price-label">from</span>
+                        <strong>{ticket.currency} {Number(ticket.price).toLocaleString()}</strong>
+                    </div>
+                    <Link href={route('fan.tickets.index')} className="tfe-btn tfe-btn--filled">
+                        <i className="fas fa-ticket-alt"></i> Buy
+                    </Link>
+                </div>
+            </div>
+        </article>
+    );
+}
+
 function formatPartnerType(t) {
     if (!t) return '';
     return t.replace(/_partner$/i, '')

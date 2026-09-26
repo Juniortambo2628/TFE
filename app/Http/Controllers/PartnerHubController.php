@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
 use App\Models\Listing;
 use App\Models\PartnerProfile;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
@@ -134,6 +135,33 @@ class PartnerHubController extends Controller
                 ];
             });
 
+        $tickets = [];
+        if ($profile->user->partner_type === 'ticketing_partner') {
+            $tickets = Ticket::query()
+                ->active()
+                ->where('partner_id', $profile->user_id)
+                ->orderBy('kickoff_at')
+                ->get()
+                ->map(fn (Ticket $t) => [
+                    'id' => $t->id,
+                    'home_team' => $t->home_team,
+                    'home_team_code' => $t->home_team_code,
+                    'away_team' => $t->away_team,
+                    'away_team_code' => $t->away_team_code,
+                    'stage' => $t->stage,
+                    'kickoff_at' => $t->kickoff_at,
+                    'venue_name' => $t->venue_name,
+                    'venue_city' => $t->venue_city,
+                    'venue_country' => $t->venue_country,
+                    'price' => (float) $t->price,
+                    'currency' => $t->currency,
+                    'remaining' => $t->remaining,
+                    'sold_pct' => $t->sold_pct,
+                    'hero_image' => $t->hero_image,
+                ])
+                ->all();
+        }
+
         return Inertia::render('PartnerHub', [
             'profile' => [
                 'id' => $profile->id,
@@ -153,6 +181,7 @@ class PartnerHubController extends Controller
                 'verification_status' => $profile->user->verification_status,
             ],
             'listings' => $listings,
+            'tickets' => $tickets,
         ]);
     }
 }

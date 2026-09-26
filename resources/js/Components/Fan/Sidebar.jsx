@@ -10,6 +10,7 @@ export default function FanSidebar({ user }) {
         { label: 'My Itineraries', icon: 'fas fa-map-marked-alt', route: 'fan.itineraries', path: '/fan/itineraries' },
         { label: 'Events', icon: 'fas fa-calendar-alt', route: 'fan.events', path: '/fan/events' },
         { label: 'Match Schedule', icon: 'fas fa-calendar-check', route: 'fan.match-schedule', path: '/fan/match-schedule' },
+        { label: 'Tickets', icon: 'fas fa-ticket-alt', route: 'fan.tickets.index', path: '/fan/tickets' },
         { label: 'Messages', icon: 'fas fa-comments', route: 'fan.communication', path: '/fan/communication' },
         { label: 'Payments', icon: 'fas fa-credit-card', route: 'fan.payments', path: '/fan/payments' },
         { label: 'Financing', icon: 'fas fa-hand-holding-usd', route: 'fan.loan-applications', path: '/fan/loan-applications' },
