@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import FilePondUploader from '@/Components/Common/FilePondUploader';
+import ImageUpload from '@/Components/Common/ImageUpload';
 import { router, useForm, usePage } from '@inertiajs/react';
 
+/**
+ * Site settings — site identity, branding, per-tournament content, social,
+ * SEO, maintenance. Every image field goes through <ImageUpload> so a
+ * non-technical admin picks a file, sees the preview, and hits save;
+ * URL inputs are only for public social/website links.
+ */
 export default function Settings({ auth, settings = {}, tournament_hero_images = {} }) {
     const { props: pageProps } = usePage();
     const flash = pageProps.flash || {};
-    // Tournament list is shared globally by HandleInertiaRequests — mirrors
-    // config/tournaments.php with computed status. Never hardcoded here.
     const TOURNAMENTS = pageProps.tournament_list || [];
-    // First upcoming/ongoing tournament in the list is the sensible default
-    // when the admin hasn't picked one yet.
     const defaultTournamentId = TOURNAMENTS.find(t => t.status !== 'concluded')?.id
         || TOURNAMENTS[0]?.id
         || '';
 
     const [activeTab, setActiveTab] = useState('site');
-    const [logoFiles, setLogoFiles] = useState([]);
-    const [faviconFiles, setFaviconFiles] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [refreshOutput, setRefreshOutput] = useState('');
 
@@ -31,39 +31,50 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
     const handleRefresh = () => {
         setRefreshing(true);
         setRefreshOutput('');
-        router.post('/admin/settings/tournaments/refresh', {}, {
+        router.post(route('admin.settings.tournaments.refresh'), {}, {
             preserveScroll: true,
             onFinish: () => setRefreshing(false),
             onError: () => setRefreshing(false),
         });
     };
 
-    // Hero background states (per tournament)
-    const [heroBgFiles, setHeroBgFiles] = useState({});
-
-    const { data, setData, post, processing } = useForm({
-        // Site Identity
+    const initial = {
         site_name: settings.site_name || 'The Football Experience',
         site_tagline: settings.site_tagline || '',
-        // Social
+        logo: null,
+        favicon: null,
         social_facebook: settings.social_facebook || '',
         social_twitter: settings.social_twitter || '',
         social_instagram: settings.social_instagram || '',
         social_youtube: settings.social_youtube || '',
-        // SEO
         meta_title: settings.meta_title || '',
         meta_description: settings.meta_description || '',
-        // Analytics
         google_analytics: settings.google_analytics || '',
-        // Maintenance
-        maintenance_mode: settings.maintenance_mode || false,
-        // Active Tournament (admin-managed)
+        maintenance_mode: !!settings.maintenance_mode,
         active_tournament: settings.active_tournament || defaultTournamentId,
-    });
+    };
+    // Per-tournament fields (tagline, trophy, accent, hero_bg) share the
+    // same shape; walk the tournament list once here rather than repeat.
+    for (const t of TOURNAMENTS) {
+        initial[`tournament_tagline_${t.id}`] = settings[`tournament_tagline_${t.id}`] ?? '';
+        initial[`tournament_accent_${t.id}`] = settings[`tournament_accent_${t.id}`] ?? t.color_accent ?? '#dc143c';
+        initial[`tournament_trophy_${t.id}`] = null; // File slot
+        initial[`hero_bg_${t.id}`] = null;           // File slot
+    }
+
+    const { data, setData, post, processing } = useForm(initial);
+
+    const heroFor = (tid) => settings[`hero_bg_${tid}`] || tournament_hero_images[tid] || null;
+    const trophyFor = (t) => {
+        const stored = settings[`tournament_trophy_${t.id}`];
+        if (stored) return stored;
+        // config trophy paths are relative to /public — normalise.
+        return t.trophy_image ? '/' + t.trophy_image.replace(/^\//, '') : null;
+    };
 
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
-        { label: 'Settings' }
+        { label: 'Settings' },
     ];
 
     const tabs = [
@@ -71,27 +82,23 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
         { key: 'tournament', label: 'Tournament', icon: 'fas fa-trophy' },
         { key: 'social', label: 'Social Links', icon: 'fas fa-share-alt' },
         { key: 'seo', label: 'SEO', icon: 'fas fa-search' },
-        { key: 'maintenance', label: 'Maintenance', icon: 'fas fa-tools' }
+        { key: 'maintenance', label: 'Maintenance', icon: 'fas fa-tools' },
     ];
 
     const handleSave = () => {
-        post('/admin/settings', { preserveScroll: true });
+        post(route('admin.settings.update'), { preserveScroll: true, forceFormData: true });
     };
 
     return (
         <AdminLayout title="Settings">
-            <DashboardHero role="admin" 
+            <DashboardHero
+                role="admin"
                 title="Site Settings"
-                subtitle="Configure site identity, social links, SEO, and announcements."
+                subtitle="Configure site identity, tournaments, social links, SEO and maintenance."
                 breadcrumbs={breadcrumbs}
-                action={{
-                    label: 'Save All Settings',
-                    icon: 'fas fa-save',
-                    onClick: handleSave
-                }}
+                action={{ label: 'Save all settings', icon: 'fas fa-save', onClick: handleSave }}
             />
 
-            {/* Tabs */}
             <div className="admin-tabs">
                 {tabs.map(tab => (
                     <button
@@ -105,58 +112,53 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                 ))}
             </div>
 
-            {/* Site Identity */}
             {activeTab === 'site' && (
                 <div className="row g-4">
                     <div className="col-lg-6">
-                        <div className="admin-card-dark">
-                            <div className="card-header">
-                                <h3><i className="fas fa-info-circle"></i> Site Information</h3>
-                            </div>
-                            <div className="card-body">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Site Name</label>
-                                    <input 
-                                        type="text" 
-                                        className="admin-form-input" 
-                                        value={data.site_name} 
-                                        onChange={e => setData('site_name', e.target.value)}
-                                        placeholder="Your site name"
-                                    />
+                        <div className="tfe-slab">
+                            <div className="tfe-slab__header">
+                                <div>
+                                    <h2 className="tfe-slab__title">Site information</h2>
+                                    <p className="tfe-slab__title-sub">Public identity across every surface.</p>
                                 </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Site Tagline</label>
-                                    <input 
-                                        type="text" 
-                                        className="admin-form-input" 
-                                        value={data.site_tagline} 
-                                        onChange={e => setData('site_tagline', e.target.value)}
-                                        placeholder="A short description"
-                                    />
+                            </div>
+                            <div className="tfe-slab__body">
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label" htmlFor="site_name">Site name</label>
+                                    <input id="site_name" type="text" className="tfe-input" value={data.site_name} onChange={e => setData('site_name', e.target.value)} />
+                                </div>
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label" htmlFor="site_tagline">Site tagline</label>
+                                    <input id="site_tagline" type="text" className="tfe-input" value={data.site_tagline} onChange={e => setData('site_tagline', e.target.value)} placeholder="A short description" />
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className="col-lg-6">
-                        <div className="admin-card-dark">
-                            <div className="card-header">
-                                <h3><i className="fas fa-image"></i> Branding</h3>
+                        <div className="tfe-slab">
+                            <div className="tfe-slab__header">
+                                <div>
+                                    <h2 className="tfe-slab__title">Branding</h2>
+                                    <p className="tfe-slab__title-sub">Logo shows in the header; favicon in the browser tab.</p>
+                                </div>
                             </div>
-                            <div className="card-body">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Logo</label>
-                                    <FilePondUploader 
-                                        files={logoFiles}
-                                        onUpdateFiles={setLogoFiles}
-                                        labelIdle='Upload logo'
+                            <div className="tfe-slab__body">
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label">Logo</label>
+                                    <ImageUpload
+                                        value={settings.logo || null}
+                                        onFile={(f) => setData('logo', f)}
+                                        onClear={() => setData('logo', null)}
+                                        hint="PNG or WebP, ~256px tall"
                                     />
                                 </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Favicon</label>
-                                    <FilePondUploader 
-                                        files={faviconFiles}
-                                        onUpdateFiles={setFaviconFiles}
-                                        labelIdle='Upload favicon (square)'
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label">Favicon</label>
+                                    <ImageUpload
+                                        value={settings.favicon || null}
+                                        onFile={(f) => setData('favicon', f)}
+                                        onClear={() => setData('favicon', null)}
+                                        hint="Square PNG, 512×512 recommended"
                                     />
                                 </div>
                             </div>
@@ -165,272 +167,193 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                 </div>
             )}
 
-            {/* Active Tournament */}
             {activeTab === 'tournament' && (
-                <div className="admin-card-dark">
-                    <div className="card-header">
-                        <h3><i className="fas fa-trophy"></i> Active Tournament Settings</h3>
-                        <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Sets the default tournament featured across the site when visitors don't specify one in the URL</p>
-                   </div>
-                    <div className="card-body">
-                        <div className="admin-form-group">
-                            <label className="admin-form-label">Featured Tournament</label>
-                            <select
-                                className="admin-form-input"
-                                value={data.active_tournament}
-                                onChange={e => setData('active_tournament', e.target.value)}
-                            >
-                                {TOURNAMENTS.map(t => (
-                                    <option key={t.id} value={t.id}>
-                                        {t.name} ({t.status.toUpperCase()})
-                                   </option>
-                                ))}
-                           </select>
-                            <small className="text-white d-block mt-2" style={{ opacity: 0.7 }}>
-                                Note: Individual visitors can still override this by passing <code>?tournament=slug</code> in the URL or using the header dropdown.
-                           </small>
-                       </div>
-
-                        <div className="admin-form-group mt-4 pt-4 border-top border-white border-opacity-10">
-                            <label className="admin-form-label">Wikipedia Data Refresh</label>
-                            <p className="text-white small mb-3" style={{ opacity: 0.7 }}>
-                                Pull the latest venues, teams, and key facts from Wikipedia. Cached values are cleared so the next page load fetches fresh data.
-                           </p>
-                            <div className="d-flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    className="btn btn-admin-primary"
-                                    disabled={refreshing}
-                                    onClick={handleRefresh}
+                <>
+                    <div className="tfe-slab">
+                        <div className="tfe-slab__header">
+                            <div>
+                                <h2 className="tfe-slab__title">Active tournament</h2>
+                                <p className="tfe-slab__title-sub">The default featured across the site when a visitor hasn't picked one.</p>
+                            </div>
+                        </div>
+                        <div className="tfe-slab__body">
+                            <div className="tfe-form-field">
+                                <label className="tfe-form-label" htmlFor="active_tournament">Featured tournament</label>
+                                <select
+                                    id="active_tournament"
+                                    className="tfe-select"
+                                    value={data.active_tournament}
+                                    onChange={e => setData('active_tournament', e.target.value)}
                                 >
-                                    <i className="fas fa-sync-alt me-2"></i>
-                                    {refreshing ? 'Refreshing...' : 'Refresh All Tournaments'}
-                               </button>
-                                {refreshing && (
-                                    <span className="text-white small align-self-center" style={{ opacity: 0.7 }}>
-                                        This can take 30-60s for Wikipedia's rate limit. Stay on this page.
-                                   </span>
+                                    {TOURNAMENTS.map(t => (
+                                        <option key={t.id} value={t.id}>{t.name} ({t.status})</option>
+                                    ))}
+                                </select>
+                                <p className="tfe-form-help">Visitors can override by passing <code>?tournament=slug</code> in the URL or the header dropdown.</p>
+                            </div>
+                            <div className="tfe-form-field" style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                <label className="tfe-form-label">Wikipedia data refresh</label>
+                                <p className="tfe-form-help">Pull the latest venues, teams and key facts. Cached values are cleared so the next page load fetches fresh data.</p>
+                                <div className="d-flex gap-2 align-items-center flex-wrap mt-2">
+                                    <button type="button" className="tfe-btn tfe-btn--filled" disabled={refreshing} onClick={handleRefresh}>
+                                        <i className="fas fa-sync-alt"></i> {refreshing ? 'Refreshing…' : 'Refresh all tournaments'}
+                                    </button>
+                                    {refreshing && <span className="tfe-form-help">Can take 30–60s for Wikipedia's rate limit.</span>}
+                                </div>
+                                {refreshOutput && (
+                                    <pre className="mt-3 p-3 rounded-2 small text-white" style={{ background: 'rgba(0,0,0,0.4)', opacity: 0.85, whiteSpace: 'pre-wrap' }}>{refreshOutput}</pre>
                                 )}
-                           </div>
-                            {refreshOutput && (
-                                <pre className="mt-3 p-3 rounded-2 small text-white" style={{ background: 'rgba(0,0,0,0.4)', opacity: 0.85, whiteSpace: 'pre-wrap' }}>
-                                    {refreshOutput}
-                               </pre>
-                            )}
-                       </div>
-                   </div>
-
-                   <div className="admin-card-dark mt-4">
-                       <div className="card-header">
-                           <h3><i className="fas fa-image"></i> Hero Background Images</h3>
-                           <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>Override the default hero background per tournament. Recommended: 1920x800px.</p>
-                       </div>
-                       <div className="card-body">
-                           <div className="row g-4">
-                               {TOURNAMENTS.map(tournament => {
-                                   const settingKey = `hero_bg_${tournament.id}`;
-                                   const currentBg = settings[settingKey] || tournament_hero_images[tournament.id];
-                                   const fileState = heroBgFiles[settingKey] || [];
-                                   return (
-                                       <div key={tournament.id} className="col-md-6 col-lg-4">
-                                           <div className="admin-form-group">
-                                               <label className="admin-form-label">{tournament.name}</label>
-                                               <FilePondUploader
-                                                   files={fileState}
-                                                   onUpdateFiles={(fileItems) => {
-                                                       setHeroBgFiles(prev => ({ ...prev, [settingKey]: fileItems }));
-                                                       if (fileItems[0]) setData(settingKey, fileItems[0].file);
-                                                   }}
-                                                   labelIdle={`${tournament.name} hero`}
-                                               />
-                                               {currentBg && (
-                                                   <div className="mt-2 rounded overflow-hidden dash-preview-box">
-                                                       <img src={currentBg} className="w-100 h-100 object-fit-cover" alt="Current hero bg" />
-                                                   </div>
-                                               )}
-                                           </div>
-                                       </div>
-                                   );
-                               })}
-                           </div>
-                       </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Per-tournament content overrides — tagline, trophy image URL, accent colour.
-                        All optional; empty falls back to config/tournaments.php. */}
-                    <div className="admin-card-dark mt-4">
-                        <div className="card-header">
-                            <h3><i className="fas fa-palette"></i> Per-Tournament Content</h3>
-                            <p className="text-white small mb-0 ms-auto" style={{ opacity: 0.6 }}>
-                                Override the tagline, trophy image, and accent colour without editing config. Leave blank to use the config default.
-                            </p>
+                    <div className="tfe-slab" style={{ marginTop: 20 }}>
+                        <div className="tfe-slab__header">
+                            <div>
+                                <h2 className="tfe-slab__title">Hero backgrounds</h2>
+                                <p className="tfe-slab__title-sub">Landscape image behind the tournament card on the landing hero. Recommended 1920×800.</p>
+                            </div>
                         </div>
-                        <div className="card-body">
-                            {TOURNAMENTS.map(tournament => {
-                                const taglineKey = `tournament_tagline_${tournament.id}`;
-                                const trophyKey = `tournament_trophy_${tournament.id}`;
-                                const accentKey = `tournament_accent_${tournament.id}`;
-                                return (
-                                    <div key={tournament.id} className="pb-3 mb-3 border-bottom border-white border-opacity-10">
-                                        <div className="text-white fw-semibold mb-2">
-                                            {tournament.name}
-                                            <span className="text-white-50 small ms-2">({tournament.status})</span>
+                        <div className="tfe-slab__body">
+                            <div className="row g-4">
+                                {TOURNAMENTS.map(t => (
+                                    <div key={t.id} className="col-md-6 col-lg-4">
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label">{t.name}</label>
+                                            <ImageUpload
+                                                value={heroFor(t.id)}
+                                                onFile={(f) => setData(`hero_bg_${t.id}`, f)}
+                                                onClear={() => setData(`hero_bg_${t.id}`, null)}
+                                                hint="1920×800 landscape"
+                                            />
                                         </div>
-                                        <div className="row g-3">
-                                            <div className="col-md-6">
-                                                <label className="admin-form-label">Tagline</label>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="tfe-slab" style={{ marginTop: 20 }}>
+                        <div className="tfe-slab__header">
+                            <div>
+                                <h2 className="tfe-slab__title">Per-tournament content</h2>
+                                <p className="tfe-slab__title-sub">Override tagline, trophy image and accent colour without editing config.</p>
+                            </div>
+                        </div>
+                        <div className="tfe-slab__body">
+                            {TOURNAMENTS.map(t => (
+                                <div key={t.id} className="pb-4 mb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                    <div className="text-white fw-semibold mb-3">
+                                        {t.name}
+                                        <span className="tfe-pill tfe-pill--info ms-2">{t.status}</span>
+                                    </div>
+                                    <div className="row g-3">
+                                        <div className="col-md-6">
+                                            <div className="tfe-form-field">
+                                                <label className="tfe-form-label">Tagline</label>
                                                 <input
-                                                    className="admin-form-input"
-                                                    placeholder="e.g. East Africa welcomes AFCON…"
-                                                    value={data[taglineKey] ?? settings[taglineKey] ?? ''}
-                                                    onChange={e => setData(taglineKey, e.target.value)}
+                                                    className="tfe-input"
+                                                    placeholder={t.tagline || 'e.g. East Africa welcomes AFCON…'}
+                                                    value={data[`tournament_tagline_${t.id}`]}
+                                                    onChange={e => setData(`tournament_tagline_${t.id}`, e.target.value)}
                                                 />
                                             </div>
-                                            <div className="col-md-4">
-                                                <label className="admin-form-label">Trophy image URL</label>
-                                                <input
-                                                    className="admin-form-input"
-                                                    placeholder="tournament-trophies/…png"
-                                                    value={data[trophyKey] ?? settings[trophyKey] ?? ''}
-                                                    onChange={e => setData(trophyKey, e.target.value)}
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="tfe-form-field">
+                                                <label className="tfe-form-label">Trophy image</label>
+                                                <ImageUpload
+                                                    value={trophyFor(t)}
+                                                    onFile={(f) => setData(`tournament_trophy_${t.id}`, f)}
+                                                    onClear={() => setData(`tournament_trophy_${t.id}`, null)}
+                                                    hint="Transparent PNG, portrait"
                                                 />
                                             </div>
-                                            <div className="col-md-2">
-                                                <label className="admin-form-label">Accent colour</label>
+                                        </div>
+                                        <div className="col-md-2">
+                                            <div className="tfe-form-field">
+                                                <label className="tfe-form-label">Accent</label>
                                                 <input
                                                     type="color"
-                                                    className="admin-form-input"
-                                                    style={{ height: 40, padding: 4 }}
-                                                    value={(data[accentKey] ?? settings[accentKey] ?? '#dc143c')}
-                                                    onChange={e => setData(accentKey, e.target.value)}
+                                                    className="tfe-color-swatch"
+                                                    style={{ width: '100%', height: 44 }}
+                                                    value={data[`tournament_accent_${t.id}`]}
+                                                    onChange={e => setData(`tournament_accent_${t.id}`, e.target.value)}
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
+                </>
             )}
 
-            {/* Social Links */}
             {activeTab === 'social' && (
-                <div className="admin-card-dark">
-                    <div className="card-header">
-                        <h3><i className="fas fa-share-alt"></i> Social Media Links</h3>
+                <div className="tfe-slab">
+                    <div className="tfe-slab__header">
+                        <div>
+                            <h2 className="tfe-slab__title">Social media links</h2>
+                            <p className="tfe-slab__title-sub">Rendered in the footer + share cards.</p>
+                        </div>
                     </div>
-                    <div className="card-body">
+                    <div className="tfe-slab__body">
                         <div className="row g-4">
-                            <div className="col-md-6">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">
-                                        <i className="fab fa-facebook text-primary me-2"></i> Facebook
-                                    </label>
-                                    <input 
-                                        type="url" 
-                                        className="admin-form-input" 
-                                        value={data.social_facebook} 
-                                        onChange={e => setData('social_facebook', e.target.value)}
-                                        placeholder="https://facebook.com/yourpage"
-                                    />
+                            {[
+                                { key: 'social_facebook',  icon: 'fab fa-facebook',  label: 'Facebook',   placeholder: 'https://facebook.com/yourpage' },
+                                { key: 'social_twitter',   icon: 'fab fa-twitter',   label: 'Twitter / X', placeholder: 'https://twitter.com/yourhandle' },
+                                { key: 'social_instagram', icon: 'fab fa-instagram', label: 'Instagram',  placeholder: 'https://instagram.com/yourhandle' },
+                                { key: 'social_youtube',   icon: 'fab fa-youtube',   label: 'YouTube',    placeholder: 'https://youtube.com/yourchannel' },
+                            ].map(({ key, icon, label, placeholder }) => (
+                                <div key={key} className="col-md-6">
+                                    <div className="tfe-form-field">
+                                        <label className="tfe-form-label" htmlFor={key}>
+                                            <i className={`${icon} me-2`}></i>{label}
+                                        </label>
+                                        <input id={key} type="url" className="tfe-input" value={data[key]} onChange={e => setData(key, e.target.value)} placeholder={placeholder} />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">
-                                        <i className="fab fa-twitter me-2" style={{ color: '#1da1f2' }}></i> Twitter / X
-                                    </label>
-                                    <input 
-                                        type="url" 
-                                        className="admin-form-input" 
-                                        value={data.social_twitter} 
-                                        onChange={e => setData('social_twitter', e.target.value)}
-                                        placeholder="https://twitter.com/yourhandle"
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">
-                                        <i className="fab fa-instagram me-2" style={{ color: '#e1306c' }}></i> Instagram
-                                    </label>
-                                    <input 
-                                        type="url" 
-                                        className="admin-form-input" 
-                                        value={data.social_instagram} 
-                                        onChange={e => setData('social_instagram', e.target.value)}
-                                        placeholder="https://instagram.com/yourhandle"
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">
-                                        <i className="fab fa-youtube me-2" style={{ color: '#ff0000' }}></i> YouTube
-                                    </label>
-                                    <input 
-                                        type="url" 
-                                        className="admin-form-input" 
-                                        value={data.social_youtube} 
-                                        onChange={e => setData('social_youtube', e.target.value)}
-                                        placeholder="https://youtube.com/yourchannel"
-                                    />
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* SEO */}
             {activeTab === 'seo' && (
                 <div className="row g-4">
                     <div className="col-lg-8">
-                        <div className="admin-card-dark">
-                            <div className="card-header">
-                                <h3><i className="fas fa-search"></i> SEO Settings</h3>
-                            </div>
-                            <div className="card-body">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Default Meta Title</label>
-                                    <input 
-                                        type="text" 
-                                        className="admin-form-input" 
-                                        value={data.meta_title} 
-                                        onChange={e => setData('meta_title', e.target.value)}
-                                        placeholder="Default page title for SEO"
-                                    />
+                        <div className="tfe-slab">
+                            <div className="tfe-slab__header">
+                                <div>
+                                    <h2 className="tfe-slab__title">SEO defaults</h2>
+                                    <p className="tfe-slab__title-sub">Fallback title + description when a page doesn't specify its own.</p>
                                 </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Default Meta Description</label>
-                                    <textarea 
-                                        className="admin-form-input admin-form-textarea" 
-                                        rows={3}
-                                        value={data.meta_description} 
-                                        onChange={e => setData('meta_description', e.target.value)}
-                                        placeholder="Brief description for search engines"
-                                    ></textarea>
+                            </div>
+                            <div className="tfe-slab__body">
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label">Default meta title</label>
+                                    <input type="text" className="tfe-input" value={data.meta_title} onChange={e => setData('meta_title', e.target.value)} />
+                                </div>
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label">Default meta description</label>
+                                    <textarea className="tfe-textarea" rows={3} value={data.meta_description} onChange={e => setData('meta_description', e.target.value)} />
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className="col-lg-4">
-                        <div className="admin-card-dark">
-                            <div className="card-header">
-                                <h3><i className="fas fa-chart-line"></i> Analytics</h3>
+                        <div className="tfe-slab">
+                            <div className="tfe-slab__header">
+                                <div>
+                                    <h2 className="tfe-slab__title">Analytics</h2>
+                                    <p className="tfe-slab__title-sub">Google Analytics 4 measurement ID.</p>
+                                </div>
                             </div>
-                            <div className="card-body">
-                                <div className="admin-form-group">
-                                    <label className="admin-form-label">Google Analytics ID</label>
-                                    <input 
-                                        type="text" 
-                                        className="admin-form-input" 
-                                        value={data.google_analytics} 
-                                        onChange={e => setData('google_analytics', e.target.value)}
-                                        placeholder="G-XXXXXXXXXX"
-                                    />
-                                    <small className="text-white d-block mt-1" style={{ opacity: 0.7 }}>Enter your GA4 measurement ID</small>
+                            <div className="tfe-slab__body">
+                                <div className="tfe-form-field">
+                                    <label className="tfe-form-label">GA4 measurement ID</label>
+                                    <input type="text" className="tfe-input" value={data.google_analytics} onChange={e => setData('google_analytics', e.target.value)} placeholder="G-XXXXXXXXXX" />
                                 </div>
                             </div>
                         </div>
@@ -438,23 +361,23 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                 </div>
             )}
 
-
-
-            {/* Maintenance */}
             {activeTab === 'maintenance' && (
-                <div className="admin-card-dark">
-                    <div className="card-header">
-                        <h3><i className="fas fa-tools"></i> Maintenance Mode</h3>
+                <div className="tfe-slab">
+                    <div className="tfe-slab__header">
+                        <div>
+                            <h2 className="tfe-slab__title">Maintenance mode</h2>
+                            <p className="tfe-slab__title-sub">Puts a maintenance page in front of visitors. Admins can still access the site.</p>
+                        </div>
                     </div>
-                    <div className="card-body">
-                        <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'var(--admin-bg-dark)', border: '1px solid var(--admin-border)' }}>
+                    <div className="tfe-slab__body">
+                        <div className="d-flex align-items-center justify-content-between p-3 rounded-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
                             <div>
-                                <h5 className="text-white mb-1">Enable Maintenance Mode</h5>
-                                <p className="text-white mb-0 small" style={{ opacity: 0.7 }}>When enabled, visitors will see a maintenance page. Admins can still access the site.</p>
+                                <h5 className="text-white mb-1">Enable maintenance mode</h5>
+                                <p className="tfe-form-help mb-0">When enabled, visitors see a maintenance page.</p>
                             </div>
                             <label className="admin-toggle">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     checked={data.maintenance_mode}
                                     onChange={e => setData('maintenance_mode', e.target.checked)}
                                 />
@@ -462,12 +385,12 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
                             </label>
                         </div>
                         {data.maintenance_mode && (
-                            <div className="mt-3 p-3 rounded-3" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid var(--admin-primary)' }}>
+                            <div className="mt-3 p-3 rounded-3" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.35)' }}>
                                 <div className="d-flex align-items-center gap-2 text-warning">
                                     <i className="fas fa-exclamation-triangle"></i>
-                                    <strong>Maintenance mode is enabled</strong>
+                                    <strong>Maintenance mode is on</strong>
                                 </div>
-                                <p className="text-muted small mb-0 mt-1">Regular users won't be able to access the site.</p>
+                                <p className="tfe-form-help mb-0 mt-1">Regular users can't access the site.</p>
                             </div>
                         )}
                     </div>
@@ -476,4 +399,3 @@ export default function Settings({ auth, settings = {}, tournament_hero_images =
         </AdminLayout>
     );
 }
-

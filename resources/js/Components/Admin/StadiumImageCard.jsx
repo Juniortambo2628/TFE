@@ -20,8 +20,13 @@ export default function StadiumImageCard({ venue, tournamentId }) {
         if (!file) return;
         setSaving(true);
 
+        // Free-text venue overrides for uncatalogued tournaments carry the
+        // full setting key on the venue record; catalogued venues still key
+        // on stadium_image_{slug} for backward compatibility.
+        const key = venue.setting_key || `stadium_image_${venue.slug}`;
+
         router.post(route('admin.content.settings.update'), {
-            key: `stadium_image_${venue.slug}`,
+            key,
             value: file,
             type: 'image',
             group: 'stadiums',

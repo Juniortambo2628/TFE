@@ -39,15 +39,52 @@ class ContentController extends Controller
         $settings = SiteSetting::pluck('value', 'key');
 
         // Stadium hero imagery, grouped per tournament, for the Stadium Images
-        // editor. Each row carries both the committed default and the resolved
-        // url so the panel can show what is live and offer a revert.
+        // editor. Catalogued tournaments (config/stadiums.php) render their
+        // config-derived venues with a "reset to default" action; uncatalogued
+        // ones list the Wikipedia-parsed venues from the assembled tournament
+        // payload with per-name overrides. Sprint 48: every tournament shows
+        // up so admin can control WC 2026 / Euro 2024 imagery without a
+        // config edit.
         $stadiums = [];
-        foreach ($this->stadiumImages->tournamentIds() as $tournamentId) {
-            $stadiums[] = [
+        $overridePrefix = StadiumImageService::NAME_PREFIX;
+        foreach ($this->tournaments->all() as $tournament) {
+            $tournamentId = $tournament['id'];
+            $hasSet = $this->stadiumImages->hasCatalogueSet($tournamentId);
+            $section = [
                 'tournament_id' => $tournamentId,
-                'tournament_name' => config("tournaments.tournaments.{$tournamentId}.name", $tournamentId),
-                'venues' => $this->stadiumImages->all($tournamentId),
+                'tournament_name' => $tournament['name'],
+                'has_catalogue' => $hasSet,
+                'venues' => [],
             ];
+
+            if ($hasSet) {
+                $section['venues'] = $this->stadiumImages->all($tournamentId);
+            } else {
+                $tPrefix = $overridePrefix.$tournamentId.'_';
+                $overrides = SiteSetting::query()
+                    ->where('key', 'like', $tPrefix.'%')
+                    ->pluck('value', 'key');
+                foreach (($tournament['venues'] ?? []) as $venue) {
+                    $normalized = StadiumImageService::normalize($venue['name'] ?? '');
+                    if ($normalized === '') {
+                        continue;
+                    }
+                    $overrideKey = $tPrefix.$normalized;
+                    $override = $overrides[$overrideKey] ?? null;
+                    $section['venues'][] = [
+                        'slug' => $normalized,
+                        'setting_key' => $overrideKey,
+                        'name' => $venue['name'] ?? '',
+                        'city' => $venue['city'] ?? null,
+                        'country' => $venue['country'] ?? null,
+                        'default_url' => $venue['thumbnail'] ?? $venue['image'] ?? null,
+                        'url' => $override ?: ($venue['thumbnail'] ?? $venue['image'] ?? null),
+                        'is_overridden' => (bool) $override,
+                    ];
+                }
+            }
+
+            $stadiums[] = $section;
         }
 
         return Inertia::render('Admin/Content', [
@@ -69,7 +106,10 @@ class ContentController extends Controller
             'tournament_id' => 'required|string',
         ]);
 
+        // Delete both possible override shapes — the catalogue one keyed
+        // by slug, and the free-text one keyed by normalized venue name.
         SiteSetting::where('key', StadiumImageService::SETTING_PREFIX.$data['slug'])->delete();
+        SiteSetting::where('key', StadiumImageService::NAME_PREFIX.$data['tournament_id'].'_'.$data['slug'])->delete();
 
         $this->stadiumImages->clearCache($data['tournament_id']);
         $this->tournaments->clearCache($data['tournament_id']);
@@ -121,15 +161,23 @@ class ContentController extends Controller
 
         // A stadium image override has to invalidate two caches to show up:
         // the service's own resolved map, and the assembled tournament payload
-        // that carries the overlaid venue rows to the hero slider.
+        // that carries the overlaid venue rows to the hero slider. Handle both
+        // the catalogue prefix (stadium_image_{slug}) and the per-name prefix
+        // (stadium_name_{tournament}_{normalized}).
         if (str_starts_with($data['key'], StadiumImageService::SETTING_PREFIX)) {
             $slug = substr($data['key'], strlen(StadiumImageService::SETTING_PREFIX));
-
             foreach ($this->stadiumImages->tournamentIds() as $tournamentId) {
                 if (array_key_exists($slug, config("stadiums.sets.{$tournamentId}", []))) {
                     $this->stadiumImages->clearCache($tournamentId);
                     $this->tournaments->clearCache($tournamentId);
                 }
+            }
+        } elseif (str_starts_with($data['key'], StadiumImageService::NAME_PREFIX)) {
+            $rest = substr($data['key'], strlen(StadiumImageService::NAME_PREFIX));
+            $tournamentId = explode('_', $rest, 2)[0] ?? null;
+            if ($tournamentId) {
+                $this->stadiumImages->clearCache($tournamentId);
+                $this->tournaments->clearCache($tournamentId);
             }
         }
 

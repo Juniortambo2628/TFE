@@ -44,6 +44,9 @@ class PartnerController extends Controller
                     'profile_slug' => $profile?->slug,
                     'profile_is_public' => (bool) $profile?->is_public,
                     'profile_display_name' => $profile?->display_name,
+                    'tagline' => $profile?->tagline,
+                    'logo_url' => $profile?->logo_url,
+                    'theme_accent' => $profile?->theme_accent,
                     'created_at' => $u->created_at?->format('M d, Y'),
                 ];
             });
