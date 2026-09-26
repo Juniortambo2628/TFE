@@ -37,6 +37,7 @@ use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
 use App\Http\Controllers\Fan\TicketController as FanTicketController;
+use App\Http\Controllers\Fan\VirtualCardController;
 use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
@@ -147,6 +148,10 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/tickets', [FanTicketController::class, 'index'])->name('tickets.index');
     Route::get('/tickets/purchases', [FanTicketController::class, 'purchases'])->name('tickets.purchases');
     Route::post('/tickets/{ticket}/buy', [FanTicketController::class, 'store'])->name('tickets.buy');
+
+    // Ecobank multicurrency virtual card (Sprint 46)
+    Route::get('/virtual-card', [VirtualCardController::class, 'show'])->name('virtual-card');
+    Route::post('/virtual-card/activate', [VirtualCardController::class, 'activate'])->name('virtual-card.activate');
 
     // Profile API
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');

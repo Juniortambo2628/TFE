@@ -8,6 +8,7 @@ import AccentCard from '@/Components/Common/AccentCard';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
 import '../../css/tickets.css';
+import '../../css/virtual-card.css';
 
 /**
  * PartnerHub — public /partners/{slug} page.
@@ -17,7 +18,7 @@ import '../../css/tickets.css';
  * the shared AccentCard. A slim "How it works" strip stays pinned to the
  * bottom of the viewport until the footer scrolls into view.
  */
-export default function PartnerHub({ profile, listings = [], tickets = [] }) {
+export default function PartnerHub({ profile, listings = [], tickets = [], features = [] }) {
     const { assetUrl } = usePage().props;
     const accent = profile?.theme_accent || '#dc143c';
     const heroBg = profile?.hero_image
@@ -119,6 +120,30 @@ export default function PartnerHub({ profile, listings = [], tickets = [] }) {
 
                 {/* How we support the sports ecosystem */}
                 <HowWeSupportStrip accent={accent} />
+
+                {features.length > 0 && (
+                    <section className="py-5">
+                        <div className="container">
+                            {features.map((f, i) => (
+                                <div key={i} className="partner-feature" style={{ '--partner-accent': accent }}>
+                                    <div className="partner-feature__icon"><i className={f.icon}></i></div>
+                                    <div className="partner-feature__body">
+                                        <h3>{f.title}</h3>
+                                        <p>{f.body}</p>
+                                        {f.perks && (
+                                            <ul className="partner-feature__perks">
+                                                {f.perks.map((p, k) => <li key={k}><i className="fas fa-check"></i> {p}</li>)}
+                                            </ul>
+                                        )}
+                                        <Link href={route(f.cta_route)} className="tfe-btn tfe-btn--filled">
+                                            <i className="fas fa-arrow-right"></i> {f.cta_label}
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {tickets.length > 0 && (
                     <section className="py-5">

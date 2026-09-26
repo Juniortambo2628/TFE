@@ -182,6 +182,31 @@ class PartnerHubController extends Controller
             ],
             'listings' => $listings,
             'tickets' => $tickets,
+            'features' => $this->featuresFor($profile),
         ]);
+    }
+
+    /**
+     * Partner-specific rich features that render alongside their listings.
+     * Currently: Ecobank Fan Finance gets the multicurrency virtual card
+     * activation CTA. Extend the switch as new partner-native surfaces come
+     * online (an airline seat picker, a betting live-odds widget, …).
+     */
+    private function featuresFor(PartnerProfile $profile): array
+    {
+        $out = [];
+        if ($profile->slug === 'ecobank-fan-finance') {
+            $out[] = [
+                'kind' => 'virtual_card',
+                'title' => 'Multicurrency virtual card',
+                'body' => 'Activate a virtual card that spends anywhere in seven currencies. No FX markup, instant issuance, and you freeze it any time from your dashboard.',
+                'cta_label' => 'Activate on your dashboard',
+                'cta_route' => 'fan.virtual-card',
+                'icon' => 'fas fa-credit-card',
+                'perks' => ['7-currency wallet', 'Instant issuance', 'No FX markup', 'Freeze / unfreeze anytime'],
+            ];
+        }
+
+        return $out;
     }
 }
