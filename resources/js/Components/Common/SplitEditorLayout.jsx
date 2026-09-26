@@ -32,7 +32,11 @@ export default function SplitEditorLayout({
     return (
         <div className={`tfe-split-grid ${className}`.trim()}>
             <div>{children}</div>
-            <div>
+            {/* The column must span the whole grid row (`.tfe-split-col` →
+                `align-self: stretch`), or the sticky pane inside it fills its
+                container exactly and has nowhere to travel — which is why the
+                "sticky" preview never actually stuck (Sprint 56). */}
+            <div className="tfe-split-col">
                 <div className="tfe-split-preview">
                     {previewTitle && <h3 className="tfe-split-preview__title">{previewTitle}</h3>}
                     {preview}

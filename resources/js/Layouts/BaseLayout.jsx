@@ -43,7 +43,23 @@ export default function BaseLayout({
 
             {SidebarComponent && <SidebarComponent user={user} />}
 
-            <main className="flex-1 flex flex-col min-h-svh overflow-auto">
+            {/* `overflow-x-clip`, not `overflow-auto` (Sprint 56). Any
+                `overflow` other than `visible`/`clip` makes this <main> a
+                scroll container, and a scroll container is what `position:
+                sticky` inside it measures against — but this element grows
+                with its content and never scrolls (the document does), so
+                every sticky descendant had a scrollport it could never reach
+                the edge of and simply never stuck. That silently disabled the
+                sticky live-preview pane on every SplitEditorLayout page
+                (admin tournaments, the Content CMS, fan/partner profiles) and
+                any sticky action bar. `clip` still contains a wide child
+                without creating a scroll container, so the horizontal
+                protection `overflow-auto` was giving us stays — with
+                `min-w-0`, because a flex item's automatic minimum size is
+                only ignored for a scroll container, and without it a wide
+                child (the partner carousel track on the fan dashboard)
+                stretches this element past the viewport. */}
+            <main className="flex-1 flex flex-col min-h-svh min-w-0 overflow-x-clip">
                 {HeaderComponent && (
                     <HeaderComponent
                         user={user}

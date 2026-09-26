@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 55. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 56. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -793,6 +793,17 @@ new card / table / list CSS:
   samples the source, and a transparent one skips the backing fill, previews
   as PNG and falls back to PNG rather than JPEG — JPEG has no alpha channel
   and would flatten a cut-out avatar to a black square inside the ring.
+- **`TeamPickerDialog`** (Sprint 56, `Components/Common/TeamPickerDialog.jsx`) —
+  the "which nation do you support" picker: a searchable flag grid in a
+  `TfeModal`, with `.tfe-team-field` as the one-line trigger that sits in the
+  form. It replaced ~28 flag tiles rendered inline in the fan profile, which
+  pushed that page's only Save button into the middle of the layout. A
+  `<select>` would not do — the flag is what frames the fan's avatar, so
+  picking one has to show the artwork.
+- **`.tfe-form-actions--sticky`** (Sprint 56) — the save bar variant that
+  sticks to the bottom of the viewport while a long form scrolls, with a
+  `.tfe-form-actions__note` saying whether anything is unsaved. Reach for it
+  on any form long enough that its submit scrolls out of sight.
 - **`HubPreview`** (moved to `Components/Common/` in Sprint 53) — the live
   partner-hub preview. Used by `/admin/partners/{user}` AND the partner's own
   `/partner/profile`. It imports its own stylesheet, so it looks right
@@ -1213,6 +1224,20 @@ tests/
 - Never let a concluded tournament become the active context. Read
   `tournament_switch_list` (or `switchableTournaments` from the context), not
   `tournament_list`, anywhere the pick CHANGES the session (Sprint 53).
+- Never feed `tournament.teams` to a picker unfiltered. That array is every
+  wikilink in Wikipedia's "Qualified teams" **table**, so it carries previous
+  appearance years, column headers and citation sites — AFCON 2027 offered
+  `1962`, `WR`, `FIFA ranking` and `Legit.ng` as teams. Both sides sanitise:
+  `WikipediaService::isLikelyTeamName()` at parse time and `isLikelyTeamName()`
+  in `resources/js/lib/teamOptions.js` at render; the two mirror each other
+  and `tests/Unit/TeamNameSanitationTest.php` +
+  `tests/JS/teamOptions.test.mjs` assert the same fixtures against each, so
+  change them in the same commit (Sprint 56).
+- Never reverse-look-up a flag code through `TEAM_CODES` alone. It is a
+  hand-written map of ~50 nations, so 14 of AFCON's 27 configured
+  `team_flag_codes` resolved to nothing and silently vanished from the fan's
+  team list. Fall back to `Data/countries.js`, which has an ISO code for all
+  235 (Sprint 56).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server
@@ -1265,6 +1290,7 @@ tests/
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
+| 56     | Fan profile layout: avatar first, one sticky save bar at the end of the form, read-only community panels moved below the editor; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved so no nation renders flagless |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 
