@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { usePage } from '@inertiajs/react';
+import assetPath from '@/lib/assets';
 import '../../../css/partner-carousel.css';
 
 export default function PartnerCarousel() {
@@ -26,7 +27,7 @@ export default function PartnerCarousel() {
                             {partner.link ? (
                                 <a href={partner.link} target="_blank" rel="noopener noreferrer" className="d-flex flex-column align-items-center text-decoration-none">
                                     <img
-                                        src={`${baseUrl}${partner.logo}`}
+                                        src={assetPath(`${baseUrl}${partner.logo}`)}
                                         alt={partner.name}
                                         className="partner-logo-img"
                                         style={{ height: partner.height }}
@@ -38,7 +39,7 @@ export default function PartnerCarousel() {
                             ) : (
                                 <>
                                     <img
-                                        src={`${baseUrl}${partner.logo}`}
+                                        src={assetPath(`${baseUrl}${partner.logo}`)}
                                         alt={partner.name}
                                         className="partner-logo-img"
                                         style={{ height: partner.height }}

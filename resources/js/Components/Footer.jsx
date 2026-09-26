@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
+import assetPath from '@/lib/assets';
 import '../../css/footer.css';
 
 export default function Footer() {
@@ -7,7 +8,7 @@ export default function Footer() {
     const { assetUrl } = usePage().props;
     const journeyLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
     const wordmark = 'The Football Experience';
-    const okjLogo = `${assetUrl || ''}assets/partner-logos/OKJTechLogo-White_Transparent.png`;
+    const okjLogo = assetPath(`${assetUrl || ''}assets/partner-logos/OKJTechLogo-White_Transparent.png`);
     const year = new Date().getFullYear();
 
     const socials = [

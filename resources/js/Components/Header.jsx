@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
+import assetPath from '@/lib/assets';
 import '../../css/tournament-switcher.css';
 import '../../css/fan/dashboard-header-extras.css';
 import '../../css/header.css';
@@ -14,7 +15,7 @@ import '../../css/header.css';
 export default function Header() {
     const page = usePage();
     const { assetUrl, auth } = page.props;
-    const logo = (assetUrl || '') + 'assets/img/logo/TFE-logo.png';
+    const logo = assetPath((assetUrl || '') + 'assets/img/logo/TFE-logo.png');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const user = auth?.user;
 

@@ -7,6 +7,7 @@ import GlassPill from '@/Components/Common/GlassPill';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import { TEAM_NAMES } from '@/Data/countryFlags';
 import { formatMoney } from '@/lib/utils';
+import assetPath from '@/lib/assets';
 import '../../../css/tournament-page.css';
 
 // Organiser eyebrow per tournament (matches the hero background brand).
@@ -147,7 +148,7 @@ function TeamsGrid({ title, codes = [], baseUrl, wikiFlags }) {
                     return (
                         <span key={code} className="tourpage-team" title={name}>
                             <img
-                                src={`${baseUrl}assets/Flags/${code}.png`}
+                                src={assetPath(`${baseUrl}assets/Flags/${code}.png`)}
                                 alt={name}
                                 loading="lazy"
                                 onError={(e) => { if (wikiFlags[code]) { e.currentTarget.src = wikiFlags[code]; } else { e.currentTarget.style.visibility = 'hidden'; } }}

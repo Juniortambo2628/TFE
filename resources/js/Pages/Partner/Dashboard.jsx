@@ -7,11 +7,25 @@ import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
+/**
+ * Partner dashboard. Rebuilt on the shared primitives (`tfe-slab` /
+ * `tfe-table` / `tfe-pill` / `tfe-empty` + `tfe-split-grid`) so it matches
+ * the Profile and the rest of the partner surfaces, instead of the bespoke
+ * `content-card` / `activity-*` / `empty-state` chrome it used to carry.
+ */
+const STATUS_PILL = {
+    approved: 'tfe-pill--approved',
+    modified: 'tfe-pill--pending',
+    pending: 'tfe-pill--info',
+    rejected: 'tfe-pill--rejected',
+};
+
 export default function Dashboard({ requests, stats, variant = 'travel' }) {
     const { auth } = usePage().props;
     const { tournament } = useTournament();
     const tournamentLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
     const isFinance = variant === 'finance';
+    const recent = (requests || []).slice(0, 5);
 
     return (
         <PartnerLayout title="Partner Dashboard">
@@ -24,6 +38,7 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
             />
 
             <SummaryTiles
+                className="mb-4"
                 items={[
                     { label: isFinance ? 'Pending Applications' : 'Pending Requests',
                       value: stats?.pending || 0,  icon: 'fa-inbox',        accent: 'amber',
@@ -43,41 +58,41 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                 ]}
             />
 
-            <div className="content-cards-grid mt-4">
-                <div className="content-card quick-actions-card">
-                    <div className="card-header">
-                        <h3>Quick Actions</h3>
-                    </div>
-                    <QuickActionsGrid
-                        actions={[
-                            { id: 'pa-publish',   label: 'Publish',   icon: 'fa-tags',        href: route('partner.listings.index') },
-                            { id: 'pa-convert',   label: 'Convert',   icon: 'fa-inbox',       href: route('partner.requests') },
-                            { id: 'pa-measure',   label: 'Measure',   icon: 'fa-chart-line',  href: route('partner.analytics') },
-                            { id: 'pa-messages',  label: 'Messages',  icon: 'fa-envelope',    href: route('partner.messages') },
-                        ]}
-                    />
-                </div>
-
-                <div className="content-card activity-card">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center gap-2">
-                            <i className="fas fa-list"></i>
-                            <h3>{isFinance ? 'Recent applications' : 'Recent travel requests'}</h3>
-                        </div>
-                        <Link href={route('partner.requests')} className="card-header-link">
-                            View all →
+            <div className="tfe-split-grid">
+                <section className="tfe-slab">
+                    <div className="tfe-slab__header">
+                        <h3 className="tfe-slab__title">
+                            <i className="fas fa-list me-2" aria-hidden="true" />
+                            {isFinance ? 'Recent applications' : 'Recent travel requests'}
+                        </h3>
+                        <Link href={route('partner.requests')} className="tfe-btn tfe-btn--sm">
+                            View all
                         </Link>
                     </div>
-                    <div className="activity-list">
-                        {requests && requests.length > 0 ? (
-                            requests.slice(0, 5).map((req) => (
-                                <RequestRow key={req.id} req={req} isFinance={isFinance} />
-                            ))
+                    <div className="tfe-slab__body tfe-slab__body--flush">
+                        {recent.length > 0 ? (
+                            <div className="table-responsive">
+                                <table className="tfe-table tfe-table--compact">
+                                    <thead>
+                                        <tr>
+                                            <th>Reference</th>
+                                            <th>{isFinance ? 'Applicant' : 'Trip'}</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {recent.map((req) => (
+                                            <RequestRow key={req.id} req={req} isFinance={isFinance} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         ) : (
-                            <div className="empty-state">
-                                <i className="fas fa-inbox"></i>
-                                <h4>{isFinance ? 'No applications yet' : 'No requests yet'}</h4>
-                                <p>
+                            <div className="tfe-empty tfe-empty--inline">
+                                <div className="tfe-empty__icon"><i className="fas fa-inbox" /></div>
+                                <h4 className="tfe-empty__title">{isFinance ? 'No applications yet' : 'No requests yet'}</h4>
+                                <p className="tfe-empty__body">
                                     {isFinance
                                         ? 'Loan applications from fans will appear here.'
                                         : 'Travel requests from fans will appear here.'}
@@ -85,7 +100,25 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                             </div>
                         )}
                     </div>
-                </div>
+                </section>
+
+                <section className="tfe-slab">
+                    <div className="tfe-slab__header">
+                        <h3 className="tfe-slab__title">
+                            <i className="fas fa-bolt me-2" aria-hidden="true" /> Quick actions
+                        </h3>
+                    </div>
+                    <div className="tfe-slab__body">
+                        <QuickActionsGrid
+                            actions={[
+                                { id: 'pa-publish',   label: 'Publish',   icon: 'fa-tags',        href: route('partner.listings.index') },
+                                { id: 'pa-convert',   label: 'Convert',   icon: 'fa-inbox',       href: route('partner.requests') },
+                                { id: 'pa-measure',   label: 'Measure',   icon: 'fa-chart-line',  href: route('partner.analytics') },
+                                { id: 'pa-messages',  label: 'Messages',  icon: 'fa-envelope',    href: route('partner.messages') },
+                            ]}
+                        />
+                    </div>
+                </section>
             </div>
         </PartnerLayout>
     );
@@ -95,25 +128,23 @@ function RequestRow({ req, isFinance = false }) {
     const href = isFinance
         ? route('partner.loans.show', req.id)
         : route('partner.requests.show', req.id);
+    const amount = req.partner_cost ? formatMoney(req.partner_cost) : formatMoney(req.total_cost);
+    const detail = isFinance
+        ? (req.applicant_name || 'Applicant') + ' · ' + (req.purpose || 'Trip financing')
+        : `${req.match_count} matches · ${req.accommodation_level}`;
+
     return (
-        <Link href={href} className="activity-item">
-            <div className="activity-icon">
-                <i className={`fas ${isFinance ? 'fa-hand-holding-usd' : 'fa-suitcase'}`}></i>
-            </div>
-            <div className="activity-info">
-                <div className="activity-title">{req.reference_id}</div>
-                <div className="activity-label">
-                    {isFinance
-                        ? (req.applicant_name || 'Applicant') + ' · ' + (req.purpose || 'Trip financing')
-                        : `${req.match_count} matches · ${req.accommodation_level}`}
-                </div>
-            </div>
-            <div className="activity-meta">
-                <div className="activity-amount">
-                    {req.partner_cost ? formatMoney(req.partner_cost) : formatMoney(req.total_cost)}
-                </div>
-                <span className={`activity-badge activity-badge--${req.status}`}>{req.status}</span>
-            </div>
-        </Link>
+        <tr>
+            <td>
+                <Link href={href} className="accent-partner">
+                    <strong>{req.reference_id}</strong>
+                </Link>
+            </td>
+            <td>{detail}</td>
+            <td><strong>{amount}</strong></td>
+            <td>
+                <span className={`tfe-pill ${STATUS_PILL[req.status] || 'tfe-pill--info'}`}>{req.status}</span>
+            </td>
+        </tr>
     );
 }
