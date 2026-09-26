@@ -678,6 +678,205 @@ select.tfe-select optgroup {
     }
 }
 
+/* ── .tfe-menu-surface — shared dropdown surface (Sprint 46) ─────────────
+   The one popover treatment for every dashboard menu: notifications,
+   messages, profile — and it matches the landing-page tournament
+   switcher so the two feel like one system. Frosted glass with a subtle
+   gradient wash, hairline border, 18px radius, soft rise-in animation.
+   The tournament switcher (.tournament-switcher-menu) shares this exact
+   look; when a change is made here, drop the duplication there too. */
+.tfe-menu-surface {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 320px;
+    background: linear-gradient(180deg,
+        rgba(24, 18, 20, 0.97),
+        rgba(14, 11, 12, 0.96));
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    padding: 8px;
+    margin: 0;
+    z-index: 1200;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    animation: tfe-menu-fade 180ms var(--ease-out);
+    color: #fff;
+    overflow: hidden;
+}
+
+@keyframes tfe-menu-fade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tfe-menu-surface--wide { min-width: 360px; max-width: 92vw; }
+.tfe-menu-surface--profile { min-width: 260px; }
+
+.tfe-menu-surface__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 4px;
+}
+
+.tfe-menu-surface__title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.005em;
+}
+
+.tfe-menu-surface__badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.tfe-menu-surface__badge button,
+button.tfe-menu-surface__badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+}
+
+.tfe-menu-surface__badge button:hover,
+button.tfe-menu-surface__badge:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tfe-menu-surface__body {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 2px 0;
+}
+
+.tfe-menu-surface__foot {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+/* User block at the top of the profile menu. */
+.tfe-menu-surface__user {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.tfe-menu-surface__user-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tfe-menu-surface__user-email {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Menu items (profile links, logout, footer view-all). Flush rows with a
+   soft hover — same rhythm as the tournament-switcher items. */
+.tfe-menu-surface__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: transparent;
+    border: 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+}
+
+.tfe-menu-surface__item:hover,
+.tfe-menu-surface__item:focus-visible {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    outline: none;
+}
+
+.tfe-menu-surface__item i {
+    width: 18px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.tfe-menu-surface__item--danger { color: #fca5a5; }
+.tfe-menu-surface__item--danger i { color: #fca5a5; }
+.tfe-menu-surface__item--danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+}
+
+/* Activity/message rows rendered inside the surface — softer than the
+   flush items but still consistent with the theme. */
+.tfe-menu-surface .dash-activity-item {
+    border-bottom: none;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 0 0 2px;
+}
+
+.tfe-menu-surface .dash-activity-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Footer "View all" link inside the surface. */
+.tfe-menu-surface .dashboard-dropdown-footer-link {
+    border-top: 0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: var(--dash-accent, #fff);
+}
+
+.tfe-menu-surface .dashboard-dropdown-footer-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Mobile — keep the surface inside the viewport instead of hugging the
+   trigger, so a bell that sits near the screen edge doesn't clip. */
+@media (max-width: 640px) {
+    .tfe-menu-surface {
+        position: fixed;
+        top: calc(var(--dash-header-h, 52px) + 8px);
+        left: 8px;
+        right: 8px;
+        min-width: 0;
+        max-width: none;
+        width: auto;
+    }
+}
+
 /* ── .tfe-modal — the one shared dashboard dialog (TfeModal.jsx) ──────────
    Centered glass panel with a title bar, scrollable body and click-outside
    / Escape to close. Every create/edit form on the dashboards renders through
