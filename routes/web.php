@@ -269,6 +269,15 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'password'])->name('profile.password');
 
+    // Security — the shared account-security surface (Sprint 53). Same
+    // SecurityService as the fan + partner dashboards; only the rendered
+    // Inertia page differs.
+    Route::get('/security', [App\Http\Controllers\Admin\SecurityController::class, 'index'])->name('security');
+    Route::post('/security/password', [App\Http\Controllers\Admin\SecurityController::class, 'changePassword'])->name('security.password');
+    Route::post('/security/two-factor', [App\Http\Controllers\Admin\SecurityController::class, 'toggleTwoFactor'])->name('security.two-factor');
+    Route::post('/security/two-factor/confirm', [App\Http\Controllers\Admin\SecurityController::class, 'confirmTwoFactor'])->name('security.two-factor.confirm');
+    Route::post('/security/notifications', [App\Http\Controllers\Admin\SecurityController::class, 'toggleLoginNotifications'])->name('security.notifications');
+
     // Events Management
     Route::get('/events', [App\Http\Controllers\Admin\EventController::class, 'index'])->name('events');
     Route::post('/events', [App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
@@ -367,6 +376,7 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
     Route::post('/security/password', [App\Http\Controllers\Partner\SecurityController::class, 'changePassword'])->name('security.password');
     Route::post('/security/two-factor', [App\Http\Controllers\Partner\SecurityController::class, 'toggleTwoFactor'])->name('security.two-factor');
     Route::post('/security/two-factor/confirm', [App\Http\Controllers\Partner\SecurityController::class, 'confirmTwoFactor'])->name('security.two-factor.confirm');
+    Route::post('/security/notifications', [App\Http\Controllers\Partner\SecurityController::class, 'toggleLoginNotifications'])->name('security.notifications');
 
     // Sprint 10 — Publish tab: partner-authored listings CRUD.
     Route::get('/listings', [ListingController::class, 'index'])->name('listings.index');

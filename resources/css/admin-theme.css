@@ -984,10 +984,12 @@
     white-space: pre-wrap;
 }
 
-/* Shared sticky preview pane for SplitEditorLayout (form left, preview right).
-   `.admin-tournament-preview` is kept as an alias for the tournament edit page
-   that predates the shared component. */
-.admin-split-preview,
+/* The sticky preview pane and the editor stack moved to primitives.css in
+   Sprint 53 (as `.tfe-split-preview` / `.tfe-editor-stack`, with the
+   `.admin-*` names kept as aliases) so fan + partner surfaces can render
+   through SplitEditorLayout too — this sheet only loads on admin pages.
+   `.admin-tournament-preview` predates the shared component and is aliased
+   onto the same rules here. */
 .admin-tournament-preview {
     position: sticky;
     top: 88px;
@@ -996,20 +998,12 @@
     gap: 16px;
 }
 
-.admin-split-preview__title,
 .admin-tournament-preview__title {
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: var(--label-letter-spacing, 0.06em);
     color: rgba(255, 255, 255, 0.55);
-}
-
-/* Left-column form slabs stack with breathing room in the split layout. */
-.admin-editor-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
 }
 
 /* Section-card previews stack in the sticky pane. */

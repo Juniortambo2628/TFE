@@ -8,7 +8,9 @@ use App\Models\Post;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserSecuritySetting;
+use App\Services\MediaLibraryService;
 use App\Traits\HasSocialStats;
+use App\Traits\Uploadable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,7 @@ use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
-    use HasSocialStats;
+    use HasSocialStats, Uploadable;
 
     public function index()
     {
@@ -131,11 +133,13 @@ class ProfileController extends Controller
         // Mapping newsletter to community or marketing if not separate in DB
         // Based on model, we have marketing_consent and community_consent.
 
-        // Handle cover_image — could be a file upload or a URL string
+        // Handle cover_image — could be a file upload or a URL string.
+        // Through MediaLibraryService (Sprint 50) so it is compressed and
+        // recorded in the library. The old `image` rule here also accepted
+        // SVG, which is a stored-XSS vector on same-origin storage.
         if ($request->hasFile('cover_image')) {
-            $request->validate(['cover_image' => 'image|max:2048']);
-            $path = $request->file('cover_image')->store('profiles', 'public');
-            $validated['cover_image'] = '/storage/'.$path;
+            $request->validate(['cover_image' => MediaLibraryService::imageRules(5120)]);
+            $validated['cover_image'] = '/storage/'.$this->uploadFile($request->file('cover_image'), 'profiles');
         } elseif ($request->filled('cover_image')) {
             $validated['cover_image'] = $request->input('cover_image');
         } else {
@@ -147,21 +151,43 @@ class ProfileController extends Controller
         return back()->with('success', 'Profile updated successfully!');
     }
 
+    /**
+     * Update the fan's avatar.
+     *
+     * Sprint 53 — this used to accept only `avatar_url`, because the avatar
+     * was produced by Ready Player Me's hosted 3D creator, which the page
+     * embedded from `demo.readyplayer.me`. That subdomain no longer resolves,
+     * so "Change Avatar" opened a browser DNS error page and there was no way
+     * for a fan to set a picture at all. The avatar is an ordinary image
+     * upload now, through the platform's own pipeline (compressed, recorded
+     * in the media library, no third party involved).
+     *
+     * `avatar_url` is still accepted so an already-stored avatar URL can be
+     * re-submitted or cleared without a re-upload.
+     */
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar_url' => 'required|url',
+            'avatar' => MediaLibraryService::imageRules(5120, false),
+            'avatar_url' => 'nullable|string|max:2048',
         ]);
 
         $user = Auth::user();
 
-        // Update or create profile
         $profile = Profile::firstOrCreate(
             ['user_id' => $user->id],
             ['settings' => []]
         );
 
-        $profile->avatar_path = $request->avatar_url;
+        if ($request->hasFile('avatar')) {
+            $profile->avatar_path = '/storage/'.$this->uploadFile($request->file('avatar'), 'avatars');
+        } elseif ($request->filled('avatar_url')) {
+            $profile->avatar_path = $request->input('avatar_url');
+        } else {
+            // Nothing supplied — clear it and fall back to the default avatar.
+            $profile->avatar_path = null;
+        }
+
         $profile->save();
 
         return back()->with('success', 'Avatar updated successfully!');

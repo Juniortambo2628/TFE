@@ -8,6 +8,7 @@ use App\Models\SiteSetting;
 use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
@@ -21,6 +22,20 @@ use Inertia\Inertia;
  */
 class HomeController extends Controller
 {
+    /**
+     * The tournament payload keys `Pages/Tournaments/Show.jsx` renders. Kept
+     * next to the only method that uses it so the two are edited together —
+     * a field added to the page needs a line here or it arrives undefined.
+     */
+    private const SHOW_PAGE_FIELDS = [
+        'id', 'name', 'short_name', 'slug', 'status', 'tagline',
+        'start_date', 'end_date', 'hosts', 'num_teams', 'matches_played',
+        'total_goals', 'facts', 'color_accent', 'trophy_image',
+        'organizer_card_bg', 'winner', 'runner_up', 'top_scorer',
+        'player_of_tournament', 'team_flag_codes', 'wikipedia_extract',
+        'wikipedia_flags',
+    ];
+
     use ResolvesTournament;
 
     public function index()
@@ -141,7 +156,12 @@ class HomeController extends Controller
         $upcoming = collect($all)->firstWhere('status', 'upcoming');
 
         return Inertia::render('Tournaments/Show', [
-            'tournament' => $tournament,
+            // Only the keys Tournaments/Show.jsx actually renders (Sprint 53).
+            // The assembled payload also carries the raw Wikipedia response,
+            // every venue row with its extract and imagery, and the full
+            // fixture list — none of which this recap page draws, and all of
+            // which was being serialised into the page props on every visit.
+            'tournament' => Arr::only($tournament, self::SHOW_PAGE_FIELDS),
             'listings' => $listings,
             'upcoming' => $upcoming ? [
                 'slug' => $upcoming['slug'],

@@ -39,6 +39,7 @@ export default function AdminSidebar({ user }) {
         { heading: 'Platform' },
         { label: 'Settings', icon: 'fas fa-cog', route: 'admin.settings', path: '/admin/settings' },
         { label: 'Profile', icon: 'fas fa-user-circle', route: 'admin.profile', path: '/admin/profile' },
+        { label: 'Security', icon: 'fas fa-shield-alt', route: 'admin.security', path: '/admin/security' },
     ];
 
     return (
