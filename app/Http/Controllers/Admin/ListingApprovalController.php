@@ -11,25 +11,30 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 /**
- * Admin approval queue for partner-authored listings — Sprint 10.
+ * Admin listing safety surface — reports & takedowns.
  *
- * Sits alongside the existing admin/packages page (which manages
- * admin-authored inventory). Only listings whose publisher is a User
- * (i.e. a partner) reach this queue; admin-authored listings are
- * auto-approved and never surface here.
+ * Sprint 42 gave partners self-publish; there is no "pending queue" any
+ * more. This controller now lists every live partner-authored listing and
+ * lets admin take one down for policy violations (mandatory notes), or
+ * re-publish something that was previously taken down. Bulk approve is
+ * gone; bulk takedown stays for coordinated actions.
  */
 class ListingApprovalController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->query('status', 'pending');
+        $status = $request->query('status', 'live');
+        $statusColumn = match ($status) {
+            'taken_down' => 'rejected',
+            'live' => 'approved',
+            default => $status,
+        };
 
         $listings = Listing::query()
             ->where('publisher_type', User::class)
-            ->when(in_array($status, ['pending', 'approved', 'rejected', 'draft'], true),
-                fn ($q) => $q->where('moderation_status', $status))
+            ->where('moderation_status', $statusColumn)
+            ->when($status === 'live', fn ($q) => $q->where('is_active', true))
             ->with('publisher')
-            ->orderByDesc('submitted_at')
             ->orderByDesc('updated_at')
             ->get()
             ->map(function (Listing $l) {
@@ -43,16 +48,11 @@ class ListingApprovalController extends Controller
                     'description' => $l->description,
                     'base_price' => $l->base_price,
                     'currency' => $l->currency,
-                    'nights' => $l->nights,
-                    'flight_class' => $l->flight_class,
-                    'accommodation_level' => $l->accommodation_level,
-                    'capacity' => $l->capacity,
-                    'included_venues' => $l->included_venues ?? [],
-                    'included_match_ids' => $l->included_match_ids ?? [],
                     'hero_image' => $l->hero_image,
                     'moderation_status' => $l->moderation_status,
                     'moderation_notes' => $l->moderation_notes,
-                    'submitted_at' => $l->submitted_at?->format('M d, Y H:i'),
+                    'is_active' => (bool) $l->is_active,
+                    'updated_at' => $l->updated_at?->format('M d, Y H:i'),
                     'tournament_id' => $l->tournament_id,
                     'tournament_name' => $tCfg['short_name'] ?? $tCfg['name'] ?? $l->tournament_id,
                     'publisher_id' => $l->publisher_id,
@@ -66,14 +66,18 @@ class ListingApprovalController extends Controller
             'listings' => $listings,
             'filter_status' => $status,
             'counts' => [
-                'pending' => Listing::where('publisher_type', User::class)->where('moderation_status', 'pending')->count(),
-                'approved' => Listing::where('publisher_type', User::class)->where('moderation_status', 'approved')->count(),
-                'rejected' => Listing::where('publisher_type', User::class)->where('moderation_status', 'rejected')->count(),
-                'draft' => Listing::where('publisher_type', User::class)->where('moderation_status', 'draft')->count(),
+                'live' => Listing::where('publisher_type', User::class)
+                    ->where('moderation_status', 'approved')->where('is_active', true)->count(),
+                'taken_down' => Listing::where('publisher_type', User::class)
+                    ->where('moderation_status', 'rejected')->count(),
             ],
         ]);
     }
 
+    /**
+     * Restore a previously taken-down listing (or re-publish a partner
+     * that came back into compliance).
+     */
     public function approve(Request $request, Listing $listing)
     {
         $listing->update([
@@ -82,12 +86,15 @@ class ListingApprovalController extends Controller
             'is_active' => true,
         ]);
 
-        // Sprint 17 — notify the publisher partner.
         $listing->publisher?->notify(new ListingModerationNotification($listing, 'approved'));
 
-        return back()->with('success', "'{$listing->name}' approved and now live.");
+        return back()->with('success', "'{$listing->name}' restored — live again.");
     }
 
+    /**
+     * Take a live listing down. Notes are required — the partner needs
+     * to know exactly what to change.
+     */
     public function reject(Request $request, Listing $listing)
     {
         $validated = $request->validate([
@@ -102,58 +109,12 @@ class ListingApprovalController extends Controller
 
         $listing->publisher?->notify(new ListingModerationNotification($listing, 'rejected'));
 
-        return back()->with('success', "'{$listing->name}' returned to partner with feedback.");
+        return back()->with('success', "'{$listing->name}' taken down. Partner notified.");
     }
 
     /**
-     * Sprint 19 — bulk approve. Accepts an array of listing IDs and
-     * approves each one, firing a ListingModerationNotification per
-     * publisher so no partner is silently updated. Ignores IDs that
-     * aren't partner-authored + pending — a race between two admins
-     * shouldn't produce a 500.
-     */
-    public function bulkApprove(Request $request)
-    {
-        $validated = $request->validate([
-            'ids' => 'required|array|min:1|max:200',
-            'ids.*' => 'integer',
-        ]);
-
-        // Eager-load publisher so the notify() loop below doesn't fire
-        // an N+1 SELECT per row (Sprint 19 review finding).
-        $listings = Listing::query()
-            ->whereIn('id', $validated['ids'])
-            ->where('publisher_type', User::class)
-            ->whereIn('moderation_status', ['pending', 'draft', 'rejected'])
-            ->with('publisher')
-            ->get();
-
-        // All-or-nothing at the DB level so a mid-loop failure doesn't
-        // leave half the batch flipped + half the partners notified.
-        // Notifications live in the same connection, so a rollback
-        // wipes their inserts too.
-        DB::transaction(function () use ($listings) {
-            foreach ($listings as $listing) {
-                $listing->update([
-                    'moderation_status' => 'approved',
-                    // Clear stale rejection feedback so the partner
-                    // doesn't keep seeing "Add venues photo" attached
-                    // to a newly-approved listing.
-                    'moderation_notes' => null,
-                    'is_active' => true,
-                ]);
-                $listing->publisher?->notify(new ListingModerationNotification($listing, 'approved'));
-            }
-        });
-
-        return back()->with('success', $this->bulkFlash('Approved', $listings->count(), count($validated['ids'])));
-    }
-
-    /**
-     * Sprint 19 — bulk reject. Notes are required and applied to every
-     * listing in the batch (one round of feedback covers a themed set
-     * of returns; per-listing notes are still done via the single
-     * reject endpoint).
+     * Bulk takedown — one round of feedback across a themed set of
+     * violations (spam wave, banned merchant type, etc).
      */
     public function bulkReject(Request $request)
     {
@@ -163,13 +124,10 @@ class ListingApprovalController extends Controller
             'notes' => 'required|string|max:2000',
         ]);
 
-        // Include 'rejected' so admin can update prior feedback on
-        // rows that are already returned — otherwise typing new notes
-        // silently no-ops (Sprint 19 review finding).
         $listings = Listing::query()
             ->whereIn('id', $validated['ids'])
             ->where('publisher_type', User::class)
-            ->whereIn('moderation_status', ['pending', 'draft', 'approved', 'rejected'])
+            ->where('moderation_status', 'approved')
             ->with('publisher')
             ->get();
 
@@ -184,24 +142,14 @@ class ListingApprovalController extends Controller
             }
         });
 
-        return back()->with('success', $this->bulkFlash('Returned', $listings->count(), count($validated['ids']), 'with feedback'));
-    }
-
-    /**
-     * Format the bulk-action flash so the admin sees when some IDs
-     * were skipped (e.g. another admin already acted, or a status
-     * changed between selection and submit). Silent skips were a
-     * Sprint 19 review finding.
-     */
-    protected function bulkFlash(string $verb, int $updated, int $requested, string $suffix = ''): string
-    {
-        $noun = 'listing'.($updated === 1 ? '' : 's');
-        $msg = trim("{$verb} {$updated} {$noun} {$suffix}");
-        if ($updated < $requested) {
-            $skipped = $requested - $updated;
-            $msg .= " ({$skipped} skipped — status changed since selection)";
+        $updated = $listings->count();
+        $requested = count($validated['ids']);
+        $skipped = $requested - $updated;
+        $msg = "Took down {$updated} listing".($updated === 1 ? '' : 's').'.';
+        if ($skipped > 0) {
+            $msg .= " ({$skipped} skipped — no longer live)";
         }
 
-        return $msg.'.';
+        return back()->with('success', $msg);
     }
 }

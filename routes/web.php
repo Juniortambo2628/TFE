@@ -313,11 +313,8 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/partners/{user}', [PartnerController::class, 'edit'])->name('partners.edit');
     Route::put('/partners/{user}', [PartnerController::class, 'update'])->name('partners.update');
 
-    // Sprint 10 — approval queue for partner-authored listings.
+    // Sprint 47 Phase C — listing safety surface (takedowns + re-publish).
     Route::get('/listing-approvals', [ListingApprovalController::class, 'index'])->name('listing-approvals.index');
-    // Sprint 19 — bulk actions. Declared BEFORE the {listing} wildcard
-    // routes so they aren't captured as $listing = "bulk".
-    Route::post('/listing-approvals/bulk/approve', [ListingApprovalController::class, 'bulkApprove'])->name('listing-approvals.bulk-approve');
     Route::post('/listing-approvals/bulk/reject', [ListingApprovalController::class, 'bulkReject'])->name('listing-approvals.bulk-reject');
     Route::post('/listing-approvals/{listing}/approve', [ListingApprovalController::class, 'approve'])->name('listing-approvals.approve');
     Route::post('/listing-approvals/{listing}/reject', [ListingApprovalController::class, 'reject'])->name('listing-approvals.reject');
