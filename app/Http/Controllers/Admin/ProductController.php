@@ -22,6 +22,7 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'category' => $product->category,
                     'price' => $product->price,
+                    'description' => $product->description,
                     'image_url' => $product->image ? asset('storage/'.$product->image) : null,
                     'in_stock' => $product->in_stock,
                     'stock_quantity' => $product->stock_quantity,

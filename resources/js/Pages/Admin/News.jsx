@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import DataTable from '@/Components/DataTable';
 import DashboardModal from '@/Components/Common/DashboardModal';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
+import ListingGrid from '@/Components/Common/ListingGrid';
 import { useForm, router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
 export default function News({ auth, news = { data: [] } }) {
+    const items = news.data || [];
+
     const [showForm, setShowForm] = useState(false);
     const [newsToEdit, setNewsToEdit] = useState(null);
     const [newsToDelete, setNewsToDelete] = useState(null);
@@ -72,39 +73,12 @@ export default function News({ auth, news = { data: [] } }) {
         setShowForm(true);
     };
 
-    const columns = [
-        {
-            accessorKey: "title",
-            header: "Title",
-            cell: ({ row }) => <span className="fw-semibold">{row.original.title}</span>,
-        },
-        {
-            accessorKey: "category",
-            header: "Category",
-            cell: ({ row }) => <span className="admin-badge admin-badge-blue">{row.original.category || 'General'}</span>,
-        },
-        {
-            accessorKey: "created_at",
-            header: "Posted",
-            cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
-        },
-        {
-            id: "actions",
-            header: "Actions",
-            cell: ({ row }) => (
-                <div className="d-flex gap-2">
-                    <button className="btn-admin-icon" onClick={() => handleView(row.original)}><i className="fas fa-eye"></i></button>
-                    <button className="btn-admin-icon" onClick={() => handleEdit(row.original)}><i className="fas fa-edit"></i></button>
-                    <button className="btn-admin-icon" onClick={() => setNewsToDelete(row.original.id)} style={{'--admin-primary': 'var(--admin-danger)'}}><i className="fas fa-trash"></i></button>
-                </div>
-            )
-        }
-    ];
+    const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : '—');
 
     return (
         <AdminLayout title="News Management">
-            <DashboardHero role="admin" 
-                title="News Management" 
+            <DashboardHero role="admin"
+                title="News Management"
                 subtitle="Manage platform announcements and articles."
                 breadcrumbs={breadcrumbs}
                 action={{
@@ -120,15 +94,71 @@ export default function News({ auth, news = { data: [] } }) {
             />
 
             <SummaryTiles items={[
-                { label: 'Total Articles', value: news.total || 0, icon: 'fa-newspaper', accent: 'cyan' },
+                { label: 'Total Articles', value: news.total ?? items.length, icon: 'fa-newspaper', accent: 'cyan' },
             ]} className="mb-4" />
 
             <div className="admin-card-dark">
                 <div className="card-header">
                     <h3><i className="fas fa-list me-2"></i> Articles</h3>
+                    <span className="admin-badge admin-badge-gray">{items.length} items</span>
                 </div>
-                <div className="card-body p-0">
-                    <DataTable columns={columns} data={news.data || []} />
+                <div className="card-body">
+                    <ListingGrid
+                        items={items}
+                        emptyIcon="fas fa-newspaper"
+                        emptyTitle="No articles yet"
+                        emptyBody="Click 'Add News' to publish your first article."
+                        to={(article) => ({
+                            title: article.title,
+                            eyebrow: article.category || 'General',
+                            desc: article.content,
+                            accent: '#06b6d4',
+                            cover: article.image_url || undefined,
+                            artwork: article.image_url ? undefined : { icon: 'fas fa-newspaper' },
+                            meta: [{ label: 'Posted', value: formatDate(article.created_at) }],
+                            cornerButton: {
+                                icon: 'fas fa-edit',
+                                label: `Edit ${article.title}`,
+                                onClick: () => handleEdit(article),
+                            },
+                        })}
+                        tableView={
+                            <table className="tfe-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Posted</th>
+                                        <th style={{ width: 130 }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map((article) => (
+                                        <tr key={article.id}>
+                                            <td className="fw-semibold">{article.title}</td>
+                                            <td>
+                                                <span className="tfe-pill tfe-pill--info">{article.category || 'General'}</span>
+                                            </td>
+                                            <td>{formatDate(article.created_at)}</td>
+                                            <td>
+                                                <div className="d-flex gap-2">
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="View article" onClick={() => handleView(article)}>
+                                                        <i className="fas fa-eye"></i>
+                                                    </button>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Edit article" onClick={() => handleEdit(article)}>
+                                                        <i className="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Delete article" onClick={() => setNewsToDelete(article.id)}>
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        }
+                    />
                 </div>
             </div>
 
@@ -150,12 +180,12 @@ export default function News({ auth, news = { data: [] } }) {
                             <div className="col-12">
                                 <div className="admin-form-group">
                                     <label className="tfe-form-label">Title *</label>
-                                    <input 
-                                        type="text" 
-                                        className="tfe-input" 
-                                        value={data.title} 
-                                        onChange={e => setData('title', e.target.value)} 
-                                        required 
+                                    <input
+                                        type="text"
+                                        className="tfe-input"
+                                        value={data.title}
+                                        onChange={e => setData('title', e.target.value)}
+                                        required
                                         disabled={isViewOnly}
                                     />
                                 </div>
@@ -163,11 +193,11 @@ export default function News({ auth, news = { data: [] } }) {
                             <div className="col-12">
                                 <div className="admin-form-group">
                                     <label className="tfe-form-label">Category</label>
-                                    <input 
-                                        type="text" 
-                                        className="tfe-input" 
-                                        value={data.category} 
-                                        onChange={e => setData('category', e.target.value)} 
+                                    <input
+                                        type="text"
+                                        className="tfe-input"
+                                        value={data.category}
+                                        onChange={e => setData('category', e.target.value)}
                                         disabled={isViewOnly}
                                     />
                                 </div>
@@ -175,12 +205,12 @@ export default function News({ auth, news = { data: [] } }) {
                             <div className="col-12">
                                 <div className="admin-form-group">
                                     <label className="tfe-form-label">Content *</label>
-                                    <textarea 
-                                        className="tfe-input" 
-                                        rows={6} 
-                                        value={data.content} 
-                                        onChange={e => setData('content', e.target.value)} 
-                                        required 
+                                    <textarea
+                                        className="tfe-input"
+                                        rows={6}
+                                        value={data.content}
+                                        onChange={e => setData('content', e.target.value)}
+                                        required
                                         disabled={isViewOnly}
                                     ></textarea>
                                 </div>
@@ -190,7 +220,7 @@ export default function News({ auth, news = { data: [] } }) {
 
                     {activeTab === 'media' && (
                         <div className="bounce-in">
-                            <FilePondUploader 
+                            <FilePondUploader
                                 files={imageFiles}
                                 onUpdateFiles={(files) => {
                                     if (isViewOnly) return;
@@ -216,7 +246,7 @@ export default function News({ auth, news = { data: [] } }) {
                 </form>
             </DashboardModal>
 
-            <ConfirmationDialog 
+            <ConfirmationDialog
                 open={!!newsToDelete}
                 onOpenChange={(open) => !open && setNewsToDelete(null)}
                 title="Delete News?"
