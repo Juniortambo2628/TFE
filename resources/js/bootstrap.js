@@ -3,18 +3,40 @@ window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-// Sprint 44 — every AJAX POST rides on the CSRF-protected `web` middleware
-// group. Belt-and-braces: pull the token off the meta blade injects on every
-// page and pin it as the default X-CSRF-TOKEN so a request that fires before
-// axios has read the XSRF cookie (or from a caller who bypassed the default
-// interceptors) still validates. A 419 on a valid session usually means the
-// bundle is holding a token from a prior login; a page refresh gets a new
-// one, so the interceptor below surfaces a one-line explanation instead of
-// silently failing.
-const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-if (csrfMeta?.content) {
-    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfMeta.content;
-}
+// Sprint 48 — CSRF token, resolved per request rather than pinned once.
+//
+// This used to read <meta name="csrf-token"> at module load and pin it as the
+// default X-CSRF-TOKEN header. That header is the FIRST thing Laravel's
+// VerifyCsrfToken checks, so once it went stale nothing else got a look in —
+// and it goes stale on the first session regeneration, which is exactly what
+// logging in does. Since Inertia never reloads the document, the meta tag kept
+// the pre-login token for the rest of the visit and every axios POST after
+// sign-in answered 419 (the cookie-consent write was the visible one).
+//
+// Laravel reissues a fresh XSRF-TOKEN cookie on every response, so reading it
+// at request time is always current. The meta tag stays as a fallback for the
+// first request of a brand-new session, before any cookie exists.
+const readCookie = (name) => {
+    const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
+
+    return match ? decodeURIComponent(match[2]) : null;
+};
+
+const csrfMeta = document.querySelector('meta[name="csrf-token"]')?.content ?? null;
+
+window.axios.interceptors.request.use((config) => {
+    const xsrf = readCookie('XSRF-TOKEN');
+
+    if (xsrf) {
+        // Laravel decrypts this one, so it survives session regeneration.
+        config.headers['X-XSRF-TOKEN'] = xsrf;
+        delete config.headers['X-CSRF-TOKEN'];
+    } else if (csrfMeta) {
+        config.headers['X-CSRF-TOKEN'] = csrfMeta;
+    }
+
+    return config;
+});
 
 let sessionExpiredNotified = false;
 window.axios.interceptors.response.use(
