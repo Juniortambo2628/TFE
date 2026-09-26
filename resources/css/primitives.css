@@ -484,11 +484,23 @@ a.tfe-sidebar-nav-item.is-active {
 }
 
 /* Grid the tiles live in — auto-fit so anywhere from 2 to 6 works. */
+/* Wrapping flex rather than `repeat(auto-fit, minmax(180px, 1fr))`
+   (Sprint 56): six shortcuts in a full-width card fit five per row, leaving
+   the sixth alone in a 180px box. Growing flex items let the leftovers
+   stretch across the row they land on — the same fix, and the same
+   reasoning, as `.summary-cards-grid`. */
 .tfe-quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     padding: 6px 22px 22px;
+}
+
+.tfe-quick-actions-grid > * {
+    /* 160px basis so a six-shortcut row (the admin dashboard) fits on one
+       line at dashboard width instead of stranding the sixth. */
+    flex: 1 1 160px;
+    min-width: 0;
 }
 
 /* ── Stat grid ────────────────────────────────────────────────────────── */
@@ -1604,6 +1616,27 @@ button.tfe-menu-surface__badge:hover {
     font-weight: 600;
     letter-spacing: var(--label-letter-spacing, 0.06em);
     color: rgb(255 255 255 / 55%);
+}
+
+/* Equal content columns (Sprint 56) — two or three cards abreast, stacking
+   below 992px. `.tfe-split-grid` is the 2fr/1fr editor shape; this is for
+   panels of equal weight, like the admin dashboard's two activity tables or
+   the fan profile's tribes + activity. */
+.tfe-card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (min-width: 992px) {
+    .tfe-card-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tfe-card-grid--3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 /* Left-column slabs stack with breathing room. */

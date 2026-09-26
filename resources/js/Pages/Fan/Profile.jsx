@@ -576,7 +576,7 @@ export default function Profile({
                 {/* Read-only community panels are not part of the editor, so
                     they sit under it, full width — inside the form column they
                     buried the Save button under two more cards. */}
-                {isOwnProfile && <div className="profile-community-grid">{community}</div>}
+                {isOwnProfile && <div className="tfe-card-grid tfe-card-grid--2 profile-community-grid">{community}</div>}
 
                 <TeamPickerDialog
                     open={showTeamPicker}

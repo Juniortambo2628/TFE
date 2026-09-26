@@ -77,6 +77,12 @@ if (process.env.NODE_ENV === 'production') {
                     // means our `.tfe-*` CSS gets stripped from prod
                     // builds while surviving in dev. Whitelist every
                     // prefix used by hand-written CSS in resources/css/.
+                    // Tremor charts build `fill-emerald-500` and friends at
+                    // runtime, so no extractor ever sees them — keep the
+                    // colours our charts use. Mirrors the tailwind.config
+                    // safelist; both are needed (Tailwind must emit them,
+                    // PurgeCSS must not strip them).
+                    /^(fill|stroke)-(emerald|cyan)-(300|400|500|600)$/,
                     /^tfe-/,           // primitives.css (.tfe-tile, .tfe-slab, .tfe-pill, .tfe-sidebar-nav-item, .tfe-quick-action*)
                     /^is-/,            // state modifiers (is-active, is-open)
                     /^dash-/,          // dashboard-header-extras.css (.dash-btn-icon, .dash-badge, .dash-avatar, .dash-activity-*, .dash-empty)

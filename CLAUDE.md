@@ -844,6 +844,10 @@ new card / table / list CSS:
   actually applied — so a five-tile page dropped its fifth tile into a 240px
   box beside a screenful of void. Flex needs no breakpoints and lets a
   leftover tile stretch across the row it lands on (Sprint 56).
+- **`.tfe-card-grid`** (Sprint 56) — equal content columns, `--2` / `--3`,
+  stacking below 992px. `.tfe-split-grid` is the 2fr/1fr editor shape; this
+  is for panels of equal weight (the admin dashboard's charts and activity
+  tables, the fan profile's tribes + activity).
 - **`.tfe-form-grid`** (Sprint 56) — multi-column field rows, `--2` / `--3`,
   collapsing to one column below 768px, with `.tfe-form-field--wide` for a
   field that spans. Prefer it over Bootstrap's `row` / `col-md-*`: those DO
@@ -974,6 +978,23 @@ description) and passes them as the `cards` prop.
 The components keep their constant as a **default prop value** so the landing
 sections still render when no `cards` are passed — keep it in step with the
 config if you change either.
+
+### Tremor chart colours (Sprint 56)
+
+`@tremor/react` builds its class names at runtime — `fill-${color}-500`,
+`stroke-${color}-500` — so they appear in no file any extractor scans, not
+even inside the package. Tailwind emitted none of them and the charts drew
+**black bars on a black card**, on the admin dashboard and on Admin →
+Analytics alike.
+
+Both configs need the colours:
+
+- `tailwind.config.js` → `safelist` pattern (so Tailwind emits them at all);
+- `postcss.config.js` → PurgeCSS safelist (so the prod build keeps them).
+
+Only the colours our charts pass are listed (`emerald`, `cyan`). Pass a new
+one to a Tremor chart and add it to both, or it is invisible again — and if
+you only forget PurgeCSS, it works in dev and breaks in prod.
 
 ### PurgeCSS safelist gotcha
 
@@ -1288,6 +1309,14 @@ tests/
 - Never let a concluded tournament become the active context. Read
   `tournament_switch_list` (or `switchableTournaments` from the context), not
   `tournament_list`, anywhere the pick CHANGES the session (Sprint 53).
+- Never label a tile from a count that means something else. "Registered
+  fans" read `User::count()` — every account — so it said 8 while the Fans
+  bar in the chart directly beneath it said 2, and "Active tribes" filtered
+  on an `active` column `tribes` does not have. If the label and the query
+  disagree, one of them is a bug (Sprint 56).
+- Never chart a grouped-by-date query without zero-filling it. `GROUP BY
+  DATE(created_at)` returns only the days that had rows, so the chart closes
+  the gaps and a quiet week reads as a busy one (Sprint 56).
 - Never leave a partner surface unscoped "for now". The Sprint 10 global-queue
   fallback was a deliberate transition measure and still shipped six sprints
   later, by which time it meant any partner without listings read every fan's
@@ -1387,7 +1416,7 @@ tests/
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
-| 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
+| 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

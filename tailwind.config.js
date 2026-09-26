@@ -10,6 +10,26 @@ export default {
         './resources/js/**/*.jsx',
     ],
 
+    /**
+     * Tremor chart colours (Sprint 56).
+     *
+     * Tremor builds its class names at runtime — `fill-${color}-500`,
+     * `stroke-${color}-500` — so they appear in no file Tailwind scans, not
+     * even inside the package itself. Tailwind emitted none of them and the
+     * charts drew BLACK bars on a black card: the admin dashboard's
+     * "Who's on the platform" and the analytics chart both.
+     *
+     * Only the colours our charts actually pass are listed, to keep the
+     * emitted CSS small. Pass a new colour to a Tremor chart and you must
+     * add it here AND to the PurgeCSS safelist in postcss.config.js, or it
+     * will be invisible again — in prod only, if you forget just the second.
+     */
+    safelist: [
+        {
+            pattern: /^(fill|stroke|text|bg|border)-(emerald|cyan)-(300|400|500|600)$/,
+        },
+    ],
+
     darkMode: ["class"],
     theme: {
         container: {
