@@ -43,6 +43,7 @@ export default function SettingField({
     rows = 3,
     accept,
     onSaved,
+    onChange,
 }) {
     const fullKey = `${group}_${settingKey}`;
     const isImage = type === 'image';
@@ -51,6 +52,13 @@ export default function SettingField({
     const [file, setFile] = useState(null);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+
+    // Live-edit hook: fire onChange on every keystroke so a parent (e.g. the
+    // Content CMS split preview) can reflect the in-progress value before save.
+    const edit = (v) => {
+        setText(v);
+        onChange?.(v);
+    };
 
     const post = (payload, opts = {}) => {
         setSaving(true);
@@ -131,7 +139,7 @@ export default function SettingField({
                             rows={rows}
                             value={text}
                             placeholder={placeholder}
-                            onChange={(e) => setText(e.target.value)}
+                            onChange={(e) => edit(e.target.value)}
                         />
                     ) : type === 'color' ? (
                         <input
@@ -139,7 +147,7 @@ export default function SettingField({
                             type="color"
                             className="tfe-color-swatch"
                             value={text || '#dc143c'}
-                            onChange={(e) => setText(e.target.value)}
+                            onChange={(e) => edit(e.target.value)}
                         />
                     ) : (
                         <input
@@ -148,7 +156,7 @@ export default function SettingField({
                             className="tfe-input"
                             value={text}
                             placeholder={placeholder}
-                            onChange={(e) => setText(e.target.value)}
+                            onChange={(e) => edit(e.target.value)}
                         />
                     )}
 

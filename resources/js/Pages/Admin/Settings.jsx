@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ImageUpload from '@/Components/Common/ImageUpload';
+import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
+import IdentityPreview from '@/Components/Common/IdentityPreview';
+import { assetPath } from '@/lib/assets';
 import { useForm, usePage } from '@inertiajs/react';
 
 /**
@@ -77,8 +80,18 @@ export default function Settings({ settings = {} }) {
             </div>
 
             {activeTab === 'site' && (
-                <div className="row g-4">
-                    <div className="col-lg-6">
+                <SplitEditorLayout
+                    preview={(
+                        <IdentityPreview
+                            name={data.site_name || 'The Football Experience'}
+                            sub={data.site_tagline}
+                            avatar={settings.logo ? assetPath(settings.logo) : null}
+                            accent="#3b82f6"
+                            badge={data.maintenance_mode ? 'Maintenance' : 'Live'}
+                        />
+                    )}
+                >
+                    <div className="admin-editor-stack">
                         <div className="tfe-slab">
                             <div className="tfe-slab__header">
                                 <div>
@@ -97,8 +110,6 @@ export default function Settings({ settings = {} }) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="col-lg-6">
                         <div className="tfe-slab">
                             <div className="tfe-slab__header">
                                 <div>
@@ -128,7 +139,7 @@ export default function Settings({ settings = {} }) {
                             </div>
                         </div>
                     </div>
-                </div>
+                </SplitEditorLayout>
             )}
 
             {/* The Tournament tab moved to Admin → Tournaments (Sprint 49):

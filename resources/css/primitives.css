@@ -315,6 +315,82 @@ a.tfe-sidebar-nav-item.is-active {
     gap: 4px;
 }
 
+/* ── Identity preview card (account/settings split editors) ──────────── */
+.tfe-identity {
+    --identity-accent: #3b82f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 24px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+}
+
+.tfe-identity__avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--identity-accent);
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.tfe-identity__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tfe-identity__name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.tfe-identity__sub {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.tfe-identity__badge {
+    margin-top: 6px;
+}
+
+.tfe-identity__rows {
+    width: 100%;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 14px;
+}
+
+.tfe-identity__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.tfe-identity__row i {
+    width: 18px;
+    text-align: center;
+    color: var(--identity-accent);
+    flex-shrink: 0;
+}
+
 /* ── Media library picker grid ───────────────────────────────────────── */
 .tfe-media-grid {
     display: grid;

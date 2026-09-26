@@ -691,6 +691,19 @@ new card / table / list CSS:
   declare a setting-input closure inside a page body again — a component
   defined there is a new type every render, so React remounts it and the field
   loses its cursor mid-typing.
+- **`SplitEditorLayout`** (Sprint 51, `Components/Common/SplitEditorLayout.jsx`) —
+  the shared edit-page layout: form on the left, a sticky **live preview** on the
+  right, using the full width (`.partner-edit-grid` 2fr/1fr, `.admin-split-preview`
+  sticky pane). Reach for it on any "edit one thing and watch it update" surface.
+  Tournament edit and the Content CMS (Page Heroes → live `PageHero`, Section
+  Cards → live `LandingCard`) both render through it. For a live-as-you-type
+  preview, pass `SettingField` an `onChange` and resolve
+  `draft ?? saved ?? default` in the preview (image fields update on save).
+  The admin Profile + Settings (Site Identity) forms also use it, with
+  **`IdentityPreview`** (Sprint 52, `Components/Common/IdentityPreview.jsx`,
+  `.tfe-identity*`) — an avatar/name/contact card for the preview pane. Most
+  other account forms (fan/partner Security + Profile) are already multi-card
+  grids or modal editors, so they were left as-is rather than force-split.
 - **`ListingGrid`** (Sprint 45) — grid is the default view; pass `tableView`
   to get the Grid/Table toggle. Adopted by Partners, Listing safety, Tickets,
   Users, Events, Prizes, Announcements, Tribes, Tournaments and Content→Posts.
@@ -1119,6 +1132,8 @@ tests/
 | 48     | Passkey login hardening (+2FA parity), global form baseline, social feed + tribes rebuilt on primitives, tribes completed end-to-end (privacy, join requests, moderation) |
 | 49     | Admin CMS unification: SettingField + assetPath primitives, section-card CMS, dedicated Tournament management, ListingGrid rollout |
 | 50     | Global media library (MediaLibraryService: server-side compression, wider types incl. video, MediaAsset gallery + MediaPicker), collapsible sidebar groups, Content Page-Heroes sub-tabs, Events filter chips, Prizes/Products removed from admin |
+| 51     | Shared SplitEditorLayout (form-left / sticky-live-preview-right) extracted from the tournament edit page and applied to the Content CMS (Page Heroes + Section Cards) with live previews; SettingField gains an onChange for live-as-you-type |
+| 52     | SplitEditorLayout + IdentityPreview rolled onto the admin Profile and Settings (Site Identity) forms; other account forms left as-is (already grids/modals) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

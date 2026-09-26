@@ -3,6 +3,9 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import SettingField from '@/Components/Admin/SettingField';
+import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
+import PageHero from '@/Components/Common/PageHero';
+import LandingCard from '@/Components/Common/LandingCard';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import ListingGrid from '@/Components/Common/ListingGrid';
@@ -65,6 +68,13 @@ export default function Content({
     const [openHero, setOpenHero] = useState(HERO_PAGES[0].slug);
     const [openSection, setOpenSection] = useState(sectionCards[0]?.slug || null);
 
+    // Live-edit drafts, keyed by the SiteSetting key. A field reports its
+    // in-progress value here so the split preview updates as the admin types;
+    // saved values (settings) and config defaults are the fallbacks.
+    const [draft, setDraft] = useState({});
+    const onFieldChange = (fullKey) => (v) => setDraft((d) => ({ ...d, [fullKey]: v }));
+    const live = (fullKey) => (draft[fullKey] !== undefined ? draft[fullKey] : (settings[fullKey] ?? ''));
+
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
         { label: 'Content' },
@@ -111,38 +121,57 @@ export default function Content({
                         ))}
                     </div>
 
-                    {HERO_PAGES.filter((page) => page.slug === openHero).map((page) => (
-                        <div className="admin-cms-grid" key={page.slug}>
-                            <section className="tfe-slab">
-                                <div className="tfe-slab__header">
-                                    <div>
-                                        <h2 className="tfe-slab__title">
-                                            <i className={page.icon}></i> {page.label} hero
-                                        </h2>
-                                        <p className="tfe-slab__title-sub">
-                                            Leave a field blank to use the built-in default.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="tfe-slab__body">
-                                    {HERO_FIELDS.map((f) => (
-                                        <SettingField
-                                            key={f.field}
-                                            group="page_hero"
-                                            settingKey={`${page.slug}_${f.field}`}
-                                            label={f.label}
-                                            type={f.type}
-                                            hint={f.hint}
-                                            rows={f.rows}
-                                            value={settings[`page_hero_${page.slug}_${f.field}`] || ''}
-                                            defaultValue={heroDefaults?.[page.slug]?.[f.field] || null}
-                                            placeholder={heroDefaults?.[page.slug]?.[f.field] || ''}
+                    {HERO_PAGES.filter((page) => page.slug === openHero).map((page) => {
+                        const key = (field) => `page_hero_${page.slug}_${field}`;
+                        const def = (field) => heroDefaults?.[page.slug]?.[field] || '';
+                        const val = (field) => live(key(field)) || def(field);
+                        return (
+                            <SplitEditorLayout
+                                key={page.slug}
+                                preview={(
+                                    <div className="admin-hero-preview">
+                                        <PageHero
+                                            eyebrow={val('eyebrow')}
+                                            title={val('title') || page.label}
+                                            tagline={val('tagline')}
+                                            background={val('background')}
+                                            cta={val('cta_label') ? { label: val('cta_label'), href: val('cta_href') || '#' } : undefined}
                                         />
-                                    ))}
-                                </div>
-                            </section>
-                        </div>
-                    ))}
+                                    </div>
+                                )}
+                            >
+                                <section className="tfe-slab">
+                                    <div className="tfe-slab__header">
+                                        <div>
+                                            <h2 className="tfe-slab__title">
+                                                <i className={page.icon}></i> {page.label} hero
+                                            </h2>
+                                            <p className="tfe-slab__title-sub">
+                                                Leave a field blank to use the built-in default.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="tfe-slab__body">
+                                        {HERO_FIELDS.map((f) => (
+                                            <SettingField
+                                                key={f.field}
+                                                group="page_hero"
+                                                settingKey={`${page.slug}_${f.field}`}
+                                                label={f.label}
+                                                type={f.type}
+                                                hint={f.hint}
+                                                rows={f.rows}
+                                                value={settings[`page_hero_${page.slug}_${f.field}`] || ''}
+                                                defaultValue={heroDefaults?.[page.slug]?.[f.field] || null}
+                                                placeholder={heroDefaults?.[page.slug]?.[f.field] || ''}
+                                                onChange={f.type !== 'image' ? onFieldChange(key(f.field)) : undefined}
+                                            />
+                                        ))}
+                                    </div>
+                                </section>
+                            </SplitEditorLayout>
+                        );
+                    })}
                 </>
             )}
 
@@ -165,48 +194,72 @@ export default function Content({
 
                     {sectionCards
                         .filter((section) => section.slug === openSection)
-                        .map((section) => (
-                            <div className="admin-cms-grid" key={section.slug}>
-                                {section.cards.map((card) => (
-                                    <section className="tfe-slab" key={card.index}>
-                                        <div className="tfe-slab__header">
-                                            <div>
-                                                <h2 className="tfe-slab__title">
-                                                    {card.fields.title.value || card.label}
-                                                </h2>
-                                                <p className="tfe-slab__title-sub">
-                                                    Card {card.index + 1} on /{section.slug}
-                                                </p>
-                                            </div>
-                                            {card.tags?.length > 0 && (
-                                                <span className="tfe-pill tfe-pill--concluded">
-                                                    {card.tags.join(' · ')}
-                                                </span>
-                                            )}
+                        .map((section) => {
+                            const cardVal = (card, field) => {
+                                const meta = card.fields[field];
+                                return live(meta.field_key) || meta.default || '';
+                            };
+                            return (
+                                <SplitEditorLayout
+                                    key={section.slug}
+                                    preview={(
+                                        <div className="admin-cards-preview">
+                                            {section.cards.map((card) => (
+                                                <LandingCard
+                                                    key={card.index}
+                                                    image={cardVal(card, 'image')}
+                                                    title={cardVal(card, 'title') || card.label}
+                                                    subtitle={cardVal(card, 'subtitle')}
+                                                    tags={card.tags}
+                                                />
+                                            ))}
                                         </div>
-                                        <div className="tfe-slab__body">
-                                            {CARD_FIELDS.map((f) => {
-                                                const meta = card.fields[f.field];
-                                                return (
-                                                    <SettingField
-                                                        key={f.field}
-                                                        group="section_card"
-                                                        settingKey={meta.field_key}
-                                                        label={f.label}
-                                                        type={f.type}
-                                                        hint={f.hint}
-                                                        rows={f.rows}
-                                                        value={meta.value}
-                                                        defaultValue={meta.default}
-                                                        placeholder={meta.default}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </section>
-                                ))}
-                            </div>
-                        ))}
+                                    )}
+                                >
+                                    <div className="admin-editor-stack">
+                                        {section.cards.map((card) => (
+                                            <section className="tfe-slab" key={card.index}>
+                                                <div className="tfe-slab__header">
+                                                    <div>
+                                                        <h2 className="tfe-slab__title">
+                                                            {live(card.fields.title.field_key) || card.fields.title.value || card.label}
+                                                        </h2>
+                                                        <p className="tfe-slab__title-sub">
+                                                            Card {card.index + 1} on /{section.slug}
+                                                        </p>
+                                                    </div>
+                                                    {card.tags?.length > 0 && (
+                                                        <span className="tfe-pill tfe-pill--concluded">
+                                                            {card.tags.join(' · ')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="tfe-slab__body">
+                                                    {CARD_FIELDS.map((f) => {
+                                                        const meta = card.fields[f.field];
+                                                        return (
+                                                            <SettingField
+                                                                key={f.field}
+                                                                group="section_card"
+                                                                settingKey={meta.field_key}
+                                                                label={f.label}
+                                                                type={f.type}
+                                                                hint={f.hint}
+                                                                rows={f.rows}
+                                                                value={meta.value}
+                                                                defaultValue={meta.default}
+                                                                placeholder={meta.default}
+                                                                onChange={f.type !== 'image' ? onFieldChange(meta.field_key) : undefined}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
+                                            </section>
+                                        ))}
+                                    </div>
+                                </SplitEditorLayout>
+                            );
+                        })}
                 </>
             )}
 

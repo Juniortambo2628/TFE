@@ -984,6 +984,10 @@
     white-space: pre-wrap;
 }
 
+/* Shared sticky preview pane for SplitEditorLayout (form left, preview right).
+   `.admin-tournament-preview` is kept as an alias for the tournament edit page
+   that predates the shared component. */
+.admin-split-preview,
 .admin-tournament-preview {
     position: sticky;
     top: 88px;
@@ -992,12 +996,38 @@
     gap: 16px;
 }
 
+.admin-split-preview__title,
 .admin-tournament-preview__title {
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: var(--label-letter-spacing, 0.06em);
     color: rgba(255, 255, 255, 0.55);
+}
+
+/* Left-column form slabs stack with breathing room in the split layout. */
+.admin-editor-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Section-card previews stack in the sticky pane. */
+.admin-cards-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Contain the real PageHero inside the narrow preview column. */
+.admin-hero-preview {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-hero-preview .partner-hub-hero {
+    min-height: 220px;
 }
 
 .admin-tournament-preview__hero img {

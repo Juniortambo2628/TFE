@@ -1,7 +1,9 @@
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { useForm, usePage } from '@inertiajs/react';
+import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
+import IdentityPreview from '@/Components/Common/IdentityPreview';
+import { useForm } from '@inertiajs/react';
 
 export default function Profile({ auth, status }) {
     const { user } = auth;
@@ -46,10 +48,23 @@ export default function Profile({ auth, status }) {
                 breadcrumbs={breadcrumbs}
             />
 
-            <div className="row g-4">
-                {/* Profile Info */}
-                <div className="col-lg-6">
-                    <div className="admin-card-dark h-100">
+            <SplitEditorLayout
+                preview={(
+                    <IdentityPreview
+                        name={profileData.name}
+                        sub={profileData.email}
+                        badge="System Admin"
+                        accent="#3b82f6"
+                        rows={[
+                            { icon: 'fas fa-envelope', value: profileData.email },
+                            { icon: 'fas fa-phone', value: profileData.phone },
+                        ]}
+                    />
+                )}
+            >
+                <div className="admin-editor-stack">
+                    {/* Profile Info */}
+                    <div className="admin-card-dark">
                         <div className="card-header">
                             <h3><i className="fas fa-user-circle me-2"></i> Personal Information</h3>
                         </div>
@@ -98,11 +113,9 @@ export default function Profile({ auth, status }) {
                             </form>
                         </div>
                     </div>
-                </div>
 
-                {/* Password Change */}
-                <div className="col-lg-6">
-                    <div className="admin-card-dark h-100">
+                    {/* Password Change */}
+                    <div className="admin-card-dark">
                         <div className="card-header">
                             <h3><i className="fas fa-shield-alt me-2"></i> Change Password</h3>
                         </div>
@@ -152,7 +165,7 @@ export default function Profile({ auth, status }) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </SplitEditorLayout>
         </AdminLayout>
     );
 }

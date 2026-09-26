@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ImageUpload from '@/Components/Common/ImageUpload';
 import AccentCard from '@/Components/Common/AccentCard';
+import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
 import StadiumImageCard from '@/Components/Admin/StadiumImageCard';
 import { Link, router, usePage } from '@inertiajs/react';
 import { assetPath } from '@/lib/assets';
@@ -114,9 +115,39 @@ export default function TournamentEdit({ tournament, fields, isFeatured, venues 
             />
 
             <form onSubmit={submit}>
-                <div className="partner-edit-grid">
-                    <div>
-                        {/* ── Branding ──────────────────────────────── */}
+                <SplitEditorLayout preview={(
+                    <>
+                        <AccentCard
+                            LinkComponent="div"
+                            accent={accent}
+                            title={tournament.name}
+                            eyebrow={tournament.short_name || tournament.id}
+                            desc={tagline || fields.tagline.default}
+                            status={tournament.status}
+                            bgImage={previewFor('organizer_card_bg') || undefined}
+                            artwork={previewFor('trophy_image')
+                                ? { src: previewFor('trophy_image'), alt: '', variant: 'float' }
+                                : { icon: 'fas fa-trophy' }}
+                            pills={tournament.hosts || []}
+                            meta={[
+                                { label: 'Teams', value: tournament.num_teams || '—' },
+                                { label: 'Venues', value: venues.length || '—' },
+                            ]}
+                        />
+
+                        <div className="admin-tournament-preview__hero">
+                            <span className="tfe-form-label">Landing hero background</span>
+                            {previewFor('hero_image') ? (
+                                <img src={previewFor('hero_image')} alt="" loading="lazy" />
+                            ) : (
+                                <div className="tfe-empty tfe-empty--inline">
+                                    <p className="tfe-empty__body mb-0">No hero background set.</p>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}>
+                    {/* ── Branding ──────────────────────────────── */}
                         <section className="tfe-slab">
                             <div className="tfe-slab__header">
                                 <div>
@@ -233,43 +264,7 @@ export default function TournamentEdit({ tournament, fields, isFeatured, venues 
                         {flash.tournament_refresh_output && (
                             <pre className="admin-refresh-output mt-3">{flash.tournament_refresh_output}</pre>
                         )}
-                    </div>
-
-                    {/* ── Sticky live preview ───────────────────────── */}
-                    <div>
-                        <div className="admin-tournament-preview">
-                            <h3 className="admin-tournament-preview__title">Live preview</h3>
-                            <AccentCard
-                                LinkComponent="div"
-                                accent={accent}
-                                title={tournament.name}
-                                eyebrow={tournament.short_name || tournament.id}
-                                desc={tagline || fields.tagline.default}
-                                status={tournament.status}
-                                bgImage={previewFor('organizer_card_bg') || undefined}
-                                artwork={previewFor('trophy_image')
-                                    ? { src: previewFor('trophy_image'), alt: '', variant: 'float' }
-                                    : { icon: 'fas fa-trophy' }}
-                                pills={tournament.hosts || []}
-                                meta={[
-                                    { label: 'Teams', value: tournament.num_teams || '—' },
-                                    { label: 'Venues', value: venues.length || '—' },
-                                ]}
-                            />
-
-                            <div className="admin-tournament-preview__hero">
-                                <span className="tfe-form-label">Landing hero background</span>
-                                {previewFor('hero_image') ? (
-                                    <img src={previewFor('hero_image')} alt="" loading="lazy" />
-                                ) : (
-                                    <div className="tfe-empty tfe-empty--inline">
-                                        <p className="tfe-empty__body mb-0">No hero background set.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </SplitEditorLayout>
 
                 <div className="mt-4 d-flex gap-2 align-items-center">
                     <Link href={route('admin.tournaments.index')} className="tfe-btn">
