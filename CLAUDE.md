@@ -699,6 +699,11 @@ new card / table / list CSS:
   Cards → live `LandingCard`) both render through it. For a live-as-you-type
   preview, pass `SettingField` an `onChange` and resolve
   `draft ?? saved ?? default` in the preview (image fields update on save).
+  The admin Profile + Settings (Site Identity) forms also use it, with
+  **`IdentityPreview`** (Sprint 52, `Components/Common/IdentityPreview.jsx`,
+  `.tfe-identity*`) — an avatar/name/contact card for the preview pane. Most
+  other account forms (fan/partner Security + Profile) are already multi-card
+  grids or modal editors, so they were left as-is rather than force-split.
 - **`ListingGrid`** (Sprint 45) — grid is the default view; pass `tableView`
   to get the Grid/Table toggle. Adopted by Partners, Listing safety, Tickets,
   Users, Events, Prizes, Announcements, Tribes, Tournaments and Content→Posts.
@@ -1128,6 +1133,7 @@ tests/
 | 49     | Admin CMS unification: SettingField + assetPath primitives, section-card CMS, dedicated Tournament management, ListingGrid rollout |
 | 50     | Global media library (MediaLibraryService: server-side compression, wider types incl. video, MediaAsset gallery + MediaPicker), collapsible sidebar groups, Content Page-Heroes sub-tabs, Events filter chips, Prizes/Products removed from admin |
 | 51     | Shared SplitEditorLayout (form-left / sticky-live-preview-right) extracted from the tournament edit page and applied to the Content CMS (Page Heroes + Section Cards) with live previews; SettingField gains an onChange for live-as-you-type |
+| 52     | SplitEditorLayout + IdentityPreview rolled onto the admin Profile and Settings (Site Identity) forms; other account forms left as-is (already grids/modals) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 
