@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Listing;
 use App\Models\Prediction;
 use App\Models\Prize;
+use App\Models\User;
 use App\Models\WorldCupMatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,7 +73,43 @@ class PredictWinController extends Controller
             'userStats' => $userStats,
             'leaderboard' => $leaderboard,
             'prizes' => $prizes,
+            'bettingOffers' => $this->bettingOffers(),
         ]);
+    }
+
+    /**
+     * Approved + active sponsor-published listings (GoalBet's odds
+     * bundles and free-bet promos) — surfaced under a "Featured odds"
+     * strip on the Predict page. 18+, gamble responsibly is shown at
+     * the view layer.
+     */
+    private function bettingOffers(): array
+    {
+        return Listing::query()
+            ->approved()
+            ->active()
+            ->with('publisher.partnerProfile')
+            ->where('publisher_type', User::class)
+            ->whereHas('publisher', fn ($q) => $q->where('partner_type', 'sponsor'))
+            ->orderBy('display_order')
+            ->limit(4)
+            ->get()
+            ->map(function (Listing $l) {
+                $summary = $l->publisherSummary();
+
+                return [
+                    'id' => $l->id,
+                    'name' => $l->name,
+                    'description' => $l->description,
+                    'hero_image' => $l->hero_image,
+                    'base_price' => (float) $l->base_price,
+                    'currency' => $l->currency,
+                    'sold_count' => (int) $l->sold_count,
+                    'capacity' => (int) $l->capacity,
+                    'partner' => $summary,
+                ];
+            })
+            ->all();
     }
 
     public function predict(Request $request)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
 use App\Models\Listing;
 use App\Models\PartnerProfile;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Services\TournamentService;
 use Illuminate\Http\Request;
@@ -134,6 +135,33 @@ class PartnerHubController extends Controller
                 ];
             });
 
+        $tickets = [];
+        if ($profile->user->partner_type === 'ticketing_partner') {
+            $tickets = Ticket::query()
+                ->active()
+                ->where('partner_id', $profile->user_id)
+                ->orderBy('kickoff_at')
+                ->get()
+                ->map(fn (Ticket $t) => [
+                    'id' => $t->id,
+                    'home_team' => $t->home_team,
+                    'home_team_code' => $t->home_team_code,
+                    'away_team' => $t->away_team,
+                    'away_team_code' => $t->away_team_code,
+                    'stage' => $t->stage,
+                    'kickoff_at' => $t->kickoff_at,
+                    'venue_name' => $t->venue_name,
+                    'venue_city' => $t->venue_city,
+                    'venue_country' => $t->venue_country,
+                    'price' => (float) $t->price,
+                    'currency' => $t->currency,
+                    'remaining' => $t->remaining,
+                    'sold_pct' => $t->sold_pct,
+                    'hero_image' => $t->hero_image,
+                ])
+                ->all();
+        }
+
         return Inertia::render('PartnerHub', [
             'profile' => [
                 'id' => $profile->id,
@@ -153,6 +181,32 @@ class PartnerHubController extends Controller
                 'verification_status' => $profile->user->verification_status,
             ],
             'listings' => $listings,
+            'tickets' => $tickets,
+            'features' => $this->featuresFor($profile),
         ]);
+    }
+
+    /**
+     * Partner-specific rich features that render alongside their listings.
+     * Currently: Ecobank Fan Finance gets the multicurrency virtual card
+     * activation CTA. Extend the switch as new partner-native surfaces come
+     * online (an airline seat picker, a betting live-odds widget, …).
+     */
+    private function featuresFor(PartnerProfile $profile): array
+    {
+        $out = [];
+        if ($profile->slug === 'ecobank-fan-finance') {
+            $out[] = [
+                'kind' => 'virtual_card',
+                'title' => 'Multicurrency virtual card',
+                'body' => 'Activate a virtual card that spends anywhere in seven currencies. No FX markup, instant issuance, and you freeze it any time from your dashboard.',
+                'cta_label' => 'Activate on your dashboard',
+                'cta_route' => 'fan.virtual-card',
+                'icon' => 'fas fa-credit-card',
+                'perks' => ['7-currency wallet', 'Instant issuance', 'No FX markup', 'Freeze / unfreeze anytime'],
+            ];
+        }
+
+        return $out;
     }
 }

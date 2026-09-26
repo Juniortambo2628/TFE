@@ -31,8 +31,6 @@ class DemoExtraPartnersSeeder extends Seeder
             'last_name' => 'Air',
             'partner_type' => 'airline',
             'services_offered' => ['Matchday flights', 'Fan group fares', 'Baggage + kit allowance', 'Multi-city routing'],
-            'phone' => '+254711000000',
-            'country' => 'Kenya',
             'company_name' => 'Simba Air Ltd.',
             'profile' => [
                 'slug' => 'simba-air',
@@ -59,8 +57,6 @@ class DemoExtraPartnersSeeder extends Seeder
             'last_name' => 'Bet',
             'partner_type' => 'sponsor',
             'services_offered' => ['Matchday odds', 'Free-bet bundles', 'Acca boosts', 'Live in-play'],
-            'phone' => '+254722000000',
-            'country' => 'Kenya',
             'company_name' => 'GoalBet Ltd.',
             'profile' => [
                 'slug' => 'goalbet',

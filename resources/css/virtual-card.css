@@ -1,0 +1,259 @@
+/* Multicurrency virtual card — Ecobank Fan Finance demo. */
+
+.vcard-page { --vcard-accent: #0072CE; display: flex; flex-direction: column; gap: 20px; }
+
+.vcard-page__top {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 22px;
+    align-items: stretch;
+}
+@media (max-width: 720px) {
+    .vcard-page__top { grid-template-columns: 1fr; }
+}
+
+/* The card face. Two-tone gradient rooted in the partner accent. */
+.vcard-face {
+    position: relative;
+    aspect-ratio: 1.586;
+    max-width: 480px;
+    padding: 22px 26px;
+    border-radius: 22px;
+    color: #fff;
+    background: linear-gradient(140deg,
+        var(--vcard-accent) 0%,
+        color-mix(in srgb, var(--vcard-accent) 65%, #0a0a1a) 55%,
+        #060612 100%);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    isolation: isolate;
+}
+.vcard-face::before {
+    content: '';
+    position: absolute;
+    inset: -20% -20% auto auto;
+    width: 70%;
+    height: 70%;
+    background: radial-gradient(closest-side, rgba(255,255,255,0.22), transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+}
+.vcard-face::after {
+    content: '';
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    width: 40px;
+    height: 30px;
+    background: linear-gradient(135deg, #ffd166, #f4a261);
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+    opacity: 0.85;
+    z-index: 0;
+}
+
+.vcard-face--placeholder { opacity: 0.65; }
+
+.vcard-face__band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.vcard-face__brand {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-size: 0.92rem;
+}
+.vcard-face__logo { max-height: 28px; width: auto; filter: brightness(0) invert(1); }
+.vcard-face__watermark {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px dashed rgba(255,255,255,0.35);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+}
+
+.vcard-face__pan {
+    font-family: 'Courier New', ui-monospace, monospace;
+    font-size: 1.4rem;
+    letter-spacing: 0.15em;
+    margin-top: 12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.vcard-face__row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+.vcard-face__row > div:not(.vcard-face__network) span {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 2px;
+}
+.vcard-face__row strong {
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+}
+.vcard-face__network {
+    margin-left: auto;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+/* Actions column beside the card. */
+.vcard-actions {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    color: #fff;
+}
+.vcard-actions__hint {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.vcard-actions__amount {
+    font-size: 2.1rem;
+    font-weight: 800;
+}
+.vcard-actions__row {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Activation split — card mock on the left, pitch on the right. */
+.vcard-activate {
+    --vcard-accent: #0072CE;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 32px;
+    color: #fff;
+}
+@media (max-width: 900px) {
+    .vcard-activate { grid-template-columns: 1fr; padding: 20px; }
+}
+.vcard-activate__pitch h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+.vcard-activate__pitch p {
+    color: rgba(255,255,255,0.75);
+    line-height: 1.6;
+    max-width: 46ch;
+}
+.vcard-activate__perks {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vcard-activate__perks li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.85);
+}
+.vcard-activate__perks i {
+    color: var(--vcard-accent);
+    width: 22px;
+    text-align: center;
+}
+.vcard-activate__disclaimer {
+    margin-top: 12px;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+}
+
+/* Partner-hub feature block — used by the Ecobank virtual card CTA on
+   /partners/ecobank-fan-finance. Themed by --partner-accent. */
+.partner-feature {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 24px;
+    align-items: center;
+    padding: 28px;
+    border-radius: 20px;
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--partner-accent, #dc143c) 20%, rgba(20,15,20,0.85)),
+        rgba(10,8,12,0.9));
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+}
+@media (max-width: 720px) {
+    .partner-feature { grid-template-columns: 1fr; text-align: left; }
+}
+.partner-feature__icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--partner-accent, #dc143c) 40%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+    color: #fff;
+    justify-self: center;
+    align-self: center;
+}
+.partner-feature__body h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.partner-feature__body p {
+    color: rgba(255,255,255,0.75);
+    line-height: 1.55;
+    max-width: 60ch;
+    margin-bottom: 12px;
+}
+.partner-feature__perks {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px;
+}
+.partner-feature__perks li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.85);
+}
+.partner-feature__perks i {
+    color: var(--partner-accent, #dc143c);
+    font-size: 0.75rem;
+}

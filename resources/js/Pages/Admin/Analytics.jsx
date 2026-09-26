@@ -2,156 +2,101 @@ import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
-} from 'recharts';
-import { formatMoney } from '@/lib/utils';
+import { AreaChart } from '@tremor/react';
 
-export default function Analytics({ 
-    calculatorUsage, 
-    savedItineraries, 
-    quoteStats, 
-    priceModifications, 
-    totalPriceDifference,
-    stats 
-}) {
+/**
+ * Reach analytics. TFE tracks connections, not transactions —
+ * every metric on this page reflects "fans reached", "partners connected"
+ * or "referrals sent". Money moves on the partner platforms.
+ */
+export default function Analytics({ signups30d = [], referrals = {}, stats = {} }) {
     const breadcrumbs = [
         { label: 'Admin', icon: 'fas fa-home', href: route('admin.dashboard') },
-        { label: 'Analytics' }
+        { label: 'Analytics' },
     ];
 
-    const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
-    
-    const pieData = [
-        { name: 'Approved', value: quoteStats.approved },
-        { name: 'Modified', value: quoteStats.modified },
-        { name: 'Pending', value: quoteStats.pending },
-    ];
+    const chartData = (signups30d.length ? signups30d : Array.from({ length: 7 }, (_, i) => ({
+        date: new Date(Date.now() - (6 - i) * 86400000).toISOString().slice(0, 10),
+        count: 0,
+    })));
 
     return (
-        <AdminLayout title="Advanced Analytics">
-            <DashboardHero role="admin" 
-                title="Advanced Analytics"
-                subtitle="Tracking system performance and partner engagement."
+        <AdminLayout title="Reach analytics">
+            <DashboardHero
+                role="admin"
+                title="Reach analytics"
+                subtitle="Fans on the platform, partners we've connected them to, and every referral we've sent."
                 breadcrumbs={breadcrumbs}
             />
 
-            <SummaryTiles items={[
-                { label: 'Calculator Uses', value: stats.total_calc_uses, icon: 'fa-calculator', accent: 'blue' },
-                { label: 'Market Potential Avg', value: formatMoney(stats.avg_calc_cost), icon: 'fa-search-dollar', accent: 'teal' },
-                { label: 'Itineraries Saved', value: stats.total_saved, icon: 'fa-save', accent: 'cyan' },
-                { label: 'Actual Conversion Avg', value: formatMoney(stats.avg_itinerary_cost), icon: 'fa-chart-line', accent: 'violet' },
-                { label: 'Quote Value Variance', value: formatMoney(totalPriceDifference), icon: 'fa-hand-holding-usd', accent: 'amber' },
-            ]} className="mb-4" />
+            <SummaryTiles
+                className="mb-4"
+                items={[
+                    { label: 'Fans', value: stats.total_fans ?? 0, icon: 'fa-users', accent: 'blue', subtext: `${stats.new_fans_30d ?? 0} joined this month` },
+                    { label: 'Verified partners', value: stats.active_partners ?? 0, icon: 'fa-handshake', accent: 'teal', subtext: 'Live on the directory' },
+                    { label: 'Live listings', value: stats.active_listings ?? 0, icon: 'fa-tags', accent: 'amber', subtext: 'Across all tournaments' },
+                    { label: 'Referrals sent', value: stats.total_referrals ?? 0, icon: 'fa-share', accent: 'red', subtext: 'Tickets + loans + budget briefs' },
+                ]}
+            />
 
-            <div className="row g-4">
-                {/* Usage Comparison Chart */}
-                <div className="col-lg-8">
-                    <div className="admin-card-dark">
-                        <div className="card-header">
-                            <h3><i className="fas fa-chart-area"></i> Activity Trends (Last 30 Days)</h3>
-                        </div>
-                        <div className="card-body" style={{ minHeight: '350px' }}>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <AreaChart data={calculatorUsage && calculatorUsage.length ? calculatorUsage : [{date: 'No Data', count: 0}]}>
-                                    <defs>
-                                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
-                                    <XAxis dataKey="date" stroke="#eee" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                                    <YAxis stroke="#eee" fontSize={11} tickLine={false} axisLine={false} dx={-10} />
-                                    <Tooltip 
-                                        contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff' }}
-                                        itemStyle={{ color: '#fff' }}
-                                    />
-                                    <Area type="monotone" dataKey="count" name="Calculator Uses" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
+            <div className="admin-card-dark admin-overview mb-4">
+                <div className="admin-overview__head">
+                    <div>
+                        <h3 className="admin-overview__title">New fans · last 30 days</h3>
+                        <p className="admin-overview__sub">Daily sign-ups to the platform.</p>
                     </div>
                 </div>
-
-                {/* Quote Status Distribution */}
-                <div className="col-lg-4">
-                    <div className="admin-card-dark">
-                        <div className="card-header">
-                            <h3><i className="fas fa-chart-pie"></i> Quote Status</h3>
-                        </div>
-                        <div className="card-body" style={{ minHeight: '350px' }}>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {pieData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip 
-                                        contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff' }}
-                                    />
-                                    <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#fff' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Price Modifications Table */}
-                <div className="col-lg-12">
-                    <div className="admin-card-dark">
-                        <div className="card-header">
-                            <h3><i className="fas fa-exchange-alt"></i> Recent Quote Adjustments</h3>
-                        </div>
-                        <div className="card-body p-0">
-                            <div className="table-responsive">
-                                <table className="admin-table-dark">
-                                    <thead>
-                                        <tr>
-                                            <th>Itinerary Name</th>
-                                            <th>Original Estimate</th>
-                                            <th>Partner Quote</th>
-                                            <th>Price Diff</th>
-                                            <th>% Change</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {priceModifications.map((mod, idx) => {
-                                            const diff = mod.partner_cost - mod.total_cost;
-                                            const percent = (diff / mod.total_cost) * 100;
-                                            return (
-                                                <tr key={idx}>
-                                                    <td>{mod.name}</td>
-                                                    <td>{formatMoney(mod.total_cost)}</td>
-                                                    <td>{formatMoney(mod.partner_cost)}</td>
-                                                    <td className={diff > 0 ? 'text-danger' : 'text-success'}>
-                                                        {diff > 0 ? '+' : ''}{formatMoney(diff)}
-                                                    </td>
-                                                    <td>
-                                                        <span className={`admin-badge ${diff > 0 ? 'admin-badge-red' : 'admin-badge-green'}`}>
-                                                            {diff > 0 ? '+' : ''}{percent.toFixed(1)}%
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <div className="tremor-chart-white">
+                    <AreaChart
+                        className="h-64 mt-2"
+                        data={chartData}
+                        index="date"
+                        categories={['count']}
+                        colors={['cyan']}
+                        yAxisWidth={40}
+                        showAnimation
+                        curveType="monotone"
+                        showLegend={false}
+                    />
                 </div>
             </div>
+
+            <div className="row g-4">
+                <ReferralCard title="Ticket referrals" icon="fa-ticket-alt" rows={referrals.ticket_purchases || []} />
+                <ReferralCard title="Loan referrals" icon="fa-hand-holding-usd" rows={referrals.loan_referrals || []} />
+                <ReferralCard title="Budget briefs" icon="fa-suitcase" rows={referrals.budget_referrals || []} />
+            </div>
         </AdminLayout>
+    );
+}
+
+function ReferralCard({ title, icon, rows }) {
+    return (
+        <div className="col-lg-4">
+            <div className="admin-card-dark h-100">
+                <div className="card-header">
+                    <h3><i className={`fas ${icon}`}></i> {title}</h3>
+                </div>
+                <div className="card-body p-0">
+                    {rows.length === 0 ? (
+                        <div className="admin-empty-state">
+                            <i className={`fas ${icon}`}></i>
+                            <h4>No referrals yet</h4>
+                        </div>
+                    ) : (
+                        <table className="admin-table-dark">
+                            <tbody>
+                                {rows.map((r, i) => (
+                                    <tr key={i}>
+                                        <td className="text-white fw-semibold">{r.partner}</td>
+                                        <td className="text-end text-white">{Number(r.referrals).toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

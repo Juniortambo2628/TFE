@@ -56,28 +56,15 @@ class ProfileController extends Controller
         $teamLower = strtolower(trim($viewingUser->team_support ?? ''));
         $flagCode = $countryMap[$teamLower] ?? null;
 
-        // If not found in team_support, try country
-        if (! $flagCode && $viewingUser->country) {
-            $countryLower = strtolower(trim($viewingUser->country));
-            $flagCode = $countryMap[$countryLower] ?? null;
-            // Catch-all mapping could be added here or just use the code directly if it's already 2-letter
-            if (! $flagCode && strlen($countryLower) === 2) {
-                $flagCode = $countryLower;
-            }
-        }
-
         $profile = [
             'id' => $viewingUser->id,
             'name' => $viewingUser->name,
             'email' => $viewingUser->email,
             'avatar' => $viewingUser->profile?->avatar_path ?? $viewingUser->avatar ?? asset('assets/img/avatars/default-avatar.png'),
-            'country' => $viewingUser->country ?? 'Kenya',
             'team_support' => $viewingUser->team_support ?? '',
             'marketing_consent' => (bool) $viewingUser->marketing_consent,
             'community_consent' => (bool) $viewingUser->community_consent,
             'terms_agreed' => (bool) $viewingUser->terms_agreed,
-            'date_of_birth' => $viewingUser->date_of_birth?->format('Y-m-d'),
-            'phone' => $viewingUser->phone,
             'bio' => $viewingUser->bio,
             'cover_image' => $viewingUser->cover_image ?? ($flagCode ? asset('assets/Flags/'.$flagCode.'.png') : null),
         ];
@@ -133,16 +120,12 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'country' => 'nullable|string|max:255',
-            'country_code' => 'nullable|string|max:10',
             'team_support' => 'nullable|string|max:255',
-            'date_of_birth' => 'nullable|date',
-            'phone' => 'nullable|string|max:20',
             'bio' => 'nullable|string|max:1000',
             'cover_image' => 'nullable',
             'marketing_consent' => 'boolean',
             'community_consent' => 'boolean',
-            'newsletter_consent' => 'boolean', // Alias for community or separate if needed
+            'newsletter_consent' => 'boolean',
         ]);
 
         // Mapping newsletter to community or marketing if not separate in DB

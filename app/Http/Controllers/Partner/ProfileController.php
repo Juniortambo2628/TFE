@@ -27,9 +27,7 @@ class ProfileController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'phone' => $user->phone ?? '',
             'company_name' => $user->company_name ?? '',
-            'company_address' => $user->company_address ?? '',
             'created_at' => $user->created_at->format('M d, Y'),
             'avatar' => $user->profile?->avatar_path ?? $user->avatar ?? asset('assets/img/avatars/default-avatar.png'),
             'cover_image' => $user->cover_image,
@@ -47,6 +45,7 @@ class ProfileController extends Controller
                 'service_tags' => $branding?->service_tags ?? [],
                 'website_url' => $branding?->website_url ?? '',
                 'contact_email' => $branding?->contact_email ?? '',
+                'contact_phone' => $branding?->contact_phone ?? '',
                 'is_public' => (bool) ($branding?->is_public ?? false),
                 'hub_url' => $branding?->slug ? route('partners.hub', $branding->slug) : null,
             ],
@@ -69,9 +68,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             // Account
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
             'company_name' => 'nullable|string|max:255',
-            'company_address' => 'nullable|string|max:500',
             'avatar' => 'nullable|string|max:255',
             'avatar_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:5120',
             'cover_image' => 'nullable|string',
@@ -83,6 +80,7 @@ class ProfileController extends Controller
             'theme_accent' => 'nullable|string|max:12',
             'website_url' => 'nullable|url|max:255',
             'contact_email' => 'nullable|email|max:190',
+            'contact_phone' => 'nullable|string|max:40',
             'service_tags' => 'nullable|array',
             'service_tags.*' => 'string|max:40',
             'is_public' => 'nullable|boolean',
@@ -95,9 +93,7 @@ class ProfileController extends Controller
         // ── Account fields ──────────────────────────────────────────────
         $user->fill([
             'name' => $validated['name'],
-            'phone' => $validated['phone'] ?? $user->phone,
             'company_name' => $validated['company_name'] ?? $user->company_name,
-            'company_address' => $validated['company_address'] ?? $user->company_address,
         ]);
 
         $user->avatar = $this->resolveImage($request, 'avatar_file', 'avatar', $user->avatar);
@@ -119,6 +115,7 @@ class ProfileController extends Controller
             'theme_accent' => $validated['theme_accent'] ?? $branding->theme_accent,
             'website_url' => $validated['website_url'] ?? $branding->website_url,
             'contact_email' => $validated['contact_email'] ?? $branding->contact_email,
+            'contact_phone' => $validated['contact_phone'] ?? $branding->contact_phone,
             'service_tags' => $validated['service_tags'] ?? $branding->service_tags,
             'is_public' => $request->boolean('is_public'),
             'logo_url' => $this->resolveImage($request, 'logo_file', 'logo_url', $branding->logo_url),

@@ -37,8 +37,6 @@ class DemoPartnerSeeder extends Seeder
                 'partner_type' => 'travel_agent',
                 'verification_status' => 'verified',
                 'services_offered' => ['Package curation', 'Ticket bundling', 'Hotel + flight booking', '24/7 on-the-ground support'],
-                'phone' => '+254700000000',
-                'country' => 'Kenya',
                 'company_name' => 'Serengeti Sports Travel Ltd.',
             ],
         );

@@ -19,9 +19,7 @@ export default function Profile({ profile }) {
 
     const form = useForm({
         name: profile.name || '',
-        phone: profile.phone || '',
         company_name: profile.company_name || '',
-        company_address: profile.company_address || '',
         avatar: profile.avatar || '',
         avatar_file: null,
         display_name: b.display_name || '',
@@ -30,6 +28,7 @@ export default function Profile({ profile }) {
         theme_accent: b.theme_accent || '#dc2626',
         website_url: b.website_url || '',
         contact_email: b.contact_email || '',
+        contact_phone: b.contact_phone || '',
         service_tags_text: (b.service_tags || []).join(', '),
         is_public: !!b.is_public,
         logo_url: b.logo_url || '',
@@ -136,20 +135,12 @@ export default function Profile({ profile }) {
                             {errors.name && <div className="tfe-form-error">{errors.name}</div>}
                         </div>
                         <div className="col-md-6">
-                            <label className="tfe-form-label">Phone</label>
-                            <input type="text" className="tfe-input" value={data.phone} onChange={(e) => setData('phone', e.target.value)} />
-                        </div>
-                        <div className="col-md-6">
                             <label className="tfe-form-label">Company name</label>
                             <input type="text" className="tfe-input" value={data.company_name} onChange={(e) => setData('company_name', e.target.value)} />
                         </div>
                         <div className="col-md-6">
                             <label className="tfe-form-label">Avatar / logo image</label>
                             <ImageUpload value={data.avatar} onFile={(f) => setData('avatar_file', f)} onClear={() => { setData('avatar', ''); setData('avatar_file', null); }} />
-                        </div>
-                        <div className="col-12">
-                            <label className="tfe-form-label">Company address</label>
-                            <textarea className="tfe-textarea" rows={2} value={data.company_address} onChange={(e) => setData('company_address', e.target.value)} />
                         </div>
                     </div>
 
@@ -186,6 +177,10 @@ export default function Profile({ profile }) {
                         <div className="col-md-6">
                             <label className="tfe-form-label">Public contact email</label>
                             <input type="email" className="tfe-input" value={data.contact_email} onChange={(e) => setData('contact_email', e.target.value)} />
+                        </div>
+                        <div className="col-md-6">
+                            <label className="tfe-form-label">Public contact phone</label>
+                            <input type="tel" className="tfe-input" value={data.contact_phone} onChange={(e) => setData('contact_phone', e.target.value)} placeholder="+254 700 000 000" />
                         </div>
                         <div className="col-md-6">
                             <label className="tfe-form-label">Hub hero image</label>

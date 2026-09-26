@@ -108,13 +108,6 @@ class FanDashboardTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_fan_can_access_payments(): void
-    {
-        $fan = $this->createFan();
-        $response = $this->actingAs($fan)->get(route('fan.payments'));
-        $response->assertStatus(200);
-    }
-
     public function test_fan_can_access_activities(): void
     {
         $fan = $this->createFan();

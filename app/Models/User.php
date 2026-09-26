@@ -26,10 +26,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'last_name',
         'email',
         'password',
-        'phone',
-        'country',
-        'country_code',
-        'date_of_birth',
         'team_support',
         'marketing_consent',
         'terms_agreed',
@@ -47,7 +43,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'avatar',
         'is_admin',
         'company_name',
-        'company_address',
     ];
 
     /**
@@ -68,7 +63,6 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'date_of_birth' => 'date',
         'marketing_consent' => 'boolean',
         'is_partner' => 'boolean',
         'is_admin' => 'boolean',

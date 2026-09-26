@@ -1,0 +1,122 @@
+/* Featured odds strip — partner-authored betting offers on Fan Predict. */
+
+.betting-strip {
+    --betting-accent: #16a34a;
+    margin: 20px 0 12px;
+    padding: 20px 22px;
+    background: linear-gradient(140deg,
+        color-mix(in srgb, var(--betting-accent) 25%, rgba(20,15,20,0.85)),
+        rgba(10,8,12,0.9));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    color: #fff;
+}
+.betting-strip__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.betting-strip__eyebrow {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.6);
+}
+.betting-strip__title {
+    margin: 4px 0 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+.betting-strip__age {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+}
+.betting-strip__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.betting-card {
+    --betting-accent: #16a34a;
+    background: rgba(10,8,12,0.72);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.betting-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--betting-accent) 40%, transparent);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.4);
+}
+.betting-card__cover {
+    height: 110px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+.betting-card__cover::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,8,12,0), rgba(10,8,12,0.6));
+}
+.betting-card__body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.betting-card__partner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+}
+.betting-card__dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--betting-accent);
+}
+.betting-card__partner i { color: var(--betting-accent); font-size: 0.85rem; }
+
+.betting-card__title { margin: 0; font-size: 1rem; font-weight: 700; }
+.betting-card__desc { margin: 0; font-size: 0.82rem; color: rgba(255,255,255,0.65); line-height: 1.45; }
+
+.betting-card__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 4px;
+}
+.betting-card__price span {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.5);
+    margin-right: 6px;
+}
+.betting-card__price strong { font-size: 1.05rem; font-weight: 700; }
+.betting-card__stock {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+}
+.betting-card__cta { align-self: flex-start; margin-top: 4px; }
+.betting-card__legal {
+    margin: 6px 0 0;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.04em;
+}

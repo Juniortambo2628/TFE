@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoanApplication;
-use App\Models\PaymentTransaction;
 use App\Models\SavingsGoal;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -25,27 +24,13 @@ class WalletController extends Controller
         $loans = LoanApplication::where('user_id', $userId)->get();
         $approvedLoans = $loans->where('status', 'APPROVED')->sum('amount');
 
-        // Fetch Transactions from PaymentTransaction (source of truth)
-        $transactions = PaymentTransaction::where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->take(20)
-            ->get()
-            ->map(function ($tx) {
-                return [
-                    'id' => $tx->id,
-                    'type' => strtolower($tx->type),
-                    'amount' => $tx->amount,
-                    'description' => ucfirst($tx->type).' - '.($tx->status === 'pending' ? '(Pending)' : 'Completed'),
-                    'date' => $tx->created_at->format('Y-m-d'),
-                ];
-            });
-
+        // Transactions live on partner platforms; TFE holds none of its own.
         $walletData = [
             'balance' => $totalSavings,
             'savings' => $totalSavings,
             'goalTarget' => $totalTarget > 0 ? $totalTarget : 500000,
             'loanBalance' => $approvedLoans,
-            'transactions' => $transactions,
+            'transactions' => [],
         ];
 
         return Inertia::render('Fan/Wallet', [

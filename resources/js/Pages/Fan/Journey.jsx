@@ -231,7 +231,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                         <div className="text-end">
                                             <div className="fw-bold mb-1">{formatMoney(schedule.amount, schedule.currency || primaryCurrency)}</div>
                                             {schedule.status === 'pending' ? (
-                                                <Link href={route('fan.payments', { amount: schedule.amount, description: schedule.description })} className="btn btn-sm btn-success">Pay Now</Link>
+                                                <a href={schedule.partner_pay_url || '#'} target="_blank" rel="noreferrer" className="btn btn-sm btn-success">Pay on partner</a>
                                             ) : (
                                                  <span className="badge bg-success">Paid</span>
                                             )}

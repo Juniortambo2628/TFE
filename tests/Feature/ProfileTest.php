@@ -29,7 +29,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->put('/fan/profile/update', [
                 'name' => 'Test User',
-                'country' => 'Kenya',
+                'team_support' => 'Nigeria',
             ]);
 
         $response
@@ -39,7 +39,7 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('Kenya', $user->country);
+        $this->assertSame('Nigeria', $user->team_support);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void

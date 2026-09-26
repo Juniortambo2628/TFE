@@ -42,8 +42,6 @@ class DemoFinancePartnerSeeder extends Seeder
                     'Group booking finance',
                     'FX-friendly disbursement',
                 ],
-                'phone' => '+228220000000',
-                'country' => 'Togo',
                 'company_name' => 'Ecobank Transnational Inc.',
             ],
         );

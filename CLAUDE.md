@@ -61,6 +61,7 @@ Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder` +
 | Finance partner | `finance@tfe.com`   | password | Ecobank Fan Finance, blue #0072CE  |
 | Airline partner | `airline@tfe.com`   | password | Simba Air (`airline`), red #dc2626 |
 | Betting partner | `betting@tfe.com`   | password | GoalBet (`sponsor`), green #16a34a |
+| Ticketing partner | `ticketing@tfe.com` | password | MatchDay Africa (`ticketing_partner`), violet #8b5cf6 |
 | Demo fan        | `fan@tfe.com`       | password | Seeded ad-hoc; use for shots       |
 
 Public hubs to demo: `/partners/serengeti-sports-travel`,
@@ -857,6 +858,7 @@ tests/
 | 43     | Fan financing surface rebuild: shoddy inline form removed, partner financing offerings surfaced as AccentCard grid, TfeModal wizard collects wallet + consent against a saved budget then redirects newcomers to the calculator |
 | 44     | Locally-hosted stadium imagery: Wikipedia thumbnail fetch replaced by committed WebP catalogue + `StadiumImageService`, lazy hero slider, admin Stadium Images editor, reuse on budget calculator / match cards / itinerary map |
 | 45     | Catalogue becomes the venue source (Wikipedia demoted to enrichment by our own titles), hero overlay lightened 30%, active slide highlights its host country on the world map + tournament card pill |
+| 46     | Ticketing archetype (MatchDay Africa) w/ end-to-end fan purchase pipeline; Ecobank multicurrency virtual card demo; GoalBet listings on Fan Predict; shared `.tfe-menu-surface` dropdown |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

@@ -29,6 +29,7 @@ const PARTNER_TYPE_LABEL = {
     federation: 'Federation Partner',
     event_organiser: 'Event Organiser',
     sponsor: 'Sponsor',
+    ticketing_partner: 'Ticketing Partner',
 };
 
 function resolveRoleLabel(role, base, user) {

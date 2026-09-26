@@ -59,7 +59,6 @@ class FollowController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => $user->avatar ?? asset('assets/img/avatars/default-avatar.png'),
-            'country' => $user->country ?? 'Not set',
             'team_support' => $user->team_support ?? 'Not set',
             'followers' => $stats['followers'],
             'following' => $stats['following'],

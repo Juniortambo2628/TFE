@@ -2,7 +2,6 @@
 
 use App\Helpers\DashboardHelper;
 use App\Http\Controllers\Admin\AnnouncementsController;
-use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ListingApprovalController;
 use App\Http\Controllers\Admin\MessagesController;
@@ -29,19 +28,21 @@ use App\Http\Controllers\Fan\LoanApplicationController;
 use App\Http\Controllers\Fan\MatchScheduleController;
 use App\Http\Controllers\Fan\NotificationController;
 use App\Http\Controllers\Fan\PackageController;
-use App\Http\Controllers\Fan\PaymentController;
 use App\Http\Controllers\Fan\PredictWinController;
 use App\Http\Controllers\Fan\ProfileController;
 use App\Http\Controllers\Fan\SavingsGoalController;
 use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
+use App\Http\Controllers\Fan\TicketController as FanTicketController;
+use App\Http\Controllers\Fan\VirtualCardController;
 use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
+use App\Http\Controllers\Partner\TicketController as PartnerTicketController;
 use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
@@ -134,12 +135,20 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Feature Pages
     Route::get('/match-schedule', [MatchScheduleController::class, 'index'])->name('match-schedule');
     Route::get('/communication', [CommunicationController::class, 'index'])->name('communication');
-    Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
     Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
     Route::get('/events', [EventController::class, 'index'])->name('events');
     Route::get('/security', [SecurityController::class, 'index'])->name('security');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+    // Ticketing (Sprint 46)
+    Route::get('/tickets', [FanTicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/purchases', [FanTicketController::class, 'purchases'])->name('tickets.purchases');
+    Route::post('/tickets/{ticket}/buy', [FanTicketController::class, 'store'])->name('tickets.buy');
+
+    // Ecobank multicurrency virtual card (Sprint 46)
+    Route::get('/virtual-card', [VirtualCardController::class, 'show'])->name('virtual-card');
+    Route::post('/virtual-card/activate', [VirtualCardController::class, 'activate'])->name('virtual-card.activate');
 
     // Profile API
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
@@ -198,10 +207,6 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::post('/predict-win/predict', [PredictWinController::class, 'predict'])->name('predict-win.predict');
 
     // Payment Routes (Enhanced)
-    Route::post('/payments/method', [PaymentController::class, 'addPaymentMethod'])->name('payments.method.add');
-    Route::delete('/payments/method/{id}', [PaymentController::class, 'removePaymentMethod'])->name('payments.method.remove');
-    Route::post('/payments/initiate', [PaymentController::class, 'initiatePayment'])->name('payments.initiate');
-    Route::post('/payments/verify', [PaymentController::class, 'verifyPayment'])->name('payments.verify');
 
     // Security Routes (Enhanced)
     Route::post('/security/password', [SecurityController::class, 'changePassword'])->name('security.password');
@@ -252,10 +257,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'password'])->name('profile.password');
 
-    // Payments Management
-    Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments');
-    Route::put('/payments/{paymentTransaction}/status', [App\Http\Controllers\Admin\PaymentController::class, 'updateStatus'])->name('payments.status');
-
     // Events Management
     Route::get('/events', [App\Http\Controllers\Admin\EventController::class, 'index'])->name('events');
     Route::post('/events', [App\Http\Controllers\Admin\EventController::class, 'store'])->name('events.store');
@@ -301,11 +302,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     // Analytics
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics');
 
-    // Loan Applications
-    Route::get('/loan-applications', [App\Http\Controllers\Admin\LoanApplicationController::class, 'index'])->name('loan-applications');
-    Route::put('/loan-applications/{loanApplication}', [App\Http\Controllers\Admin\LoanApplicationController::class, 'update'])->name('loan-applications.update');
-    Route::delete('/loan-applications/{loanApplication}', [App\Http\Controllers\Admin\LoanApplicationController::class, 'destroy'])->name('loan-applications.destroy');
-
     // Prizes Management
     Route::get('/prizes', [PrizeController::class, 'index'])->name('prizes.index');
     Route::post('/prizes', [PrizeController::class, 'store'])->name('prizes.store');
@@ -317,33 +313,13 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/partners/{user}', [PartnerController::class, 'edit'])->name('partners.edit');
     Route::put('/partners/{user}', [PartnerController::class, 'update'])->name('partners.update');
 
-    // Sprint 10 — approval queue for partner-authored listings.
+    // Sprint 47 Phase C — listing safety surface (takedowns + re-publish).
     Route::get('/listing-approvals', [ListingApprovalController::class, 'index'])->name('listing-approvals.index');
-    // Sprint 19 — bulk actions. Declared BEFORE the {listing} wildcard
-    // routes so they aren't captured as $listing = "bulk".
-    Route::post('/listing-approvals/bulk/approve', [ListingApprovalController::class, 'bulkApprove'])->name('listing-approvals.bulk-approve');
     Route::post('/listing-approvals/bulk/reject', [ListingApprovalController::class, 'bulkReject'])->name('listing-approvals.bulk-reject');
     Route::post('/listing-approvals/{listing}/approve', [ListingApprovalController::class, 'approve'])->name('listing-approvals.approve');
     Route::post('/listing-approvals/{listing}/reject', [ListingApprovalController::class, 'reject'])->name('listing-approvals.reject');
 
-    // Packages Management (fixed-price prepacked itineraries)
-    Route::get('/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('packages.index');
-    Route::get('/packages/fixtures', [App\Http\Controllers\Admin\PackageController::class, 'fixtures'])->name('packages.fixtures');
-    Route::post('/packages', [App\Http\Controllers\Admin\PackageController::class, 'store'])->name('packages.store');
-    Route::put('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'update'])->name('packages.update');
-    Route::delete('/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'destroy'])->name('packages.destroy');
-
-    // Savings Goals Management
-    Route::get('/savings-goals', [App\Http\Controllers\Admin\SavingsGoalController::class, 'index'])->name('savings-goals.index');
-    Route::delete('/savings-goals/{savingsGoal}', [App\Http\Controllers\Admin\SavingsGoalController::class, 'destroy'])->name('savings-goals.destroy');
-
-    // Booking Management
-    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
-    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
-    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
-
-    // Product Management
+// Product Management
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
@@ -384,6 +360,10 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
     Route::post('/listings/{listing}/toggle', [ListingController::class, 'toggle'])->name('listings.toggle');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
+
+    // Sprint 46 — ticketing partner inventory + sales queue.
+    Route::get('/tickets', [PartnerTicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/sales', [PartnerTicketController::class, 'sales'])->name('tickets.sales');
 
     // Sprint 10 — Measure tab: per-partner analytics.
     Route::get('/analytics', [App\Http\Controllers\Partner\AnalyticsController::class, 'index'])->name('analytics');

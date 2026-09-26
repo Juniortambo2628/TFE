@@ -63,7 +63,7 @@ class SocialAuthController extends Controller
 
     protected function needsProfileCompletion(User $user)
     {
-        // Check for critical recommended fields
-        return empty($user->phone) || empty($user->country);
+        // A social sign-up is complete once they've named their supported team.
+        return empty($user->team_support);
     }
 }

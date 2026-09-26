@@ -39,7 +39,7 @@ export default function Wallet({ auth, walletData }) {
                             <div className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden">
                                 <div className="p-6 border-bottom border-white/5 flex justify-between items-center bg-white/5">
                                     <h3 className="text-white font-semibold">Transaction History</h3>
-                                    <Link href={route('fan.payments')} className="tfe-btn tfe-btn--sm">
+                                    <Link href={route('fan.journey')} className="tfe-btn tfe-btn--sm">
                                         View All
                                     </Link>
                                 </div>
