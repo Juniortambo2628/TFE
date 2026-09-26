@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import PageSkeleton, { skeletonVariantFor } from '@/lib/pageSkeleton';
+import PageSkeleton from '@/Components/Common/PageSkeleton';
+import { skeletonVariantFor } from '@/lib/pageSkeleton';
 
 /**
  * PageTransition — the global "page is changing" treatment (Sprint 53).

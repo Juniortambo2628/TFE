@@ -137,6 +137,7 @@ export default function Profile({ profile }) {
                                 <div className="col-md-6">
                                     <label className="tfe-form-label">Avatar / logo image</label>
                                     <ImageUpload
+                                        compact
                                         value={data.avatar}
                                         onFile={(f) => setData('avatar_file', f)}
                                         onClear={() => { setData('avatar', ''); setData('avatar_file', null); }}

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 28. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 53. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -86,6 +86,48 @@ Public hubs to demo: `/partners/serengeti-sports-travel`,
   PoweredByBadge). Colour lives in CSS variables scoped by `data-role` or
   `--partner-accent`.
 
+### Persistent layouts (Sprint 53)
+
+**The role shell is mounted once and never remounts.** Pages still render
+their own `<AdminLayout title="…">` wrapper, but `app.jsx`'s `resolve()`
+attaches the layout as an Inertia **persistent layout** from the page-name
+prefix (`Admin/` → AdminLayout, `Fan/` → FanLayout, `Partner/` →
+PartnerLayout, imported lazily so public pages pay nothing). The role layouts
+then read `Layouts/ShellContext`: with a shell above them they render
+`<Head title>` + children only and let the mounted shell own the chrome.
+
+Before this, the layout lived *inside* the page component, so every Inertia
+visit unmounted the sidebar, header and providers and built new ones — a
+sidebar click looked and behaved exactly like a full browser reload.
+
+- **Add a page under `Pages/{Admin,Fan,Partner}/` and it is covered** — no
+  wiring. Opt out with `export const layout = null` (the check is
+  `=== undefined`, not falsy).
+- Never move the `<Head title>` into the shell: two live `<Head>` titles
+  fight over `document.title`. `BaseLayout` only renders one when the shell
+  itself was given a title, which the persistent wrapper never is.
+
+### Skeletons + page transitions (Sprint 53)
+
+`PageTransition` is mounted once inside `BaseLayout`, between the shell and
+the page. It keys the page wrapper on the Inertia component name (so each
+route change replays a cross-fade) and, when a visit outlasts a **220ms
+grace period**, swaps in a skeleton shaped like the destination. Nothing is
+wired per page.
+
+- **`Components/Common/Skeleton.jsx`** is the ONE shimmer primitive
+  (`.tfe-skeleton*` in primitives.css). Never hand-roll a shimmer gradient.
+  Layout shapes: `SkeletonHero / SkeletonTiles / SkeletonSlab /
+  SkeletonCards / SkeletonTable / SkeletonSplitEditor`.
+- **`resources/js/lib/pageSkeleton.js`** maps a URL → variant
+  (`split | table | cards | dashboard`). A visit only knows its destination
+  URL, not the component, so the match is on the path. Add a pattern there
+  rather than a skeleton to a page. Kept JSX-free so `node --test` can load
+  it; the renderer is `Components/Common/PageSkeleton.jsx`. Guarded by
+  `tests/JS/pageSkeleton.test.mjs`.
+- Partial reloads (`only`/`except`/`preserveState`) and non-GET visits are
+  skipped — blanking the page for a lazy prop refresh is worse than the wait.
+
 ### Multi-tournament scoping
 
 - `config/tournaments.php` is the source of truth. There is no Tournament model.
@@ -93,6 +135,16 @@ Public hubs to demo: `/partners/serengeti-sports-travel`,
   overrides and caches it 24h. Use `->get($id)`, `->all()`, `->clearCache($id)`.
 - The `ResolvesTournament` trait picks the active tournament id from
   session `active_tournament_id`. Every fan controller should use it.
+- **The active context is ongoing/upcoming only (Sprint 53).**
+  `TournamentService::switchable()` (filtered from `all()`, so there is no
+  second list to drift) is shared as `tournament_switch_list` and is what the
+  switcher offers; `all()` still returns everything for TournamentCompare,
+  which deep-links to each tournament's own page. `ResolveTournament` refuses
+  a concluded id from `?tournament=` *and* corrects one left in the session.
+  A concluded tournament also skips per-venue Wikipedia hydration in
+  `assemble()` — the only surface that renders it is `/tournaments/{slug}`,
+  a recap that never draws a venue. Guarded by
+  `tests/Feature/TournamentContextScopeTest.php`.
 - Multi-tournament scoped tables: `budgets`, `bookings`, `favorite_matches`,
   `tribes`, `fixtures`, `listings`. Each has a `tournament_id` column and a
   `forTournament($id)` model scope.
@@ -693,17 +745,38 @@ new card / table / list CSS:
   loses its cursor mid-typing.
 - **`SplitEditorLayout`** (Sprint 51, `Components/Common/SplitEditorLayout.jsx`) —
   the shared edit-page layout: form on the left, a sticky **live preview** on the
-  right, using the full width (`.partner-edit-grid` 2fr/1fr, `.admin-split-preview`
-  sticky pane). Reach for it on any "edit one thing and watch it update" surface.
+  right, using the full width (`.tfe-split-grid` 2fr/1fr, `.tfe-split-preview`
+  sticky pane, `.tfe-editor-stack` for the left column). Reach for it on any
+  "edit one thing and watch it update" surface. **Sprint 53 moved that CSS out
+  of the admin-only sheets into primitives**, which is what let the fan +
+  partner account pages adopt it; `.partner-edit-grid` / `.admin-split-preview`
+  / `.admin-editor-stack` remain valid aliases. Passing no `preview` renders a
+  single column rather than a 2/3-width form beside empty space.
   Tournament edit and the Content CMS (Page Heroes → live `PageHero`, Section
   Cards → live `LandingCard`) both render through it. For a live-as-you-type
   preview, pass `SettingField` an `onChange` and resolve
   `draft ?? saved ?? default` in the preview (image fields update on save).
   The admin Profile + Settings (Site Identity) forms also use it, with
   **`IdentityPreview`** (Sprint 52, `Components/Common/IdentityPreview.jsx`,
-  `.tfe-identity*`) — an avatar/name/contact card for the preview pane. Most
-  other account forms (fan/partner Security + Profile) are already multi-card
-  grids or modal editors, so they were left as-is rather than force-split.
+  `.tfe-identity*`) — an avatar/name/contact card for the preview pane.
+  **Sprint 53 finished the job**: fan + partner Profile and all three Security
+  pages render through it too, so every account surface on the platform is the
+  same form-left / preview-right shape. (Sprint 52 had left them as-is on the
+  grounds that they were already grids or modal editors — the modal was
+  exactly the problem: you could not see your changes land.)
+- **`AccountSecurity`** (Sprint 53, `Components/Common/AccountSecurity.jsx`) —
+  the ONE account-security surface. `Pages/{Fan,Partner,Admin}/Security.jsx`
+  are ten-line wrappers that hand it their role's route names; passkeys use
+  the global `webauthn.*` routes directly. The backend was already shared
+  (one `SecurityService`); only the pages had drifted. Never fork it per role
+  again — the partner copy that did ended up with browser `confirm()`
+  prompts, a password form posting to the PROFILE endpoint, and 2FA/passkey
+  buttons bound to route names that were never registered.
+- **`HubPreview`** (moved to `Components/Common/` in Sprint 53) — the live
+  partner-hub preview. Used by `/admin/partners/{user}` AND the partner's own
+  `/partner/profile`. It imports its own stylesheet, so it looks right
+  wherever it is mounted. Accepts `service_tags`/`stats_text` as newline text
+  (the admin form) or as arrays (the partner form).
 - **`ListingGrid`** (Sprint 45) — grid is the default view; pass `tableView`
   to get the Grid/Table toggle. Adopted by Partners, Listing safety, Tickets,
   Users, Events, Prizes, Announcements, Tribes, Tournaments and Content→Posts.
@@ -1085,6 +1158,18 @@ tests/
   landed in 6.1 and render as blank squares.
 - Never maintain `tribes.member_count` / `posts_count` by hand — go through
   `Tribe::syncCounts()` (Sprint 48).
+- Never render a role layout *inside* a page as the only layout. The page's
+  own `<AdminLayout>` wrapper is fine — it stands down to a passthrough — but
+  the mounted shell comes from `app.jsx`'s persistent-layout assignment. Break
+  that and every sidebar click remounts the whole shell again (Sprint 53).
+- Never fork the security page per role, or hand-roll a shimmer placeholder.
+  Use `Components/Common/AccountSecurity` and `Components/Common/Skeleton`.
+- Never reference a `route()` name from a role page without checking it is
+  registered — `route()` throws at click time, not render time, so the
+  partner security page shipped four dead buttons for two sprints (Sprint 53).
+- Never let a concluded tournament become the active context. Read
+  `tournament_switch_list` (or `switchableTournaments` from the context), not
+  `tournament_list`, anywhere the pick CHANGES the session (Sprint 53).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server
@@ -1134,6 +1219,7 @@ tests/
 | 50     | Global media library (MediaLibraryService: server-side compression, wider types incl. video, MediaAsset gallery + MediaPicker), collapsible sidebar groups, Content Page-Heroes sub-tabs, Events filter chips, Prizes/Products removed from admin |
 | 51     | Shared SplitEditorLayout (form-left / sticky-live-preview-right) extracted from the tournament edit page and applied to the Content CMS (Page Heroes + Section Cards) with live previews; SettingField gains an onChange for live-as-you-type |
 | 52     | SplitEditorLayout + IdentityPreview rolled onto the admin Profile and Settings (Site Identity) forms; other account forms left as-is (already grids/modals) |
+| 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

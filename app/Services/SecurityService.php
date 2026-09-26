@@ -136,16 +136,29 @@ class SecurityService
         return back()->withErrors(['two_factor_code' => 'Invalid verification code. Please try again.']);
     }
 
+    /**
+     * Turn login notifications on or off.
+     *
+     * Sprint 53 — honours the posted value when the client sends one, and
+     * creates the settings row if it is missing. Before, it ignored the
+     * payload and blind-flipped whatever was stored, so two quick clicks
+     * (or a re-sent request) landed back where they started; and with no row
+     * yet it silently did nothing at all and still reported success.
+     */
     public function toggleLoginNotifications(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $settings = UserSecuritySetting::where('user_id', $user->id)->first();
 
-        if ($settings) {
-            $settings->update([
-                'login_notifications' => ! $settings->login_notifications,
-            ]);
-        }
+        $settings = UserSecuritySetting::firstOrCreate(
+            ['user_id' => $user->id],
+            ['two_factor_enabled' => false, 'login_notifications' => true],
+        );
+
+        $settings->update([
+            'login_notifications' => $request->has('login_notifications')
+                ? $request->boolean('login_notifications')
+                : ! $settings->login_notifications,
+        ]);
 
         return back()->with('success', 'Login notifications updated');
     }

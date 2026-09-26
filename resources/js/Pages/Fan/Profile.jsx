@@ -415,6 +415,7 @@ export default function Profile({
                                 </div>
                                 <div className="tfe-slab__body">
                                     <ImageUpload
+                                        compact
                                         value={avatarSrc}
                                         onFile={uploadAvatar}
                                         onClear={() => {
