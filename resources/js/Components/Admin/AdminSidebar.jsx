@@ -5,7 +5,7 @@ import AppSidebar from '@/Components/Common/AppSidebar';
  * Admin sidebar — Phase E buckets.
  *
  * REACH: Dashboard, Analytics, Partners, Users.
- * CONTENT: Content, News, Announcements, Ads, Events, Prizes, Products.
+ * CONTENT: Content, Tournaments, News, Announcements, Ads, Events, Prizes, Products.
  * SAFETY: Listing safety, Tribes, Stories, Messages.
  * PLATFORM: Settings, Profile.
  */
@@ -19,11 +19,12 @@ export default function AdminSidebar({ user }) {
 
         { heading: 'Content' },
         { label: 'Content', icon: 'fas fa-layer-group', route: 'admin.content', path: '/admin/content' },
+        { label: 'Tournaments', icon: 'fas fa-trophy', route: 'admin.tournaments.index', path: '/admin/tournaments' },
         { label: 'News', icon: 'fas fa-newspaper', route: 'admin.news.index', path: '/admin/news' },
         { label: 'Announcements', icon: 'fas fa-bullhorn', route: 'admin.announcements', path: '/admin/announcements' },
         { label: 'Ads', icon: 'fas fa-ad', route: 'admin.ads.index', path: '/admin/ads' },
         { label: 'Events', icon: 'fas fa-calendar', route: 'admin.events', path: '/admin/events' },
-        { label: 'Prizes', icon: 'fas fa-trophy', route: 'admin.prizes.index', path: '/admin/prizes' },
+        { label: 'Prizes', icon: 'fas fa-gift', route: 'admin.prizes.index', path: '/admin/prizes' },
         { label: 'Products', icon: 'fas fa-box-open', route: 'admin.products.index', path: '/admin/products' },
 
         { heading: 'Safety' },

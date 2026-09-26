@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PrizeController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StoryController;
+use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
@@ -342,6 +343,14 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/tribes/{tribe}', [App\Http\Controllers\Admin\TribeController::class, 'show'])->name('tribes.show');
     Route::put('/tribes/{tribe}', [App\Http\Controllers\Admin\TribeController::class, 'update'])->name('tribes.update');
     Route::delete('/tribes/{tribe}', [App\Http\Controllers\Admin\TribeController::class, 'destroy'])->name('tribes.destroy');
+
+    // Tournament management (Sprint 49) — everything about a tournament in one
+    // place: featured pick, Wikipedia refresh, branding, imagery and venues.
+    Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
+    Route::post('/tournaments/feature', [TournamentController::class, 'feature'])->name('tournaments.feature');
+    Route::post('/tournaments/refresh', [TournamentController::class, 'refresh'])->name('tournaments.refresh');
+    Route::get('/tournaments/{tournament}', [TournamentController::class, 'edit'])->name('tournaments.edit');
+    Route::post('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
 
     // Stories Management
     Route::get('/stories', [StoryController::class, 'index'])->name('stories.index');
