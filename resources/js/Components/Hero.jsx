@@ -37,6 +37,16 @@ function parseCapacity(raw, fallback) {
     return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+// Capacity for display. The catalogue stores a plain integer (60000) while
+// Wikipedia used to hand us a pre-formatted string ("60,000"), so normalise to
+// the grouped form here. parseCapacity() reads either shape, so the numeric
+// consumers (the seat map) are unaffected.
+function formatCapacity(raw) {
+    if (raw === null || raw === undefined || raw === '') return 'TBD';
+    if (typeof raw === 'number' && Number.isFinite(raw)) return raw.toLocaleString('en-US');
+    return String(raw);
+}
+
 // Deterministic pseudo-sold-percentage per stadium so the preview reads
 // as "live-ish" without hitting a booking backend. Replaced by real
 // package aggregate once we surface it into the Hero payload.
@@ -121,13 +131,17 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 return {
                     name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
                     location: v.location || 'Tournament venue',
-                    capacity: v.capacity || 'TBD',
+                    capacity: formatCapacity(v.capacity),
                     history: v.opened || '',
                     fun_fact: v.extract || '',
                     image: localImage || heroImage,
                     matches: [],
                     attribution: 'Data from Wikipedia',
                     url: v.url || '',
+                    // Which host this ground belongs to — drives the map
+                    // highlight and the host pill on the tournament card.
+                    country: v.country || '',
+                    country_code: v.country_code || '',
                 };
             });
         }
@@ -324,16 +338,39 @@ export default function Hero({ stadiums: stadiumsProp }) {
                 <div className="stadium-slide-overlay hero-overlay-gradient"></div>
             </div>
 
-            {/* Top Center: Flag Carousel & Stadium Badge — horizontal row */}
-            {flagTrack.length > 0 && (
-                <div className="hero-top-bar position-absolute top-0 start-0 w-100 z-1">
-                    <div className="d-flex align-items-center justify-content-center gap-3 py-2 px-3 hero-top-bar-inner">
-                        {/* Flag Carousel (compact) — CSS-animated marquee.
-                            Previously a framer-motion infinite x:[0,-50%] tween
-                            that repainted every frame on the main thread and
-                            made the hero janky; now a GPU-composited CSS
-                            keyframe (see .hero-flag-track-auto), paused on hover
-                            via the is-paused class. */}
+            {/* Top Center: Stadium Badge.
+                Rendered independently of the flag carousel — it used to share
+                the carousel's `flagTrack.length > 0` guard, which meant a
+                tournament with no flag data silently lost its stadium label
+                too. */}
+            <div className="hero-top-bar position-absolute top-0 start-0 w-100 z-1">
+                <div className="d-flex align-items-center justify-content-center gap-3 py-2 px-3 hero-top-bar-inner">
+                    <motion.div
+                        key={`badge-top-${currentSlide}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="hero-stadium-badge hero-stadium-badge-sm"
+                    >
+                        <div className="badge-dot"></div>
+                        <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
+                        <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* Bottom Center: Flag Carousel — CSS-animated marquee.
+                Previously a framer-motion infinite x:[0,-50%] tween that
+                repainted every frame on the main thread and made the hero
+                janky; now a GPU-composited CSS keyframe (see
+                .hero-flag-track-auto), paused on hover via the is-paused
+                class. */}
+            {/* The bar itself is unconditional: it also hosts the attribution,
+                which must not disappear just because a tournament has no flag
+                data. Only the carousel inside is gated. */}
+            <div className="hero-bottom-bar position-absolute bottom-0 start-0 w-100 z-1">
+                {flagTrack.length > 0 && (
+                    <div className="d-flex align-items-center justify-content-center px-3 hero-bottom-bar-inner">
                         <div
                             className="flag-carousel-container flag-carousel-compact mb-0 hero-flag-carousel-pointer"
                             ref={carouselRef}
@@ -367,22 +404,28 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                 ))}
                             </div>
                         </div>
-
-                        {/* Stadium Badge (compact) */}
-                        <motion.div 
-                            key={`badge-top-${currentSlide}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="hero-stadium-badge hero-stadium-badge-sm"
-                        >
-                            <div className="badge-dot"></div>
-                            <span className="text-white fw-bold tracking-wider">{activeStadium.name}</span>
-                            <span className="text-white text-opacity-50"> — {activeStadium.location.split(',').pop().trim()}</span>
-                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Attribution — a child of the bottom bar, not pinned to the
+                    section corner, which is what lets it change layout per
+                    breakpoint (see .stadium-attribution). On phones it flows
+                    centred under the flags; from sm up it is positioned into
+                    the bar's bottom-right, where it has always appeared.
+                    Skipped when empty so the fallback slide doesn't render a
+                    blank glass pill. */}
+                {activeStadium.attribution ? (
+                    <motion.div
+                        key={`attr-${currentSlide}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="stadium-attribution"
+                    >
+                        <small className="text-white text-opacity-60">{activeStadium.attribution}</small>
+                    </motion.div>
+                ) : null}
+            </div>
 
             {/* Content Layer - Persistent across slide changes */}
             <div className="container flex-grow-1 d-flex flex-column position-relative z-1">
@@ -391,17 +434,19 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         both the map and the tournament card take more room. */}
                     <div className="row align-items-center gx-0 hero-primary-row">
                         {/* Left: World Map — host countries highlighted */}
-                        <div className="col-xl-8 d-none d-xl-block">
+                        <div className="col-xl-8 hero-map-col d-none d-xl-block">
                             <HeroWorldMap
                                 tournament={tournament}
                                 className="hero-worldmap--xl"
+                                activeCountry={activeStadium.country_code}
+                                accent={heroAccent}
                             />
                         </div>
 
                         {/* Right Content: the active tournament, countdown + CTAs
                             wrapped in the shared tournament card (AccentCard),
                             echoing the AFCON compare card. */}
-                        <div className="col-xl-4">
+                        <div className="col-xl-4 hero-card-col">
                             <motion.div
                                 key={`countdown-${tournament ? tournament.id : 'default'}`}
                                 initial={{ opacity: 0, y: 10 }}
@@ -465,9 +510,13 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                                 const circumference = 2 * Math.PI * radius;
                                                 const strokeDashoffset = circumference - (item.value / item.max) * circumference;
                                                 return (
-                                                    <div key={idx} className="d-flex flex-column align-items-center gap-1">
-                                                        <div className="position-relative" style={{ width: size + 'px', height: size + 'px' }}>
-                                                            <svg width={size} height={size} className="hero-countdown-svg">
+                                                    <div key={idx} className="hero-countdown-item d-flex flex-column align-items-center gap-1">
+                                                        {/* Sized in CSS, not inline, so the dial can grow on
+                                                            narrow screens. The circle maths below stays in the
+                                                            56-unit space and viewBox scales it — no second set
+                                                            of radii to keep in sync. */}
+                                                        <div className="position-relative hero-countdown-dial">
+                                                            <svg viewBox={`0 0 ${size} ${size}`} className="hero-countdown-svg">
                                                                 <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
                                                                 <circle cx={center} cy={center} r={radius} fill="transparent" stroke={heroAccent} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
                                                             </svg>
@@ -486,9 +535,27 @@ export default function Hero({ stadiums: stadiumsProp }) {
                                     {tournament?.hosts && tournament.hosts.length > 0 && (
                                         <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
                                             <i className="fas fa-map-marker-alt text-danger"></i>
-                                            {tournament.hosts.map((host, idx) => (
-                                                <GlassPill key={idx} size="sm">{host}</GlassPill>
-                                            ))}
+                                            {tournament.hosts.map((host, idx) => {
+                                                // Matched on the country name rather than on
+                                                // array position: `hosts` and `host_flag_codes`
+                                                // happen to be parallel today, but nothing
+                                                // enforces that, and a silent mis-pairing here
+                                                // would light up the wrong country.
+                                                const isActive = !!activeStadium.country
+                                                    && host.trim().toLowerCase()
+                                                        === activeStadium.country.trim().toLowerCase();
+
+                                                return (
+                                                    <GlassPill
+                                                        key={idx}
+                                                        size="sm"
+                                                        className={isActive ? 'is-active' : ''}
+                                                        aria-current={isActive ? 'true' : undefined}
+                                                    >
+                                                        {host}
+                                                    </GlassPill>
+                                                );
+                                            })}
                                         </div>
                                     )}
 
@@ -526,17 +593,6 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
 
             {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
-
-            {/* Attribution Glass Pill */}
-            <motion.div 
-                key={`attr-${currentSlide}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="stadium-attribution position-absolute bottom-0 end-0 m-3 z-1"
-            >
-                <small className="text-white text-opacity-60">{activeStadium.attribution}</small>
-            </motion.div>
 
             {/* Refactored Match Modal using DashboardModal */}
             <DashboardModal

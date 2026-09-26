@@ -251,6 +251,75 @@ class StadiumImageService
     }
 
     /**
+     * Does this tournament have a curated stadium catalogue?
+     *
+     * When it does, the catalogue — not Wikipedia's venue parse — is the
+     * source of truth for which grounds exist.
+     */
+    public function hasCatalogue(string $tournamentId): bool
+    {
+        return ! empty(config("stadiums.sets.{$tournamentId}"));
+    }
+
+    /**
+     * Build the venue rows for a tournament straight from the catalogue.
+     *
+     * This is the inversion of the original design, and the reason the hero
+     * slider now resolves every slide. Wikipedia's "Venues" section is free
+     * prose: it lists grounds under whatever name an editor last used, often
+     * abbreviates them, sometimes emits bare city names as if they were
+     * stadiums, and changes between fetches. Deriving our venue list from it
+     * meant a slide could exist for a ground we had no image of, and a ground
+     * we *did* have an image of could be missing entirely.
+     *
+     * We already hold the authoritative list — 12 real stadiums that are not
+     * going to change. So the catalogue drives the list, and Wikipedia is
+     * demoted to enrichment keyed on `wikipedia_title`, a name we chose.
+     * Every row therefore has an image by construction.
+     *
+     * Rows come back in config order and carry the shape the frontend already
+     * expects from a Wikipedia venue row, so nothing downstream had to change.
+     *
+     * @return array<int, array>
+     */
+    public function catalogueVenues(string $tournamentId): array
+    {
+        $out = [];
+
+        foreach ($this->catalogue($tournamentId) as $entry) {
+            $location = trim(
+                ($entry['city'] ?? '').', '.($entry['country'] ?? ''),
+                ', '
+            );
+
+            $out[] = [
+                'name' => $entry['name'] ?? $entry['slug'],
+                'slug' => $entry['slug'],
+                'city' => $entry['city'] ?? null,
+                'country' => $entry['country'] ?? null,
+                'country_code' => $entry['country_code'] ?? null,
+                'location' => $location ?: null,
+                'lat' => $entry['lat'] ?? null,
+                'lng' => $entry['lng'] ?? null,
+                'capacity' => $entry['capacity'] ?? null,
+                'image' => $entry['url'],
+                'thumbnail' => $entry['url'],
+                'image_source' => 'local',
+                'is_overridden' => $entry['is_overridden'] ?? false,
+                // What Wikipedia should be asked about this ground. Falls back
+                // to the canonical name when no explicit article is set.
+                'wikipedia_title' => $entry['wikipedia_title'] ?? ($entry['name'] ?? null),
+                // Filled in by WikipediaService::enrichStadiums().
+                'extract' => '',
+                'opened' => null,
+                'url' => null,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * Overlay local imagery + coordinates onto the Wikipedia venue rows.
      *
      * Wikipedia stays the source for prose (extract), capacity and opening

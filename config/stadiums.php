@@ -60,6 +60,9 @@ return [
                 'country' => 'Kenya',
                 'lat' => -1.3006,
                 'lng' => 36.7566,
+                'country_code' => 'ke',
+                'capacity' => 60000,
+                'wikipedia_title' => 'Talanta Sports City Stadium',
                 'image' => 'stadiums/AFCON/talanta-sports-city_hero.webp',
                 'aliases' => [
                     'talanta sports',
@@ -81,6 +84,9 @@ return [
                 'country' => 'Kenya',
                 'lat' => -1.2264,
                 'lng' => 36.8945,
+                'country_code' => 'ke',
+                'capacity' => 48000,
+                'wikipedia_title' => 'Moi International Sports Centre',
                 'image' => 'stadiums/AFCON/moi-kasarani_hero.webp',
                 'aliases' => [
                     'moi international',
@@ -101,6 +107,9 @@ return [
                 'country' => 'Kenya',
                 'lat' => -1.3055,
                 'lng' => 36.8265,
+                'country_code' => 'ke',
+                'capacity' => 30000,
+                'wikipedia_title' => 'Nyayo National Stadium',
                 'image' => 'stadiums/AFCON/nyayo-national_hero.webp',
                 'aliases' => [
                     'nyayo national',
@@ -116,6 +125,9 @@ return [
                 'country' => 'Kenya',
                 'lat' => 0.2827,
                 'lng' => 34.7519,
+                'country_code' => 'ke',
+                'capacity' => 20000,
+                'wikipedia_title' => 'Bukhungu Stadium',
                 'image' => 'stadiums/AFCON/bukhungu_hero.webp',
                 'aliases' => [
                     'bukhungu',
@@ -129,6 +141,9 @@ return [
                 'country' => 'Kenya',
                 'lat' => 0.5143,
                 'lng' => 35.2698,
+                'country_code' => 'ke',
+                'capacity' => 15000,
+                'wikipedia_title' => 'Kipchoge Keino Stadium',
                 'image' => 'stadiums/AFCON/kipchoge-keino_hero.webp',
                 'aliases' => [
                     'kipchoge keino',
@@ -145,6 +160,9 @@ return [
                 'country' => 'Uganda',
                 'lat' => 0.3613,
                 'lng' => 32.6553,
+                'country_code' => 'ug',
+                'capacity' => 45000,
+                'wikipedia_title' => 'Mandela National Stadium',
                 'image' => 'stadiums/AFCON/mandela-national_hero.webp',
                 'aliases' => [
                     'mandela national',
@@ -162,10 +180,17 @@ return [
                 'country' => 'Uganda',
                 'lat' => 1.4330,
                 'lng' => 31.3520,
+                'country_code' => 'ug',
+                'capacity' => 20000,
+                'wikipedia_title' => 'Hoima Stadium',
                 'image' => 'stadiums/AFCON/hoima-city_hero.webp',
                 'aliases' => [
                     'hoima city',
                     'hoima city stadium',
+                    // Commonly written without "City" — CAF's own venue list
+                    // and most reporting use the short form.
+                    'hoima',
+                    'hoima stadium',
                     'kabaale',
                 ],
             ],
@@ -176,6 +201,9 @@ return [
                 'country' => 'Uganda',
                 'lat' => 2.2499,
                 'lng' => 32.8998,
+                'country_code' => 'ug',
+                'capacity' => 20000,
+                'wikipedia_title' => 'Akii-Bua Olympic Stadium',
                 'image' => 'stadiums/AFCON/akii-bua_hero.webp',
                 'aliases' => [
                     'akii bua',
@@ -196,6 +224,9 @@ return [
                 'country' => 'Tanzania',
                 'lat' => -6.8657,
                 'lng' => 39.2378,
+                'country_code' => 'tz',
+                'capacity' => 60000,
+                'wikipedia_title' => 'Benjamin Mkapa Stadium',
                 'image' => 'stadiums/AFCON/benjamin-mkapa_hero.webp',
                 'aliases' => [
                     'benjamin mkapa',
@@ -212,6 +243,9 @@ return [
                 'country' => 'Tanzania',
                 'lat' => -3.3869,
                 'lng' => 36.6830,
+                'country_code' => 'tz',
+                'capacity' => 30000,
+                'wikipedia_title' => 'Samia Suluhu Hassan Stadium',
                 'image' => 'stadiums/AFCON/samia-suluhu-hassan_hero.webp',
                 'aliases' => [
                     'samia suluhu hassan',
@@ -226,6 +260,9 @@ return [
                 'country' => 'Tanzania',
                 'lat' => -6.1730,
                 'lng' => 35.7419,
+                'country_code' => 'tz',
+                'capacity' => 20000,
+                'wikipedia_title' => 'Jamhuri Stadium',
                 'image' => 'stadiums/AFCON/dodoma_hero.webp',
                 'aliases' => [
                     'dodoma',
@@ -242,6 +279,9 @@ return [
                 'country' => 'Tanzania',
                 'lat' => -6.1650,
                 'lng' => 39.1990,
+                'country_code' => 'tz',
+                'capacity' => 15000,
+                'wikipedia_title' => 'Amaan Stadium',
                 'image' => 'stadiums/AFCON/amaan_hero.webp',
                 'aliases' => [
                     'amaan',

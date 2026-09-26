@@ -311,23 +311,25 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                     <i className="fas fa-chevron-down chevron"></i>
 
                     {dropdowns.user && (
-                        <div className="dashboard-dropdown-anchor">
-                            <div className="dashboard-dropdown-header">
-                                <div className="user-info">
-                                    <div className="user-name">{user?.name}</div>
-                                    <div className="user-email">{user?.email}</div>
+                        <div className="tfe-menu-surface tfe-menu-surface--profile" role="menu">
+                            <div className="tfe-menu-surface__head">
+                                <div className="tfe-menu-surface__user">
+                                    <div className="tfe-menu-surface__user-name">{user?.name}</div>
+                                    <div className="tfe-menu-surface__user-email">{user?.email}</div>
                                 </div>
                             </div>
-                            <div className="dashboard-dropdown-divider"></div>
-                            {config.profileLinks.map((link) => (
-                                <Link key={link.route} href={route(link.route)} className="dashboard-dropdown-item">
-                                    <i className={link.icon}></i> {link.label}
+                            <div className="tfe-menu-surface__body">
+                                {config.profileLinks.map((link) => (
+                                    <Link key={link.route} href={route(link.route)} className="tfe-menu-surface__item">
+                                        <i className={link.icon}></i> {link.label}
+                                    </Link>
+                                ))}
+                            </div>
+                            <div className="tfe-menu-surface__foot">
+                                <Link href={route('logout')} method="post" as="button" className="tfe-menu-surface__item tfe-menu-surface__item--danger">
+                                    <i className="fas fa-sign-out-alt"></i> Logout
                                 </Link>
-                            ))}
-                            <div className="dashboard-dropdown-divider"></div>
-                            <Link href={route('logout')} method="post" as="button" className="dashboard-dropdown-item dashboard-dropdown-item--logout">
-                                <i className="fas fa-sign-out-alt"></i> Logout
-                            </Link>
+                            </div>
                         </div>
                     )}
                 </div>

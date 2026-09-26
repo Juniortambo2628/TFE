@@ -446,7 +446,6 @@ export default function Packages({ auth, packages = [], tournaments = [], filter
                                         type="button"
                                         key={v}
                                         onClick={() => toggleVenue(v)}
-                                        type="button"
                                         aria-pressed={data.included_venues.includes(v)}
                                         className={`tfe-btn tfe-btn--sm${data.included_venues.includes(v) ? ' is-active' : ''}`}
                                     >

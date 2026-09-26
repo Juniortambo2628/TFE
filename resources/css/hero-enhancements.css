@@ -59,7 +59,10 @@
 
 /* ── Top Bar: Flag Carousel + Stadium Badge (horizontal) ── */
 .hero-top-bar {
-    padding-top: 70px; /* clear the header/navbar */
+    /* Clears the header/navbar. The badge is centred on its own now that the
+       flag carousel moved to the bottom bar, which puts it directly under the
+       centred nav links — 70px left the two touching, so it sits lower. */
+    padding-top: 104px;
     z-index: 5;
     pointer-events: none;
 }
@@ -83,6 +86,31 @@
 .hero-top-bar-inner {
     pointer-events: auto;
     flex-wrap: nowrap;
+}
+
+/* Bottom centre bar — the team flag carousel.
+   It moved down here from beside the stadium badge once the lighter overlay
+   freed up the lower third of the hero. Mirrors .hero-top-bar: the bar itself
+   is click-through so it never steals pointer events from the hero, and only
+   the inner strip takes them back for the flags' click/hover handlers. */
+.hero-bottom-bar {
+    z-index: 5;
+    pointer-events: none;
+    padding-bottom: 28px;
+}
+
+.hero-bottom-bar-inner {
+    pointer-events: auto;
+    flex-wrap: nowrap;
+}
+
+/* The slider arrows sit bottom-right. Keep the centred carousel clear of them
+   so a wide marquee can't slide under the controls on narrower desktops. */
+@media (min-width: 768px) {
+    .hero-bottom-bar-inner {
+        max-width: calc(100% - 320px);
+        margin-inline: auto;
+    }
 }
 
 /* Compact flag carousel for top bar */
@@ -202,7 +230,20 @@
     pointer-events: none; /* Prevent image drag interfering with carousel drag */
 }
 
-/* Attribution Glass Pill */
+/* Attribution Glass Pill.
+ *
+ * Lives inside .hero-bottom-bar rather than being pinned to the hero section's
+ * corner. It used to be `position-absolute bottom-0 end-0` on the section,
+ * which collided with the tournament card's last CTA *and* the flag carousel
+ * at 375x667 — the shortest phone viewport, where the card fills the width so
+ * no corner is free. Being a child of the bar lets it flow on phones and be
+ * positioned on wider screens, which a section-pinned element could not do.
+ *
+ * Phones: normal flow, centred under the flags (the default below).
+ * sm and up: positioned into the bar's bottom-right, exactly where it has
+ * always sat — the bar is itself absolutely positioned at the section bottom,
+ * so 16px from its bottom/right matches the previous m-3 offset.
+ */
 .stadium-attribution {
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
@@ -211,6 +252,17 @@
     border-radius: 50px;
     padding: 4px 12px;
     pointer-events: none;
+    width: fit-content;
+    margin: 0.5rem auto 0;
+}
+
+@media (min-width: 576px) {
+    .stadium-attribution {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        margin: 0;
+    }
 }
 
 .stadium-attribution small {
@@ -323,19 +375,44 @@
 }
 
 
-/* Hero background overlay gradient — 85% overall opacity
-   A(y=0) black 100% → B(y=20) red 90% → C(y=50) red 70% → D(y=65) red 40% → E(y=80) black 60% → F(y=100) black 100% */
+/* Hero background overlay gradient.
+ *
+ * The job here is text legibility, not atmosphere: the stadium photography
+ * should carry the hero. Two rules follow from that.
+ *
+ * 1. Darkening is concentrated at the TOP and BOTTOM, where the copy sits —
+ *    the nav and stadium badge above, the slider controls below. Those bands
+ *    are black, not crimson: neutral darkening buys contrast per unit of
+ *    obscuring, where a saturated colour mostly just tints.
+ * 2. The MIDDLE is where the stadium actually is, so it is left nearly clear.
+ *    A faint crimson tint survives to tie the hero to the brand, but it is a
+ *    tint now rather than the wash it used to be.
+ *
+ * Everything is expressed in the stop alphas with `opacity: 1`, deliberately.
+ * This used to be alpha stops multiplied by a layer opacity, which meant no
+ * value in the rule was the value you actually got (a "0.9" crimson rendered
+ * at 0.27) and tuning it required mental arithmetic. What you read here is
+ * what paints.
+ *
+ * Contrast is measured, not assumed — see the commit that introduced these
+ * numbers. Re-check the nav and badge against the brightest slide in the set
+ * (currently Amaan, a daytime shot) if you change the top stops.
+ */
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
-    opacity: 0.85;
+    opacity: 1;
     background: linear-gradient(to bottom,
-        rgba(0,0,0,1) 0%,
-        rgba(220,20,60,0.9) 20%,
-        rgba(220,20,60,0.7) 50%,
-        rgba(220,20,60,0.4) 65%,
-        rgba(0,0,0,0.6) 80%,
-        rgba(0,0,0,1) 100%
+        /* Nav + stadium badge sit in this band. */
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0.34) 12%,
+        /* The stadium itself — brand tint only. */
+        rgba(190, 20, 55, 0.13) 30%,
+        rgba(190, 20, 55, 0.08) 50%,
+        rgba(190, 20, 55, 0.05) 68%,
+        /* Slider controls + the section boundary below. */
+        rgba(0, 0, 0, 0.30) 85%,
+        rgba(0, 0, 0, 0.62) 100%
     );
 }
 
@@ -708,9 +785,20 @@
     min-width: 80px;
 }
 
+/* Countdown dial box — the single place the dial's rendered size is set.
+   The SVG inside carries a viewBox and fills this box, so changing these two
+   values is all it takes to resize a dial at a breakpoint. */
+.hero-countdown-dial {
+    width: 56px;
+    height: 56px;
+}
+
 /* Countdown SVG circles */
 .hero-countdown-svg {
     transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 /* Countdown circle label (D/H/M/S) */
@@ -901,6 +989,27 @@
     overflow-y: hidden;
     height: 100vh;
     max-height: 100vh;
+}
+
+/* Phones — let the hero grow instead of clipping.
+ *
+ * The fixed 100vh above plus overflow:hidden means content taller than the
+ * viewport is cut off rather than flowed. On a 375x667 iPhone SE the hero
+ * needs ~788px (the tournament card alone is ~640px), so the card was being
+ * clipped straight over the bottom bar: its last CTA landed on top of both
+ * the flag carousel and the attribution pill, and no amount of padding or
+ * repositioning could escape it — the section simply refused to grow.
+ *
+ * min-height keeps the full-bleed look wherever the content does fit, and the
+ * background layers are inset:0 on a h-100 wrapper so they stretch with it.
+ * Kept to phones: from sm up the content fits 100vh and the cap is harmless.
+ */
+@media (max-width: 575.98px) {
+    .tfe-hero-slider {
+        height: auto;
+        max-height: none;
+        min-height: 100vh;
+    }
 }
 
 /* CTA buttons container — flex-wrap on mobile */
@@ -1097,16 +1206,42 @@
 }
 
 /* Sprint 41 — the hero's bottom stats strip was removed, so Row 1 is now the
-   sole hero row. With the freed vertical space, the world map and tournament
-   card both scale up on xl. The map is behind the card column, so a modest
-   scale reads as a larger map without colliding (the card paints on top). */
+   sole hero row, and the map takes the freed space.
+ *
+ * That size used to come from transform: scale(1.14) on the inner map. Because
+ * .hero-worldmap-viewport clips with overflow:hidden, scaling past 100% simply
+ * cropped the map — roughly 7% off each edge, which is why the Americas were
+ * sliced down the left margin. Scale is the wrong tool here: it grows the
+ * drawing without growing the box it has to fit in.
+ *
+ * The width comes from the grid instead. The map column is widened past the
+ * Bootstrap col-xl-8 (66.7%) and the card column narrows to match, so the map
+ * is drawn larger AND fits inside its viewport uncropped. The card keeps
+ * ~27% of a ≥1200px container, comfortably more than the ~440px it renders at.
+ */
 @media (min-width: 1200px) {
     .hero-content-stack--roomy {
         gap: 0 !important;
     }
+
+    /* 71/29 rather than Bootstrap's 8/4 (66.7/33.3): the map gains real width,
+       while the card keeps enough to hold "Africa Cup of Nations 2027" on two
+       lines and the four countdown dials on one row. At 27% the title wrapped
+       to three lines and the dials crowded. */
+    .hero-primary-row > .hero-map-col {
+        flex: 0 0 71%;
+        max-width: 71%;
+    }
+
+    .hero-primary-row > .hero-card-col {
+        flex: 0 0 29%;
+        max-width: 29%;
+    }
+
+    /* No scale: the column width above is what makes the map bigger now.
+       Anything above 1 here reintroduces the clipping described above. */
     .hero-worldmap--xl .hero-worldmap-inner {
-        transform: scale(1.14);
-        transform-origin: center center;
+        transform: none;
     }
 }
 

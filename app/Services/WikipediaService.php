@@ -800,8 +800,16 @@ class WikipediaService
      * derived from wikitext) hit their per-key caches instead of firing
      * serial HTTP requests. Venue stadium data is likewise pre-warmed in a
      * single pool per tournament instead of N sequential requests.
+     *
+     * `$hydrateVenues` exists for tournaments that carry a stadium catalogue
+     * (config/stadiums.php). Those build their venue list from config and
+     * enrich it via enrichStadiums() using titles we control, so hydrating
+     * Wikipedia's own venue parse here is pure waste — a second batch of
+     * requests whose results are discarded downstream. Callers that will use
+     * the catalogue pass false and the venue names still come back, just
+     * without the per-stadium round-trips.
      */
-    public function getAll(string $title, ?int $ttl = null): array
+    public function getAll(string $title, ?int $ttl = null, bool $hydrateVenues = true): array
     {
         $ttl = $ttl ?? config('tournaments.cache.facts');
 
@@ -813,12 +821,14 @@ class WikipediaService
         $venues = $this->getVenues($title, $ttl);
 
         // Phase 3 — warm all per-venue summary + wikitext in parallel too.
-        $this->warmStadiums($venues, $ttl);
-        foreach ($venues as &$venue) {
-            $stadiumData = $this->getStadiumData($venue['wikipedia_title'] ?? $venue['name'], $ttl);
-            $venue = array_merge($venue, $stadiumData);
+        if ($hydrateVenues) {
+            $this->warmStadiums($venues, $ttl);
+            foreach ($venues as &$venue) {
+                $stadiumData = $this->getStadiumData($venue['wikipedia_title'] ?? $venue['name'], $ttl);
+                $venue = array_merge($venue, $stadiumData);
+            }
+            unset($venue);
         }
-        unset($venue);
 
         return [
             'summary' => $this->getSummary($title, $ttl),
@@ -993,6 +1003,68 @@ class WikipediaService
                 }
             }
         }
+    }
+
+    /**
+     * Enrich curated venue rows with Wikipedia prose, keyed on OUR titles.
+     *
+     * The inverse of the old flow. Previously we parsed Wikipedia's "Venues"
+     * section to discover which grounds exist and then tried to match our
+     * images onto whatever names came back — names that are inconsistent
+     * between edits and frequently too generic to match. Here the caller has
+     * already established the venue list from config/stadiums.php, and each
+     * row names the article to ask about (`wikipedia_title`). Lookups are
+     * therefore exact and stable.
+     *
+     * Our data always wins. Wikipedia only supplies fields we have no answer
+     * for: the prose extract, the year opened, the article link, and capacity
+     * where the catalogue left it null. Notably it does NOT get to override
+     * the image, the name, or the coordinates — those are the things it was
+     * unreliable at, which is why they live in config now.
+     *
+     * Requests are pooled by the existing warmStadiums() helper, so a cold
+     * cache costs one batched round-trip rather than one request per ground.
+     * Any failure degrades to the config row unchanged.
+     *
+     * @param  array<int, array>  $venues
+     * @return array<int, array>
+     */
+    public function enrichStadiums(array $venues, ?int $ttl = null): array
+    {
+        if (empty($venues)) {
+            return $venues;
+        }
+
+        $ttl = $ttl ?? config('tournaments.cache.facts');
+
+        $this->warmStadiums($venues, $ttl);
+
+        foreach ($venues as &$venue) {
+            $title = $venue['wikipedia_title'] ?? $venue['name'] ?? null;
+
+            if (! $title) {
+                continue;
+            }
+
+            try {
+                $data = $this->getStadiumData($title, $ttl);
+            } catch (\Throwable $e) {
+                // Imagery and the venue list are already correct without this;
+                // prose is a bonus and must never break the payload.
+                continue;
+            }
+
+            $venue['extract'] = $data['extract'] ?: ($venue['extract'] ?? '');
+            $venue['opened'] = $venue['opened'] ?? $data['opened'] ?? null;
+            $venue['url'] = $venue['url'] ?? $data['url'] ?? null;
+
+            if (empty($venue['capacity']) && ! empty($data['capacity'])) {
+                $venue['capacity'] = $data['capacity'];
+            }
+        }
+        unset($venue);
+
+        return $venues;
     }
 
     /**
