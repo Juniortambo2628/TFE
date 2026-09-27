@@ -6,6 +6,7 @@ import CapacityBar from '@/Components/Common/CapacityBar';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import StepFlow from '@/Components/Common/StepFlow';
+import { formatSchedule } from '@/lib/schedule';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
 import '../../css/tickets.css';
@@ -195,7 +196,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                                             status={l.tournament_short || undefined}
                                             title={l.name}
                                             desc={l.description}
-                                            meta={[priceFact(l)]}
+                                            meta={scheduleFacts(l)}
                                             cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
                                         >
                                             <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
@@ -267,6 +268,21 @@ function PartnerHubTicket({ ticket, accent }) {
             </div>
         </article>
     );
+}
+
+/**
+ * The facts under a listing card: when and where it runs, then what it
+ * costs. `formatSchedule` returns null when there is nothing to say, and a
+ * listing with no schedule is a legitimate state — so the fact is dropped
+ * rather than rendered as an empty row.
+ */
+function scheduleFacts(listing) {
+    const when = formatSchedule(listing.starts_at, listing.ends_at, listing.location);
+
+    return [
+        ...(when ? [{ label: 'When', value: when }] : []),
+        priceFact(listing),
+    ];
 }
 
 /**

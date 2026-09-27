@@ -179,6 +179,11 @@ class ListingController extends Controller
         return $request->validate([
             'tournament_id' => 'required|string|in:'.implode(',', $tournamentIds),
             'type' => 'required|string|in:package,offer,event,tour,program',
+            'starts_at' => 'nullable|date',
+            // after_or_equal rather than after: a one-day festival starts
+            // and ends on the same date, which `after` would reject.
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
+            'location' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'hero_image' => 'nullable|string',

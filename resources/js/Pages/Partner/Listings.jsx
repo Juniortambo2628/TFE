@@ -8,6 +8,7 @@ import ModalRow from '@/Components/Common/ModalRow';
 import TfeModal from '@/Components/Common/TfeModal';
 import ImageUpload from '@/Components/Common/ImageUpload';
 import { formatMoney } from '@/lib/utils';
+import { toLocalInput } from '@/lib/schedule';
 
 /**
  * Publish tab — partner authors their own listings.
@@ -216,6 +217,9 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
         flight_class: listing?.flight_class || 'economy',
         accommodation_level: listing?.accommodation_level || '3-star',
         capacity: listing?.capacity || '',
+        starts_at: toLocalInput(listing?.starts_at),
+        ends_at: toLocalInput(listing?.ends_at),
+        location: listing?.location || '',
         is_active: listing?.is_active ?? true,
     });
     const { data, setData, processing, errors } = form;
@@ -298,6 +302,28 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
                         <div className="tfe-form-field">
                             <label className="tfe-form-label">Capacity</label>
                             <input type="number" className="tfe-input" value={data.capacity} onChange={(e) => setData('capacity', e.target.value)} placeholder="Unlimited" />
+                        </div>
+                    </div>
+                ) },
+
+                { id: 'schedule', label: 'Schedule', icon: 'fas fa-calendar-day', content: (
+                    <div className="tfe-form-grid tfe-form-grid--2">
+                        <div className="tfe-form-field">
+                            <label className="tfe-form-label">Starts</label>
+                            <input type="datetime-local" className="tfe-input" value={data.starts_at} onChange={(e) => setData('starts_at', e.target.value)} />
+                            {errors.starts_at && <div className="tfe-form-error">{errors.starts_at}</div>}
+                        </div>
+                        <div className="tfe-form-field">
+                            <label className="tfe-form-label">Ends</label>
+                            <input type="datetime-local" className="tfe-input" value={data.ends_at} onChange={(e) => setData('ends_at', e.target.value)} />
+                            {errors.ends_at && <div className="tfe-form-error">{errors.ends_at}</div>}
+                        </div>
+                        <div className="tfe-form-field tfe-form-field--wide">
+                            <label className="tfe-form-label">Location</label>
+                            <input type="text" className="tfe-input" value={data.location} onChange={(e) => setData('location', e.target.value)} placeholder="Kasarani, Nairobi" />
+                            <div className="tfe-form-help">
+                                Where it actually happens. Leave the dates blank for something that runs all season.
+                            </div>
                         </div>
                     </div>
                 ) },

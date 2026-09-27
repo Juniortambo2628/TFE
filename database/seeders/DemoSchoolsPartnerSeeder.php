@@ -98,6 +98,8 @@ class DemoSchoolsPartnerSeeder extends Seeder
         $programs = [
             [
                 'name' => 'AFCON Schools Cup',
+                'starts_at' => '2027-01-09 09:00:00', 'ends_at' => '2027-01-12 18:00:00',
+                'location' => 'Kasarani, Nairobi',
                 'description' => 'The regional schools championship. Qualifiers run in every county through the season, with the finals played as a curtain-raiser weekend at an AFCON 2027 host ground. Open to boys and girls teams at U15 and U17.',
                 'price' => 0,
                 'capacity' => 512,
@@ -106,6 +108,8 @@ class DemoSchoolsPartnerSeeder extends Seeder
             ],
             [
                 'name' => 'Girls in Sport Initiative',
+                'starts_at' => '2026-11-02 09:00:00', 'ends_at' => '2027-02-15 17:00:00',
+                'location' => 'Kenya, Tanzania & Uganda',
                 'description' => 'Equal access, in practice rather than in principle: dedicated leagues, kit support and female coaching staff for schools that have never fielded a girls team. Runs alongside the Schools Cup calendar.',
                 'price' => 0,
                 'capacity' => 240,
@@ -114,6 +118,8 @@ class DemoSchoolsPartnerSeeder extends Seeder
             ],
             [
                 'name' => 'Coaches Education Programme',
+                'starts_at' => '2026-10-19 08:30:00', 'ends_at' => '2026-10-23 16:00:00',
+                'location' => 'Kampala, Uganda',
                 'description' => 'A four-module certification for teachers and community coaches — session planning, age-appropriate training, safeguarding and first aid. Delivered in-person across the three host nations and online between blocks.',
                 'price' => 45,
                 'capacity' => 600,
@@ -122,6 +128,8 @@ class DemoSchoolsPartnerSeeder extends Seeder
             ],
             [
                 'name' => 'School Sports Grants',
+                'starts_at' => null, 'ends_at' => null,
+                'location' => 'Region-wide',
                 'description' => 'Equipment, pitch repair and travel grants for schools that cannot otherwise take part. Applications are reviewed termly; awards are published so the process is visible to everyone who applied.',
                 'price' => 0,
                 'capacity' => 150,
@@ -130,6 +138,8 @@ class DemoSchoolsPartnerSeeder extends Seeder
             ],
             [
                 'name' => 'Community Football Festivals',
+                'starts_at' => '2026-12-05 10:00:00', 'ends_at' => '2026-12-05 17:00:00',
+                'location' => 'Dodoma, Tanzania',
                 'description' => 'One-day festivals hosted with local clubs — small-sided tournaments, coaching taster sessions and a parents\' clinic. Designed so a community with no formal pitch can still host one.',
                 'price' => 0,
                 'capacity' => 80,
@@ -138,6 +148,8 @@ class DemoSchoolsPartnerSeeder extends Seeder
             ],
             [
                 'name' => 'Talent Pathway Showcase',
+                'starts_at' => '2027-02-20 09:00:00', 'ends_at' => '2027-02-21 17:00:00',
+                'location' => 'Benjamin Mkapa Stadium, Dar es Salaam',
                 'description' => 'Scouted trials connecting standout school players to academy and club pathways, with parents and guardians in the room for every conversation about a young player\'s future.',
                 'price' => 0,
                 'capacity' => 300,
@@ -162,6 +174,12 @@ class DemoSchoolsPartnerSeeder extends Seeder
                     'currency' => 'USD',
                     'capacity' => $p['capacity'],
                     'sold_count' => $p['sold'],
+                    // The grant has no dates on purpose: it is open all
+                    // season, and formatSchedule renders the place alone
+                    // rather than inventing a window.
+                    'starts_at' => $p['starts_at'] ?? null,
+                    'ends_at' => $p['ends_at'] ?? null,
+                    'location' => $p['location'] ?? null,
                     'is_active' => true,
                     'is_featured' => $p['featured'],
                     'display_order' => $i,

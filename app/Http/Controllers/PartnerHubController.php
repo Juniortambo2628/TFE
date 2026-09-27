@@ -111,6 +111,10 @@ class PartnerHubController extends Controller
             ->active()
             ->orderByDesc('is_featured')
             ->orderBy('display_order')
+            // A dated run sorts by when it happens; an undated one (a grant
+            // open all season) has no place on that axis, so it sorts after
+            // rather than to the front, which is where NULL would land.
+            ->orderByRaw('starts_at IS NULL, starts_at ASC')
             ->orderBy('name')
             ->get()
             ->map(function (Listing $l) {
@@ -127,6 +131,9 @@ class PartnerHubController extends Controller
                     'currency' => $l->currency,
                     'capacity' => $l->capacity,
                     'sold_count' => $l->sold_count,
+                    'starts_at' => $l->starts_at?->toIso8601String(),
+                    'ends_at' => $l->ends_at?->toIso8601String(),
+                    'location' => $l->location,
                     'availability_pct' => $l->availability_pct,
                     'is_sold_out' => $l->is_sold_out,
                     'is_featured' => $l->is_featured,

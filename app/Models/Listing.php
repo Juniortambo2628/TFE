@@ -40,6 +40,9 @@ class Listing extends Model
         'nights',
         'flight_class',
         'accommodation_level',
+        'starts_at',
+        'ends_at',
+        'location',
         'capacity',
         'sold_count',
         'is_active',
@@ -62,6 +65,8 @@ class Listing extends Model
         'sold_count' => 'integer',
         'display_order' => 'integer',
         'submitted_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
     ];
 
     protected $appends = ['availability_pct', 'is_sold_out', 'seats_left'];
