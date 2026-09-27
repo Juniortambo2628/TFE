@@ -93,7 +93,10 @@ export default function TfeModal({
     // restore focus to was overwritten with whatever inside the dialog had
     // focus at the time.
     const onCloseRef = useRef(onClose);
-    onCloseRef.current = onClose;
+    // Guarded: a call site that forgets `onClose` (or passes the old
+    // `onOpenChange` name) must leave the dialog stuck, not throw on every
+    // Escape keypress and take the page down with it.
+    onCloseRef.current = typeof onClose === 'function' ? onClose : () => {};
 
     // Escape to close, and a focus trap so Tab cannot walk out of the dialog
     // into the page behind it.
@@ -157,6 +160,8 @@ export default function TfeModal({
 
     if (!open) return null;
 
+    const requestClose = () => onCloseRef.current();
+
     const onRailKeyDown = (e) => {
         const next = tabForKey(list, activeId, e.key);
 
@@ -177,7 +182,7 @@ export default function TfeModal({
                 // and ended on the backdrop (a drag-select that overshoots, or
                 // the avatar cropper's drag) would otherwise close the dialog
                 // and throw the work away.
-                if (closeOnBackdrop && e.target === e.currentTarget) onClose();
+                if (closeOnBackdrop && e.target === e.currentTarget) requestClose();
             }}
         >
             <div
@@ -239,7 +244,7 @@ export default function TfeModal({
                             type="button"
                             className="tfe-btn tfe-btn--sm tfe-btn--icon tfe-modal__close"
                             aria-label="Close dialog"
-                            onClick={onClose}
+                            onClick={requestClose}
                         >
                             <i className="fas fa-times" aria-hidden="true" />
                         </button>

@@ -197,141 +197,141 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                 )}
             >
                 <form id="admin-event-form" onSubmit={handleSubmit}>
-                        {activeTab === 'details' && (
-                            <div className="tfe-form-grid tfe-form-grid--2">
-                                <div className="tfe-form-field tfe-form-field--wide">
-                                    <div className="admin-form-group">
-                                        <label className="tfe-form-label">Event Title *</label>
-                                        <input 
-                                            type="text" 
-                                            className="tfe-input" 
-                                            placeholder="e.g., Match Day Meetup" 
-                                            value={data.title} 
-                                            onChange={e => setData('title', e.target.value)} 
-                                            required 
-                                            disabled={isViewOnly}
-                                        />
-                                        {errors.title && <div className="text-danger small mt-1">{errors.title}</div>}
-                                    </div>
-                                </div>
-                                <div className="tfe-form-field">
-                                    <div className="admin-form-group">
-                                        <label className="tfe-form-label">Date *</label>
-                                        <input 
-                                            type="date" 
-                                            className="tfe-input" 
-                                            value={data.date} 
-                                            onChange={e => setData('date', e.target.value)} 
-                                            required 
-                                            disabled={isViewOnly}
-                                        />
-                                        {errors.date && <div className="text-danger small mt-1">{errors.date}</div>}
-                                    </div>
-                                </div>
-                                <div className="tfe-form-field">
-                                    <div className="admin-form-group">
-                                        <label className="tfe-form-label">Type</label>
-                                        <select 
-                                            className="tfe-select" 
-                                            value={data.type} 
-                                            onChange={e => setData('type', e.target.value)}
-                                            disabled={isViewOnly}
-                                        >
-                                            <option value="">Select Type</option>
-                                            <option value="match_day">Match Day</option>
-                                            <option value="watch_party">Watch Party</option>
-                                            <option value="tournament">Tournament</option>
-                                            <option value="community">Community</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="tfe-form-field tfe-form-field--wide">
-                                    <div className="admin-form-group">
-                                        <label className="tfe-form-label">Location</label>
-                                        <input 
-                                            type="text" 
-                                            className="tfe-input" 
-                                            placeholder="e.g., Nairobi, Kenya" 
-                                            value={data.location} 
-                                            onChange={e => setData('location', e.target.value)} 
-                                            disabled={isViewOnly}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="tfe-form-field tfe-form-field--wide">
-                                    <div className="admin-form-group">
-                                        <label className="tfe-form-label">Description</label>
-                                        <textarea 
-                                            className="tfe-input" 
-                                            placeholder="Describe the event..." 
-                                            rows={4}
-                                            value={data.description} 
-                                            onChange={e => setData('description', e.target.value)}
-                                            disabled={isViewOnly}
-                                        ></textarea>
-                                    </div>
+                    {activeTab === 'details' && (
+                        <div className="tfe-form-grid tfe-form-grid--2">
+                            <div className="tfe-form-field tfe-form-field--wide">
+                                <div className="admin-form-group">
+                                    <label className="tfe-form-label">Event Title *</label>
+                                    <input 
+                                        type="text" 
+                                        className="tfe-input" 
+                                        placeholder="e.g., Match Day Meetup" 
+                                        value={data.title} 
+                                        onChange={e => setData('title', e.target.value)} 
+                                        required 
+                                        disabled={isViewOnly}
+                                    />
+                                    {errors.title && <div className="text-danger small mt-1">{errors.title}</div>}
                                 </div>
                             </div>
-                        )}
-
-                        {activeTab === 'media' && (
-                            <div className="bounce-in">
-                                <div className="admin-form-group mb-4">
-                                    <label className="tfe-form-label">Event Banner Image</label>
-                                    <div className="mb-3">
-                                        {eventToEdit?.image_url && !imageFiles.length && (
-                                            <div className="position-relative mb-3 rounded-4 overflow-hidden shadow-sm" style={{ height: '180px' }}>
-                                                <img src={eventToEdit.image_url} alt="Current Preview" className="w-100 h-100 object-fit-cover" />
-                                                <div className="position-absolute bottom-0 start-0 w-100 p-2" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.8))' }}>
-                                                    <span className="text-white small fw-medium">Current Banner</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <FilePondUploader 
-                                            files={imageFiles}
-                                            onUpdateFiles={(files) => {
-                                                if (isViewOnly) return;
-                                                setImageFiles(files);
-                                                if (files[0]) setData('image', files[0].file);
-                                            }}
-                                            labelIdle={isViewOnly ? 'Event Banner' : 'Drag & Drop event banner or <span class="filepond--label-action">Browse</span>'}
-                                            disabled={isViewOnly}
-                                        />
-                                    </div>
-                                    <div className="alert-glass p-3 rounded-4 small text-medium-contrast">
-                                        <i className="fas fa-info-circle me-2 text-blue-400"></i>
-                                        Upload a high-quality banner image for better social engagement. Ideal ratio 16:9.
-                                    </div>
+                            <div className="tfe-form-field">
+                                <div className="admin-form-group">
+                                    <label className="tfe-form-label">Date *</label>
+                                    <input 
+                                        type="date" 
+                                        className="tfe-input" 
+                                        value={data.date} 
+                                        onChange={e => setData('date', e.target.value)} 
+                                        required 
+                                        disabled={isViewOnly}
+                                    />
+                                    {errors.date && <div className="text-danger small mt-1">{errors.date}</div>}
                                 </div>
                             </div>
-                        )}
+                            <div className="tfe-form-field">
+                                <div className="admin-form-group">
+                                    <label className="tfe-form-label">Type</label>
+                                    <select 
+                                        className="tfe-select" 
+                                        value={data.type} 
+                                        onChange={e => setData('type', e.target.value)}
+                                        disabled={isViewOnly}
+                                    >
+                                        <option value="">Select Type</option>
+                                        <option value="match_day">Match Day</option>
+                                        <option value="watch_party">Watch Party</option>
+                                        <option value="tournament">Tournament</option>
+                                        <option value="community">Community</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="tfe-form-field tfe-form-field--wide">
+                                <div className="admin-form-group">
+                                    <label className="tfe-form-label">Location</label>
+                                    <input 
+                                        type="text" 
+                                        className="tfe-input" 
+                                        placeholder="e.g., Nairobi, Kenya" 
+                                        value={data.location} 
+                                        onChange={e => setData('location', e.target.value)} 
+                                        disabled={isViewOnly}
+                                    />
+                                </div>
+                            </div>
+                            <div className="tfe-form-field tfe-form-field--wide">
+                                <div className="admin-form-group">
+                                    <label className="tfe-form-label">Description</label>
+                                    <textarea 
+                                        className="tfe-input" 
+                                        placeholder="Describe the event..." 
+                                        rows={4}
+                                        value={data.description} 
+                                        onChange={e => setData('description', e.target.value)}
+                                        disabled={isViewOnly}
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
-                        {activeTab === 'rsvps' && (
-                            <div className="bounce-in">
-                                <div className="p-5 text-center">
-                                    <div className="mb-4">
-                                        <i className="fas fa-users-slash fa-3x text-medium-contrast opacity-25"></i>
-                                    </div>
-                                    <h5 className="text-white fw-bold">RSVP Tracking</h5>
-                                    <p className="text-medium-contrast mb-4">Detailed attendee tracking is coming in the next update.</p>
-                                    
-                                    <div className="row g-3">
-                                        <div className="col-6">
-                                            <div className="p-3 rounded-4 bg-glass-card shadow-sm text-center">
-                                                <div className="display-6 fw-bold text-white mb-0">{eventToEdit?.rsvps_count || 0}</div>
-                                                <div className="small text-medium-contrast uppercase tracking-wider">Total RSVPs</div>
+                    {activeTab === 'media' && (
+                        <div className="bounce-in">
+                            <div className="admin-form-group mb-4">
+                                <label className="tfe-form-label">Event Banner Image</label>
+                                <div className="mb-3">
+                                    {eventToEdit?.image_url && !imageFiles.length && (
+                                        <div className="position-relative mb-3 rounded-4 overflow-hidden shadow-sm" style={{ height: '180px' }}>
+                                            <img src={eventToEdit.image_url} alt="Current Preview" className="w-100 h-100 object-fit-cover" />
+                                            <div className="position-absolute bottom-0 start-0 w-100 p-2" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.8))' }}>
+                                                <span className="text-white small fw-medium">Current Banner</span>
                                             </div>
                                         </div>
-                                        <div className="col-6">
-                                            <div className="p-3 rounded-4 bg-glass-card shadow-sm text-center">
-                                                <div className="display-6 fw-bold text-white mb-0">100%</div>
-                                                <div className="small text-medium-contrast uppercase tracking-wider">Confirmed</div>
-                                            </div>
+                                    )}
+                                    <FilePondUploader 
+                                        files={imageFiles}
+                                        onUpdateFiles={(files) => {
+                                            if (isViewOnly) return;
+                                            setImageFiles(files);
+                                            if (files[0]) setData('image', files[0].file);
+                                        }}
+                                        labelIdle={isViewOnly ? 'Event Banner' : 'Drag & Drop event banner or <span class="filepond--label-action">Browse</span>'}
+                                        disabled={isViewOnly}
+                                    />
+                                </div>
+                                <div className="alert-glass p-3 rounded-4 small text-medium-contrast">
+                                    <i className="fas fa-info-circle me-2 text-blue-400"></i>
+                                    Upload a high-quality banner image for better social engagement. Ideal ratio 16:9.
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'rsvps' && (
+                        <div className="bounce-in">
+                            <div className="p-5 text-center">
+                                <div className="mb-4">
+                                    <i className="fas fa-users-slash fa-3x text-medium-contrast opacity-25"></i>
+                                </div>
+                                <h5 className="text-white fw-bold">RSVP Tracking</h5>
+                                <p className="text-medium-contrast mb-4">Detailed attendee tracking is coming in the next update.</p>
+                                
+                                <div className="row g-3">
+                                    <div className="col-6">
+                                        <div className="p-3 rounded-4 bg-glass-card shadow-sm text-center">
+                                            <div className="display-6 fw-bold text-white mb-0">{eventToEdit?.rsvps_count || 0}</div>
+                                            <div className="small text-medium-contrast uppercase tracking-wider">Total RSVPs</div>
+                                        </div>
+                                    </div>
+                                    <div className="col-6">
+                                        <div className="p-3 rounded-4 bg-glass-card shadow-sm text-center">
+                                            <div className="display-6 fw-bold text-white mb-0">100%</div>
+                                            <div className="small text-medium-contrast uppercase tracking-wider">Confirmed</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
                 </form>
             </TfeModal>
 

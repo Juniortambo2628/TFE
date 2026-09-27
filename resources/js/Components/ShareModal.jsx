@@ -114,118 +114,116 @@ export default function ShareModal({ isOpen, onClose, shareType, shareId, shareC
                 </>
             )}
         >
-                <form id="share-form" onSubmit={handleSubmit}>
-                    <div>
-                        {/* Share Preview */}
-                        <div className="share-preview mb-6">
-                            <div className="share-preview-content rounded-xl overflow-hidden border border-white/10">
-                                {shareContent}
-                            </div>
-                        </div>
-
-                        {/* Message Input */}
-                        <div className="share-message-input mb-6">
-                            <textarea
-                                className="tfe-textarea"
-                                placeholder="Add a message (optional)"
-                                value={data.message}
-                                onChange={e => setData('message', e.target.value)}
-                                rows="3"
-                                maxLength={500}
-                            ></textarea>
-                        </div>
-                        {/* Recipients List */}
-                        <div className="share-recipients-list grid grid-cols-1 gap-2">
-                            {activeTab === 'users' && (
-                                <>
-                                    {shareOptions.users.length > 0 ? (
-                                        shareOptions.users.map(user => (
-                                            <div
-                                                key={`user-${user.id}`}
-                                                className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected('user', user.id) ? 'bg-red-600/10 border-red-500' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
-                                                onClick={() => toggleRecipient('user', user.id, user.name)}
-                                            >
-                                                <img
-                                                    src={user.avatar || '/assets/img/avatars/default-avatar.png'}
-                                                    alt={user.name}
-                                                    className="w-10 h-10 rounded-full object-cover"
-                                                />
-                                                <span className="flex-1 text-white font-medium">{user.name}</span>
-                                                {isSelected('user', user.id) && (
-                                                    <i className="fas fa-check-circle text-red-500 text-xl"></i>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-8 text-gray-500">No users available</div>
-                                    )}
-                                </>
-                            )}
-
-                            {activeTab === 'publicTribes' && (
-                                <>
-                                    {shareOptions.publicTribes.length > 0 ? (
-                                        shareOptions.publicTribes.map(tribe => (
-                                            <div
-                                                key={`tribe-${tribe.id}`}
-                                                className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected('tribe', tribe.id) ? 'bg-red-600/10 border-red-500' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
-                                                onClick={() => toggleRecipient('tribe', tribe.id, tribe.name)}
-                                            >
-                                                <div className="w-10 h-10 rounded-xl bg-red-600/20 flex items-center justify-center text-red-400 overflow-hidden">
-                                                    {tribe.avatar ? (
-                                                        <img src={tribe.avatar} alt={tribe.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <i className="fas fa-layer-group"></i>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <span className="block text-white font-medium">{tribe.name}</span>
-                                                    <span className="text-[10px] text-red-400 uppercase tracking-wider font-bold">Public</span>
-                                                </div>
-                                                {isSelected('tribe', tribe.id) && (
-                                                    <i className="fas fa-check-circle text-red-500 text-xl"></i>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-8 text-gray-500">No public tribes available</div>
-                                    )}
-                                </>
-                            )}
-
-                            {activeTab === 'memberTribes' && (
-                                <>
-                                    {shareOptions.memberTribes.length > 0 ? (
-                                        shareOptions.memberTribes.map(tribe => (
-                                            <div
-                                                key={`tribe-${tribe.id}`}
-                                                className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected('tribe', tribe.id) ? 'bg-red-600/10 border-red-500' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
-                                                onClick={() => toggleRecipient('tribe', tribe.id, tribe.name)}
-                                            >
-                                                <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center text-blue-400 overflow-hidden">
-                                                    {tribe.avatar ? (
-                                                        <img src={tribe.avatar} alt={tribe.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <i className="fas fa-layer-group"></i>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <span className="block text-white font-medium">{tribe.name}</span>
-                                                    <span className="text-[10px] text-blue-400 uppercase tracking-wider font-bold">Member</span>
-                                                </div>
-                                                {isSelected('tribe', tribe.id) && (
-                                                    <i className="fas fa-check-circle text-red-500 text-xl"></i>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-8 text-gray-500">You're not a member of any tribes</div>
-                                    )}
-                                </>
-                            )}
-                        </div>
+            <form id="share-form" onSubmit={handleSubmit}>
+                {/* Share Preview */}
+                <div className="share-preview mb-6">
+                    <div className="share-preview-content rounded-xl overflow-hidden border border-white/10">
+                        {shareContent}
                     </div>
-                </form>
-            </TfeModal>
+                </div>
+
+                {/* Message Input */}
+                <div className="share-message-input mb-6">
+                    <textarea
+                        className="tfe-textarea"
+                        placeholder="Add a message (optional)"
+                        value={data.message}
+                        onChange={e => setData('message', e.target.value)}
+                        rows="3"
+                        maxLength={500}
+                    ></textarea>
+                </div>
+                {/* Recipients List */}
+                <div className="share-recipients-list grid grid-cols-1 gap-2">
+                    {activeTab === 'users' && (
+                        <>
+                            {shareOptions.users.length > 0 ? (
+                                shareOptions.users.map(user => (
+                                    <div
+                                        key={`user-${user.id}`}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected('user', user.id) ? 'bg-red-600/10 border-red-500' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                                        onClick={() => toggleRecipient('user', user.id, user.name)}
+                                    >
+                                        <img
+                                            src={user.avatar || '/assets/img/avatars/default-avatar.png'}
+                                            alt={user.name}
+                                            className="w-10 h-10 rounded-full object-cover"
+                                        />
+                                        <span className="flex-1 text-white font-medium">{user.name}</span>
+                                        {isSelected('user', user.id) && (
+                                            <i className="fas fa-check-circle text-red-500 text-xl"></i>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">No users available</div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'publicTribes' && (
+                        <>
+                            {shareOptions.publicTribes.length > 0 ? (
+                                shareOptions.publicTribes.map(tribe => (
+                                    <div
+                                        key={`tribe-${tribe.id}`}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected('tribe', tribe.id) ? 'bg-red-600/10 border-red-500' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                                        onClick={() => toggleRecipient('tribe', tribe.id, tribe.name)}
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-red-600/20 flex items-center justify-center text-red-400 overflow-hidden">
+                                            {tribe.avatar ? (
+                                                <img src={tribe.avatar} alt={tribe.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <i className="fas fa-layer-group"></i>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="block text-white font-medium">{tribe.name}</span>
+                                            <span className="text-[10px] text-red-400 uppercase tracking-wider font-bold">Public</span>
+                                        </div>
+                                        {isSelected('tribe', tribe.id) && (
+                                            <i className="fas fa-check-circle text-red-500 text-xl"></i>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">No public tribes available</div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'memberTribes' && (
+                        <>
+                            {shareOptions.memberTribes.length > 0 ? (
+                                shareOptions.memberTribes.map(tribe => (
+                                    <div
+                                        key={`tribe-${tribe.id}`}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isSelected('tribe', tribe.id) ? 'bg-red-600/10 border-red-500' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                                        onClick={() => toggleRecipient('tribe', tribe.id, tribe.name)}
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center text-blue-400 overflow-hidden">
+                                            {tribe.avatar ? (
+                                                <img src={tribe.avatar} alt={tribe.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <i className="fas fa-layer-group"></i>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="block text-white font-medium">{tribe.name}</span>
+                                            <span className="text-[10px] text-blue-400 uppercase tracking-wider font-bold">Member</span>
+                                        </div>
+                                        {isSelected('tribe', tribe.id) && (
+                                            <i className="fas fa-check-circle text-red-500 text-xl"></i>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">You're not a member of any tribes</div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </form>
+        </TfeModal>
     );
 }

@@ -205,75 +205,73 @@ export default function Communication({ auth, announcements, messages }) {
                         </>
                     )}
                 >
-                        <div>
-                            
-                            {/* Shared Story Display */}
-                            {selectedMessage.share_type === 'story' && selectedMessage.shared_story && (
-                                <div className="dash-shared-embed mb-4">
-                                    <div className="dash-shared-embed__head">
-                                        <img
-                                            src={getAvatar(selectedMessage.shared_story.user)}
-                                            alt={selectedMessage.shared_story.user.name}
-                                            className="dash-avatar dash-avatar-sm"
-                                        />
-                                        <div className="text-white fw-bold">
-                                            Shared story from {selectedMessage.shared_story.user.name}
-                                        </div>
-                                    </div>
-                                    <div className="dash-shared-embed__body">
-                                        {selectedMessage.shared_story.media_url && (
-                                            <div className="dash-shared-embed__media">
-                                                {selectedMessage.shared_story.media_type === 'video' ? (
-                                                    <video src={selectedMessage.shared_story.media_url} controls />
-                                                ) : (
-                                                    <img src={selectedMessage.shared_story.media_url} alt="Shared story" />
-                                                )}
-                                            </div>
-                                        )}
-                                        {selectedMessage.shared_story.caption && (
-                                            <div className="dash-shared-embed__text">
-                                                {selectedMessage.shared_story.caption}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
 
-                            {/* Shared Post Display */}
-                            {selectedMessage.share_type === 'post' && selectedMessage.shared_post && (
-                                <div className="dash-shared-embed mb-4">
-                                    <div className="dash-shared-embed__head">
-                                        <img
-                                            src={getAvatar(selectedMessage.shared_post.user)}
-                                            alt={selectedMessage.shared_post.user.name}
-                                            className="dash-avatar dash-avatar-sm"
-                                        />
-                                        <div className="text-white fw-bold">
-                                            Shared post from {selectedMessage.shared_post.user.name}
-                                        </div>
-                                    </div>
-                                    <div className="dash-shared-embed__body">
-                                        {selectedMessage.shared_post.image_url && (
-                                            <div className="dash-shared-embed__media">
-                                                <img src={selectedMessage.shared_post.image_url} alt="Shared post" />
-                                            </div>
-                                        )}
-                                        {selectedMessage.shared_post.content && (
-                                            <div className="dash-shared-embed__text">
-                                                {selectedMessage.shared_post.content}
-                                            </div>
+                    {/* Shared Story Display */}
+                    {selectedMessage.share_type === 'story' && selectedMessage.shared_story && (
+                        <div className="dash-shared-embed mb-4">
+                            <div className="dash-shared-embed__head">
+                                <img
+                                    src={getAvatar(selectedMessage.shared_story.user)}
+                                    alt={selectedMessage.shared_story.user.name}
+                                    className="dash-avatar dash-avatar-sm"
+                                />
+                                <div className="text-white fw-bold">
+                                    Shared story from {selectedMessage.shared_story.user.name}
+                                </div>
+                            </div>
+                            <div className="dash-shared-embed__body">
+                                {selectedMessage.shared_story.media_url && (
+                                    <div className="dash-shared-embed__media">
+                                        {selectedMessage.shared_story.media_type === 'video' ? (
+                                            <video src={selectedMessage.shared_story.media_url} controls />
+                                        ) : (
+                                            <img src={selectedMessage.shared_story.media_url} alt="Shared story" />
                                         )}
                                     </div>
-                                </div>
-                            )}
-
-                            {/* Regular Message Content */}
-                            {selectedMessage.content && (
-                                <div className="dash-shared-embed__text text-white">
-                                    {selectedMessage.content}
-                                </div>
-                            )}
+                                )}
+                                {selectedMessage.shared_story.caption && (
+                                    <div className="dash-shared-embed__text">
+                                        {selectedMessage.shared_story.caption}
+                                    </div>
+                                )}
+                            </div>
                         </div>
+                    )}
+
+                    {/* Shared Post Display */}
+                    {selectedMessage.share_type === 'post' && selectedMessage.shared_post && (
+                        <div className="dash-shared-embed mb-4">
+                            <div className="dash-shared-embed__head">
+                                <img
+                                    src={getAvatar(selectedMessage.shared_post.user)}
+                                    alt={selectedMessage.shared_post.user.name}
+                                    className="dash-avatar dash-avatar-sm"
+                                />
+                                <div className="text-white fw-bold">
+                                    Shared post from {selectedMessage.shared_post.user.name}
+                                </div>
+                            </div>
+                            <div className="dash-shared-embed__body">
+                                {selectedMessage.shared_post.image_url && (
+                                    <div className="dash-shared-embed__media">
+                                        <img src={selectedMessage.shared_post.image_url} alt="Shared post" />
+                                    </div>
+                                )}
+                                {selectedMessage.shared_post.content && (
+                                    <div className="dash-shared-embed__text">
+                                        {selectedMessage.shared_post.content}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Regular Message Content */}
+                    {selectedMessage.content && (
+                        <div className="dash-shared-embed__text text-white">
+                            {selectedMessage.content}
+                        </div>
+                    )}
                 </TfeModal>
             )}
         </FanLayout>

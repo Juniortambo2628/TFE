@@ -51,16 +51,6 @@ function formatCapacity(raw) {
 // Deterministic pseudo-sold-percentage per stadium so the preview reads
 // as "live-ish" without hitting a booking backend. Replaced by real
 // package aggregate once we surface it into the Hero payload.
-function deriveSoldPct(stadiumName) {
-    if (!stadiumName) return 40;
-    var h = 0;
-    for (var i = 0; i < stadiumName.length; i++) {
-        h = (h * 31 + stadiumName.charCodeAt(i)) >>> 0;
-    }
-    // 20..85 range — never sold out, never empty, gives urgency signal.
-    return 20 + (h % 66);
-}
-
 // Map Wikipedia / free-source team names to flag codes.
 function teamNameToCode(name) {
     if (!name) return null;
@@ -80,7 +70,7 @@ const DEFAULT_MATCHES = [
     { id: 104, home: 'gb-eng', away: 'jp', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
 ];
 
-export default function Hero({ stadiums: stadiumsProp }) {
+export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
     const { assetUrl, stadiumImages } = usePage().props;
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
@@ -93,6 +83,27 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var wikipediaMatches = (tournament && tournament.wikipedia_matches) || [];
     var wikipediaAwards = (tournament && tournament.wikipedia_awards) || {};
     var wikipediaTeams = (tournament && tournament.teams) || [];
+
+    // Real seating data for the venue dialog, from StadiumBowlService.
+    // Matched on the resolved image url — the shared `stadiumImages` map
+    // already indexes every alias to the same url a bowl payload carries, so
+    // this reuses the server's alias table rather than growing a second copy.
+    // No match, or no fixtures on sale, means occupancy stays UNKNOWN: the
+    // map draws a seating layout and claims nothing.
+    var bowlForVenue = React.useCallback(function (venue) {
+        if (!venue || !venueBowls.length) return null;
+
+        var url = venue.image || venue.thumbnail || null;
+        if (url) {
+            var byImage = venueBowls.find(function (b) { return b.image === url; });
+            if (byImage) return byImage;
+        }
+
+        var name = (venue.name || '').toLowerCase();
+        return venueBowls.find(function (b) {
+            return (b.name || '').toLowerCase() === name;
+        }) || null;
+    }, [venueBowls]);
     var topScorer = (tournament && tournament.top_scorer) || null;
     var wikipediaFlags = (tournament && tournament.wikipedia_flags) || {};
 
@@ -597,7 +608,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
             {/* Venue / team detail dialog — the shared tabbed TfeModal. */}
             <TfeModal
                 open={showMatchModal}
-                onOpenChange={closeModal}
+                onClose={closeModal}
                 title={selectedTeam ? TEAM_NAMES[selectedTeam] : activeStadium.name}
                 label={selectedTeam ? "Team Insights" : "Stadium Schedule"}
                 activeTab={activeModalTab}
@@ -685,30 +696,39 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         </div>
                     )}
 
-                    {activeModalTab === 'seats' && !selectedTeam && (
-                        <div className="p-4">
-                            <div className="mb-3">
-                                <h5 className="text-white fs-6 mb-1">
-                                    <i className="fas fa-chair text-warning me-2"></i>
-                                    Seat availability preview
-                                </h5>
-                                <p className="text-white text-opacity-50 small mb-0">
-                                    Live indicative view of how sections fill up — hover a block for tier, price and seat count.
+                    {activeModalTab === 'seats' && !selectedTeam && (() => {
+                        var bowl = bowlForVenue(activeStadium);
+                        var live = !!(bowl && bowl.has_inventory);
+
+                        return (
+                            <div className="p-4">
+                                <div className="mb-3">
+                                    <h5 className="text-white fs-6 mb-1">
+                                        <i className="fas fa-chair text-warning me-2"></i>
+                                        {live ? 'Seat availability' : 'Seating layout'}
+                                    </h5>
+                                    <p className="text-white text-opacity-50 small mb-0">
+                                        {live
+                                            ? 'How this ground is filling up — hover a block for tier, price and seat count.'
+                                            : 'How this ground is laid out — hover a block for tier, price and seat count.'}
+                                    </p>
+                                </div>
+                                <StadiumSeatMap
+                                    stadiumName={activeStadium.name || 'Stadium'}
+                                    capacity={parseCapacity((bowl && bowl.capacity) || activeStadium.capacity, 60000)}
+                                    soldPct={live ? bowl.sold_pct : null}
+                                    currency={(bowl && bowl.currency) || tournament?.pricing?.currency || 'USD'}
+                                    basePrice={tournament?.pricing?.ticket_prices?.['Group Stage'] || 150}
+                                />
+                                <p className="text-white text-opacity-40 small mt-3 mb-0">
+                                    <i className="fas fa-info-circle me-1"></i>
+                                    {live
+                                        ? 'Based on tickets sold through TFE. Actual section allocation is confirmed on booking.'
+                                        : 'No fixtures are on sale at this ground yet — availability appears here once they are.'}
                                 </p>
                             </div>
-                            <StadiumSeatMap
-                                stadiumName={activeStadium.name || 'Stadium'}
-                                capacity={parseCapacity(activeStadium.capacity, 60000)}
-                                soldPct={deriveSoldPct(activeStadium.name)}
-                                currency={tournament?.pricing?.currency || 'USD'}
-                                basePrice={tournament?.pricing?.ticket_prices?.['Group Stage'] || 150}
-                            />
-                            <p className="text-white text-opacity-40 small mt-3 mb-0">
-                                <i className="fas fa-info-circle me-1"></i>
-                                Availability updates as fans confirm packages. Actual section allocation is confirmed on booking.
-                            </p>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {activeModalTab === 'details' && (
                         <div className="p-4">

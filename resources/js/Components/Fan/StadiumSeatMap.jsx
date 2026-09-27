@@ -12,10 +12,16 @@ import React, { useMemo, useState } from 'react';
  * Zero external deps. Sections are deterministic per-tournament (seed
  * derived from stadium name) so rerenders don't shuffle blocks.
  *
+ * **`soldPct` null means UNKNOWN, and is the default.** The map then draws
+ * the seating layout only: no heat overlay, no "Sold" key, no percentage in
+ * the caption and none in the tooltip. Null, not 0 — zero would paint a
+ * completely empty stadium, which is just as much a claim as a full one.
+ * Same convention as `resolveTiers`' `booked` on the 3D bowl.
+ *
  * Props:
  *   stadiumName    string   — the name shown in the pitch centre.
  *   capacity       number?  — total seats (defaults to 60,000).
- *   soldPct        number?  — 0..100, drives the heat overlay.
+ *   soldPct        number?  — 0..100, or null when occupancy is unknown.
  *   currency       string?  — currency for price tags.
  *   basePrice      number?  — Standard-tier ticket price; other tiers derived.
  *   onSectionClick fn?      — called with (section) when a section is picked.
@@ -23,12 +29,15 @@ import React, { useMemo, useState } from 'react';
 export default function StadiumSeatMap({
     stadiumName = 'Stadium',
     capacity = 60000,
-    soldPct = 0,
+    soldPct = null,
     currency = 'USD',
     basePrice = 150,
     onSectionClick,
 }) {
     const [hovered, setHovered] = useState(null);
+
+    // Occupancy is only ever shown when a real number was passed.
+    const known = typeof soldPct === 'number' && Number.isFinite(soldPct);
 
     const sections = useMemo(() => buildSections(stadiumName, capacity, basePrice, soldPct), [stadiumName, capacity, basePrice, soldPct]);
 
@@ -44,10 +53,12 @@ export default function StadiumSeatMap({
                 <TierChip color={TIER_COLORS.Premium} label="Premium" />
                 <TierChip color={TIER_COLORS.Standard} label="Standard" />
                 <TierChip color={TIER_COLORS.Upper} label="Upper" />
-                <span className="ms-auto d-flex align-items-center gap-2 text-white-50 small">
-                    <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(220,20,60,0.75)', display: 'inline-block' }} />
-                    Sold
-                </span>
+                {known && (
+                    <span className="ms-auto d-flex align-items-center gap-2 text-white-50 small">
+                        <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(220,20,60,0.75)', display: 'inline-block' }} />
+                        Sold
+                    </span>
+                )}
             </div>
 
             <div style={{ position: 'relative' }}>
@@ -108,7 +119,7 @@ export default function StadiumSeatMap({
                         fill="rgba(255,255,255,0.45)"
                         fontSize="10"
                     >
-                        {capacity.toLocaleString()} seats · {soldPct}% booked
+                        {capacity.toLocaleString()} seats{known ? ` · ${soldPct}% booked` : ' · seating layout'}
                     </text>
                 </svg>
 
@@ -140,7 +151,7 @@ export default function StadiumSeatMap({
                             <span className="ms-auto text-white-50 small">{hovered.tier}</span>
                         </div>
                         <div className="small text-white-50">
-                            {hovered.seats.toLocaleString()} seats · {hovered.soldRatio}% sold
+                            {hovered.seats.toLocaleString()} seats{hovered.soldRatio === null ? '' : ` · ${hovered.soldRatio}% sold`}
                         </div>
                         <div className="mt-1 text-warning fw-bold">
                             {currency} {hovered.price.toLocaleString()}
@@ -211,7 +222,11 @@ function buildSections(stadiumName, capacity, basePrice, soldPct) {
     const seed = hashString(stadiumName || 'stadium');
     const rng = mulberry32(seed);
 
-    const soldTarget = Math.round((soldPct / 100) * RINGS.length * SECTIONS_PER_RING);
+    // Unknown occupancy sells nothing — the bowl reads as a layout.
+    const known = typeof soldPct === 'number' && Number.isFinite(soldPct);
+    const soldTarget = known
+        ? Math.round((soldPct / 100) * RINGS.length * SECTIONS_PER_RING)
+        : 0;
     // Bias sold toward Standard/Premium — those go first in real life.
     const soldPriority = ['Standard', 'Premium', 'VIP', 'Upper'];
     const soldSet = new Set();
@@ -244,7 +259,9 @@ function buildSections(stadiumName, capacity, basePrice, soldPct) {
                 label: `${ring.tier.charAt(0)}${(i + 1).toString().padStart(2, '0')}`,
                 tier: ring.tier,
                 seats: seatsPerSection,
-                soldRatio: isSold ? 100 : Math.round(rng() * 40), // partially-sold for un-flagged
+                // Null, not a random number: an un-flagged section's fill was
+                // being invented here too, and shown in the tooltip as fact.
+                soldRatio: known ? (isSold ? 100 : Math.round(rng() * 40)) : null,
                 isSold,
                 price,
                 path: (cx, cy) => ringSectionPath(cx, cy, ring, start + gap, end - gap),

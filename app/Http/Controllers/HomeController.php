@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use App\Models\Listing;
 use App\Models\SiteSetting;
+use App\Services\StadiumBowlService;
 use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
@@ -38,10 +39,21 @@ class HomeController extends Controller
 
     use ResolvesTournament;
 
-    public function index()
+    public function index(StadiumBowlService $bowls)
     {
         return Inertia::render('Home', [
             'appName' => config('app.name'),
+
+            // Real seating data for the hero's venue dialog. Deferred: the
+            // dialog only opens on a click, so this must not hold up the
+            // landing page's first paint.
+            //
+            // Before this the hero HASHED THE STADIUM NAME into a 20-85%
+            // figure and presented it as "Live indicative view of how
+            // sections fill up". A ground with no fixtures on sale now
+            // reports `has_inventory: false` and the map shows its seating
+            // layout with no percentage at all.
+            'venueBowls' => Inertia::defer(fn () => $bowls->forTournament($this->activeTournament()['id'])),
         ]);
     }
 

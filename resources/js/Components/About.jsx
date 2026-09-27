@@ -9,28 +9,28 @@ import { useTournament } from '@/Context/TournamentContext';
 // caller does not pass any (and must stay in step with that config).
 const ABOUT_CARDS = [
     {
-        image: 'assets/img/IMG-11.jpg',
+        image: '/assets/img/IMG-11.jpg',
         title: 'Premium Travel',
         subtitle: 'Curated match experiences',
         tags: ['VIP Access', 'Curated'],
         description: 'End-to-end match trips built around the fixtures you care about — premium seats, hospitality, and transfers handled so all you do is show up and support your team.',
     },
     {
-        image: 'assets/img/backdrops/stadium-fans.jpg',
+        image: '/assets/img/backdrops/stadium-fans.jpg',
         title: 'Match Day Magic',
         subtitle: 'Cheer from the best seats',
         tags: ['Live', 'Stadium'],
         description: 'Feel the roar from the right seats. We secure vantage points across the host stadiums so you experience the tournament from inside the atmosphere, not the nosebleeds.',
     },
     {
-        image: 'assets/img/IMG-15.jpg',
+        image: '/assets/img/IMG-15.jpg',
         title: 'Travel Concierge',
         subtitle: 'Hassle-free arrangements',
         tags: ['24/7', 'Support'],
         description: 'A dedicated team on the ground and on call — visas, itineraries, last-minute changes and local know-how, so nothing between kick-offs is left to chance.',
     },
     {
-        image: 'assets/img/backdrops/plane-square.jpg',
+        image: '/assets/img/backdrops/plane-square.jpg',
         title: 'Flights & Stays',
         subtitle: 'Bundled packages',
         tags: ['All-Inclusive'],

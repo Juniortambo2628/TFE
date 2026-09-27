@@ -70,7 +70,7 @@ export default function News({ variant = 'split', hideHeader = false }) {
                             key: index,
                             // via.placeholder.com is defunct (ERR_CONNECTION_CLOSED
                             // + broken images in prod) — fall back to a local backdrop.
-                            image: item.image || 'assets/img/backdrops/night-stadium.jpg',
+                            image: item.image || '/assets/img/backdrops/night-stadium.jpg',
                             title: item.title,
                             subtitle: (item.source ? item.source + ' • ' : '') + item.date,
                             tags: ['Football', 'News'],

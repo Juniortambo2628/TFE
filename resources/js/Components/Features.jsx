@@ -9,28 +9,28 @@ import { useTournament } from '@/Context/TournamentContext';
 // caller does not pass any (and must stay in step with that config).
 const FEATURE_CARDS = [
     {
-        image: 'assets/img/IMG-11.jpg',
+        image: '/assets/img/IMG-11.jpg',
         title: 'Flexible Payment Plans',
         subtitle: 'Pay in manageable monthly installments',
         tags: ['12-24 Months', 'No Hidden Fees'],
         description: 'Spread the cost of your trip over 12 to 24 months instead of paying upfront. Transparent instalments with no hidden fees, so the tournament fits your budget, not the other way round.',
     },
     {
-        image: 'assets/img/backdrops/nigeria-fans.jpg',
+        image: '/assets/img/backdrops/nigeria-fans.jpg',
         title: 'Community Savings',
         subtitle: 'Group rates with fellow fans',
         tags: ['Group Rates', 'Together'],
         description: 'Travel as a tribe. Pool with fellow fans to unlock group rates on tickets, stays and transfers, and save together toward a shared match-day goal.',
     },
     {
-        image: 'assets/img/backdrops/plane-square.jpg',
+        image: '/assets/img/backdrops/plane-square.jpg',
         title: 'All-Inclusive Packages',
         subtitle: 'Flights, hotels, transfers, insurance',
         tags: ['Travel Info', 'Travel'],
         description: 'One package, everything covered — flights, hotels, transfers and insurance bundled and priced together so there are no surprise line items once you land.',
     },
     {
-        image: 'assets/img/IMG-13.jpg',
+        image: '/assets/img/IMG-13.jpg',
         title: '24/7 Local Support',
         subtitle: 'Multilingual team on the ground',
         tags: ['24/7', 'Multilingual'],

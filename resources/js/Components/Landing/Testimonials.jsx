@@ -54,7 +54,7 @@ export default function Testimonials() {
                         }).join('');
                         return React.createElement(LandingCard, {
                             key: index,
-                            image: 'assets/img/IMG-16.jpg',
+                            image: '/assets/img/IMG-16.jpg',
                             title: item.name,
                             subtitle: (item.role ? item.role + ' \u00b7 ' : '') + stars,
                             tags: ['Testimonial'],

@@ -47,7 +47,7 @@ class DemoTicketingPartnerSeeder extends Seeder
                 'tagline' => 'The official matchday ticket partner.',
                 'about' => 'MatchDay Africa is the official ticketing partner for fans on TFE. Every seat is verified, delivered as an e-Ticket to your wallet, and backed by a matchday guarantee. Group and fan-zone bundles available for every fixture.',
                 'theme_accent' => '#8b5cf6',
-                'hero_image' => 'assets/img/backdrops/stadium-fans.jpg',
+                'hero_image' => '/assets/img/backdrops/stadium-fans.jpg',
                 'is_public' => true,
                 'published_at' => now(),
                 'stats' => [
