@@ -4,6 +4,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import AccentCard from '@/Components/Common/AccentCard';
+import { titleCase } from '@/lib/utils';
 import { BarChart } from '@tremor/react';
 import { Link, usePage } from '@inertiajs/react';
 import '../../../css/admin-dashboard.css';
@@ -161,7 +162,7 @@ export default function Dashboard({
                                             href={route('admin.tournaments.edit', t.id)}
                                             accent={ACCENT_BY_ID[t.id] || '#dc143c'}
                                             artwork={t.trophy_image ? { src: t.trophy_image } : undefined}
-                                            status={t.status}
+                                            status={titleCase(t.status)}
                                             title={t.name}
                                             pills={t.hosts || []}
                                             meta={[

@@ -362,6 +362,58 @@ tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
 - `ConfirmationDialog` and `StatusDialog` keep their previous props exactly —
   twenty call sites use the first, and none of them moved.
 
+### Listing schedule + Learning Hub (Sprint 60)
+
+**`listings` now knows when and where a listing runs** — `starts_at`,
+`ends_at`, `location`, all nullable, with an index on `starts_at`. A trip
+package got away without them (its dates come from the matches it includes);
+a schools programme could not. Three plain columns, not a sessions table: a
+single run is what every current type needs, and a many-session programme is
+a real modelling question that should get its own table when something asks.
+
+`resources/js/lib/schedule.js` is the pure half (14 tests):
+
+- **`toLocalInput()`** — `<input type="datetime-local">` accepts ONLY a naive
+  `YYYY-MM-DDTHH:mm` and renders blank for anything else with no error. Never
+  feed it `toISOString()`: that converts to UTC and silently shifts the time
+  the partner typed.
+- **`formatDateRange()` does not use `toLocaleDateString`** — its output
+  varies with the host locale and ICU build, so the same listing would read
+  differently on two machines and no test could pin it.
+- **`formatSchedule()` returns null when there is nothing to say.** A listing
+  with no schedule is legitimate (a grant open all season shows its region
+  alone), and a caller must not render an empty chip.
+- The hub orders `starts_at IS NULL, starts_at ASC` so undated rows sort
+  after dated ones rather than to the front, where a bare NULL lands.
+
+**The Learning Hub** is `/learn` (`LearningHubController`, `Pages/Learn/`).
+`LearningResource` is a separate model from `Listing` on purpose: the Coaches
+Education Programme is a `Listing type=program` you enrol in (capacity,
+price, dates); its four modules are resources you read. Putting modules in
+`listings` would give each one a capacity and a sell-through bar that mean
+nothing. `listing_id` is nullable, so a resource either stands alone or is a
+module of a programme.
+
+- **`LearningResource::CATEGORIES` / `AUDIENCES` / `LEVELS` are the ONE
+  taxonomy** — the controller validates against them, the index renders its
+  chips from them, the seeder picks from them. `audience` is what makes the
+  same library useful to a parent as well as a coach.
+- **It is open, not gated.** Gating to registered schools would couple the
+  library to an enrolment model that does not exist yet, and a safeguarding
+  policy is worth more the more widely it is read.
+- **An unknown `?category=` shows everything, not nothing.** An empty grid
+  reads as "we have no resources", a different and wrong claim.
+- Filters are a server round-trip into the URL, so a coach can send "the
+  safeguarding ones" to a colleague as a link.
+- The body renders as TEXT, never `dangerouslySetInnerHTML` — it is
+  partner-authored, and that is the same stored-XSS reasoning that keeps SVG
+  out of the uploaders.
+- `HomeController::pageHero()` is now **public static** so the Learning Hub
+  reads the same config-then-CMS hero rather than growing a second copy.
+
+Guarded by `tests/Feature/LearningHubTest.php` and
+`tests/JS/schedule.test.mjs`.
+
 ### Schools & Communities archetype (Sprint 59)
 
 `school_community` is the stakeholder between the platform and the next
@@ -1676,6 +1728,24 @@ tests/
   instance behind it is `unstated` — it explains a flow, it does not claim
   the reader is partway through one. Same honesty rule as the seat map's
   `has_inventory` (Sprint 59).
+- Never feed `toISOString()` to an `<input type="datetime-local">`. It wants
+  a naive `YYYY-MM-DDTHH:mm`; an ISO string renders the field blank with no
+  error, and the UTC conversion shifts the time that was typed. Use
+  `toLocalInput()` (Sprint 60).
+- Never format a date with `toLocaleDateString` in something a test must
+  pin. Its output varies with the host's locale and ICU build, so the same
+  row reads differently on two machines (Sprint 60).
+- Never `text-transform: capitalize` a chip that renders arbitrary text. It
+  exists to prettify a raw slug, and it re-cased every written label handed
+  to it — a category of "Running a club" rendered "Running A Club". Case at
+  the callsite (`titleCase()` in `lib/utils`), as `.tfe-btn` already
+  requires (Sprint 60).
+- Never render partner-authored prose with `dangerouslySetInnerHTML`. Same
+  stored-XSS reasoning that keeps SVG out of every uploader (Sprint 60).
+- Never `ORDER BY` a nullable date without saying where NULL goes. `ORDER BY
+  starts_at ASC` puts every undated row FIRST, so the listings with no
+  schedule lead a list meant to show what is coming up. `starts_at IS NULL,
+  starts_at ASC` (Sprint 60).
 - Never add a `partner_type` without adding its label to BOTH
   `DashboardHeader.jsx`'s and `Partner/Sidebar.jsx`'s maps AND
   `PartnerController::partnerTypes()`. A missing entry falls back to a

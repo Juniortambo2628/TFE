@@ -62,7 +62,7 @@ class HomeController extends Controller
     public function about()
     {
         return Inertia::render('Sections/About', [
-            'hero' => $this->pageHero('about'),
+            'hero' => self::pageHero('about'),
             'cards' => $this->sectionCards('about'),
         ]);
     }
@@ -70,7 +70,7 @@ class HomeController extends Controller
     public function features()
     {
         return Inertia::render('Sections/Features', [
-            'hero' => $this->pageHero('features'),
+            'hero' => self::pageHero('features'),
             'cards' => $this->sectionCards('features'),
         ]);
     }
@@ -78,20 +78,20 @@ class HomeController extends Controller
     public function services()
     {
         return Inertia::render('Sections/Services', [
-            'hero' => $this->pageHero('services'),
+            'hero' => self::pageHero('services'),
             'cards' => $this->sectionCards('services'),
         ]);
     }
 
     public function news()
     {
-        return Inertia::render('Sections/News', ['hero' => $this->pageHero('news')]);
+        return Inertia::render('Sections/News', ['hero' => self::pageHero('news')]);
     }
 
     public function contact()
     {
         return Inertia::render('Sections/Contact', [
-            'hero' => $this->pageHero('contact'),
+            'hero' => self::pageHero('contact'),
             'cards' => $this->sectionCards('contact'),
         ]);
     }
@@ -223,7 +223,13 @@ class HomeController extends Controller
         return $cards;
     }
 
-    private function pageHero(string $slug): array
+    /**
+     * Public + static so any controller rendering a section page reads the
+     * same config-then-CMS-override hero. The Learning Hub needs it, and a
+     * second copy would drift from the `page_hero_{slug}_{field}` keys the
+     * admin CMS writes.
+     */
+    public static function pageHero(string $slug): array
     {
         $hero = config("site_pages.{$slug}", []);
 

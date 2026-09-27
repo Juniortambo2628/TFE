@@ -39,6 +39,7 @@ use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\VirtualCardController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LearningHubController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
@@ -74,6 +75,11 @@ Route::get('/partners', [PartnerHubController::class, 'index'])
     ->name('partners.index');
 Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])
     ->name('partners.hub');
+
+// Learning Hub — open to everyone. See LearningHubController for why it is
+// not gated to registered schools.
+Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index');
+Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
 

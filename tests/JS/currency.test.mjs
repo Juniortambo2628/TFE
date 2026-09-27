@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatMoney } from '../../resources/js/lib/utils.js';
+import { formatMoney, titleCase } from '../../resources/js/lib/utils.js';
 
 // Sprint 24 — regression guard for Sprint 23. formatMoney's default
 // currency was 'KES' with an en-KE locale for months (Sprints 3–22);
@@ -33,4 +33,19 @@ test('formatMoney does NOT return a KES / Ksh string by default', () => {
     const formatted = formatMoney(1);
     assert.doesNotMatch(formatted, /KES|Ksh|₦/,
         'Default output must not contain KES, Ksh or the Naira sign — those were pre-Sprint 23 regressions');
+});
+
+test('titleCase sentence-cases a slug without touching a written label', () => {
+    // It replaced `text-transform: capitalize` on the AccentCard status,
+    // which re-cased every multi-word label it was handed.
+    assert.equal(titleCase('upcoming'), 'Upcoming');
+    assert.equal(titleCase('school_community'), 'School community');
+    assert.equal(titleCase('Running a club'), 'Running a club');
+    assert.equal(titleCase('Health & wellbeing'), 'Health & wellbeing');
+});
+
+test('titleCase passes through anything that is not a filled string', () => {
+    assert.equal(titleCase(''), '');
+    assert.equal(titleCase(null), null);
+    assert.equal(titleCase(undefined), undefined);
 });

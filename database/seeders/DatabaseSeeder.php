@@ -37,6 +37,7 @@ class DatabaseSeeder extends Seeder
             DemoTicketingPartnerSeeder::class,
             DemoPartnerOfferingsSeeder::class,
             DemoSchoolsPartnerSeeder::class,
+            DemoLearningResourcesSeeder::class,
 
             // Order matters below. Fixtures first — the default tournament
             // is afcon_2027 and had none, since every seeded fixture
