@@ -275,6 +275,56 @@ are measured differently and two copies of that would drift. A ticketing
 partner's quick actions mirror `Partner/Sidebar`'s own ticketing branch
 (Tickets / Sales, not Publish / Convert).
 
+### The unified dialog (Sprint 58)
+
+`Components/Common/TfeModal` is the ONE dialog. A **tabbed shell**: identity +
+section rail on the left, the active section on the right, actions along the
+bottom. Forms, detail views, pickers and confirmations all render through it.
+
+It replaced **six** parallel implementations — `TfeModal`'s own title-bar
+layout, `DashboardModal` (which already had a rail, and its own stylesheet),
+`LandingModal` (the public "+ info" card dialogs), a dead `Modal.jsx`, and the
+shadcn `Dialog` behind `ConfirmationDialog` / `StatusDialog` / `ShareModal` /
+the 2FA setup. `DashboardModal` is the cautionary one: it restyled
+`.form-control`, `.form-select`, `.btn-cancel` and `.btn-submit-modal`
+privately, so the same form looked different inside a dialog than on a page.
+
+**The rail always shows**, even for a one-section dialog — it carries `label`
++ `title`, which is the dialog's own name and context, plus the single nav
+item. Below 760px it becomes a horizontal chip strip, and a single-section
+dialog hides the strip (one chip repeating the title above it is noise).
+
+Content comes in three shapes, because the dialogs it absorbed use all three:
+
+```jsx
+tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
+{(activeId) => <X/>}                          // render function
+<X/>                                          // plain children
+```
+
+- **`ModalRow`** (`Components/Common/ModalRow.jsx`) is the labelled-setting
+  row — title + description left, control right, hairline between. Use it
+  instead of a hand-rolled flex row so every dialog aligns its controls on the
+  same axis. `stacked` puts the control on its own line; `ModalFact` is the
+  read-only variant. Group rows with **`ContentCard`**.
+- **A form lives in the pane; its submit lives in the footer.** They are not
+  nested, so the button reaches the form by `form="the-form-id"`. Give every
+  dialog form an id.
+- **The footer must follow the active tab.** A submit button for a form that
+  is not currently rendered does nothing — the landing dialog offered "Send
+  message" from its Overview tab before this was caught.
+- `tabs` may be omitted (one tab is synthesised from `title`), passed as bare
+  strings, or as full objects with `badge` / `disabled`. A tab list that
+  changes while the dialog is open (the partner listing form adds and removes
+  its "Trip" tab with the listing type) re-resolves rather than blanking the
+  pane. The pure half is `resources/js/lib/modalTabs.js`, guarded by
+  `tests/JS/modalTabs.test.mjs`.
+- Escape, backdrop click (on `mousedown`, so a drag that ends outside does not
+  close), focus trap, focus restore and scroll lock are all handled. Pass
+  `closeOnBackdrop={false}` for a destructive form; `ConfirmationDialog` does.
+- `ConfirmationDialog` and `StatusDialog` keep their previous props exactly —
+  twenty call sites use the first, and none of them moved.
+
 ### 3D stadium seat map (Sprint 57)
 
 `Components/Common/StadiumBowl` is the ONE seat map. A parametric Three.js
@@ -956,11 +1006,9 @@ new card / table / list CSS:
 - **`.tfe-pill--standalone`** (Sprint 48) — add to any `.tfe-pill` that is a
   direct child of a flex-column container, or `align-items: stretch` turns it
   into a full-width colour bar.
-- **`TfeModal`** (Sprint 42, `Components/Common/TfeModal.jsx`) — the ONE
-  shared dashboard dialog. Centered glass panel (`.tfe-modal*`), Escape +
-  click-outside to close, `size="sm|md|lg"`. Every create/edit form on the
-  dashboards (partner listing form, partner Profile editor) renders through
-  it — don't hand-roll a new overlay.
+- **`TfeModal`** (Sprint 42, redesigned Sprint 58) — the ONE dialog on the
+  platform. See **The unified dialog** below. Never hand-roll an overlay, and
+  never add a second dialog component.
 - **`ImageUpload`** (Sprint 42, `Components/Common/ImageUpload.jsx`) — file
   picker with live preview (`.tfe-image-upload*`), replacing bare "image URL"
   text fields. Accepts jpg/png/webp only (matches the server
@@ -1440,6 +1488,28 @@ tests/
   `team_flag_codes` resolved to nothing and silently vanished from the fan's
   team list. Fall back to `Data/countries.js`, which has an ISO code for all
   235 (Sprint 56).
+- Never add a second dialog component, and never restyle a form control or a
+  button inside one. Everything goes through `TfeModal` + `ModalRow` +
+  `ContentCard`, using `.tfe-input` / `.tfe-select` / `.tfe-btn`. Six parallel
+  dialogs is what Sprint 58 had to unpick (Sprint 58).
+- Never put a dialog's submit button inside the footer expecting it to submit a
+  nested form — the footer is a sibling of the pane. Use `form="<id>"` on the
+  button and give the form that id (Sprint 58).
+- Never render a footer action for a form that the active tab does not show.
+  The button silently does nothing (Sprint 58).
+- Never close a dialog on a backdrop `click`. A drag that starts inside the
+  pane and ends on the backdrop — a text selection that overshoots, the avatar
+  cropper's drag — fires one, and the work is thrown away. Close on
+  `mousedown` with `e.target === e.currentTarget` (Sprint 58).
+- Never put an inline `onClose` arrow in a dialog effect's dependency list.
+  It is a new function every render, so the effect re-runs, the saved
+  `previousOverflow` captures its own `hidden`, and **the page stays
+  unscrollable after the dialog closes**; the focus-restore target is
+  clobbered too. Keep the callback in a ref and depend on `open` alone
+  (Sprint 58).
+- Never nest a scroll container inside a dialog pane. The pane already scrolls,
+  and the inner one is what any sticky descendant measures against — the same
+  trap as the shell's `<main>` (Sprint 56/58).
 - Never import `StadiumBowlCanvas` (or `three`) from a page. Import
   `Components/Common/StadiumBowl`, which owns the `React.lazy` boundary — a
   direct import drags 578KB of WebGL into that page's bundle (Sprint 57).
@@ -1536,6 +1606,7 @@ tests/
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 | 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
+| 58     | One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

@@ -6,7 +6,7 @@ import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import DataTable from '@/Components/DataTable';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { useForm, usePage } from '@inertiajs/react';
 import AdminInput from '@/Components/Admin/Form/AdminInput';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
@@ -239,9 +239,9 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                 </div>
             </div>
             {/* User Detail Modal — Tabbed Redesign */}
-            <DashboardModal
+            <TfeModal
                 open={!!selectedUser}
-                onOpenChange={(open) => !open && setSelectedUser(null)}
+                onClose={() => setSelectedUser(null)}
                 title={selectedUser?.name || 'User Profile'}
                 label="User Management"
                 activeTab={activeTab}
@@ -259,7 +259,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                 {selectedUser && (
                     <div className="p-0 h-100 overflow-hidden" style={{ color: '#fff !important' }}>
                         {activeTab === 'profile' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <div className="row g-4">
                                 <div className="col-md-12 mb-2">
                                     <div className="d-flex align-items-center gap-4 mb-4 p-3 rounded-4 dash-modal-subtle">
@@ -325,7 +325,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
 
                         {activeTab === 'personal' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <form onSubmit={handleUpdate}>
                                     <div className="row g-3">
                                         <div className="col-md-6">
@@ -356,7 +356,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
 
                         {activeTab === 'team' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <form onSubmit={handleUpdate}>
                                     <div className="admin-form-group">
                                         <label className="admin-form-label text-white mb-3">Supporting Team</label>
@@ -409,7 +409,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
 
                         {activeTab === 'bio' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <form onSubmit={handleUpdate}>
                                     <div className="admin-form-group">
                                         <label className="admin-form-label text-white">About User</label>
@@ -431,7 +431,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
 
                         {activeTab === 'legal' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <form onSubmit={handleUpdate}>
                                     <div className="p-4 rounded-4 space-y-4 dash-modal-subtle">
                                         <div className="d-flex justify-content-between align-items-center p-3 rounded-4 dash-modal-subtle-sm">
@@ -489,7 +489,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
 
                         {activeTab === 'role' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <form onSubmit={handleUpdate}>
                                     <div className="p-4 rounded-4 dash-modal-subtle">
                                         <h4 className="h6 mb-4 text-white">System Access & Roles</h4>
@@ -539,7 +539,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
 
                         {activeTab === 'activity' && (
-                            <div className="modal-body bounce-in no-scrollbar dash-modal-body-tab">
+                            <div className="bounce-in">
                                 <div className="row g-4 mb-4">
                                     <div className="col-md-3">
                                         <div className="dash-activity-stat" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent)' }}>
@@ -581,7 +581,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                         )}
                     </div>
                 )}
-            </DashboardModal>
+            </TfeModal>
 
             <ConfirmationDialog
                 open={!!userToToggleAdmin}

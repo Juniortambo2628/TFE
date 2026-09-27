@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import ListingGrid from '@/Components/Common/ListingGrid';
 import { useForm, router } from '@inertiajs/react';
@@ -162,19 +162,32 @@ export default function News({ auth, news = { data: [] } }) {
                 </div>
             </div>
 
-            <DashboardModal
+            <TfeModal
                 open={showForm}
-                onOpenChange={setShowForm}
+                onClose={() => setShowForm(false)}
                 title={isViewOnly ? "View News" : (newsToEdit ? "Edit News" : "Create News")}
                 label="News Management"
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                size="lg"
                 tabs={[
-                    { id: 'details', label: 'Details', icon: 'fas fa-info-circle' },
-                    { id: 'media', label: 'Banner Image', icon: 'fas fa-image' }
+                    { id: 'details', label: 'Details', icon: 'fas fa-circle-info' },
+                    { id: 'media', label: 'Banner Image', icon: 'fas fa-image' },
                 ]}
+                footer={(
+                    <>
+                        <button type="button" className="tfe-btn" onClick={() => setShowForm(false)}>
+                            {isViewOnly ? 'Close' : 'Cancel'}
+                        </button>
+                        {!isViewOnly && (
+                            <button type="submit" form="admin-news-form" className="tfe-btn tfe-btn--filled" disabled={processing}>
+                                {newsToEdit ? 'Update Article' : 'Post Article'}
+                            </button>
+                        )}
+                    </>
+                )}
             >
-                <form onSubmit={handleSubmit} className="p-1">
+                <form id="admin-news-form" onSubmit={handleSubmit}>
                     {activeTab === 'details' && (
                         <div className="row g-3 bounce-in">
                             <div className="col-12">
@@ -233,18 +246,8 @@ export default function News({ auth, news = { data: [] } }) {
                         </div>
                     )}
 
-                    <div className="modal-footer">
-                        <button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>
-                            {isViewOnly ? 'Close' : 'Cancel'}
-                        </button>
-                        {!isViewOnly && (
-                            <button type="submit" className="btn-submit-modal" disabled={processing}>
-                                {newsToEdit ? 'Update Article' : 'Post Article'}
-                            </button>
-                        )}
-                    </div>
                 </form>
-            </DashboardModal>
+            </TfeModal>
 
             <ConfirmationDialog
                 open={!!newsToDelete}

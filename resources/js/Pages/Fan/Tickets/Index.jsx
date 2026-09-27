@@ -145,6 +145,8 @@ function PurchaseModal({ ticket, onClose }) {
         .filter((t) => !t.is_sold_out)
         .sort((a, b) => a.price - b.price)[0] || tiers[0] || null;
 
+    const [step, setStep] = React.useState('seats');
+
     const { data, setData, post, processing, reset, errors } = useForm({
         quantity: 1,
         ticket_tier_id: defaultTier?.id ?? null,
@@ -184,13 +186,40 @@ function PurchaseModal({ ticket, onClose }) {
     };
 
     return (
-        <TfeModal open={!!ticket} title="Choose your seats" onClose={onClose} size="lg">
-            <form onSubmit={submit} className="tfe-form-field">
-                <div className="ticket-modal__summary">
-                    <div className="ticket-modal__match">{ticket.home_team} <span>vs</span> {ticket.away_team}</div>
-                    <div className="ticket-modal__venue">{ticket.venue_name} · {KICK(ticket.kickoff_at)}</div>
-                </div>
+        <TfeModal
+            open={!!ticket}
+            onClose={onClose}
+            size="lg"
+            label="Matchday ticket"
+            title={`${ticket.home_team} vs ${ticket.away_team}`}
+            subheading={`${ticket.venue_name} · ${KICK(ticket.kickoff_at)}`}
+            tabs={[
+                { id: 'seats', label: 'Seats', icon: 'fas fa-chair' },
+                { id: 'payment', label: 'Payment', icon: 'fas fa-credit-card' },
+            ]}
+            activeTab={step}
+            onTabChange={setStep}
+            footer={(
+                <>
+                    <span className="tfe-modal__foot-note">
+                        {tier ? `${tier.name} · ${formatMoney(unit, ticket.currency)} each` : 'Pick a tier to continue'}
+                    </span>
+                    <button type="button" className="tfe-btn" onClick={onClose}>Cancel</button>
+                    {step === 'seats' ? (
+                        <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => setStep('payment')} disabled={!data.ticket_tier_id}>
+                            Continue
+                        </button>
+                    ) : (
+                        <button type="submit" form="ticket-purchase-form" disabled={processing} className="tfe-btn tfe-btn--filled">
+                            <i className="fas fa-lock" /> Pay {formatMoney(total, ticket.currency)}
+                        </button>
+                    )}
+                </>
+            )}
+        >
+            <form id="ticket-purchase-form" onSubmit={submit}>
 
+                {step === 'seats' && (<>
                 {/* The bowl IS the tier picker here — clicking a tier in the
                     map or its legend selects it. The tier rows behind it are
                     the same ones this form submits, so the map cannot show one
@@ -231,7 +260,10 @@ function PurchaseModal({ ticket, onClose }) {
                     </>
                 )}
 
-                <label className="tfe-form-label" htmlFor="qty" style={{ marginTop: 16 }}>
+                </>)}
+
+                {step === 'payment' && (<>
+                <label className="tfe-form-label" htmlFor="qty">
                     Quantity (max {maxQty})
                 </label>
                 <input
@@ -258,14 +290,8 @@ function PurchaseModal({ ticket, onClose }) {
                     <strong>{formatMoney(total, ticket.currency)}</strong>
                 </div>
 
-                <div className="ticket-modal__actions">
-                    <button type="button" className="tfe-btn" onClick={onClose}>Cancel</button>
-                    <button type="submit" disabled={processing} className="tfe-btn tfe-btn--filled">
-                        <i className="fas fa-lock"></i> Pay {formatMoney(total, ticket.currency)}
-                    </button>
-                </div>
-
                 <p className="ticket-modal__disclaimer">Demo purchase — no real card is charged. Reference is generated on confirm.</p>
+                </>)}
             </form>
         </TfeModal>
     );

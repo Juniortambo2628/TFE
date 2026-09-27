@@ -6,7 +6,7 @@ import SummaryTiles from '@/Components/Common/SummaryTiles';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import { router, useForm } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import ListingGrid from '@/Components/Common/ListingGrid';
 
 export default function Events({ auth, events = { data: [] }, stats = {}, filters }) {
@@ -21,6 +21,16 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
     const [isViewOnly, setIsViewOnly] = useState(false);
     
     const [activeTab, setActiveTab] = useState('details');
+
+    // One close path for the dialog: the footer button, the header X, Escape
+    // and the backdrop all land here, so the form cannot be left half-reset.
+    const closeEventForm = () => {
+        setShowForm(false);
+        setEventToEdit(null);
+        setIsViewOnly(false);
+        setImageFiles([]);
+        reset();
+    };
     
     const { data, setData, post, put, processing, reset, errors } = useForm({
         title: '', description: '', date: '', location: '', type: '', image: null
@@ -153,27 +163,43 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
             </div>
 
             {/* Premium Tabbed Modal for Create/Edit */}
-            <DashboardModal
+            <TfeModal
                 open={showForm}
-                onOpenChange={(open) => {
-                    setShowForm(open);
-                    if (!open) { setEventToEdit(null); setIsViewOnly(false); reset(); }
-                }}
-                title={isViewOnly ? "Event Details" : (eventToEdit ? "Edit Event" : "Create Event")}
+                onClose={closeEventForm}
+                title={isViewOnly ? 'Event Details' : (eventToEdit ? 'Edit Event' : 'Create Event')}
                 label="Event Management"
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                size="lg"
                 tabs={[
-                    { id: 'details', label: 'Details', icon: 'fas fa-info-circle' },
-                    { id: 'media', label: 'Banner / Media', icon: 'fas fa-image' },
-                    { id: 'rsvps', label: 'RSVP Stats', icon: 'fas fa-users' },
+                    { id: 'details', label: 'Details', icon: 'fas fa-circle-info' },
+                    { id: 'media', label: 'Banner', icon: 'fas fa-image' },
+                    { id: 'rsvps', label: 'RSVPs', icon: 'fas fa-users', badge: eventToEdit?.rsvps_count || null },
                 ]}
+                footer={(
+                    <>
+                        <button type="button" className="tfe-btn" onClick={closeEventForm}>
+                            {isViewOnly ? 'Close' : 'Cancel'}
+                        </button>
+                        {isViewOnly ? (
+                            <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => setIsViewOnly(false)}>
+                                <i className="fas fa-pen" /> Edit Event
+                            </button>
+                        ) : (
+                            /* The form lives in the pane body, so the footer's
+                               submit reaches it by id rather than by nesting. */
+                            <button type="submit" form="admin-event-form" className="tfe-btn tfe-btn--filled" disabled={processing}>
+                                <i className="fas fa-check" />
+                                {eventToEdit ? 'Save Changes' : 'Create Event'}
+                            </button>
+                        )}
+                    </>
+                )}
             >
-                <form onSubmit={handleSubmit} className="h-100 d-flex flex-column">
-                    <div className="modal-body">
+                <form id="admin-event-form" onSubmit={handleSubmit}>
                         {activeTab === 'details' && (
-                            <div className="row g-3 bounce-in">
-                                <div className="col-12">
+                            <div className="tfe-form-grid tfe-form-grid--2">
+                                <div className="tfe-form-field tfe-form-field--wide">
                                     <div className="admin-form-group">
                                         <label className="tfe-form-label">Event Title *</label>
                                         <input 
@@ -188,7 +214,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                         {errors.title && <div className="text-danger small mt-1">{errors.title}</div>}
                                     </div>
                                 </div>
-                                <div className="col-md-6">
+                                <div className="tfe-form-field">
                                     <div className="admin-form-group">
                                         <label className="tfe-form-label">Date *</label>
                                         <input 
@@ -202,7 +228,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                         {errors.date && <div className="text-danger small mt-1">{errors.date}</div>}
                                     </div>
                                 </div>
-                                <div className="col-md-6">
+                                <div className="tfe-form-field">
                                     <div className="admin-form-group">
                                         <label className="tfe-form-label">Type</label>
                                         <select 
@@ -219,7 +245,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                         </select>
                                     </div>
                                 </div>
-                                <div className="col-12">
+                                <div className="tfe-form-field tfe-form-field--wide">
                                     <div className="admin-form-group">
                                         <label className="tfe-form-label">Location</label>
                                         <input 
@@ -232,7 +258,7 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                         />
                                     </div>
                                 </div>
-                                <div className="col-12">
+                                <div className="tfe-form-field tfe-form-field--wide">
                                     <div className="admin-form-group">
                                         <label className="tfe-form-label">Description</label>
                                         <textarea 
@@ -306,26 +332,8 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    <div className="modal-footer">
-                        <button type="button" className="btn-cancel" onClick={() => { setShowForm(false); setEventToEdit(null); reset(); }}>
-                            {isViewOnly ? 'Close' : 'Cancel'}
-                        </button>
-                        {!isViewOnly && (
-                            <button type="submit" className="btn-submit-modal" disabled={processing}>
-                                <i className="fas fa-check-circle me-2"></i>
-                                {eventToEdit ? 'Save Changes' : 'Create Event'}
-                            </button>
-                        )}
-                        {isViewOnly && (
-                            <button type="button" className="btn-submit-modal" onClick={() => setIsViewOnly(false)}>
-                                <i className="fas fa-edit me-2"></i> Edit Event
-                            </button>
-                        )}
-                    </div>
                 </form>
-            </DashboardModal>
+            </TfeModal>
 
             {/* Toolbar */}
             <AdminToolbar

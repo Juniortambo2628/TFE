@@ -1102,10 +1102,19 @@ button.tfe-menu-surface__badge:hover {
     gap: 20px;
 }
 
-/* ── .tfe-modal — the one shared dashboard dialog (TfeModal.jsx) ──────────
-   Centered glass panel with a title bar, scrollable body and click-outside
-   / Escape to close. Every create/edit form on the dashboards renders through
-   it so they read as one system. */
+/* ── .tfe-modal — the ONE dialog on the platform (TfeModal.jsx) ───────────
+   A tabbed shell: identity + section rail on the left, active section on the
+   right, actions along the bottom. Every dialog renders through it — forms,
+   detail views, pickers and confirmations alike.
+
+   It replaced four parallel implementations. The one that hurt was
+   `DashboardModal`, which restyled `.form-control`, `.form-select`,
+   `.btn-cancel` and `.btn-submit-modal` privately in a sheet of its own
+   instead of using `.tfe-input` / `.tfe-select` / `.tfe-btn` — so a form in a
+   dialog looked nothing like the same form on a page. Nothing below restyles
+   a form control or a button: dialogs use the platform primitives.
+
+   Group content in a pane with ContentCard; lay settings out with ModalRow. */
 .tfe-modal-overlay {
     position: fixed;
     inset: 0;
@@ -1114,7 +1123,7 @@ button.tfe-menu-surface__badge:hover {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(0, 0, 0, 0.72);
+    background: rgb(0 0 0 / 72%);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     animation: tfe-modal-fade var(--dur-fast, 0.16s) var(--ease-out, ease);
@@ -1126,52 +1135,403 @@ button.tfe-menu-surface__badge:hover {
 }
 
 .tfe-modal {
-    width: min(560px, 100%);
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    width: min(880px, 100%);
+    max-height: min(88vh, 760px);
+    overflow: hidden;
     background: #14141a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 18px;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 20px;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 60%);
     animation: tfe-modal-rise var(--dur-fast, 0.16s) var(--ease-out, ease);
 }
 
-.tfe-modal--sm { width: min(420px, 100%); }
-.tfe-modal--lg { width: min(760px, 100%); }
+.tfe-modal--sm { width: min(620px, 100%); }
+.tfe-modal--lg { width: min(1040px, 100%); }
+.tfe-modal--xl { width: min(1240px, 100%); }
+
+/* A one-section dialog keeps the rail — it carries the dialog's own name —
+   but does not need the width a real section list does. */
+.tfe-modal--single { grid-template-columns: 184px minmax(0, 1fr); }
 
 @keyframes tfe-modal-rise {
     from { opacity: 0; transform: translateY(12px) scale(0.98); }
     to { opacity: 1; transform: none; }
 }
 
-.tfe-modal__head {
+/* ---- rail ---- */
+
+.tfe-modal__rail {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 18px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    padding: 22px 14px 18px;
+    background: #0e0e12;
+    border-right: 1px solid rgb(255 255 255 / 6%);
+}
+
+.tfe-modal__ident {
+    padding: 0 8px;
+    min-width: 0;
+}
+
+.tfe-modal__label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 40%);
+    margin-bottom: 4px;
 }
 
 .tfe-modal__title {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.02rem;
     font-weight: 700;
+    line-height: 1.25;
     color: #fff;
+    overflow-wrap: anywhere;
 }
 
-.tfe-modal__body {
-    padding: 20px;
+.tfe-modal__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
     overflow-y: auto;
 }
 
+.tfe-modal__navitem {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: rgb(255 255 255 / 62%);
+    font-size: 0.86rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--dur-fast, 0.16s) ease, color var(--dur-fast, 0.16s) ease;
+}
+
+.tfe-modal__navitem i {
+    width: 16px;
+    font-size: 0.9rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.tfe-modal__navitem-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tfe-modal__navitem-badge {
+    flex-shrink: 0;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 10%);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.tfe-modal__navitem:hover:not(:disabled) {
+    background: rgb(255 255 255 / 5%);
+    color: #fff;
+}
+
+.tfe-modal__navitem.is-active {
+    background: rgb(255 255 255 / 9%);
+    color: #fff;
+}
+
+.tfe-modal__navitem:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+}
+
+.tfe-modal__navitem:focus-visible {
+    outline: 2px solid var(--tfe-accent, #e0263f);
+    outline-offset: -2px;
+}
+
+.tfe-modal__rail-foot {
+    margin-top: auto;
+    padding: 0 4px;
+}
+
+/* ---- pane ---- */
+
+.tfe-modal__pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.tfe-modal__pane-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 22px 22px 16px;
+    border-bottom: 1px solid rgb(255 255 255 / 7%);
+}
+
+.tfe-modal__pane-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.tfe-modal__pane-title {
+    margin: 0;
+    font-size: 1.32rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+}
+
+.tfe-modal__pane-sub {
+    margin: 4px 0 0;
+    font-size: 0.84rem;
+    color: rgb(255 255 255 / 52%);
+}
+
+.tfe-modal__pane-media {
+    flex-shrink: 0;
+}
+
+.tfe-modal__pane-media img {
+    display: block;
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 14px;
+}
+
+.tfe-modal__close {
+    flex-shrink: 0;
+}
+
+.tfe-modal__pane-body {
+    flex: 1;
+    min-height: 0;
+    padding: 20px 22px;
+    overflow-y: auto;
+}
+
+.tfe-modal__pane-body:focus-visible {
+    outline: none;
+}
+
 .tfe-modal__foot {
-    padding: 16px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid rgb(255 255 255 / 7%);
+    background: rgb(255 255 255 / 2%);
+}
+
+/* A note or secondary text pushed to the footer's leading edge. */
+.tfe-modal__foot-note {
+    margin: 0 auto 0 0;
+    font-size: 0.76rem;
+    color: rgb(255 255 255 / 45%);
+}
+
+/* Plain body copy inside a pane — confirmations, status messages, the
+   description on a detail dialog. */
+.tfe-modal__prose {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 66%);
+}
+
+.tfe-modal__prose + .tfe-modal__prose { margin-top: 12px; }
+
+/* Status acknowledgement (StatusDialog). */
+.tfe-modal__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 0 4px;
+    text-align: center;
+}
+
+.tfe-modal__status-disc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    font-size: 2rem;
+    color: #fff;
+}
+
+.tfe-modal__status[data-state="success"] .tfe-modal__status-disc {
+    background: var(--tfe-accent, #e0263f);
+    box-shadow: 0 0 34px rgb(224 38 63 / 30%);
+}
+
+.tfe-modal__status[data-state="error"] .tfe-modal__status-disc {
+    background: rgb(255 255 255 / 10%);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
+/* ---- ModalRow — one labelled setting (ModalRow.jsx) ---- */
+
+.tfe-modal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgb(255 255 255 / 7%);
+}
+
+.tfe-modal-row[data-align="start"] { align-items: flex-start; }
+
+.tfe-modal-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.tfe-modal-row:first-child { padding-top: 0; }
+
+.tfe-modal-row--stacked {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.tfe-modal-row__text {
+    min-width: 0;
+}
+
+.tfe-modal-row__title {
+    display: block;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+label.tfe-modal-row__title { cursor: pointer; }
+
+.tfe-modal-row__desc {
+    margin: 3px 0 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: rgb(255 255 255 / 48%);
+}
+
+.tfe-modal-row__control {
+    flex-shrink: 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
     gap: 8px;
+}
+
+.tfe-modal-row--stacked .tfe-modal-row__control {
+    flex-shrink: 1;
+    display: block;
+}
+
+.tfe-modal-row__value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: rgb(255 255 255 / 82%);
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+/* A stacked row's control is usually a full-width field. */
+.tfe-modal-row--stacked .tfe-input,
+.tfe-modal-row--stacked .tfe-select,
+.tfe-modal-row--stacked .tfe-textarea { width: 100%; }
+
+/* ---- narrow viewports ---- */
+
+/* The rail becomes a horizontal strip above the pane. A 208px column beside
+   a form on a 390px screen leaves neither of them usable. */
+@media (max-width: 760px) {
+    .tfe-modal-overlay { padding: 0; align-items: flex-end; }
+
+    .tfe-modal,
+    .tfe-modal--sm,
+    .tfe-modal--lg,
+    .tfe-modal--xl,
+    .tfe-modal--single {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        width: 100%;
+        max-height: 94vh;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .tfe-modal__rail {
+        gap: 12px;
+        padding: 16px 14px 10px;
+        border-right: 0;
+        border-bottom: 1px solid rgb(255 255 255 / 7%);
+    }
+
+    .tfe-modal__nav {
+        flex-direction: row;
+        gap: 6px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+
+    .tfe-modal__nav::-webkit-scrollbar { display: none; }
+
+    .tfe-modal__navitem {
+        width: auto;
+        flex-shrink: 0;
+        padding: 8px 12px;
+        background: rgb(255 255 255 / 4%);
+    }
+
+    /* One section means one chip repeating the title above it — noise. */
+    .tfe-modal--single .tfe-modal__nav { display: none; }
+
+    .tfe-modal__rail-foot { margin-top: 0; }
+
+    .tfe-modal__pane-head { padding: 16px 16px 12px; }
+    .tfe-modal__pane-title { font-size: 1.12rem; }
+    .tfe-modal__pane-body { padding: 16px; }
+
+    .tfe-modal__foot {
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        flex-wrap: wrap;
+    }
+
+    .tfe-modal-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .tfe-modal-row__control { justify-content: flex-start; }
+    .tfe-modal-row__value { text-align: left; }
 }
 
 /* ── .tfe-image-upload — shared file picker with preview (ImageUpload.jsx) ── */
@@ -2369,4 +2729,79 @@ button.tfe-menu-surface__badge:hover {
 .tfe-cropper__preview .tfe-form-help {
     max-width: 170px;
     margin: 0;
+}
+
+/* ── Utilities rescued from fan/dashboard-modals.css ──────────────────────
+   That sheet existed only to style `DashboardModal`, which the unified
+   `TfeModal` replaced. Its modal rules went with it; these six utilities are
+   still used by Hero, the admin user dialog and the match lists, and were
+   only ever reaching those surfaces because the deleted component happened to
+   import the sheet. They live here now so they load wherever they are used. */
+
+/* Match & Team View Specifics */
+.match-list-flag {
+    width: 28px;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
+    flex-shrink: 0;
+}
+
+.vs-badge {
+    background: #1a1a1a;
+    color: #444;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid #222;
+}
+
+.tbd-flag-placeholder {
+    width: 28px;
+    height: 18px;
+    background: #111;
+    border: 1px dashed #333;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-box {
+    width: 40px;
+    height: 40px;
+    background: rgb(255 255 255 / 3%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgb(255 255 255 / 2%);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 10%);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 20%);
+}
+
+/* No Scrollbar Utility */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

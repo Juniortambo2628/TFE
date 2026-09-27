@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
+import TfeModal from '@/Components/Common/TfeModal';
 import { Head, router, usePage } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
@@ -179,21 +180,32 @@ export default function Communication({ auth, announcements, messages }) {
                 variant="destructive"
             />
 
-            {/* Message Details Modal */}
+            {/* Message detail — the shared tabbed dialog. */}
             {selectedMessage && (
-                <div className="dash-modal-overlay" onClick={() => setSelectedMessage(null)}>
-                    <div className="dash-modal" onClick={e => e.stopPropagation()}>
-                        <div className="p-4 border-bottom border-secondary d-flex justify-content-between align-items-center">
-                            <h5 className="m-0 text-white">{selectedMessage.subject}</h5>
-                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setSelectedMessage(null)}>
-                                <i className="fas fa-times fa-lg"></i>
-                            </button>
-                        </div>
-                        <div className="p-4 dash-modal-body">
-                            <div className="d-flex justify-content-between text-white-50 small mb-3">
-                                <span>From: {selectedMessage.sender}</span>
-                                <span>{selectedMessage.created_at}</span>
-                            </div>
+                <TfeModal
+                    open={!!selectedMessage}
+                    onClose={() => setSelectedMessage(null)}
+                    size="lg"
+                    label={selectedMessage.share_type ? 'Shared with you' : 'Message'}
+                    title={selectedMessage.subject}
+                    tabs={[{ id: 'message', label: 'Message', icon: 'fas fa-envelope-open-text' }]}
+                    heading={selectedMessage.subject}
+                    subheading={`From ${selectedMessage.sender} · ${selectedMessage.created_at}`}
+                    footer={(
+                        <>
+                            <button type="button" className="tfe-btn" onClick={() => setSelectedMessage(null)}>Close</button>
+                            {!selectedMessage.is_read && (
+                                <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => {
+                                    handleMarkRead(selectedMessage.id);
+                                    setSelectedMessage({ ...selectedMessage, is_read: true });
+                                }}>
+                                    Mark as Read
+                                </button>
+                            )}
+                        </>
+                    )}
+                >
+                        <div>
                             
                             {/* Shared Story Display */}
                             {selectedMessage.share_type === 'story' && selectedMessage.shared_story && (
@@ -262,19 +274,7 @@ export default function Communication({ auth, announcements, messages }) {
                                 </div>
                             )}
                         </div>
-                         <div className="dash-modal-footer">
-                            <button type="button" className="tfe-btn" onClick={() => setSelectedMessage(null)}>Close</button>
-                            {!selectedMessage.is_read && (
-                                <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => {
-                                    handleMarkRead(selectedMessage.id);
-                                    setSelectedMessage({...selectedMessage, is_read: true});
-                                }}>
-                                    Mark as Read
-                                </button>
-                            )}
-                         </div>
-                    </div>
-                </div>
+                </TfeModal>
             )}
         </FanLayout>
     );

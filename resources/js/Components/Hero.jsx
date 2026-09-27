@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
 import HeroWorldMap from '@/Components/HeroWorldMap';
@@ -594,8 +594,8 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
             {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
 
-            {/* Refactored Match Modal using DashboardModal */}
-            <DashboardModal
+            {/* Venue / team detail dialog — the shared tabbed TfeModal. */}
+            <TfeModal
                 open={showMatchModal}
                 onOpenChange={closeModal}
                 title={selectedTeam ? TEAM_NAMES[selectedTeam] : activeStadium.name}
@@ -615,8 +615,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             { id: 'stats', label: 'Stats & Awards', icon: 'fas fa-trophy' }
                           ]
                 }
+                size="lg"
+                footer={(
+                    <button type="button" className="tfe-btn" onClick={closeModal}>Close view</button>
+                )}
             >
-                <div className="modal-body p-0">
+                <div>
                     {activeModalTab === 'matches' && (
                         <div className="match-modal-card">
                             <div className="match-modal-list overflow-y-auto custom-scrollbar pr-2 hero-modal-matches">
@@ -950,12 +954,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                     )}
                 </div>
 
-                <div className="modal-footer border-t border-white/5">
-                    <button className="btn-glass-pill py-2 px-4 w-100 justify-content-center" onClick={closeModal}>
-                        <span>Close View</span>
-                    </button>
-                </div>
-            </DashboardModal>
+            </TfeModal>
         </section>
     );
 }

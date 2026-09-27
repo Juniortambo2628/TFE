@@ -1,73 +1,70 @@
 import React from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/Components/ui/dialog";
-import { Button } from "@/Components/ui/button";
-import { cn } from "../lib/utils";
+
+import TfeModal from '@/Components/Common/TfeModal';
 
 /**
- * A standardized confirmation dialog component using Shadcn UI.
- * Used to replace window.confirm() calls.
+ * ConfirmationDialog — the standard "are you sure?", replacing window.confirm().
+ *
+ * A thin wrapper over the unified `TfeModal`, so a confirmation is the same
+ * dialog as everything else on the platform. It used to be its own shadcn
+ * Dialog with `bg-blue-600` / `bg-red-600` buttons, which is a colourful
+ * button variant the design system does not have — category colour belongs on
+ * `.tfe-pill`, never on a button. The destructive intent now reads from the
+ * dialog's own copy and icon instead.
+ *
+ * The props are unchanged from the shadcn version on purpose: twenty call
+ * sites use this, and none of them needed to move.
  */
-export default function ConfirmationDialog({ 
-    open, 
-    onOpenChange, 
-    title = "Are you sure?", 
-    description, 
-    onConfirm, 
-    confirmText = "Continue", 
-    cancelText = "Cancel",
-    variant = "default",
-    isLoading = false
+export default function ConfirmationDialog({
+    open,
+    onOpenChange,
+    title = 'Are you sure?',
+    description,
+    onConfirm,
+    confirmText = 'Continue',
+    cancelText = 'Cancel',
+    variant = 'default',
+    isLoading = false,
 }) {
+    const destructive = variant === 'destructive';
+    const close = () => onOpenChange(false);
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-[#0a0a0b] border-white/5 sm:max-w-[425px] rounded-3xl overflow-hidden shadow-2xl p-8">
-                <DialogHeader className="text-center sm:text-center">
-                    <DialogTitle className="text-2xl font-bold text-white mb-3 tracking-tight">{title}</DialogTitle>
-                    {description && (
-                        <DialogDescription className="text-white/60 text-base leading-relaxed">
-                            {description}
-                        </DialogDescription>
-                    )}
-                </DialogHeader>
-                <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-8 sm:justify-center">
-                    <Button 
-                        variant="ghost" 
-                        type="button"
-                        onClick={() => onOpenChange(false)}
-                        className="flex-1 py-6 rounded-xl font-semibold text-white/50 hover:text-white hover:bg-white/5 border border-white/10 transition-all"
-                        disabled={isLoading}
-                    >
+        <TfeModal
+            open={open}
+            onClose={close}
+            size="sm"
+            label={destructive ? 'Confirm' : 'Confirm action'}
+            title={title}
+            tabs={[{
+                id: 'confirm',
+                label: destructive ? 'Confirm' : 'Review',
+                icon: destructive ? 'fas fa-triangle-exclamation' : 'fas fa-circle-question',
+            }]}
+            heading={title}
+            // A confirmation must not be dismissable by a stray backdrop click:
+            // the whole point is a deliberate answer.
+            closeOnBackdrop={false}
+            footer={(
+                <>
+                    <button type="button" className="tfe-btn" onClick={close} disabled={isLoading}>
                         {cancelText}
-                    </Button>
-                    <Button 
-                        variant={variant} 
+                    </button>
+                    <button
                         type="button"
-                        onClick={() => {
-                            onConfirm();
-                        }}
-                        className={cn(
-                            "flex-1 py-6 rounded-xl font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg",
-                            variant === 'destructive' 
-                                ? 'bg-red-600 hover:bg-red-700 shadow-red-600/20' 
-                                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
-                        )}
+                        className="tfe-btn tfe-btn--filled"
+                        onClick={onConfirm}
                         disabled={isLoading}
+                        data-autofocus
                     >
-                        {isLoading ? (
-                            <><i className="fas fa-spinner fa-spin me-2"></i> Processing...</>
-                        ) : (
-                            confirmText
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                        {isLoading ? 'Working…' : confirmText}
+                    </button>
+                </>
+            )}
+        >
+            {description
+                ? <p className="tfe-modal__prose">{description}</p>
+                : <p className="tfe-modal__prose">This action cannot be undone.</p>}
+        </TfeModal>
     );
 }

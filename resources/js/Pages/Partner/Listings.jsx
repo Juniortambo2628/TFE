@@ -4,6 +4,7 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import TournamentPill from '@/Components/Common/TournamentPill';
 import CapacityBar from '@/Components/Common/CapacityBar';
+import ModalRow from '@/Components/Common/ModalRow';
 import TfeModal from '@/Components/Common/TfeModal';
 import ImageUpload from '@/Components/Common/ImageUpload';
 import { formatMoney } from '@/lib/utils';
@@ -231,10 +232,16 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
     };
 
     return (
-        <TfeModal open title={isEdit ? 'Edit listing' : 'New listing'} onClose={onClose} size="lg">
-                <form onSubmit={(e) => save(e, true)}>
-                    <div className="row g-3">
-                        <div className="col-md-6">
+        <TfeModal
+            open
+            onClose={onClose}
+            size="lg"
+            label={isEdit ? 'Editing listing' : 'New listing'}
+            title={data.name || (isEdit ? 'Edit listing' : 'New listing')}
+            tabs={[
+                { id: 'details', label: 'Details', icon: 'fas fa-circle-info', content: (
+                    <div className="tfe-form-grid tfe-form-grid--2">
+                        <div className="tfe-form-field">
                             <label className="tfe-form-label">Tournament</label>
                             <select className="tfe-select" value={data.tournament_id} onChange={(e) => setData('tournament_id', e.target.value)}>
                                 {tournaments.map((t) => (
@@ -243,7 +250,8 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
                             </select>
                             {errors.tournament_id && <div className="tfe-form-error">{errors.tournament_id}</div>}
                         </div>
-                        <div className="col-md-6">
+
+                        <div className="tfe-form-field">
                             <label className="tfe-form-label">Type</label>
                             <select className="tfe-select" value={data.type} onChange={(e) => setData('type', e.target.value)}>
                                 <option value="package">Package (full trip)</option>
@@ -260,42 +268,51 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
                             </div>
                         </div>
 
-                        <div className="col-12">
+                        <div className="tfe-form-field tfe-form-field--wide">
                             <label className="tfe-form-label">Name</label>
                             <input type="text" className="tfe-input" value={data.name} onChange={(e) => setData('name', e.target.value)} />
                             {errors.name && <div className="tfe-form-error">{errors.name}</div>}
                         </div>
 
-                        <div className="col-12">
+                        <div className="tfe-form-field tfe-form-field--wide">
                             <label className="tfe-form-label">Description</label>
-                            <textarea className="tfe-textarea" rows={3} value={data.description} onChange={(e) => setData('description', e.target.value)} />
+                            <textarea className="tfe-textarea" rows={4} value={data.description} onChange={(e) => setData('description', e.target.value)} />
                             {errors.description && <div className="tfe-form-error">{errors.description}</div>}
                         </div>
+                    </div>
+                ) },
 
-                        <div className="col-md-4">
+                { id: 'pricing', label: 'Pricing', icon: 'fas fa-tag', content: (
+                    <div className="tfe-form-grid tfe-form-grid--3">
+                        <div className="tfe-form-field">
                             <label className="tfe-form-label">Base price</label>
                             <input type="number" className="tfe-input" value={data.base_price} onChange={(e) => setData('base_price', e.target.value)} />
                             {errors.base_price && <div className="tfe-form-error">{errors.base_price}</div>}
                         </div>
-                        <div className="col-md-4">
+                        <div className="tfe-form-field">
                             <label className="tfe-form-label">Currency</label>
                             <input type="text" className="tfe-input" value={data.currency} onChange={(e) => setData('currency', e.target.value)} />
                         </div>
-                        <div className="col-md-4">
+                        <div className="tfe-form-field">
                             <label className="tfe-form-label">Capacity</label>
                             <input type="number" className="tfe-input" value={data.capacity} onChange={(e) => setData('capacity', e.target.value)} placeholder="Unlimited" />
                         </div>
+                    </div>
+                ) },
 
-                        {showsNights(data.type) && (
-                            <div className="col-md-4">
-                                <label className="tfe-form-label">Nights</label>
-                                <input type="number" className="tfe-input" value={data.nights} onChange={(e) => setData('nights', e.target.value)} />
-                                {errors.nights && <div className="tfe-form-error">{errors.nights}</div>}
-                            </div>
-                        )}
+                // Trip only exists for a packaged trip or a multi-night tour, so
+                // the tab comes and goes with `type`. TfeModal re-resolves the
+                // active tab when that happens rather than showing a blank pane.
+                ...(showsNights(data.type) ? [{ id: 'trip', label: 'Trip', icon: 'fas fa-suitcase-rolling', content: (
+                    <div className="tfe-form-grid tfe-form-grid--2">
+                        <div className="tfe-form-field">
+                            <label className="tfe-form-label">Nights</label>
+                            <input type="number" className="tfe-input" value={data.nights} onChange={(e) => setData('nights', e.target.value)} />
+                            {errors.nights && <div className="tfe-form-error">{errors.nights}</div>}
+                        </div>
                         {showsTravel(data.type) && (
                             <>
-                                <div className="col-md-4">
+                                <div className="tfe-form-field">
                                     <label className="tfe-form-label">Flight class</label>
                                     <select className="tfe-select" value={data.flight_class} onChange={(e) => setData('flight_class', e.target.value)}>
                                         <option value="economy">Economy</option>
@@ -303,36 +320,44 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
                                         <option value="first">First</option>
                                     </select>
                                 </div>
-                                <div className="col-md-4">
+                                <div className="tfe-form-field tfe-form-field--wide">
                                     <label className="tfe-form-label">Accommodation</label>
                                     <input type="text" className="tfe-input" value={data.accommodation_level} onChange={(e) => setData('accommodation_level', e.target.value)} placeholder="3-star, 5-star, boutique…" />
                                 </div>
                             </>
                         )}
-
-                        <div className="col-12">
-                            <label className="tfe-form-label">Hero image</label>
-                            <ImageUpload
-                                value={data.hero_image}
-                                onFile={(file) => setData('hero_image_file', file)}
-                                onClear={() => { setData('hero_image', ''); setData('hero_image_file', null); }}
-                            />
-                            {errors.hero_image_file && <div className="tfe-form-error">{errors.hero_image_file}</div>}
-                        </div>
                     </div>
+                ) }] : []),
 
-                    <div className="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-                        <div className="text-white-50 small">Publish to go live now, or save hidden to keep it off your hub.</div>
-                        <div className="d-flex gap-2">
-                            <button type="button" className="tfe-btn" disabled={processing} onClick={(e) => save(e, false)}>
-                                Save hidden
-                            </button>
-                            <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing}>
-                                {isEdit ? 'Save & publish' : 'Publish listing'}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-        </TfeModal>
+                { id: 'media', label: 'Media', icon: 'fas fa-image', content: (
+                    <ModalRow
+                        title="Hero image"
+                        desc="Shown on your hub and anywhere this listing is featured."
+                        stacked
+                    >
+                        <ImageUpload
+                            value={data.hero_image}
+                            onFile={(file) => setData('hero_image_file', file)}
+                            onClear={() => { setData('hero_image', ''); setData('hero_image_file', null); }}
+                            gallery
+                        />
+                        {errors.hero_image_file && <div className="tfe-form-error">{errors.hero_image_file}</div>}
+                    </ModalRow>
+                ) },
+            ]}
+            footer={(
+                <>
+                    <span className="tfe-modal__foot-note">
+                        Publish to go live now, or save hidden to keep it off your hub.
+                    </span>
+                    <button type="button" className="tfe-btn" disabled={processing} onClick={(e) => save(e, false)}>
+                        Save hidden
+                    </button>
+                    <button type="button" className="tfe-btn tfe-btn--filled" disabled={processing} onClick={(e) => save(e, true)}>
+                        {isEdit ? 'Save & publish' : 'Publish listing'}
+                    </button>
+                </>
+            )}
+        />
     );
 }
