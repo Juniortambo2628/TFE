@@ -32,6 +32,7 @@ const DEFAULT_TYPE = {
     sponsor: 'offer',
     club: 'offer',
     federation: 'offer',
+    school_community: 'program',
 };
 
 // Trip fields only make sense for a packaged trip (or a multi-night tour).
@@ -258,6 +259,7 @@ function ListingFormModal({ listing, tournaments, partnerType, onClose }) {
                                 <option value="offer">Offer (single product)</option>
                                 <option value="event">Event</option>
                                 <option value="tour">Tour</option>
+                                <option value="program">Program (schools + communities)</option>
                             </select>
                             <div className="tfe-form-help">
                                 {showsTravel(data.type)

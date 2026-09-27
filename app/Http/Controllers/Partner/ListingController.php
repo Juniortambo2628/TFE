@@ -178,7 +178,7 @@ class ListingController extends Controller
 
         return $request->validate([
             'tournament_id' => 'required|string|in:'.implode(',', $tournamentIds),
-            'type' => 'required|string|in:package,offer,event,tour',
+            'type' => 'required|string|in:package,offer,event,tour,program',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'hero_image' => 'nullable|string',

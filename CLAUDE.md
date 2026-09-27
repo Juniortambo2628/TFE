@@ -63,6 +63,7 @@ Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder` +
 | Betting partner | `betting@tfe.com`   | password | GoalBet (`sponsor`), green #16a34a |
 | Ticketing partner | `ticketing@tfe.com` | password | MatchDay Africa (`ticketing_partner`), violet #8b5cf6 |
 | Demo fan        | `fan@tfe.com`       | password | `DemoFanActivitySeeder`; use for shots |
+| Schools partner | `schools@tfe.com`   | password | East Africa Schools Sports (`school_community`), green #15803d |
 | Other demo fans | `amina@` `joseph@` `fatima@` `tunde@` `grace@` `samir@` `tfe.com` | password | Cohort behind the tribes, queues and sales |
 
 ### Demo data (Sprint 59)
@@ -190,7 +191,8 @@ Shipped across Sprints 9–17. Full loop:
 
 1. **User** row with `is_partner=true` + `partner_type` (`travel_agent`,
    `finance_partner`, `airline`, `hotel_provider`, `destination`, `club`,
-   `federation`, `event_organiser`, `sponsor`) + `verification_status`
+   `federation`, `event_organiser`, `sponsor`, `ticketing_partner`,
+   `school_community`) + `verification_status`
    (`unverified` / `pending` / `verified`).
 2. **PartnerProfile** 1:1 with User: `slug`, `display_name`, `tagline`, `about`,
    `hero_image`, `logo_url`, `theme_accent` (drives `--partner-accent` in
@@ -359,6 +361,45 @@ tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
   `closeOnBackdrop={false}` for a destructive form; `ConfirmationDialog` does.
 - `ConfirmationDialog` and `StatusDialog` keep their previous props exactly —
   twenty call sites use the first, and none of them moved.
+
+### Schools & Communities archetype (Sprint 59)
+
+`school_community` is the stakeholder between the platform and the next
+generation of fans, players and coaches — modelled on the ASE ecosystem
+reference (Watch / Play / Learn / Develop, with Schools & Universities as a
+first-class stakeholder alongside Fans, Airlines and Clubs).
+
+**It needed new copy and new data, not a new page.** The public hub, the
+listings grid, the docked StepFlow and the AccentCard layout all carried it
+unchanged. What is archetype-specific lives server-side:
+
+- **`stepsFor('school_community')`** — the five-step schools journey
+  (Register → Discover → Join & participate → Develop & learn → Compete &
+  grow). The only archetype whose journey belongs to an INSTITUTION rather
+  than a fan: a school registers once and returns season after season.
+- **`pillarsFor($partnerType)`** (new) — the "how we support you" trio.
+  Same bug class the steps had, same fix: every hub rendered
+  Publish / Convert / Measure in travel-agent copy ("Package experiences
+  fans actually want — matches, stays, transfers"), which a betting sponsor
+  was already being shown. Schools get Programs / Pathways / Outcomes;
+  finance and ticketing get their own; unmapped types keep the default,
+  which is accurate for the partners whose dashboard has those tabs.
+- **`type = 'program'`** on `Listing` — schools publish leagues, festivals,
+  coaching courses, grants and community projects, none of which is a
+  package, offer, event or tour. `listings.type` is `string(32)`, so no
+  migration; add it to `ListingController`'s `in:` rule, the form's option
+  list and `DEFAULT_TYPE` together.
+- **A zero price means Free, not "USD 0".** Most of the schools catalogue is
+  free to enter, and that is a claim worth making rather than something that
+  reads as a missing value (`priceFact()` in `PartnerHub.jsx`).
+
+**The hub eyebrow now uses the server's label.** It used to title-case the
+raw key client-side, which rendered `school_community` as "School Community"
+while the directory showed "Schools & Communities" from `partnerTypes()` —
+two sources for one label. `partnerEyebrow()` only trims a trailing
+"Partner" so `finance_partner` does not read "Official Finance Partner
+Partner". Seeded by `DemoSchoolsPartnerSeeder` (6 programmes). Guarded by
+`tests/Feature/PartnerHubStepsTest.php`.
 
 ### StepFlow (Sprint 59)
 
@@ -1635,6 +1676,15 @@ tests/
   instance behind it is `unstated` — it explains a flow, it does not claim
   the reader is partway through one. Same honesty rule as the seat map's
   `has_inventory` (Sprint 59).
+- Never add a `partner_type` without adding its label to BOTH
+  `DashboardHeader.jsx`'s and `Partner/Sidebar.jsx`'s maps AND
+  `PartnerController::partnerTypes()`. A missing entry falls back to a
+  generic "Partner" in the chrome while the directory shows the real name
+  (Sprint 59).
+- Never derive a display label client-side that the server already computes.
+  The hub title-cased `partner_type` into "School Community" while the
+  directory rendered "Schools & Communities" from `partnerTypes()` — one
+  label, two sources, guaranteed to disagree (Sprint 59).
 - Never hardcode partner-facing copy that differs by archetype. The hub's
   "how it works" steps told an airline its fan would receive a "Trip
   delivered" for nine sprints; they come from
@@ -1773,7 +1823,7 @@ tests/
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 | 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
 | 58     | Landing hero stopped fabricating seat availability (`deriveSoldPct` deleted) and then moved onto the real 3D `StadiumBowl` like every other surface — the SVG `StadiumSeatMap` is gone entirely, and the lazy canvas boundary means the landing bundle pays ~6KB rather than the 578KB that had been assumed and every bare `assets/…` constant in the client got its leading slash back with a test that scans for regressions. One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
-| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had; then all four parallel indicators migrated onto it — Register's hand-rolled progress bar (whose `completed` style was dead CSS, so a finished step looked like the current one) and the financing wizard's bare "Step X of Y", with the ticket purchase modal deliberately left on `TfeModal`'s tab rail; then demo data so every surface has something on it — 52 AFCON 2027 fixtures (the default tournament had none, since all 104 seeded fixtures belonged to the concluded wc_2026) and a fan cohort whose budgets, loans, ticket purchases and tribes are also what fill the three partner dashboards |
+| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had; then all four parallel indicators migrated onto it — Register's hand-rolled progress bar (whose `completed` style was dead CSS, so a finished step looked like the current one) and the financing wizard's bare "Step X of Y", with the ticket purchase modal deliberately left on `TfeModal`'s tab rail; then demo data so every surface has something on it — 52 AFCON 2027 fixtures (the default tournament had none, since all 104 seeded fixtures belonged to the concluded wc_2026) and a fan cohort whose budgets, loans, ticket purchases and tribes are also what fill the three partner dashboards; and the Schools & Communities archetype (`school_community`) landed on that same machinery — a five-step institutional journey through StepFlow, archetype-aware hub pillars replacing the travel-agent copy every partner was shown, a `program` listing type, and a seeded East Africa Schools Sports partner with six programmes |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

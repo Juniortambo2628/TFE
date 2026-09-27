@@ -19,7 +19,7 @@ import '../../css/virtual-card.css';
  * the shared AccentCard. A slim "How it works" strip stays pinned to the
  * bottom of the viewport until the footer scrolls into view.
  */
-export default function PartnerHub({ profile, listings = [], tickets = [], features = [], steps = [] }) {
+export default function PartnerHub({ profile, listings = [], tickets = [], features = [], steps = [], pillars = [] }) {
     const { assetUrl } = usePage().props;
     const accent = profile?.theme_accent || '#dc143c';
     const heroBg = profile?.hero_image
@@ -47,7 +47,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                                     )}
                                     <div>
                                         <div className="partner-hub-hero__eyebrow">
-                                            Official {formatPartnerType(profile?.partner_type)} Partner
+                                            Official {partnerEyebrow(profile?.partner_type_label)} Partner
                                         </div>
                                         <h1 className="partner-hub-hero__title">{profile?.display_name}</h1>
                                     </div>
@@ -120,7 +120,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                 )}
 
                 {/* How we support the sports ecosystem */}
-                <HowWeSupportStrip accent={accent} />
+                <HowWeSupportStrip accent={accent} pillars={pillars} />
 
                 {features.length > 0 && (
                     <section className="py-5">
@@ -195,9 +195,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                                             status={l.tournament_short || undefined}
                                             title={l.name}
                                             desc={l.description}
-                                            meta={[
-                                                { label: 'From', value: `${l.currency} ${Number(l.base_price).toLocaleString()}` },
-                                            ]}
+                                            meta={[priceFact(l)]}
                                             cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
                                         >
                                             <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
@@ -271,23 +269,46 @@ function PartnerHubTicket({ ticket, accent }) {
     );
 }
 
-function formatPartnerType(t) {
-    if (!t) return '';
-    return t.replace(/_partner$/i, '')
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (m) => m.toUpperCase());
+/**
+ * The price fact on a listing card.
+ *
+ * A zero is a real, meaningful price for the schools archetype — a league
+ * or a grant is free to enter, and most of that partner's catalogue is.
+ * Rendering it as "From USD 0" reads like a missing value rather than the
+ * claim it actually is.
+ */
+function priceFact(listing) {
+    const price = Number(listing.base_price);
+
+    if (!Number.isFinite(price) || price <= 0) {
+        return { label: 'Entry', value: 'Free' };
+    }
+
+    return { label: 'From', value: `${listing.currency} ${price.toLocaleString()}` };
 }
 
 /**
- * "How we support the sports ecosystem" — three pillars mapping to the
- * partner dashboard tabs (Publish / Convert / Measure).
+ * Trim a trailing "Partner" off the server's label so the eyebrow
+ * `Official {x} Partner` does not read "Official Finance Partner Partner".
+ *
+ * The label itself comes from PartnerController::partnerTypes() — this used
+ * to title-case the raw key instead, which rendered `school_community` as
+ * "School Community" while the directory showed "Schools & Communities".
  */
-function HowWeSupportStrip({ accent }) {
-    const pillars = [
-        { icon: 'fa-tags', title: 'Publish', body: 'Package experiences fans actually want — matches, stays, transfers — and put them in front of every buyer on the platform.' },
-        { icon: 'fa-handshake', title: 'Convert', body: 'Fans submit briefs against your listings. You quote, they book. No cold pipeline to chase.' },
-        { icon: 'fa-chart-line', title: 'Measure', body: 'Track sell-through, turnaround and revenue per listing. Iterate on what wins.' },
-    ];
+function partnerEyebrow(label) {
+    if (!label) return '';
+
+    return label.replace(/\s+Partner$/i, '').trim();
+}
+
+/**
+ * "How we support the sports ecosystem" — three pillars, from the server's
+ * PartnerHubController::pillarsFor(). They used to be hardcoded as
+ * Publish / Convert / Measure in travel-agent language, which a betting
+ * sponsor and a school were both shown despite neither packaging a trip.
+ */
+function HowWeSupportStrip({ accent, pillars = [] }) {
+    if (!pillars.length) return null;
 
     return (
         <section className="py-5">
