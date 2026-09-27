@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assetPath } from '../../resources/js/lib/assets.js';
@@ -82,6 +82,47 @@ test('every allowed exception still exists, so the list cannot go stale', () => 
         );
         BARE.lastIndex = 0;
     }
+});
+
+/*
+ * Second guard: a correctly-shaped path that names a file which is not there.
+ *
+ * `/assets/img/fan/backgrounds/payments_hero.png` was referenced by the Wallet
+ * and Savings Goals heroes and had never been committed — DashboardHero lands
+ * its `bgImage` as a CSS `background-image`, so a 404 draws no broken-image
+ * icon and the hero simply loses its backdrop. Invisible without devtools.
+ *
+ * `/storage/` is excluded on purpose: it is a gitignored symlink to runtime
+ * uploads, so nothing under it is expected on a fresh checkout.
+ */
+const PUBLIC_DIR = new URL('../../public', import.meta.url).pathname;
+const COMMITTED_ASSET = /['"](\/(?:assets|stadiums|tournament-organizers-card-visuals)\/[^'"`]+\.(?:png|jpe?g|webp|svg|gif|avif))['"]/gi;
+
+test('every committed image path in the client exists on disk', () => {
+    const missing = [];
+
+    for (const file of walk(ROOT)) {
+        const rel = file.slice(ROOT.length + 1);
+        const source = readFileSync(file, 'utf8');
+
+        for (const m of source.matchAll(COMMITTED_ASSET)) {
+            const path = m[1];
+
+            // A literal carrying an interpolation is a template, not a path.
+            if (path.includes('${')) continue;
+
+            if (!existsSync(join(PUBLIC_DIR, path))) {
+                const line = source.slice(0, m.index).split('\n').length;
+                missing.push(`${rel}:${line} → ${path}`);
+            }
+        }
+    }
+
+    assert.deepEqual(
+        missing,
+        [],
+        `Referenced but not committed — a CSS background fails silently:\n  ${missing.join('\n  ')}`,
+    );
 });
 
 test('assetPath leaves a root-relative path alone', () => {

@@ -50,7 +50,7 @@ export default function SavingsGoals({ auth, goals }) {
                     title="Savings Goals"
                     subtitle={`Set targets and track your ${tournament?.short_name || 'tournament'} savings progress.`}
                     breadcrumbs={[{ label: 'Wallet', href: route('fan.wallet') }, { label: 'Savings' }]}
-                    bgImage="/assets/img/fan/backgrounds/payments_hero.png"
+                    bgImage="/assets/img/fan/backgrounds/finance_hero.png"
                 />
 
                 <div className="container px-4 mx-auto -mt-8">

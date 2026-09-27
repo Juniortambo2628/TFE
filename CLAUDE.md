@@ -1598,6 +1598,14 @@ tests/
   `team_flag_codes` resolved to nothing and silently vanished from the fan's
   team list. Fall back to `Data/countries.js`, which has an ISO code for all
   235 (Sprint 56).
+- Never assume a missing image announces itself. `DashboardHero` lands its
+  `bgImage` as a CSS `background-image`, so a 404 draws no broken-image icon
+  — the hero just loses its backdrop, which is invisible without devtools.
+  `payments_hero.png` was referenced by the Wallet and Savings Goals heroes
+  and had **never been committed**. Both now use `finance_hero.png`, the
+  money-themed backdrop the Budget Calculator already uses, and
+  `tests/JS/assetLiterals.test.mjs` asserts every committed image path in
+  the client exists on disk (Sprint 59).
 - Never write to `fixtures` without calling `FixtureService::clearCache()`.
   `getFixtures()` caches an EMPTY list as readily as a full one, so the
   install you just seeded reads "No matches found" until the TTL lapses —
