@@ -341,6 +341,14 @@ class StadiumImageService
                 'lat' => $entry['lat'] ?? null,
                 'lng' => $entry['lng'] ?? null,
                 'capacity' => $entry['capacity'] ?? null,
+                'formerly' => $entry['formerly'] ?? null,
+                // Bowl geometry for the 3D seat map (see StadiumBowlService).
+                // Carried on the venue rows so a client-side venue switcher
+                // needs no second request.
+                'roof_style' => $entry['roof_style'] ?? 'canopy',
+                'corner_ratio' => $entry['corner_ratio'] ?? null,
+                'partial_bowl' => (bool) ($entry['partial_bowl'] ?? false),
+                'is_alternate' => (bool) ($entry['is_alternate'] ?? false),
                 'image' => $entry['url'],
                 'thumbnail' => $entry['url'],
                 'image_source' => 'local',
@@ -403,6 +411,15 @@ class StadiumImageService
             $venue['thumbnail'] = $entry['url'];
             $venue['image_source'] = 'local';
             $venue['slug'] = $entry['slug'];
+
+            // Bowl geometry, same fields catalogueVenues supplies, so a venue
+            // row means the same thing on a catalogued tournament whichever
+            // path built it.
+            $venue['formerly'] = $entry['formerly'] ?? null;
+            $venue['roof_style'] = $entry['roof_style'] ?? 'canopy';
+            $venue['corner_ratio'] = $entry['corner_ratio'] ?? null;
+            $venue['partial_bowl'] = (bool) ($entry['partial_bowl'] ?? false);
+            $venue['is_alternate'] = (bool) ($entry['is_alternate'] ?? false);
 
             // Coordinates: only fill the gaps Wikipedia left. A real parsed
             // infobox coordinate is more precise than our approximation.

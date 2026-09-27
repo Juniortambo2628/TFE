@@ -49,6 +49,12 @@ export default function TicketsPurchases({ auth, purchases = [] }) {
                                 <div className="ticket-stub__meta">
                                     <div><i className="fas fa-clock"></i> {KICK(p.ticket?.kickoff_at)}</div>
                                     <div><i className="fas fa-map-marker-alt"></i> {p.ticket?.venue_name}, {p.ticket?.venue_city}</div>
+                                    {/* Snapshot taken at purchase, so it still
+                                        reads correctly if the tier is later
+                                        removed. Absent on pre-tier purchases. */}
+                                    {p.tier_name && (
+                                        <div><i className="fas fa-chair"></i> {p.tier_name} tier</div>
+                                    )}
                                 </div>
                             </div>
                             <div className="ticket-stub__foot">

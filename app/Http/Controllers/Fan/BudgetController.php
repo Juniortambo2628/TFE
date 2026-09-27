@@ -9,6 +9,7 @@ use App\Models\FavoriteMatch;
 use App\Models\Listing;
 use App\Models\PartnerProfile;
 use App\Services\FixtureService;
+use App\Services\StadiumBowlService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,8 @@ use Inertia\Inertia;
 class BudgetController extends Controller
 {
     use ResolvesTournament;
+
+    public function __construct(private StadiumBowlService $bowls) {}
 
     public function index(Request $request)
     {
@@ -158,6 +161,13 @@ class BudgetController extends Controller
             // Defer the heavy fixture bundle — page renders immediately,
             // Inertia fetches this in a background partial reload.
             'fixtureBundle' => Inertia::defer($fixtureBundle),
+
+            // Every catalogued venue as a bowl payload. Deferred for the same
+            // reason as the fixtures: the seat map sits well down the results
+            // step, so it must not hold up first paint. Sending all of them
+            // means switching venue inside the map costs no request, and which
+            // venues the fan will pick is not knowable here anyway.
+            'venueBowls' => Inertia::defer(fn () => $this->bowls->forTournament($tournamentId)),
         ]);
     }
 

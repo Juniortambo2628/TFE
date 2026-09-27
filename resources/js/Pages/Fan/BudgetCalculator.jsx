@@ -10,6 +10,7 @@ import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
 import AccentCard from '@/Components/Common/AccentCard';
 import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
+import StadiumBowl from '@/Components/Common/StadiumBowl';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
 import '../../../css/fan/travel-preferences-wizard.css';
@@ -35,6 +36,10 @@ export default function BudgetCalculator({
     // Fixture bundle is deferred by the server — on first paint it's
     // undefined; Inertia fills it in via a background partial reload.
     fixtureBundle = null,
+    // Bowl payloads for every catalogued venue, also deferred. Empty until
+    // the partial reload lands, which is why the seat map section guards on
+    // length rather than assuming it is there.
+    venueBowls = [],
 }) {
     // Shared, name-keyed stadium imagery (see HandleInertiaRequests).
     const { stadiumImages } = usePage().props;
@@ -241,6 +246,38 @@ export default function BudgetCalculator({
 
         return venueImages[venueName] || resolveStadiumImage(venueName, stadiumImages);
     }, [venueImages, stadiumImages]);
+
+    // Seat-map venues, the fan's own first.
+    //
+    // A fixture's venue string and a catalogue venue's canonical name do not
+    // reliably match ("Kasarani Stadium" vs "Moi International Sports Centre,
+    // Kasarani"), so they are joined on the resolved IMAGE url instead — the
+    // shared `stadiumImages` map already indexes every alias to the same url a
+    // bowl payload carries, so this reuses the alias table rather than growing
+    // a second client-side copy of it. No match just leaves config order.
+    const orderedVenueBowls = React.useMemo(function () {
+        var bowls = venueBowls || [];
+        if (!bowls.length) return [];
+
+        var selected = allFixtures.filter(function (m) { return selectedMatchIds.includes(m.id); });
+        if (!selected.length) return bowls;
+
+        var wanted = [];
+        selected.forEach(function (m) {
+            var url = venueImageFor(m.venue);
+            if (url && wanted.indexOf(url) === -1) wanted.push(url);
+        });
+
+        var mine = [];
+        var rest = bowls.slice();
+
+        wanted.forEach(function (url) {
+            var i = rest.findIndex(function (b) { return b.image === url; });
+            if (i !== -1) mine.push(rest.splice(i, 1)[0]);
+        });
+
+        return mine.concat(rest);
+    }, [venueBowls, allFixtures, selectedMatchIds, venueImageFor]);
 
     // Favorite matches based on fixture_id
     const favoriteMatches = allFixtures.filter(match => {
@@ -1320,6 +1357,26 @@ export default function BudgetCalculator({
                                 </div>
                             );
                         })()}
+
+                        {/* Seat map — the fan has just seen what Match Tickets
+                            costs them; this is what they are buying. Venues are
+                            ordered by their own selected matches so the bowl
+                            opens on the ground they are actually going to, with
+                            the rest available in the map's own switcher. */}
+                        {orderedVenueBowls.length > 0 && (
+                            <section className="result-subsection result-subsection--seatmap">
+                                <div className="result-subsection__head">
+                                    <span className="result-subsection__icon"><i className="fas fa-chair" aria-hidden="true"></i></span>
+                                    <div>
+                                        <h4 className="result-subsection__title">Where you'll be sitting</h4>
+                                        <p className="result-subsection__subtitle">
+                                            Seating tiers at your venues, and how full each one is.
+                                        </p>
+                                    </div>
+                                </div>
+                                <StadiumBowl bowls={orderedVenueBowls} height={400} />
+                            </section>
+                        )}
 
                         {/* Cost scenarios — Sprint 44 promoted to a first-class subsection
                             so it reads as consistent with the breakdown grid above, and

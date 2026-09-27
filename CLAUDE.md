@@ -275,6 +275,82 @@ are measured differently and two copies of that would drift. A ticketing
 partner's quick actions mirror `Partner/Sidebar`'s own ticketing branch
 (Tickets / Sales, not Publish / Convert).
 
+### 3D stadium seat map (Sprint 57)
+
+`Components/Common/StadiumBowl` is the ONE seat map. A parametric Three.js
+bowl — four concentric tiers on a real rounded-rectangle footprint, per-venue
+roof, per-tier occupancy — replacing the procedural SVG `Fan/StadiumSeatMap`
+on every fan surface. Mounted on:
+
+| surface | payload | occupancy |
+|---------|---------|-----------|
+| `Fan/Tickets/Index` purchase modal | one fixture (`forTicket`) | real, and **it is the tier picker** |
+| `Fan/BudgetCalculator` results | every venue (`forTournament`, deferred) | real, aggregated |
+| `Fan/PackageDetail` | the package's venues | real, aggregated |
+
+**The bowl is a GENERIC parametric shape, not an architectural replica.**
+Public blueprints do not exist for most AFCON 2027 grounds (several are still
+under construction). That is a known, accepted limitation — do not chase it.
+A photoreal GLB per venue would be a separate asset for a showcase surface; a
+fused mesh cannot do per-tier data binding, which is this component's whole job.
+
+Files:
+
+- `resources/js/lib/stadiumBowl.js` — pure geometry (tier radii, the
+  discorectangle solver, `resolveTiers`). JSX- and three-free so `node --test`
+  loads it; guarded by `tests/JS/stadiumBowl.test.mjs`.
+- `resources/js/lib/stadiumBowlGeometry.js` + `stadiumBowlScene.js` — the
+  three.js half (meshes; camera/pointer/lifecycle). Only these import `three`.
+- `Components/Common/StadiumBowl.jsx` — public entry: chrome, legend, venue
+  switcher, and the `React.lazy` boundary.
+- `Components/Common/StadiumBowlCanvas.jsx` — lazily imported, so `three`
+  (~578KB, 149KB gzip) lands in its own Rollup chunk. **Every surface imports
+  `StadiumBowl`, never the canvas** — that is what keeps the lazy boundary from
+  being forgotten. Verified: `three` appears in exactly one built chunk.
+- `App\Services\StadiumBowlService` — the ONE payload. `forTicket()` /
+  `forVenue()` / `forName()` / `forTournament()` all return the same shape.
+
+**Venue geometry lives in `config/stadiums.php`, not a migration** —
+`roof_style`, `partial_bowl`, `corner_ratio`, `is_alternate`, `formerly`.
+There is no stadium table; the catalogue IS the venue list (Sprint 45). Note
+`corner_ratio` is the corner RADIUS as a fraction of half-width, so a SMALLER
+value is a boxier, football-only ground; null/1 is the full discorectangle an
+athletics track forces.
+
+**`has_inventory` is the honesty flag.** A ground with no ticket rows returns
+`source: 'catalogue'` with null occupancy, and the component shows a seating
+layout with capacities and no percentages. This replaced surfaces that invented
+a figure when they had none: PackageDetail passed the package's own
+availability as if it were the ground's, and `Hero.jsx` hashes the stadium name
+into a 20-85% figure.
+
+The public landing hero still runs the old SVG `Fan/StadiumSeatMap` on that
+hashed number. That is deliberate on the bundle (a WebGL canvas has no business
+in the landing hero) and NOT deliberate on the number — the fabricated
+percentage there is outstanding work.
+
+### Tiered ticket inventory (Sprint 57)
+
+`tickets` carried one flat `price`/`capacity`/`sold` per fixture, so there was
+exactly ONE real occupancy number per match and every four-tier seat map was
+showing invented figures. Inventory now lives in **`ticket_tiers`** (one row per
+tier per fixture: `key`, `name`, `price`, `capacity`, `sold`), with
+`ticket_purchases.ticket_tier_id` + a `tier_name` snapshot for receipts.
+
+- **`Ticket::syncTierTotals()` owns `tickets.capacity` + `tickets.sold`.** They
+  are denormalized totals the ticket cards and `Partner\TicketController::statsFor`
+  read directly. Never `increment('sold')` by hand — same rule, and the same
+  bug, as `Tribe::syncCounts()`.
+- **`TicketTier::BLUEPRINT`'s seat shares are the bowl's ring AREAS**, derived
+  from the tier radii in `lib/stadiumBowl.js`, so a tier that looks like half
+  the bowl holds half the seats. `tests/Unit/TicketTierBlueprintTest.php` and
+  `tests/JS/stadiumBowl.test.mjs` assert the same numbers from both sides —
+  change a radius and both fail until the blueprint moves with it.
+- `seedDefaultTiers()` is idempotent and never clobbers edited prices.
+- The migration's backfill carries a deliberately FROZEN copy of the blueprint:
+  a migration describes what happened when it ran, so it must not follow a
+  constant that can be edited later.
+
 ### Finance-partner archetype (Sprint 14–16)
 
 `finance_partner` users behave differently — their Convert queue is
@@ -1364,6 +1440,48 @@ tests/
   `team_flag_codes` resolved to nothing and silently vanished from the fan's
   team list. Fall back to `Data/countries.js`, which has an ISO code for all
   235 (Sprint 56).
+- Never import `StadiumBowlCanvas` (or `three`) from a page. Import
+  `Components/Common/StadiumBowl`, which owns the `React.lazy` boundary — a
+  direct import drags 578KB of WebGL into that page's bundle (Sprint 57).
+- Never join a ticket row to the stadium catalogue on `venue_slug`. It is
+  partner-supplied and need not match a catalogue key — the seeded Kasarani
+  fixture carried `moi-international-sports-centre` against a key of
+  `moi-kasarani`, and its `hero_image` named a file that does not exist. Resolve
+  by NAME through `StadiumImageService::entryFor()` / `StadiumBowlService::slugFor()`,
+  which alias-matches (Sprint 57).
+- Never show an occupancy percentage for a venue with no ticket rows. Read
+  `has_inventory` and render capacities instead. Inventing one is what
+  `Hero.jsx`'s `deriveSoldPct()` does — it hashes the stadium NAME into a
+  20-85% "urgency signal". **Still live on the public landing page**, which
+  Sprint 57 deliberately left on the lightweight SVG `Fan/StadiumSeatMap` to
+  keep `three` off the landing bundle; the fabricated percentage there is
+  outstanding, not endorsed (Sprint 57).
+- Never `increment('sold')` on a `Ticket`. Tier rows own the count;
+  `Ticket::syncTierTotals()` derives the parent totals from them (Sprint 57).
+- Never trust a client-supplied `ticket_tier_id` without scoping it to the
+  fixture in the URL — otherwise a fan can pay a cheap fixture's tier price
+  into a dear one. `$ticket->tiers()->whereKey(...)`, never
+  `TicketTier::find(...)` (Sprint 57).
+- Never quote `tickets.price` as a "from" price once a fixture has tiers. That
+  column is the BASE (Standard) price; the cheapest seat is the Upper tier at
+  0.6x, and the cheapest *available* one may be dearer still (Sprint 57).
+- Never let a component emit two different shapes for the same thing. The seat
+  map's legend rendered raw payload rows (`tier_id`) while its 3D canvas
+  hit-tested resolved geometry (`tierId`), so picking a tier in the legend
+  silently carried no tier id and the fan was charged the base price. Both now
+  render `resolveTiers()` output (Sprint 57).
+- Never initialise a `useForm` inside a modal that is mounted before its subject
+  exists. `useForm` reads its initial values on FIRST mount only, so a
+  `<PurchaseModal ticket={null}>` kept a null default tier for the life of the
+  page. Mount it conditionally and `key` it (Sprint 57).
+- Never position a component's own overlay with `position: fixed`. A transformed
+  ancestor — routine inside a modal — becomes its containing block, and the
+  tooltip lands somewhere else entirely. Anchor to the component's own stage
+  (Sprint 57).
+- Never carry a full-viewport camera-framing constant into a panel-sized canvas.
+  Fit each footprint axis against the field of view it actually spans (length →
+  horizontal, width → vertical) and re-frame on resize, or the bowl sits small
+  in a lot of sky (Sprint 57).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server
@@ -1417,6 +1535,7 @@ tests/
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
+| 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

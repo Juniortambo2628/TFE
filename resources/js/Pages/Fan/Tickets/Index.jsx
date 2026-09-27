@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import StadiumBowl from '@/Components/Common/StadiumBowl';
 import TfeModal from '@/Components/Common/TfeModal';
 import { formatMoney } from '@/lib/utils';
 import '../../../../css/fan/fan-pages.css';
@@ -11,6 +12,23 @@ import '../../../../css/tickets.css';
 const KICK = (s) => new Date(s).toLocaleString(undefined, {
     weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
 });
+
+/**
+ * Cheapest seat a fan can actually still buy.
+ *
+ * `ticket.price` is the fixture's BASE (Standard) price, so quoting it as
+ * "from" understates the dear tiers and overstates the cheap ones — Upper sits
+ * at 0.6x. A fixture whose cheap tiers are gone must quote the cheapest tier
+ * that still has seats, not the cheapest tier that exists.
+ */
+function fromPrice(ticket) {
+    const open = (ticket.tiers || []).filter((t) => !t.is_sold_out);
+    const pool = open.length ? open : (ticket.tiers || []);
+
+    if (!pool.length) return ticket.price;
+
+    return pool.reduce((lo, t) => Math.min(lo, Number(t.price)), Infinity);
+}
 
 export default function TicketsIndex({ auth, tickets = [], purchases = [] }) {
     const [buying, setBuying] = useState(null);
@@ -42,7 +60,12 @@ export default function TicketsIndex({ auth, tickets = [], purchases = [] }) {
                 </div>
             )}
 
-            <PurchaseModal ticket={buying} onClose={() => setBuying(null)} />
+            {/* Keyed + conditional: useForm reads its initial values on
+                FIRST mount only, so a modal mounted with ticket={null} would
+                keep a null default tier for the life of the page. */}
+            {buying && (
+                <PurchaseModal key={buying.id} ticket={buying} onClose={() => setBuying(null)} />
+            )}
         </FanLayout>
     );
 }
@@ -90,7 +113,7 @@ function TicketCard({ ticket, onBuy }) {
                 <div className="ticket-card__foot">
                     <div className="ticket-card__price">
                         <span className="ticket-card__price-label">from</span>
-                        <strong>{formatMoney(ticket.price, ticket.currency)}</strong>
+                        <strong>{formatMoney(fromPrice(ticket), ticket.currency)}</strong>
                     </div>
                     <button
                         onClick={onBuy}
@@ -115,7 +138,18 @@ function TeamBlock({ name, code }) {
 }
 
 function PurchaseModal({ ticket, onClose }) {
-    const { data, setData, post, processing, reset, errors } = useForm({ quantity: 1, paid_with: 'card' });
+    const tiers = ticket?.tiers || [];
+    // Default to the cheapest tier with seats left, which is what a fan
+    // opening the dialog is most likely after.
+    const defaultTier = [...tiers]
+        .filter((t) => !t.is_sold_out)
+        .sort((a, b) => a.price - b.price)[0] || tiers[0] || null;
+
+    const { data, setData, post, processing, reset, errors } = useForm({
+        quantity: 1,
+        ticket_tier_id: defaultTier?.id ?? null,
+        paid_with: 'card',
+    });
 
     const submit = (e) => {
         e.preventDefault();
@@ -127,19 +161,81 @@ function PurchaseModal({ ticket, onClose }) {
     };
 
     if (!ticket) return null;
-    const total = (Number(data.quantity) || 0) * Number(ticket.price);
+
+    const tier = tiers.find((t) => t.id === data.ticket_tier_id) || null;
+    // An untiered legacy fixture still prices off the ticket row.
+    const unit = Number(tier ? tier.price : ticket.price);
+    const seatsLeft = tier ? tier.remaining : ticket.remaining;
+    const maxQty = Math.max(1, Math.min(10, seatsLeft));
+    const total = (Number(data.quantity) || 0) * unit;
+
+    // Both entry points (the bowl/legend and the select below) normalise to
+    // this, so there is one place that knows what picking a tier means.
+    const pickTier = (tierId, remaining) => {
+        if (!tierId) return;
+
+        setData((prev) => ({
+            ...prev,
+            ticket_tier_id: tierId,
+            // Clamp, or a fan who picked 8 Upper seats then switched to a VIP
+            // tier with 3 left would submit a quantity the server rejects.
+            quantity: Math.min(prev.quantity, Math.max(1, remaining ?? 10)),
+        }));
+    };
 
     return (
-        <TfeModal open={!!ticket} title="Confirm your ticket" onClose={onClose}>
+        <TfeModal open={!!ticket} title="Choose your seats" onClose={onClose} size="lg">
             <form onSubmit={submit} className="tfe-form-field">
                 <div className="ticket-modal__summary">
                     <div className="ticket-modal__match">{ticket.home_team} <span>vs</span> {ticket.away_team}</div>
                     <div className="ticket-modal__venue">{ticket.venue_name} · {KICK(ticket.kickoff_at)}</div>
                 </div>
 
-                <label className="tfe-form-label" htmlFor="qty">Quantity (max 10)</label>
+                {/* The bowl IS the tier picker here — clicking a tier in the
+                    map or its legend selects it. The tier rows behind it are
+                    the same ones this form submits, so the map cannot show one
+                    thing and the purchase charge another. */}
+                {ticket.bowl && (
+                    <div className="ticket-modal__bowl">
+                        <StadiumBowl
+                            bowls={ticket.bowl}
+                            height={320}
+                            selectable
+                            selectedTierKey={tier?.key ?? null}
+                            onTierSelect={(t) => pickTier(t.tierId, t.remaining)}
+                            note="Pick a tier on the map or in the list. Exact seat allocation is confirmed on your e-Ticket."
+                        />
+                    </div>
+                )}
+
+                {tiers.length > 0 && (
+                    <>
+                        <label className="tfe-form-label" htmlFor="tier">Seating tier</label>
+                        <select
+                            id="tier"
+                            className="tfe-select"
+                            value={data.ticket_tier_id ?? ''}
+                            onChange={(e) => {
+                                const picked = tiers.find((t) => t.id === Number(e.target.value));
+                                if (picked) pickTier(picked.id, picked.remaining);
+                            }}
+                        >
+                            {tiers.map((t) => (
+                                <option key={t.id} value={t.id} disabled={t.is_sold_out}>
+                                    {t.name} — {formatMoney(t.price, ticket.currency)}
+                                    {t.is_sold_out ? ' · sold out' : ` · ${t.remaining.toLocaleString()} left`}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.ticket_tier_id && <p className="tfe-form-error">{errors.ticket_tier_id}</p>}
+                    </>
+                )}
+
+                <label className="tfe-form-label" htmlFor="qty" style={{ marginTop: 16 }}>
+                    Quantity (max {maxQty})
+                </label>
                 <input
-                    id="qty" type="number" min="1" max={Math.min(10, ticket.remaining)}
+                    id="qty" type="number" min="1" max={maxQty}
                     className="tfe-input"
                     value={data.quantity}
                     onChange={(e) => setData('quantity', Number(e.target.value))}

@@ -2,7 +2,7 @@ import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
+import StadiumBowl from '@/Components/Common/StadiumBowl';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
@@ -11,11 +11,11 @@ import PoweredByBadge from '@/Components/Common/PoweredByBadge';
  * Fan-facing package detail page.
  *
  * Shows the "wow" trio for a single prepacked itinerary: hero + copy,
- * included matches list, seat map for the package's primary stadium,
- * and the multi-city itinerary map for its venues. CTA links back into
+ * included matches list, a 3D seat map of the package's own venues, and
+ * the multi-city itinerary map for them. CTA links back into
  * the BudgetCalculator with ?package=<id> so the wizard pre-fills.
  */
-export default function PackageDetail({ auth, package: pkg, tournamentSummary, includedMatches = [], stadiumName }) {
+export default function PackageDetail({ auth, package: pkg, tournamentSummary, includedMatches = [], venueBowls = [] }) {
     if (!pkg) return null;
 
     const currency = pkg.currency || tournamentSummary?.pricing?.currency || 'USD';
@@ -111,19 +111,22 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
                             </div>
                         )}
 
-                        {/* Seat map for the primary stadium */}
-                        {stadiumName && (
+                        {/* Seat map — the package's own venues, primary first.
+                            Occupancy is the venues' real ticket inventory; it is
+                            deliberately NOT the package's own availability, which
+                            is a different number entirely (seats left on this
+                            itinerary, not in the ground) and reading one as the
+                            other is what the previous map did. */}
+                        {venueBowls.length > 0 && (
                             <div className="content-card mt-4">
                                 <div className="card-header">
                                     <i className="fas fa-chair text-warning me-2"></i>
-                                    <h3 className="m-0">Seat map — {stadiumName}</h3>
+                                    <h3 className="m-0">Seat map</h3>
                                 </div>
-                                <StadiumSeatMap
-                                    stadiumName={stadiumName}
-                                    capacity={parseCapacity(pickCapacity(tournamentSummary?.venues, stadiumName), 60000)}
-                                    soldPct={availPct ?? 50}
-                                    currency={currency}
-                                    basePrice={tournamentSummary?.pricing?.ticket_prices?.['Group Stage'] || 150}
+                                <StadiumBowl
+                                    bowls={venueBowls}
+                                    height={400}
+                                    note="Seats shown are the ground's own inventory, not this package's allocation. Your seats are confirmed when you book."
                                 />
                             </div>
                         )}
@@ -187,18 +190,4 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
             </div>
         </FanLayout>
     );
-}
-
-function pickCapacity(venues, name) {
-    if (!venues || !name) return null;
-    const v = venues.find(x => (x.name || '').toLowerCase() === name.toLowerCase());
-    return v?.capacity ?? null;
-}
-
-function parseCapacity(raw, fallback) {
-    if (raw === null || raw === undefined) return fallback;
-    if (typeof raw === 'number' && !Number.isNaN(raw)) return raw;
-    const digits = String(raw).replace(/[^\d]/g, '');
-    const n = parseInt(digits, 10);
-    return Number.isFinite(n) && n > 0 ? n : fallback;
 }

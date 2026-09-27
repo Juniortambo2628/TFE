@@ -69,7 +69,10 @@ class DemoTicketingPartnerSeeder extends Seeder
             [
                 'home_team' => 'Kenya', 'home_team_code' => 'ke',
                 'away_team' => 'Nigeria', 'away_team_code' => 'ng',
-                'venue_slug' => 'moi-international-sports-centre',
+                // Must match the catalogue key in config/stadiums.php. It
+                // used to read `moi-international-sports-centre`, which is not
+                // a key there, so a slug-based join found nothing.
+                'venue_slug' => 'moi-kasarani',
                 'venue_name' => 'Moi International Sports Centre, Kasarani',
                 'venue_city' => 'Nairobi', 'venue_country' => 'Kenya',
                 'venue_capacity' => 48000,
@@ -77,8 +80,11 @@ class DemoTicketingPartnerSeeder extends Seeder
                 'kickoff_at' => '2027-01-18 19:00:00',
                 'price' => 60,
                 'capacity' => 40000,
-                'sold' => 33000,
-                'hero_image' => 'stadiums/AFCON/moi-international-sports-centre-kasarani_hero.webp',
+                // Per-tier occupancy. The parent `sold` is DERIVED from these
+                // by Ticket::syncTierTotals() below, so the bowl, the tier
+                // picker and the sell-through bar can never disagree.
+                'tier_sold_pct' => ['vip' => 0.88, 'premium' => 0.81, 'standard' => 0.72, 'upper' => 0.61],
+                'hero_image' => 'stadiums/AFCON/moi-kasarani_hero.webp',
             ],
             [
                 'home_team' => 'Tanzania', 'home_team_code' => 'tz',
@@ -91,13 +97,16 @@ class DemoTicketingPartnerSeeder extends Seeder
                 'kickoff_at' => '2027-01-20 21:00:00',
                 'price' => 60,
                 'capacity' => 50000,
-                'sold' => 21500,
+                'tier_sold_pct' => ['vip' => 0.62, 'premium' => 0.48, 'standard' => 0.38, 'upper' => 0.29],
                 'hero_image' => 'stadiums/AFCON/benjamin-mkapa_hero.webp',
             ],
         ];
 
         foreach ($fixtures as $row) {
-            Ticket::firstOrCreate(
+            $tierShares = $row['tier_sold_pct'];
+            unset($row['tier_sold_pct']);
+
+            $ticket = Ticket::firstOrCreate(
                 [
                     'partner_id' => $partner->id,
                     'venue_slug' => $row['venue_slug'],
@@ -106,11 +115,27 @@ class DemoTicketingPartnerSeeder extends Seeder
                 array_merge($row, [
                     'tournament_id' => 'afcon_2027',
                     'currency' => 'USD',
+                    'sold' => 0,
                     'is_active' => true,
                 ])
             );
+
+            // Idempotent: does nothing once this fixture has tiers, so
+            // re-seeding never clobbers prices someone has since edited.
+            $ticket->seedDefaultTiers();
+
+            foreach ($ticket->tiers as $tier) {
+                $pct = $tierShares[$tier->key] ?? 0;
+                $sold = (int) round($tier->capacity * $pct);
+
+                if ($tier->sold !== $sold) {
+                    $tier->update(['sold' => min($tier->capacity, $sold)]);
+                }
+            }
+
+            $ticket->syncTierTotals();
         }
 
-        $this->command->info('Demo ticketing partner seeded: ticketing@tfe.com (password: password) + 2 tickets.');
+        $this->command->info('Demo ticketing partner seeded: ticketing@tfe.com (password: password) + 2 tickets, 4 tiers each.');
     }
 }
