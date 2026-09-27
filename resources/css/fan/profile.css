@@ -468,3 +468,11 @@
 .profile-avatar-editor__actions label.tfe-btn {
     cursor: pointer;
 }
+
+/* Sprint 56 — the read-only community panels (tribes + recent activity) moved
+   out of the editor column, so they get the full width under it. The columns
+   themselves are the shared `.tfe-card-grid--2`; this only adds the gap from
+   the editor above. */
+.profile-community-grid {
+    margin-top: 1.5rem;
+}

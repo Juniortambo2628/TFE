@@ -84,52 +84,31 @@
 .admin-delta.is-up { color: #34d399; background: rgba(16, 185, 129, 0.14); }
 .admin-delta.is-down { color: #f87171; background: rgba(239, 68, 68, 0.14); }
 
-/* ── Balance / CTA panel ───────────────────────────────────────────────── */
-.admin-balance {
-    height: 100%;
+/* The "Our role / The connector" panel these styles dressed was static copy
+   in a dashboard slot, so Sprint 56 replaced it with the 7-day registrations
+   chart — live data the controller was already querying and throwing away.
+   The copy itself survives in the hero subtitle. `.admin-overview*` above
+   stays: Admin/Analytics still uses it.
+
+   ── Activity table row (recent registrations) ───────────────────────── */
+.admin-activity-row {
     display: flex;
-    flex-direction: column;
-    padding: 24px;
-    border-radius: 18px;
-    background:
-        radial-gradient(120% 90% at 90% 0%, rgba(59, 130, 246, 0.22), transparent 60%),
-        linear-gradient(160deg, #16161d, #0e0e12);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    align-items: center;
+    gap: 12px;
 }
 
-.admin-balance__eyebrow {
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: rgba(255, 255, 255, 0.55);
-    text-transform: uppercase;
-}
-
-.admin-balance__value {
-    font-family: var(--font-display, inherit);
-    font-size: 2.4rem;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1.05;
-    margin-top: 6px;
-}
-
-.admin-balance__delta {
-    font-size: 0.82rem;
-    color: #34d399;
-    font-weight: 600;
-    margin-top: 6px;
-}
-
-.admin-balance__mini {
-    margin: 16px 0;
-    flex: 1;
-    min-height: 90px;
-}
-
-.admin-balance__cta {
-    align-self: stretch;
+.admin-activity-row__glyph {
+    display: flex;
+    align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--admin-primary-light, rgb(59 130 246 / 16%));
+    color: var(--admin-primary, #3b82f6);
+    font-weight: 700;
+    font-size: 0.85rem;
 }
 
 /* ── Tournament carousel — horizontal scroller of AccentCards ──────────── */

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Budget;
 use App\Models\Listing;
 use App\Models\LoanApplication;
+use App\Models\TicketPurchase;
 use App\Models\User;
 use App\Notifications\BudgetResponseNotification;
 use Illuminate\Http\Request;
@@ -23,6 +24,16 @@ class DashboardController extends Controller
             return $this->indexFinance($request);
         }
 
+        // Sprint 56 — a ticketing partner sells seats; they have no travel
+        // briefs at all, so the travel dashboard showed them five tiles that
+        // are structurally zero and a queue that can never fill. (Until this
+        // sprint it showed them every OTHER partner's briefs instead, which
+        // is worse.) Their own numbers already exist behind
+        // Partner\TicketController — this puts them on the front page.
+        if ($request->user()->partner_type === 'ticketing_partner') {
+            return $this->indexTicketing($request);
+        }
+
         $scoped = $this->baseQuery($request);
 
         $stats = [
@@ -38,6 +49,7 @@ class DashboardController extends Controller
         return Inertia::render('Partner/Dashboard', [
             'requests' => $requests,
             'stats' => $stats,
+            'hasListings' => $this->hasListings($request->user()->id),
         ]);
     }
 
@@ -68,6 +80,50 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * Ticketing-partner variant: seats and orders instead of briefs and
+     * quotes. Same page component, different props — see
+     * Partner/Dashboard.jsx.
+     */
+    protected function indexTicketing(Request $request)
+    {
+        $partnerId = $request->user()->id;
+
+        // The same figures the Tickets page shows, from the same place, so
+        // the two cannot drift.
+        $stats = TicketController::statsFor($partnerId) + ['total_revenue' => 0];
+        $stats['total_revenue'] = $stats['revenue'];
+
+        $sales = TicketPurchase::query()
+            ->whereHas('ticket', fn ($q) => $q->where('partner_id', $partnerId))
+            ->with('ticket')
+            ->orderByDesc('created_at')
+            ->take(8)
+            ->get();
+
+        $requests = $sales->map(function (TicketPurchase $p) {
+            return [
+                'id' => $p->id,
+                'reference_id' => $p->reference,
+                'created_at' => $p->created_at->format('Y-m-d H:i'),
+                'total_cost' => (float) $p->total,
+                'partner_cost' => (float) $p->total,
+                'status' => strtolower($p->status ?? 'paid'),
+                'match_label' => $p->ticket
+                    ? $p->ticket->home_team.' vs '.$p->ticket->away_team
+                    : 'Match ticket',
+                'quantity' => $p->quantity,
+            ];
+        })->values();
+
+        return Inertia::render('Partner/Dashboard', [
+            'requests' => $requests,
+            'stats' => $stats,
+            'variant' => 'ticketing',
+            'hasListings' => $stats['listings'] > 0,
+        ]);
+    }
+
     protected function loanRequestsData(int $partnerId): Collection
     {
         return LoanApplication::query()
@@ -95,8 +151,10 @@ class DashboardController extends Controller
             });
     }
 
-    public function show(Budget $budget)
+    public function show(Request $request, Budget $budget)
     {
+        $this->authorizeBudget($request, $budget);
+
         return Inertia::render('Partner/RequestView', [
             'budget' => [
                 'id' => $budget->id,
@@ -118,6 +176,8 @@ class DashboardController extends Controller
 
     public function update(Request $request, Budget $budget)
     {
+        $this->authorizeBudget($request, $budget);
+
         $validated = $request->validate([
             'partner_cost' => 'required|numeric',
             'partner_breakdown' => 'required',
@@ -166,30 +226,64 @@ class DashboardController extends Controller
 
         return Inertia::render('Partner/Requests', [
             'requests' => $data,
+            'hasListings' => $this->hasListings($request->user()->id),
         ]);
     }
 
     /**
-     * Scope helper — Sprint 10 pivot. If the partner has published one
-     * or more listings, only budgets whose fan picked one of those
-     * listings show up in their queue. If not (legacy partners with no
-     * published inventory yet), fall through to the historical global
-     * queue so nothing goes dark mid-transition.
+     * Scope helper — a partner's queue is the briefs whose fan picked one of
+     * THEIR listings. Nothing else.
+     *
+     * Sprint 10 added a fallback: a partner with no published listings saw
+     * every active budget on the platform, so nothing went dark "mid
+     * transition". Six sprints later that transition is over and the
+     * fallback had become a leak — the seeded ticketing partner publishes no
+     * listings, so signing in as one showed every fan's travel brief, with
+     * platform-wide totals on the dashboard tiles presented as that
+     * partner's own numbers, and every brief openable and editable through
+     * show()/update(). A partner with no listings now has an empty queue,
+     * which is the truth, and the page says how to fill it.
      */
     private function baseQuery(Request $request)
     {
-        $partnerId = $request->user()->id;
+        return $this->scopeForPartner($request->user()->id);
+    }
+
+    private function scopeForPartner(int $partnerId)
+    {
         $listingIds = Listing::query()
             ->publishedBy(User::class, $partnerId)
             ->pluck('id');
 
-        $q = Budget::query()->where('is_active', true);
+        return Budget::query()
+            ->where('is_active', true)
+            ->whereIn('listing_id', $listingIds);
+    }
 
-        if ($listingIds->isNotEmpty()) {
-            $q->whereIn('listing_id', $listingIds);
+    /**
+     * A partner may only open a brief that is in their own queue.
+     *
+     * There was no check at all here: route-model binding took any budget id
+     * and show()/update() served it, so any signed-in partner could read a
+     * competitor's brief — fan itinerary, costs, notes — and overwrite its
+     * quote, which then notified the fan. Mirrors
+     * LoanReviewController's ownership guard.
+     */
+    private function authorizeBudget(Request $request, Budget $budget): void
+    {
+        $owned = $this->scopeForPartner($request->user()->id)
+            ->whereKey($budget->getKey())
+            ->exists();
+
+        if (! $owned) {
+            abort(403, 'This request is not in your queue.');
         }
+    }
 
-        return $q;
+    /** Does this partner have anything published for fans to pick? */
+    private function hasListings(int $partnerId): bool
+    {
+        return Listing::query()->publishedBy(User::class, $partnerId)->exists();
     }
 
     private function getRequestsData(Request $request)

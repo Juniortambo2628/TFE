@@ -100,7 +100,7 @@ class ProfileController extends Controller
         // ── Account fields ──────────────────────────────────────────────
         $user->fill([
             'name' => $validated['name'],
-            'company_name' => $validated['company_name'] ?? $user->company_name,
+            'company_name' => $this->submitted($validated, 'company_name', $user->company_name),
         ]);
 
         $user->avatar = $this->resolveImage($request, 'avatar_file', 'avatar', $user->avatar);
@@ -116,13 +116,16 @@ class ProfileController extends Controller
         }
 
         $branding->fill([
-            'display_name' => $validated['display_name'] ?? $branding->display_name ?? $user->name,
-            'tagline' => $validated['tagline'] ?? $branding->tagline,
-            'about' => $validated['about'] ?? $branding->about,
+            // A hub with no name renders as a blank card, so that one field
+            // falls back rather than clearing.
+            'display_name' => $this->submitted($validated, 'display_name')
+                ?: ($branding->display_name ?: ($user->company_name ?: $user->name)),
+            'tagline' => $this->submitted($validated, 'tagline', $branding->tagline),
+            'about' => $this->submitted($validated, 'about', $branding->about),
             'theme_accent' => $validated['theme_accent'] ?? $branding->theme_accent,
-            'website_url' => $validated['website_url'] ?? $branding->website_url,
-            'contact_email' => $validated['contact_email'] ?? $branding->contact_email,
-            'contact_phone' => $validated['contact_phone'] ?? $branding->contact_phone,
+            'website_url' => $this->submitted($validated, 'website_url', $branding->website_url),
+            'contact_email' => $this->submitted($validated, 'contact_email', $branding->contact_email),
+            'contact_phone' => $this->submitted($validated, 'contact_phone', $branding->contact_phone),
             'service_tags' => $validated['service_tags'] ?? $branding->service_tags,
             'is_public' => $request->boolean('is_public'),
             'logo_url' => $this->resolveImage($request, 'logo_file', 'logo_url', $branding->logo_url),
@@ -142,6 +145,23 @@ class ProfileController extends Controller
      * Return a stored file URL when a new upload is present, else the posted
      * string value, else the existing value — one helper for every image.
      */
+    /**
+     * The submitted value for a field, or $fallback when the form did not
+     * carry that field at all.
+     *
+     * `$validated[$key] ?? $fallback` cannot tell those two apart, because
+     * Laravel's ConvertEmptyStringsToNull middleware turns a cleared field
+     * into null before validation — so an emptied tagline, about, website or
+     * phone read as "absent" and the OLD value was written straight back.
+     * The partner could delete the text, save, and watch it reappear. The
+     * KEY is still present in the validated set, which is what this checks
+     * (Sprint 56).
+     */
+    private function submitted(array $validated, string $key, $fallback = null)
+    {
+        return array_key_exists($key, $validated) ? $validated[$key] : $fallback;
+    }
+
     private function resolveImage(Request $request, string $fileKey, string $stringKey, ?string $current): ?string
     {
         if ($request->hasFile($fileKey)) {

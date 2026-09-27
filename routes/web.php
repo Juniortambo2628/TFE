@@ -267,7 +267,6 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     // Profile Management
     Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'password'])->name('profile.password');
 
     // Security — the shared account-security surface (Sprint 53). Same
     // SecurityService as the fan + partner dashboards; only the rendered

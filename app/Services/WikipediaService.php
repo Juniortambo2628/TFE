@@ -26,6 +26,23 @@ class WikipediaService
     protected $actionBase = 'https://en.wikipedia.org/w/api.php';
 
     /**
+     * Words that only ever appear in the furniture of a "Qualified teams"
+     * table — column headings, footnotes, section labels — and never in a
+     * nation's name. Used by isLikelyTeamName(); mirrored in
+     * resources/js/lib/teamOptions.js.
+     *
+     * @var string[]
+     */
+    private const NON_TEAM_WORDS = [
+        'ranking', 'rankings', 'fifa', 'caf', 'uefa', 'conmebol', 'concacaf',
+        'afc', 'ofc', 'qualification', 'qualified', 'qualifier', 'qualifiers',
+        'group', 'seeding', 'seeded', 'draw', 'appearance', 'appearances',
+        'champions', 'runners', 'statistics', 'squad', 'squads', 'venue',
+        'venues', 'stadium', 'confederation', 'federation', 'tournament',
+        'finals', 'debut', 'total', 'best', 'performance', 'ref', 'references',
+    ];
+
+    /**
      * Get an HTTP client configured for Wikipedia API access.
      * Uses shorter timeout on local dev (SSL issues = wasted wait time).
      */
@@ -232,15 +249,28 @@ class WikipediaService
             $teams = [];
             // Look for "Qualified teams" or "Teams" section
             if (preg_match('/==\s*(?:Qualified teams|Teams|Group stage teams)\s*==(.+?)(?===\s*[A-Z]|\z)/s', $wikitext, $matches)) {
-                $section = $matches[1];
+                // That section is a TABLE, not a list of nations, and its
+                // references cite news sites. Drop the citations before
+                // harvesting links, or every source's name comes through as
+                // a "team" (AFCON 2027 contributed "Legit.ng").
+                $section = preg_replace('/<ref[^>]*>.*?<\/ref>|<ref[^>]*\/>/s', '', $matches[1]) ?? $matches[1];
+
                 if (preg_match_all('/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/', $section, $linkMatches)) {
                     foreach ($linkMatches[1] as $idx => $link) {
                         if (str_starts_with($link, 'File:') || str_starts_with($link, 'Image:') || str_starts_with($link, 'Category:')) {
                             continue;
                         }
-                        $display = $linkMatches[2][$idx] ?: $link;
+                        $display = trim($linkMatches[2][$idx] ?: $link);
+
+                        // The rest of the table is previous-appearance years
+                        // ("1962", "2004"), column headers ("FIFA ranking",
+                        // "WR") and the like — none of which is a team.
+                        if (! self::isLikelyTeamName($display)) {
+                            continue;
+                        }
+
                         $teams[] = [
-                            'name' => trim($display),
+                            'name' => $display,
                             'wikipedia_title' => trim($link),
                         ];
                     }
@@ -249,6 +279,65 @@ class WikipediaService
 
             return $teams;
         });
+    }
+
+    /**
+     * Is this wikitext link plausibly the name of a national team?
+     *
+     * The "Qualified teams" section is a table, so a naive link harvest picks
+     * up its whole furniture. On the AFCON 2027 page that put `1962`, `1972`,
+     * `2004`, `2025`, `WR`, `FIFA ranking` and `Legit.ng` into the fan
+     * profile's "supported team" picker, where they rendered flagless beside
+     * the real nations.
+     *
+     * Shape-based on purpose, never an allowlist of countries: a nation we
+     * have not thought of, or one an editor spells differently, must still
+     * get through. Everything rejected here is something no national team is
+     * called.
+     *
+     * Mirrored on the client by `isLikelyTeamName()` in
+     * `resources/js/lib/teamOptions.js` — change both in the same commit;
+     * `tests/Unit/TeamNameSanitationTest.php` and
+     * `tests/JS/teamOptions.test.mjs` assert the same fixtures against each
+     * side.
+     */
+    public static function isLikelyTeamName(?string $name): bool
+    {
+        $name = trim((string) $name);
+
+        if ($name === '') {
+            return false;
+        }
+
+        // No nation carries a digit; years and ranking numbers do.
+        if (preg_match('/\d/', $name)) {
+            return false;
+        }
+
+        // Domains and file-ish references: "Legit.ng", "bbc.co.uk".
+        if (preg_match('/[.\/\\@|]/', $name)) {
+            return false;
+        }
+
+        // The shortest nations are four letters (Chad, Cuba, Mali, Togo), so
+        // anything below that is an abbreviation — "WR", "Pos".
+        if (mb_strlen($name) < 4) {
+            return false;
+        }
+
+        // An all-caps token is a code, not a display name.
+        if (preg_match('/\p{Lu}/u', $name) && $name === mb_strtoupper($name)) {
+            return false;
+        }
+
+        // Table furniture.
+        $words = preg_split('/[\s\x{2013}\x{2014}-]+/u', mb_strtolower($name)) ?: [];
+        if (array_intersect($words, self::NON_TEAM_WORDS)) {
+            return false;
+        }
+
+        // A name needs letters; "—" and "(a)" do not qualify.
+        return (bool) preg_match('/\p{L}{3}/u', $name);
     }
 
     /**

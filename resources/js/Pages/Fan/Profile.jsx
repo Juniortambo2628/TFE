@@ -11,6 +11,7 @@ import IdentityPreview from '@/Components/Common/IdentityPreview';
 import TeamAvatar from '@/Components/Common/TeamAvatar';
 import AvatarCropper from '@/Components/Common/AvatarCropper';
 import ImageUpload from '@/Components/Common/ImageUpload';
+import TeamPickerDialog from '@/Components/Common/TeamPickerDialog';
 import { MEDIA_ACCEPT } from '@/lib/media';
 import { useTournament } from '@/Context/TournamentContext';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
@@ -38,6 +39,21 @@ import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
  * Security settings are not duplicated here any more either: 2FA lives on the
  * shared Security page (one surface, one implementation) and this page links
  * to it.
+ *
+ * Sprint 56 fixed the order of the thing. The editor column ran
+ * details → team grid → cover → preferences → **Save** → profile picture →
+ * my tribes → recent activity, so the page's only Save button sat in the
+ * middle of it with three more cards below, reading like a divider rather
+ * than the end of a form. Now:
+ *
+ *  - the avatar (its own endpoint, saves on crop) is the FIRST card, since it
+ *    is what the live preview is about;
+ *  - everything the one form owns follows, ending in a **sticky** save bar
+ *    that stays on screen and says whether there is anything to save;
+ *  - the read-only community panels (tribes, activity) moved out of the
+ *    editor column entirely, below it and full width;
+ *  - and the supporting-team field is a one-line trigger opening
+ *    `TeamPickerDialog` instead of ~28 flag tiles wedged into the form.
  */
 /**
  * UI8's hosted Peeps builder (Sprint 55).
@@ -85,6 +101,7 @@ export default function Profile({
 
     const [following, setFollowing] = useState(isFollowing);
     const [showNetworkModal, setShowNetworkModal] = useState(false);
+    const [showTeamPicker, setShowTeamPicker] = useState(false);
     const [networkTab, setNetworkTab] = useState('followers');
 
     const stats = socialStats || { followers: 0, tribes: 0, posts: 0 };
@@ -322,6 +339,73 @@ export default function Profile({
                 <SplitEditorLayout previewTitle={isOwnProfile ? 'Live preview' : 'Profile'} preview={identity}>
                     {isOwnProfile ? (
                         <div className="tfe-editor-stack">
+                            {/* Your picture first — it is the thing the preview
+                                is about, and it has its OWN endpoint, so it
+                                saves the moment you crop. Keeping it above the
+                                main form is what lets that form own a single
+                                Save at its end. */}
+                            <section className="tfe-slab">
+                                <div className="tfe-slab__header">
+                                    <h3 className="tfe-slab__title">
+                                        <i className="fas fa-camera me-2" aria-hidden="true" /> Profile picture
+                                    </h3>
+                                    <span className="tfe-slab__title-sub">
+                                        {activeTeamName ? `Framed in ${activeTeamName}'s colours` : 'Pick a team to frame it'}
+                                    </span>
+                                </div>
+                                <div className="tfe-slab__body">
+                                    <div className="profile-avatar-editor">
+                                        <TeamAvatar
+                                            src={avatarSrc}
+                                            name={data.name}
+                                            team={activeTeamName}
+                                            teamFlag={activeTeamFlag}
+                                            size={96}
+                                        />
+                                        <div className="profile-avatar-editor__actions">
+                                            <label className="tfe-btn tfe-btn--sm">
+                                                <i className="fas fa-camera" /> Choose photo
+                                                <input
+                                                    type="file"
+                                                    accept={MEDIA_ACCEPT.image}
+                                                    hidden
+                                                    onChange={(e) => {
+                                                        const f = e.target.files?.[0];
+                                                        if (f) setPendingPhoto(f);
+                                                        // Reset so re-picking the same file re-opens the cropper.
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                            </label>
+                                            <a
+                                                className="tfe-btn tfe-btn--sm"
+                                                href={PEEPS_BUILDER_URL}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <i className="fas fa-user-astronaut" /> Make a 3D avatar
+                                            </a>
+                                            {hasPhoto && (
+                                                <button type="button" className="tfe-btn tfe-btn--sm" onClick={clearAvatar}>
+                                                    <i className="fas fa-trash-alt" /> Remove
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="tfe-form-help mt-3">
+                                        Your picture saves on its own, as soon as you crop it. Don&apos;t want to use a
+                                        photo? Build a 3D character on Peeps, download the
+                                        <strong> PNG&nbsp;+&nbsp;Alpha (transparent)</strong> version, then choose it
+                                        here — the transparent background lets your team&apos;s colours show through
+                                        the ring.
+                                    </p>
+                                    {avatarForm.errors.avatar && (
+                                        <div className="tfe-form-error mt-2">{avatarForm.errors.avatar}</div>
+                                    )}
+                                    {avatarForm.processing && <p className="tfe-form-help mt-2">Uploading…</p>}
+                                </div>
+                            </section>
+
                             <form onSubmit={handleProfileUpdate} className="tfe-editor-stack">
                                 <section className="tfe-slab">
                                     <div className="tfe-slab__header">
@@ -331,8 +415,9 @@ export default function Profile({
                                     </div>
                                     <div className="tfe-slab__body">
                                         <div className="tfe-form-field">
-                                            <label className="tfe-form-label">Full name</label>
+                                            <label className="tfe-form-label" htmlFor="profile-name">Full name</label>
                                             <input
+                                                id="profile-name"
                                                 type="text"
                                                 className="tfe-input"
                                                 value={data.name}
@@ -341,9 +426,53 @@ export default function Profile({
                                             />
                                             {errors.name && <div className="tfe-form-error">{errors.name}</div>}
                                         </div>
+
+                                        {/* One line, not a 28-tile grid. The grid
+                                            lives in TeamPickerDialog now. */}
                                         <div className="tfe-form-field">
-                                            <label className="tfe-form-label">Email address</label>
+                                            <label className="tfe-form-label">Supporting team</label>
+                                            <button
+                                                type="button"
+                                                className="tfe-team-field"
+                                                onClick={() => setShowTeamPicker(true)}
+                                            >
+                                                <span className="tfe-team-field__flag">
+                                                    {activeTeamFlag
+                                                        ? <img src={activeTeamFlag} alt="" />
+                                                        : <i className="fas fa-futbol" aria-hidden="true" />}
+                                                </span>
+                                                <span className="tfe-team-field__body">
+                                                    <span className="tfe-team-field__name">
+                                                        {data.team_support || 'No team chosen yet'}
+                                                    </span>
+                                                    <span className="tfe-team-field__hint">
+                                                        {tournament?.short_name || 'Tournament'} · frames your avatar
+                                                    </span>
+                                                </span>
+                                                <span className="tfe-team-field__cta">
+                                                    {data.team_support ? 'Change' : 'Choose'} <i className="fas fa-chevron-right" aria-hidden="true" />
+                                                </span>
+                                            </button>
+                                            {errors.team_support && <div className="tfe-form-error">{errors.team_support}</div>}
+                                        </div>
+
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label" htmlFor="profile-bio">Bio / about you</label>
+                                            <textarea
+                                                id="profile-bio"
+                                                className="tfe-textarea"
+                                                rows={4}
+                                                value={data.bio}
+                                                onChange={(e) => setData('bio', e.target.value)}
+                                                placeholder="Tell fans about your journey…"
+                                            />
+                                            {errors.bio && <div className="tfe-form-error">{errors.bio}</div>}
+                                        </div>
+
+                                        <div className="tfe-form-field">
+                                            <label className="tfe-form-label" htmlFor="profile-email">Email address</label>
                                             <input
+                                                id="profile-email"
                                                 type="email"
                                                 className="tfe-input profile-input-disabled"
                                                 value={fanProfile.email}
@@ -355,43 +484,6 @@ export default function Profile({
                                                 travel, finance and ticket partners — they collect and hold whatever they
                                                 need to service you.
                                             </p>
-                                        </div>
-                                        <div className="tfe-form-field">
-                                            <label className="tfe-form-label">Bio / about you</label>
-                                            <textarea
-                                                className="tfe-textarea"
-                                                rows={4}
-                                                value={data.bio}
-                                                onChange={(e) => setData('bio', e.target.value)}
-                                                placeholder="Tell fans about your journey…"
-                                            />
-                                            {errors.bio && <div className="tfe-form-error">{errors.bio}</div>}
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <section className="tfe-slab">
-                                    <div className="tfe-slab__header">
-                                        <h3 className="tfe-slab__title">
-                                            <i className="fas fa-futbol me-2" aria-hidden="true" /> Supporting team
-                                        </h3>
-                                        <span className="tfe-slab__title-sub">{tournament?.short_name || 'Tournament'}</span>
-                                    </div>
-                                    <div className="tfe-slab__body">
-                                        <div className="team-grid no-scrollbar dash-team-grid">
-                                            {teams.map((team) => (
-                                                <button
-                                                    type="button"
-                                                    key={team.name}
-                                                    className={`team-option dash-team-option ${data.team_support === team.name ? 'selected' : ''}`}
-                                                    onClick={() => setData('team_support', team.name)}
-                                                >
-                                                    {team.flag
-                                                        ? <img src={team.flag} alt="" className="team-flag dash-team-flag" />
-                                                        : <i className={`${team.icon} team-icon`} />}
-                                                    <span className="team-name text-white dash-team-name">{team.name}</span>
-                                                </button>
-                                            ))}
                                         </div>
                                     </div>
                                 </section>
@@ -450,77 +542,17 @@ export default function Profile({
                                     </div>
                                 </section>
 
-                                <div className="tfe-form-actions">
+                                {/* The end of the form, and it stays on screen
+                                    while you scroll it. */}
+                                <div className="tfe-form-actions tfe-form-actions--sticky">
+                                    <p className="tfe-form-actions__note">
+                                        {isDirty ? 'You have unsaved changes.' : 'Everything is saved.'}
+                                    </p>
                                     <button type="submit" className="tfe-btn tfe-btn--filled" disabled={processing || !isDirty}>
                                         {processing ? 'Saving…' : 'Save changes'}
                                     </button>
                                 </div>
                             </form>
-
-                            {/* Its own endpoint, so its own form — setting a
-                                picture should not require saving the rest. */}
-                            <section className="tfe-slab">
-                                <div className="tfe-slab__header">
-                                    <h3 className="tfe-slab__title">
-                                        <i className="fas fa-camera me-2" aria-hidden="true" /> Profile picture
-                                    </h3>
-                                    <span className="tfe-slab__title-sub">
-                                        {activeTeamName ? `Framed in ${activeTeamName}'s colours` : 'Pick a team to frame it'}
-                                    </span>
-                                </div>
-                                <div className="tfe-slab__body">
-                                    <div className="profile-avatar-editor">
-                                        <TeamAvatar
-                                            src={avatarSrc}
-                                            name={data.name}
-                                            team={activeTeamName}
-                                            teamFlag={activeTeamFlag}
-                                            size={96}
-                                        />
-                                        <div className="profile-avatar-editor__actions">
-                                            <label className="tfe-btn tfe-btn--sm">
-                                                <i className="fas fa-camera" /> Choose photo
-                                                <input
-                                                    type="file"
-                                                    accept={MEDIA_ACCEPT.image}
-                                                    hidden
-                                                    onChange={(e) => {
-                                                        const f = e.target.files?.[0];
-                                                        if (f) setPendingPhoto(f);
-                                                        // Reset so re-picking the same file re-opens the cropper.
-                                                        e.target.value = '';
-                                                    }}
-                                                />
-                                            </label>
-                                            <a
-                                                className="tfe-btn tfe-btn--sm"
-                                                href={PEEPS_BUILDER_URL}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                <i className="fas fa-user-astronaut" /> Make a 3D avatar
-                                            </a>
-                                            {hasPhoto && (
-                                                <button type="button" className="tfe-btn tfe-btn--sm" onClick={clearAvatar}>
-                                                    <i className="fas fa-trash-alt" /> Remove
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <p className="tfe-form-help mt-3">
-                                        Don&apos;t want to use a photo? Build a 3D character on Peeps, download the
-                                        <strong> PNG&nbsp;+&nbsp;Alpha (transparent)</strong> version, then choose it
-                                        here — the transparent background lets your team&apos;s colours show through
-                                        the ring.
-                                    </p>
-                                    {avatarForm.errors.avatar && (
-                                        <div className="tfe-form-error mt-2">{avatarForm.errors.avatar}</div>
-                                    )}
-                                    {avatarForm.processing && <p className="tfe-form-help mt-2">Uploading…</p>}
-                                </div>
-                            </section>
-
-                            {community}
                         </div>
                     ) : (
                         <div className="tfe-editor-stack">
@@ -540,6 +572,21 @@ export default function Profile({
                         </div>
                     )}
                 </SplitEditorLayout>
+
+                {/* Read-only community panels are not part of the editor, so
+                    they sit under it, full width — inside the form column they
+                    buried the Save button under two more cards. */}
+                {isOwnProfile && <div className="tfe-card-grid tfe-card-grid--2 profile-community-grid">{community}</div>}
+
+                <TeamPickerDialog
+                    open={showTeamPicker}
+                    onClose={() => setShowTeamPicker(false)}
+                    teams={teams}
+                    value={data.team_support}
+                    onSelect={(name) => setData('team_support', name)}
+                    title="Who do you support?"
+                    tournament={tournament?.short_name || ''}
+                />
 
                 <AvatarCropper
                     open={!!pendingPhoto}

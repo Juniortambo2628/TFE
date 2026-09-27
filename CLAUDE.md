@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Orientation for future Claude sessions. Written cumulatively across Sprints 1–17;
-last refreshed at Sprint 55. Prefer editing this file over adding parallel docs.
+last refreshed at Sprint 56. Prefer editing this file over adding parallel docs.
 
 ---
 
@@ -237,6 +237,43 @@ Other things to know:
 - Do NOT reintroduce a `getRepliesCountAttribute()` accessor on `TribePost` — an
   accessor of that name shadows the column `withCount('replies')` adds, so every
   listing silently ran one COUNT per post despite eager-loading it.
+
+### Partner Convert queue scoping (Sprint 10 → 56)
+
+A partner's Convert queue is **the budgets whose fan picked one of that
+partner's listings** — `Partner\DashboardController::scopeForPartner()`.
+`show()` / `update()` authorize against the same scope
+(`authorizeBudget()`, 403 otherwise), exactly as `LoanReviewController` does
+for loans.
+
+Sprint 10 added a fallback: a partner with **no** listings saw every active
+budget on the platform, so nothing went dark mid-pivot. Sprint 56 removed it.
+By then the seeded ticketing partner published no listings, so signing in as
+one showed every fan's travel brief, with platform-wide pending/approved
+counts and revenue on the dashboard tiles presented as that partner's own —
+and `show()`/`update()` had no ownership check at all, so any partner could
+open a competitor's brief and overwrite its quote (which notifies the fan).
+A partner with no listings now gets an empty queue and an empty state that
+says how to fill it (`hasListings` prop). Guarded by
+`tests/Feature/Partner/RequestQueueScopeTest.php`.
+
+### Partner dashboard variants
+
+`Partner/Dashboard.jsx` is one component with three `variant`s, chosen by
+`partner_type` in `DashboardController::index()`:
+
+| variant     | who                  | tiles + queue                          |
+|-------------|----------------------|----------------------------------------|
+| `travel`    | everyone else        | budget briefs scoped to their listings |
+| `finance`   | `finance_partner`    | `LoanApplication`s routed to them (Sprint 14) |
+| `ticketing` | `ticketing_partner`  | seats sold / orders / sell-through / revenue (Sprint 56) |
+
+The ticketing figures come from **`TicketController::statsFor()`**, which the
+Tickets page uses too — keep it that way, since `seats_sold` (seats bought
+through TFE) and `sellthrough` (against each fixture's own `sold` column)
+are measured differently and two copies of that would drift. A ticketing
+partner's quick actions mirror `Partner/Sidebar`'s own ticketing branch
+(Tickets / Sales, not Publish / Convert).
 
 ### Finance-partner archetype (Sprint 14–16)
 
@@ -793,6 +830,40 @@ new card / table / list CSS:
   samples the source, and a transparent one skips the backing fill, previews
   as PNG and falls back to PNG rather than JPEG — JPEG has no alpha channel
   and would flatten a cut-out avatar to a black square inside the ring.
+- **`TeamPickerDialog`** (Sprint 56, `Components/Common/TeamPickerDialog.jsx`) —
+  the "which nation do you support" picker: a searchable flag grid in a
+  `TfeModal`, with `.tfe-team-field` as the one-line trigger that sits in the
+  form. It replaced ~28 flag tiles rendered inline in the fan profile, which
+  pushed that page's only Save button into the middle of the layout. A
+  `<select>` would not do — the flag is what frames the fan's avatar, so
+  picking one has to show the artwork.
+- **`.summary-cards-grid`** — the dashboard tile row, defined ONCE in
+  `fan/dashboard.css` as a wrapping flex row (`flex: 1 1 200px`). It was also
+  redeclared in `fan-dashboard-cards.css` as `repeat(4, 1fr)` plus five
+  breakpoint overrides, and since that sheet loads later it was the rule that
+  actually applied — so a five-tile page dropped its fifth tile into a 240px
+  box beside a screenful of void. Flex needs no breakpoints and lets a
+  leftover tile stretch across the row it lands on (Sprint 56).
+- **`.tfe-card-grid`** (Sprint 56) — equal content columns, `--2` / `--3`,
+  stacking below 992px. `.tfe-split-grid` is the 2fr/1fr editor shape; this
+  is for panels of equal weight (the admin dashboard's charts and activity
+  tables, the fan profile's tribes + activity).
+- **`.tfe-form-grid`** (Sprint 56) — multi-column field rows, `--2` / `--3`,
+  collapsing to one column below 768px, with `.tfe-form-field--wide` for a
+  field that spans. Prefer it over Bootstrap's `row` / `col-md-*`: those DO
+  work on a dashboard (see the utilities/grid note below) but they are a
+  parallel layout system with their own breakpoints and gutters. It also
+  zeroes the `.tfe-form-field + .tfe-form-field` top margin for its children
+  — inside a grid that margin stepped each column down the page.
+- **`ImageUpload variant="avatar"`** (Sprint 56) — round 96px thumbnail
+  beside its control, for a field whose subject is a face or a logo. Note
+  `compact` is NOT that: it shrinks the empty-state control but makes the
+  preview *larger* (320px, for the feed composer), which is why the partner
+  profile's default silhouette filled half the form.
+- **`.tfe-form-actions--sticky`** (Sprint 56) — the save bar variant that
+  sticks to the bottom of the viewport while a long form scrolls, with a
+  `.tfe-form-actions__note` saying whether anything is unsaved. Reach for it
+  on any form long enough that its submit scrolls out of sight.
 - **`HubPreview`** (moved to `Components/Common/` in Sprint 53) — the live
   partner-hub preview. Used by `/admin/partners/{user}` AND the partner's own
   `/partner/profile`. It imports its own stylesheet, so it looks right
@@ -907,6 +978,23 @@ description) and passes them as the `cards` prop.
 The components keep their constant as a **default prop value** so the landing
 sections still render when no `cards` are passed — keep it in step with the
 config if you change either.
+
+### Tremor chart colours (Sprint 56)
+
+`@tremor/react` builds its class names at runtime — `fill-${color}-500`,
+`stroke-${color}-500` — so they appear in no file any extractor scans, not
+even inside the package. Tailwind emitted none of them and the charts drew
+**black bars on a black card**, on the admin dashboard and on Admin →
+Analytics alike.
+
+Both configs need the colours:
+
+- `tailwind.config.js` → `safelist` pattern (so Tailwind emits them at all);
+- `postcss.config.js` → PurgeCSS safelist (so the prod build keeps them).
+
+Only the colours our charts pass are listed (`emerald`, `cyan`). Pass a new
+one to a Tremor chart and add it to both, or it is invisible again — and if
+you only forget PurgeCSS, it works in dev and breaks in prod.
 
 ### PurgeCSS safelist gotcha
 
@@ -1163,11 +1251,19 @@ tests/
 - Never style a form field by adding `!important` or raising specificity in
   `resources/css/form-baseline.css` — it is an element-level floor on purpose so
   every component class still wins. Give the field a class instead (Sprint 48).
-- Never use a Bootstrap utility (`badge bg-*`, `border-secondary`, `btn btn-*`,
-  `d-inline-flex`) on a dashboard surface. The landing template stylesheet is
-  gated to public pages, so those classes resolve to nothing and the element
-  renders unstyled — that is where the bare "#1" on the Predict leaderboard and
-  the colour-bar tournament pill came from (Sprint 48).
+- Never use a Bootstrap **component** class (`badge bg-*`, `btn btn-*`,
+  `spinner-border`, `border-secondary`) on a dashboard surface. Dashboards load
+  `bootstrap-utilities.css` + `bootstrap-grid.css` only (the blade gate in
+  `app.blade.php`, Sprint 32), so layout utilities — `d-flex`, `gap-*`, `p-*`,
+  `row`, `col-md-*` — DO resolve, but component styles do not and the element
+  renders unstyled. That is the bare "#1" on the Predict leaderboard and the
+  colour-bar tournament pill (Sprint 48), and the invisible passkey spinner on
+  the security page (Sprint 56).
+- Never use an `admin-*` class in a shared component. `admin-theme.css` is
+  loaded by AdminLayout alone, so the 2FA dialog's `admin-card-dark` panel was
+  a no-op on the fan and partner security pages and the QR dialog came up in
+  shadcn's navy instead of the platform's near-black. The house dialog classes
+  are the ones StatusDialog / ConfirmationDialog use (Sprint 56).
 - Never answer an Inertia POST with `noContent()`/204 — the client has nothing
   to navigate to and silently stays put (Sprint 48, passkey login).
 - Never pin the CSRF token once at module load. Logging in regenerates the
@@ -1213,6 +1309,61 @@ tests/
 - Never let a concluded tournament become the active context. Read
   `tournament_switch_list` (or `switchableTournaments` from the context), not
   `tournament_list`, anywhere the pick CHANGES the session (Sprint 53).
+- Never label a tile from a count that means something else. "Registered
+  fans" read `User::count()` — every account — so it said 8 while the Fans
+  bar in the chart directly beneath it said 2, and "Active tribes" filtered
+  on an `active` column `tribes` does not have. If the label and the query
+  disagree, one of them is a bug (Sprint 56).
+- Never chart a grouped-by-date query without zero-filling it. `GROUP BY
+  DATE(created_at)` returns only the days that had rows, so the chart closes
+  the gaps and a quiet week reads as a busy one (Sprint 56).
+- Never leave a partner surface unscoped "for now". The Sprint 10 global-queue
+  fallback was a deliberate transition measure and still shipped six sprints
+  later, by which time it meant any partner without listings read every fan's
+  travel brief. Scope it, and give the empty case an empty state that explains
+  itself (Sprint 56).
+- Never rely on route-model binding as an authorization check. `show(Budget
+  $budget)` served whatever id it was handed, so a partner could open and
+  re-quote a competitor's brief. Authorize against the same scope the list
+  query uses (Sprint 56).
+- Never read a form field with `$validated['x'] ?? $model->x`. Laravel's
+  `ConvertEmptyStringsToNull` turns a cleared field into null *before*
+  validation, so `??` cannot tell "emptied" from "not submitted" and writes
+  the old value straight back — a partner deleted their tagline, saved, and
+  watched it reappear. Check `array_key_exists()` on the validated set
+  (`Partner\ProfileController::submitted()`) (Sprint 56).
+- Never leave a second surface for something the shared one owns. The admin
+  profile carried its own Change Password form (and an `admin.profile.password`
+  route) after Sprint 53 gave every role the shared `AccountSecurity` page —
+  two password endpoints is exactly how the partner security page drifted into
+  four dead buttons. Link to the shared page instead (Sprint 56).
+- Never add a form field without checking it has somewhere to land. The fan
+  profile's Bio was validated and passed to `$user->update()` for three
+  sprints with no `users.bio` column and no `$fillable` key, so every bio was
+  silently dropped; the admin profile's "Phone Number" had neither a column
+  nor a line in its controller. Type, save, gone — with no error either time
+  (Sprint 56).
+- Never give an ancestor of page content `overflow` other than `visible` or
+  `clip` unless it is genuinely the scroll container. A scroll container that
+  never scrolls is what `position: sticky` inside it measures against, so
+  every sticky descendant stops sticking — that is how the shell's `<main>`
+  silently disabled the sticky live-preview pane on every SplitEditorLayout
+  page. `overflow-x-clip` + `min-w-0` contains a wide child without becoming
+  one (Sprint 56).
+- Never feed `tournament.teams` to a picker unfiltered. That array is every
+  wikilink in Wikipedia's "Qualified teams" **table**, so it carries previous
+  appearance years, column headers and citation sites — AFCON 2027 offered
+  `1962`, `WR`, `FIFA ranking` and `Legit.ng` as teams. Both sides sanitise:
+  `WikipediaService::isLikelyTeamName()` at parse time and `isLikelyTeamName()`
+  in `resources/js/lib/teamOptions.js` at render; the two mirror each other
+  and `tests/Unit/TeamNameSanitationTest.php` +
+  `tests/JS/teamOptions.test.mjs` assert the same fixtures against each, so
+  change them in the same commit (Sprint 56).
+- Never reverse-look-up a flag code through `TEAM_CODES` alone. It is a
+  hand-written map of ~50 nations, so 14 of AFCON's 27 configured
+  `team_flag_codes` resolved to nothing and silently vanished from the fan's
+  team list. Fall back to `Data/countries.js`, which has an ISO code for all
+  235 (Sprint 56).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server
@@ -1265,6 +1416,7 @@ tests/
 | 53     | Persistent role shells (sidebar clicks stop remounting the world) + global skeletons/page transitions; tournament context restricted to ongoing/upcoming with concluded payloads trimmed; fan avatar off the dead Ready Player Me embed onto MediaLibraryService; fan + partner profiles on SplitEditorLayout; ONE AccountSecurity page for all three roles (admin gains one) |
 | 54     | Team-framed photo avatars (TeamAvatar + AvatarCropper, ring colour sampled from the flag artwork) replacing the dead 3D avatar builder; fixed the `animation-fill-mode: both` containing-block trap that mispositioned every in-page modal |
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
+| 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

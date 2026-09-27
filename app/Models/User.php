@@ -27,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'email',
         'password',
         'team_support',
+        'bio',
         'marketing_consent',
         'terms_agreed',
         'registration_completed',

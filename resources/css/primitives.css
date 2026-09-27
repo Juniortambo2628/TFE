@@ -484,11 +484,23 @@ a.tfe-sidebar-nav-item.is-active {
 }
 
 /* Grid the tiles live in — auto-fit so anywhere from 2 to 6 works. */
+/* Wrapping flex rather than `repeat(auto-fit, minmax(180px, 1fr))`
+   (Sprint 56): six shortcuts in a full-width card fit five per row, leaving
+   the sixth alone in a 180px box. Growing flex items let the leftovers
+   stretch across the row they land on — the same fix, and the same
+   reasoning, as `.summary-cards-grid`. */
 .tfe-quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     padding: 6px 22px 22px;
+}
+
+.tfe-quick-actions-grid > * {
+    /* 160px basis so a six-shortcut row (the admin dashboard) fits on one
+       line at dashboard width instead of stranding the sixth. */
+    flex: 1 1 160px;
+    min-width: 0;
 }
 
 /* ── Stat grid ────────────────────────────────────────────────────────── */
@@ -1230,6 +1242,61 @@ button.tfe-menu-surface__badge:hover {
 
 .tfe-image-upload--compact .tfe-image-upload__preview img { max-height: 320px; }
 
+/* Avatar variant (Sprint 56) — a round thumbnail beside its control, for a
+   field whose subject is a face or a logo rather than a banner. The partner
+   profile used `--compact`, whose preview is 320px tall, so a default
+   silhouette filled half the form. */
+.tfe-image-upload--avatar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__preview {
+    flex: 0 0 auto;
+    width: 96px;
+    height: 96px;
+    border: 0;
+
+    /* The remove button rides the rim, so the circle must not clip it. */
+    overflow: visible;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__preview img {
+    width: 96px;
+    height: 96px;
+    max-height: none;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 50%;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__preview .tfe-btn {
+    top: -2px;
+    right: -2px;
+    padding: 4px 7px;
+    font-size: 0.7rem;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__drop {
+    width: auto;
+    min-height: 0;
+    flex-direction: row;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+}
+
+.tfe-image-upload--avatar .tfe-image-upload__drop i { font-size: 1rem; }
+.tfe-image-upload--avatar .tfe-image-upload__drop small { display: none; }
+.tfe-image-upload--avatar .tfe-image-upload__drop span { white-space: nowrap; }
+
+/* The library button sits beside the control, not stretched under it — the
+   avatar row is horizontal. */
+.tfe-image-upload--avatar .tfe-image-upload__gallery-btn {
+    width: auto;
+    margin-top: 0;
+}
+
 /* ── Form helpers used inside TfeModal forms ─────────────────────────────── */
 .tfe-form-section {
     margin: 0 0 4px;
@@ -1523,6 +1590,16 @@ button.tfe-menu-surface__badge:hover {
     }
 }
 
+/* `.tfe-split-grid` is `align-items: start`, which makes each column as tall
+   as its own content. A sticky pane then exactly fills its containing block
+   and can never move within it, so the preview scrolled away like any other
+   element. The preview column stretches to the row height instead; the form
+   column keeps start alignment. */
+.tfe-split-grid > .tfe-split-col,
+.partner-edit-grid > .tfe-split-col {
+    align-self: stretch;
+}
+
 .tfe-split-preview,
 .admin-split-preview {
     position: sticky;
@@ -1539,6 +1616,27 @@ button.tfe-menu-surface__badge:hover {
     font-weight: 600;
     letter-spacing: var(--label-letter-spacing, 0.06em);
     color: rgb(255 255 255 / 55%);
+}
+
+/* Equal content columns (Sprint 56) — two or three cards abreast, stacking
+   below 992px. `.tfe-split-grid` is the 2fr/1fr editor shape; this is for
+   panels of equal weight, like the admin dashboard's two activity tables or
+   the fan profile's tribes + activity. */
+.tfe-card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (min-width: 992px) {
+    .tfe-card-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tfe-card-grid--3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 /* Left-column slabs stack with breathing room. */
@@ -1779,6 +1877,227 @@ button.tfe-menu-surface__badge:hover {
     gap: 10px;
     justify-content: flex-end;
     margin-top: 18px;
+}
+
+/* Multi-column field rows (Sprint 56). Dashboard forms were laying these out
+   with Bootstrap's `row g-3` / `col-md-*`, which the dashboards are not
+   supposed to reach for — the landing stylesheet is gated to public pages, so
+   a Bootstrap class is a coin toss on a dashboard. Columns collapse to one
+   below 768px. */
+.tfe-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+/* `.tfe-form-field + .tfe-form-field` carries a 16px top margin for a stacked
+   form. Inside the grid every cell but the first is an adjacent sibling, so
+   that margin stepped each column down the page like a staircase. The grid's
+   own `gap` is the spacing here. */
+.tfe-form-grid > .tfe-form-field + .tfe-form-field {
+    margin-top: 0;
+}
+
+@media (min-width: 768px) {
+    .tfe-form-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tfe-form-grid--3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    /* A field that should keep the full width inside a multi-column grid. */
+    .tfe-form-grid > .tfe-form-field--wide {
+        grid-column: 1 / -1;
+    }
+}
+
+/* A colour input beside its hex field. */
+.tfe-color-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Sticky variant — the save bar stays on screen while a long form scrolls,
+   so "Save changes" is always reachable and always reads as the end of the
+   form rather than a divider halfway down it (Sprint 56). `bottom: 0` needs
+   an ancestor that is NOT a transformed containing block; `.tfe-page` uses
+   `animation-fill-mode: backwards` for exactly that reason — see CLAUDE.md. */
+.tfe-form-actions--sticky {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+    padding: 14px 18px;
+    border: 1px solid rgb(255 255 255 / 8%);
+    border-radius: var(--radius-lg, 16px);
+    background: rgb(18 18 20 / 92%);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 -8px 30px rgb(0 0 0 / 35%);
+}
+
+/* The floating command-menu button is fixed at bottom-right (24px inset, ~48px
+   across). On a narrow screen the save bar spans the full width and would run
+   underneath it, so it keeps that corner clear. */
+@media (max-width: 991px) {
+    .tfe-form-actions--sticky {
+        padding-right: 80px;
+    }
+}
+
+.tfe-form-actions--sticky .tfe-form-actions__note {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgb(255 255 255 / 55%);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Team picker — Sprint 56
+   ══════════════════════════════════════════════════════════════════════
+   The nation-you-support field. `.tfe-team-field` is the one-line trigger
+   that sits in a form; `.tfe-team-grid` / `.tfe-team-card` are the grid
+   inside TeamPickerDialog. The grid used to be inlined into the fan profile
+   form, where 28 tiles of 9px captions shoved the Save button into the
+   middle of the page. */
+
+.tfe-team-field {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: var(--radius-md, 12px);
+    background: rgb(255 255 255 / 4%);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.tfe-team-field:hover,
+.tfe-team-field:focus-visible {
+    border-color: rgb(255 255 255 / 28%);
+    background: rgb(255 255 255 / 7%);
+}
+
+.tfe-team-field__flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 26px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 8%);
+    color: rgb(255 255 255 / 60%);
+}
+
+.tfe-team-field__flag img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tfe-team-field__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tfe-team-field__name {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tfe-team-field__hint {
+    display: block;
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 50%);
+}
+
+.tfe-team-field__cta {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+    color: rgb(255 255 255 / 65%);
+}
+
+.tfe-team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    max-height: 52vh;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.tfe-team-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: var(--radius-md, 12px);
+    background: rgb(255 255 255 / 4%);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.tfe-team-card:hover {
+    border-color: rgb(255 255 255 / 28%);
+    background: rgb(255 255 255 / 8%);
+}
+
+.tfe-team-card.is-selected {
+    border-color: rgb(255 255 255 / 70%);
+    background: rgb(255 255 255 / 12%);
+}
+
+.tfe-team-card__flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 23px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: rgb(255 255 255 / 8%);
+    color: rgb(255 255 255 / 55%);
+}
+
+.tfe-team-card__flag img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tfe-team-card__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.85rem;
+    line-height: 1.25;
+    color: rgb(255 255 255 / 88%);
+}
+
+.tfe-team-card__check {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    color: #fff;
 }
 
 /* One figure in the sticky "Account standing" preview pane. */

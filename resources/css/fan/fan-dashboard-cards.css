@@ -434,25 +434,15 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Summary Cards Grid */
-.summary-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
+/* Summary Cards Grid — the layout now lives ONCE, in fan/dashboard.css
+   (Sprint 56). This sheet used to redeclare it as `repeat(4, 1fr)` plus five
+   breakpoint overrides, and since it loads after that one it was the rule
+   that actually applied — which is why a five-tile page dropped its fifth
+   tile into a 240px box with a screenful of void beside it, and why the row
+   went from four columns straight to two at 1400px. It is a wrapping flex
+   row there, which needs no breakpoints and lets a leftover tile stretch. */
 
-@media (max-width: 1400px) {
-  .summary-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
-@media (max-width: 640px) {
-  .summary-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 .summary-card {
   background: linear-gradient(135deg, var(--accent), #ef4050);
@@ -1064,9 +1054,6 @@ body {
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .summary-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .bottom-cards-grid {
     grid-template-columns: 1fr 1fr;
@@ -1149,11 +1136,6 @@ body {
   }
 
   /* Summary Cards - Single Column */
-  .summary-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
 
   .summary-card {
     padding: 16px;
@@ -1407,9 +1389,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .summary-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* Large Tablets */
@@ -1419,9 +1398,6 @@ body {
     gap: 20px;
   }
 
-  .summary-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .content-cards-grid {
     grid-template-columns: 1fr;

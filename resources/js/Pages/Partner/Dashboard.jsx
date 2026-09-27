@@ -20,12 +20,13 @@ const STATUS_PILL = {
     rejected: 'tfe-pill--rejected',
 };
 
-export default function Dashboard({ requests, stats, variant = 'travel' }) {
+export default function Dashboard({ requests, stats, variant = 'travel', hasListings = true }) {
     const { auth } = usePage().props;
     const { tournament } = useTournament();
     const tournamentLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
     const isFinance = variant === 'finance';
-    const recent = (requests || []).slice(0, 5);
+    const isTicketing = variant === 'ticketing';
+    const recent = (requests || []).slice(0, 8);
 
     return (
         <PartnerLayout title="Partner Dashboard">
@@ -34,12 +35,26 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                 title={`Welcome, ${auth.user.name.split(' ')[0]}!`}
                 subtitle={isFinance
                     ? 'Review loan applications routed to your desk and disburse trip financing.'
-                    : `Manage travel requests and help fans plan their ${tournamentLabel} journey.`}
+                    : isTicketing
+                        ? `Track seats sold and keep your ${tournamentLabel} inventory live for fans.`
+                        : `Manage travel requests and help fans plan their ${tournamentLabel} journey.`}
+                breadcrumbs={[{ label: 'Dashboard' }]}
             />
 
             <SummaryTiles
                 className="mb-4"
-                items={[
+                items={isTicketing ? [
+                    { label: 'Seats sold',  value: stats?.seats_sold || 0, icon: 'fa-ticket-alt',    accent: 'blue',
+                      subtext: 'Across all fixtures' },
+                    { label: 'Orders',      value: stats?.orders || 0,     icon: 'fa-receipt',       accent: 'violet',
+                      subtext: 'Fan purchases' },
+                    { label: 'Fixtures on sale', value: stats?.listings || 0, icon: 'fa-calendar-check', accent: 'amber',
+                      subtext: 'Listed by you' },
+                    { label: 'Sell-through', value: `${stats?.sellthrough || 0}%`, icon: 'fa-chart-pie', accent: 'cyan',
+                      subtext: 'Of listed capacity' },
+                    { label: 'Total Revenue', value: formatMoney(stats?.total_revenue || 0), icon: 'fa-coins', accent: 'teal',
+                      subtext: 'From paid orders' },
+                ] : [
                     { label: isFinance ? 'Pending Applications' : 'Pending Requests',
                       value: stats?.pending || 0,  icon: 'fa-inbox',        accent: 'amber',
                       subtext: isFinance ? 'Awaiting underwriting' : 'Awaiting review' },
@@ -58,14 +73,22 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                 ]}
             />
 
-            <div className="tfe-split-grid">
+            {/* One column (Sprint 56). This was a 2fr/1fr split, which gave
+                the quick actions a 276px-wide column — too narrow for two
+                tiles side by side, so four shortcuts ran down it in single
+                file next to a table that ended after three rows, leaving a
+                screenful of empty page between them. */}
+            <div className="tfe-editor-stack">
                 <section className="tfe-slab">
                     <div className="tfe-slab__header">
                         <h3 className="tfe-slab__title">
                             <i className="fas fa-list me-2" aria-hidden="true" />
-                            {isFinance ? 'Recent applications' : 'Recent travel requests'}
+                            {isFinance ? 'Recent applications' : isTicketing ? 'Recent ticket sales' : 'Recent travel requests'}
                         </h3>
-                        <Link href={route('partner.requests')} className="tfe-btn tfe-btn--sm">
+                        <Link
+                            href={isTicketing ? route('partner.tickets.sales') : route('partner.requests')}
+                            className="tfe-btn tfe-btn--sm"
+                        >
                             View all
                         </Link>
                     </div>
@@ -76,14 +99,14 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                                     <thead>
                                         <tr>
                                             <th>Reference</th>
-                                            <th>{isFinance ? 'Applicant' : 'Trip'}</th>
+                                            <th>{isFinance ? 'Applicant' : isTicketing ? 'Fixture' : 'Trip'}</th>
                                             <th>Amount</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {recent.map((req) => (
-                                            <RequestRow key={req.id} req={req} isFinance={isFinance} />
+                                            <RequestRow key={req.id} req={req} isFinance={isFinance} isTicketing={isTicketing} />
                                         ))}
                                     </tbody>
                                 </table>
@@ -91,12 +114,39 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                         ) : (
                             <div className="tfe-empty tfe-empty--inline">
                                 <div className="tfe-empty__icon"><i className="fas fa-inbox" /></div>
-                                <h4 className="tfe-empty__title">{isFinance ? 'No applications yet' : 'No requests yet'}</h4>
+                                <h4 className="tfe-empty__title">
+                                    {isFinance ? 'No applications yet' : isTicketing ? 'No sales yet' : 'No requests yet'}
+                                </h4>
+                                {/* A travel partner's queue is the briefs whose
+                                    fan picked one of THEIR listings, so an
+                                    empty queue with nothing published is not
+                                    the same problem as an empty queue with
+                                    five listings live — and only one of them
+                                    the partner can do something about. */}
                                 <p className="tfe-empty__body">
                                     {isFinance
-                                        ? 'Loan applications from fans will appear here.'
-                                        : 'Travel requests from fans will appear here.'}
+                                        ? 'Loan applications routed to your desk will appear here.'
+                                        : isTicketing
+                                        ? (hasListings
+                                            ? 'Ticket purchases from fans will appear here.'
+                                            : 'List a fixture and fans can buy seats from you.')
+                                        : hasListings
+                                            ? 'Travel requests from fans who pick one of your listings will appear here.'
+                                            : 'Your queue fills with briefs from fans who pick one of your listings — publish one to start receiving them.'}
                                 </p>
+                                {!isFinance && !hasListings && (
+                                    <div className="tfe-empty__action">
+                                        {isTicketing ? (
+                                            <Link href={route('partner.tickets.index')} className="tfe-btn tfe-btn--sm tfe-btn--filled">
+                                                <i className="fas fa-ticket-alt" /> List a fixture
+                                            </Link>
+                                        ) : (
+                                            <Link href={route('partner.listings.index')} className="tfe-btn tfe-btn--sm tfe-btn--filled">
+                                                <i className="fas fa-tags" /> Publish a listing
+                                            </Link>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -109,8 +159,17 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
                         </h3>
                     </div>
                     <div className="tfe-slab__body">
+                        {/* Mirrors Partner/Sidebar's own ticketing branch —
+                            a ticketing partner has Tickets and Sales in the
+                            sidebar, so sending them to Publish and Convert
+                            from here pointed at surfaces that are not theirs. */}
                         <QuickActionsGrid
-                            actions={[
+                            actions={isTicketing ? [
+                                { id: 'pa-tickets',  label: 'Tickets',  icon: 'fa-ticket-alt',    href: route('partner.tickets.index') },
+                                { id: 'pa-sales',    label: 'Sales',    icon: 'fa-cash-register', href: route('partner.tickets.sales') },
+                                { id: 'pa-measure',  label: 'Measure',  icon: 'fa-chart-line',    href: route('partner.analytics') },
+                                { id: 'pa-messages', label: 'Messages', icon: 'fa-envelope',      href: route('partner.messages') },
+                            ] : [
                                 { id: 'pa-publish',   label: 'Publish',   icon: 'fa-tags',        href: route('partner.listings.index') },
                                 { id: 'pa-convert',   label: 'Convert',   icon: 'fa-inbox',       href: route('partner.requests') },
                                 { id: 'pa-measure',   label: 'Measure',   icon: 'fa-chart-line',  href: route('partner.analytics') },
@@ -124,21 +183,31 @@ export default function Dashboard({ requests, stats, variant = 'travel' }) {
     );
 }
 
-function RequestRow({ req, isFinance = false }) {
-    const href = isFinance
-        ? route('partner.loans.show', req.id)
-        : route('partner.requests.show', req.id);
+function RequestRow({ req, isFinance = false, isTicketing = false }) {
+    // A ticket purchase has no per-order page, so its reference is plain
+    // text rather than a link that 404s.
+    const href = isTicketing
+        ? null
+        : isFinance
+            ? route('partner.loans.show', req.id)
+            : route('partner.requests.show', req.id);
     const amount = req.partner_cost ? formatMoney(req.partner_cost) : formatMoney(req.total_cost);
     const detail = isFinance
         ? (req.applicant_name || 'Applicant') + ' · ' + (req.purpose || 'Trip financing')
-        : `${req.match_count} matches · ${req.accommodation_level}`;
+        : isTicketing
+            ? `${req.match_label} · ${req.quantity} ${req.quantity === 1 ? 'seat' : 'seats'}`
+            : `${req.match_count} matches · ${req.accommodation_level}`;
 
     return (
         <tr>
             <td>
-                <Link href={href} className="accent-partner">
+                {href ? (
+                    <Link href={href} className="accent-partner">
+                        <strong>{req.reference_id}</strong>
+                    </Link>
+                ) : (
                     <strong>{req.reference_id}</strong>
-                </Link>
+                )}
             </td>
             <td>{detail}</td>
             <td><strong>{amount}</strong></td>
