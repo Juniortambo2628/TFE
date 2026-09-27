@@ -5,11 +5,17 @@ import '../../../css/register-dark.css';
 import axios from 'axios';
 import AuthLayout from '@/Layouts/AuthLayout';
 import TfeModal from '@/Components/Common/TfeModal';
+import StepFlow from '@/Components/Common/StepFlow';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 import { useTournament } from '@/Context/TournamentContext';
 
-const totalSteps = 3;
+const REGISTER_STEPS = [
+    { title: 'Personal Info', icon: 'fas fa-user' },
+    { title: 'Team Support', icon: 'fas fa-shield-halved' },
+    { title: 'Consent', icon: 'fas fa-file-signature' },
+];
+const totalSteps = REGISTER_STEPS.length;
 
 export default function Register() {
     const { assetUrl } = usePage().props;
@@ -196,8 +202,6 @@ export default function Register() {
         { name: 'Other', icon: 'fas fa-globe' },
     ];
 
-    const progressPercentage = (currentStep / totalSteps) * 100;
-
     return (
         <AuthLayout
             wide
@@ -237,24 +241,13 @@ export default function Register() {
             <form onSubmit={submit} className="tfe-auth__form">
                         <div className="tfe-auth__form-head">
                             <div className="form-top-bar">
-                                <div className="progress-indicator mb-4">
-                                    <div className="progress-header d-flex justify-content-between text-white">
-                                        <div>
-                                            <span className="step-counter">Step <span>{currentStep}</span> of {totalSteps}</span>
-                                            <span className="progress-percentage ms-2">{Math.round(progressPercentage)}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="progress-bar-container mt-3">
-                                        <div className="progress-bar">
-                                            <div className="progress-fill" style={{width: `${progressPercentage}%`}}></div>
-                                        </div>
-                                    </div>
-                                    <div className="progress-steps d-flex gap-2 mt-3 text-white-50">
-                                        <div className={`step ${currentStep >= 1 ? 'active text-white fw-bold' : ''}`}>Personal Info</div>
-                                        <div className={`step ${currentStep >= 2 ? 'active text-white fw-bold' : ''}`}>Team Support</div>
-                                        <div className={`step ${currentStep >= 3 ? 'active text-white fw-bold' : ''}`}>Consent</div>
-                                    </div>
-                                </div>
+                                <StepFlow
+                                    variant="inline"
+                                    className="mb-4"
+                                    label={`Step ${currentStep} of ${totalSteps}`}
+                                    steps={REGISTER_STEPS}
+                                    cursor={currentStep}
+                                />
                             </div>
                         </div>
 

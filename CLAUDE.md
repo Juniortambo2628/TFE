@@ -337,11 +337,19 @@ component**:
 | `inline` | wizards (Budget Calculator) | sits in flow, with a slim completion fill |
 
 A docked "how it works" bar and a wizard's progress rail are one widget in two
-positions. Before this the platform had **four** parallel implementations:
-`PartnerHub`'s private `HowItWorksBar`, `Auth/Register`'s hand-rolled
-`.progress-steps` / `.progress-fill`, `RequestFinancingWizard`'s bare
-"Step {n} of {total}" text, and *nothing at all* on the five-step Budget
-Calculator.
+positions. It replaced **four** parallel implementations, all migrated:
+
+| was | now |
+|-----|-----|
+| `PartnerHub`'s private `HowItWorksBar` | `docked`, steps from the server |
+| `Auth/Register`'s `.progress-steps` / `.progress-fill` | `inline`, and the CSS is deleted |
+| `RequestFinancingWizard`'s bare "Step {n} of {total}" | `inline` in the dialog pane |
+| *nothing at all* on the five-step Budget Calculator | `inline` |
+
+**A dialog whose sections are freely navigable uses `TfeModal`'s own tab rail,
+not StepFlow** — the ticket purchase modal is the example. Reach for StepFlow
+in a dialog only when the steps are *gated*, as the financing wizard's are: a
+tab rail implies you may jump, and that wizard will not let you.
 
 - **Progress is opt-in.** A step with no `state` is `unstated`: the bar draws
   no fill and marks nothing current. That is the honest rendering for the
@@ -362,7 +370,14 @@ Calculator.
 - **Under 640px it shows the current step, not a row of numerals.** The bar
   this replaced hid both the label and every step title below that width,
   leaving four bare numbers and three chevrons that conveyed nothing.
-- Step counts other than four are fine — the sponsor pipeline is three.
+- Step counts other than four are fine — the sponsor pipeline is three, and
+  the financing wizard is two or three depending on whether more than one
+  finance partner is public.
+- `register-dark.css`'s `.progress-steps` / `.progress-bar` / `.progress-fill`
+  are **gone**. Note `.progress-steps .step.completed` was styled but never
+  applied — Register only ever set `active`, and `currentStep >= 1` is always
+  true, so step 1 read as active from the start and nothing distinguished a
+  finished step from the current one. StepFlow draws all three states.
 
 **The partner hub's steps come from the server.**
 `PartnerHubController::stepsFor($partnerType)` returns the pipeline that
@@ -1552,6 +1567,10 @@ tests/
   caption. Use `StepFlow` (`inline` in a wizard, `docked` for a pinned
   explanatory bar). Four parallel versions is what Sprint 59 had to unpick,
   and the five-step Budget Calculator had none of them (Sprint 59).
+- Never put a StepFlow in a dialog whose sections are freely navigable —
+  that is what `TfeModal`'s tab rail is for, and two indicators for one
+  progression is the duplication this primitive exists to remove. StepFlow
+  belongs in a dialog only when the steps are gated (Sprint 59).
 - Never render a step sequence as complete by default. A bar with no
   instance behind it is `unstated` — it explains a flow, it does not claim
   the reader is partway through one. Same honesty rule as the seat map's
@@ -1694,7 +1713,7 @@ tests/
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 | 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
 | 58     | Landing hero stopped fabricating seat availability (`deriveSoldPct` deleted) and then moved onto the real 3D `StadiumBowl` like every other surface — the SVG `StadiumSeatMap` is gone entirely, and the lazy canvas boundary means the landing bundle pays ~6KB rather than the 578KB that had been assumed and every bare `assets/…` constant in the client got its leading slash back with a test that scans for regressions. One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
-| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had |
+| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had; then all four parallel indicators migrated onto it — Register's hand-rolled progress bar (whose `completed` style was dead CSS, so a finished step looked like the current one) and the financing wizard's bare "Step X of Y", with the ticket purchase modal deliberately left on `TfeModal`'s tab rail |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

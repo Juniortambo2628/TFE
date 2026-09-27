@@ -209,31 +209,6 @@ select.pill-input {
   white-space: normal;
 }
 
-/* Style step titles so active/completed states are obvious */
-.progress-steps {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-.progress-steps .step {
-  color: var(--muted);
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-.progress-steps .step.active {
-  color: #fff;
-  font-weight: 700;
-  background: linear-gradient(90deg, rgba(184, 11, 30, 0.12), rgba(239, 64, 80, 0.04));
-  box-shadow: 0 6px 18px rgba(184, 11, 30, 0.06);
-  border: 1px solid rgba(184, 11, 30, 0.12);
-}
-.progress-steps .step.completed {
-  color: rgba(255, 255, 255, 0.8);
-  opacity: 0.9;
-}
-
 /* Team selection */
 .team-grid {
   display: grid !important;
@@ -270,20 +245,6 @@ select.pill-input {
 .team-name {
   font-size: 9px;
   line-height: 1.2;
-}
-
-/* Progress bar */
-.progress-bar {
-  background: rgba(255, 255, 255, 0.03);
-  height: 8px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 0; /* Override default bootstrap margin if needed */
-}
-.progress-fill {
-  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-  height: 100%;
-  width: 25%;
 }
 
 /* Top controls injected by JS */
