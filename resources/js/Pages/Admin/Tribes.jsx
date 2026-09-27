@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { Link, router, useForm } from '@inertiajs/react';
 import TournamentPill from '@/Components/Common/TournamentPill';
@@ -146,9 +146,9 @@ export default function Tribes({ auth, tribes = { data: [] }, tournaments = [] }
             />
 
             {/* Reassign modal */}
-            <DashboardModal
+            <TfeModal
                 open={!!editing}
-                onOpenChange={(open) => !open && closeReassign()}
+                onClose={() => closeReassign()}
                 title={editing ? `Reassign ${editing.name}` : ''}
                 label="Tribe"
             >
@@ -197,7 +197,7 @@ export default function Tribes({ auth, tribes = { data: [] }, tournaments = [] }
                         </button>
                     </div>
                 </form>
-            </DashboardModal>
+            </TfeModal>
 
             <ConfirmationDialog
                 open={!!toDelete}

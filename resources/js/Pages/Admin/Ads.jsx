@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import FilePondUploader from '@/Components/Common/FilePondUploader';
 import ListingGrid from '@/Components/Common/ListingGrid';
 import { useForm, router } from '@inertiajs/react';
@@ -159,19 +159,28 @@ export default function Ads({ auth, ads = [] }) {
                 </div>
             </div>
 
-            <DashboardModal
+            <TfeModal
                 open={showForm}
-                onOpenChange={setShowForm}
+                onClose={() => setShowForm(false)}
                 title={adToEdit ? "Edit Ad" : "Create Ad"}
                 label="Ads Management"
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                size="lg"
                 tabs={[
-                    { id: 'details', label: 'Details', icon: 'fas fa-info-circle' },
-                    { id: 'media', label: 'Ad Banner', icon: 'fas fa-image' }
+                    { id: 'details', label: 'Details', icon: 'fas fa-circle-info' },
+                    { id: 'media', label: 'Ad Banner', icon: 'fas fa-image' },
                 ]}
+                footer={(
+                    <>
+                        <button type="button" className="tfe-btn" onClick={() => setShowForm(false)}>Cancel</button>
+                        <button type="submit" form="admin-ad-form" className="tfe-btn tfe-btn--filled" disabled={processing}>
+                            {adToEdit ? 'Update Ad' : 'Create Ad'}
+                        </button>
+                    </>
+                )}
             >
-                <form onSubmit={handleSubmit} className="p-1">
+                <form id="admin-ad-form" onSubmit={handleSubmit}>
                     {activeTab === 'details' && (
                         <div className="row g-3 bounce-in">
                             <div className="col-12">
@@ -251,14 +260,8 @@ export default function Ads({ auth, ads = [] }) {
                         </div>
                     )}
 
-                    <div className="modal-footer">
-                        <button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>Cancel</button>
-                        <button type="submit" className="btn-submit-modal" disabled={processing}>
-                            {adToEdit ? 'Update Ad' : 'Create Ad'}
-                        </button>
-                    </div>
                 </form>
-            </DashboardModal>
+            </TfeModal>
 
             <ConfirmationDialog
                 open={!!adToDelete}

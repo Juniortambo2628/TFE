@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Services\FixtureService;
+use App\Services\StadiumBowlService;
 use App\Services\TournamentService;
 use App\Traits\ResolvesTournament;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ use Inertia\Inertia;
  * Fan-facing package pages.
  *
  * `show` renders a full detail view with hero, description, included
- * matches, stadium seat map for the primary venue, itinerary map for
+ * matches, a 3D seat map of the package's venues, itinerary map for
  * every included venue, and capacity urgency. The "Use this package"
  * CTA links back to the BudgetCalculator with ?package= so the wizard
  * pre-fills at step 2.
@@ -21,6 +22,8 @@ use Inertia\Inertia;
 class PackageController extends Controller
 {
     use ResolvesTournament;
+
+    public function __construct(private StadiumBowlService $bowls) {}
 
     public function show(Listing $package)
     {
@@ -55,9 +58,10 @@ class PackageController extends Controller
             ->values()
             ->toArray();
 
-        // The seat map wants a single stadium. Pick the venue used by
-        // the most included matches, then fall back to the first
-        // configured tournament venue if the package has no matches.
+        // Which venue the seat map should OPEN on: the one used by the most
+        // included matches, falling back to the tournament's first configured
+        // venue when the package names no matches. The map itself offers every
+        // venue this package visits, so this only decides the lead.
         $stadiumName = collect($includedMatches)
             ->pluck('venue')
             ->filter()
@@ -105,7 +109,52 @@ class PackageController extends Controller
                 ],
             ],
             'includedMatches' => $includedMatches,
-            'stadiumName' => $stadiumName,
+
+            // One bowl per venue this package actually visits, primary first,
+            // so the seat map's own switcher covers the whole trip. Built from
+            // the tournament set and filtered rather than resolved per name,
+            // which keeps it to a single ticket query.
+            'venueBowls' => $this->bowlsForVenues($tournament['id'], $stadiumName, $includedMatches),
         ]);
+    }
+
+    /**
+     * The package's own venues as bowl payloads, primary venue first.
+     *
+     * Falls back to every catalogued venue when the package names none, so the
+     * seat map still has something real to draw rather than disappearing.
+     *
+     * @param  array<int, array<string, mixed>>  $includedMatches
+     * @return array<int, array<string, mixed>>
+     */
+    private function bowlsForVenues(string $tournamentId, ?string $primary, array $includedMatches): array
+    {
+        $all = $this->bowls->forTournament($tournamentId);
+
+        $wanted = collect($includedMatches)->pluck('venue')->filter()->unique();
+
+        if ($primary) {
+            $wanted = $wanted->prepend($primary)->unique();
+        }
+
+        if ($wanted->isEmpty()) {
+            return $all;
+        }
+
+        // Match on the resolved slug: a fixture's venue string and the
+        // catalogue's canonical name routinely differ, so comparing the two
+        // names directly would drop most venues.
+        $slugs = $wanted
+            ->map(fn ($name) => $this->bowls->slugFor($name, $tournamentId))
+            ->filter()
+            ->values();
+
+        $ordered = $slugs
+            ->map(fn ($slug) => collect($all)->firstWhere('slug', $slug))
+            ->filter()
+            ->values()
+            ->all();
+
+        return $ordered ?: $all;
     }
 }

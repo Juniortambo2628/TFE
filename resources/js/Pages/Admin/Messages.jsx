@@ -4,7 +4,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import AdminToolbar from '@/Components/Admin/AdminToolbar';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ListingGrid from '@/Components/Common/ListingGrid';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { router } from '@inertiajs/react';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 
@@ -212,9 +212,9 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
             </div>
 
             {/* Message Detail Modal */}
-            <DashboardModal
+            <TfeModal
                 open={!!selectedMessage}
-                onOpenChange={(open) => !open && setSelectedMessage(null)}
+                onClose={() => setSelectedMessage(null)}
                 title={selectedMessage?.subject || 'Message'}
                 label={selectedMessage?.type === 'notifications' ? 'Notification' : 'Message'}
                 activeTab="detail"
@@ -251,7 +251,7 @@ export default function Messages({ auth, contactMessages = { data: [] }, interna
                         </div>
                     </div>
                 )}
-            </DashboardModal>
+            </TfeModal>
 
             <ConfirmationDialog
                 open={!!messageToDelete}

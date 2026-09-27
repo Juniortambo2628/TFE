@@ -1,0 +1,272 @@
+/*
+|--------------------------------------------------------------------------
+| 3D stadium seat map (Components/Common/StadiumBowl)
+|--------------------------------------------------------------------------
+|
+| Imported by the component itself (the HubPreview pattern), so the bowl looks
+| right on whichever surface mounts it without every page having to remember a
+| stylesheet.
+|
+| The overlays here are positioned against `.tfe-bowl__stage`, never the
+| viewport. Two platform traps make that mandatory: an ancestor with a
+| transform (including the identity transform an `animation-fill-mode: both`
+| keyframe leaves behind) becomes the containing block for `position: fixed`,
+| and the shell's own `<main>` has been a scroll container before now. A
+| stage-relative overlay is immune to both.
+|
+| Palette stays inside red / white / charcoal. Tier colours are NOT defined
+| here — they live in `resources/js/lib/stadiumBowl.js` and are the same values
+| the 3D rings are built from, so a legend swatch cannot drift from its ring.
+|
+*/
+
+.tfe-bowl {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ---- header ---- */
+
+.tfe-bowl__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.tfe-bowl__ident {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tfe-bowl__name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f6f6f7;
+}
+
+.tfe-bowl__meta {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgb(255 255 255 / 0.55);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tfe-bowl__alt {
+    font-size: 0.66rem;
+}
+
+.tfe-bowl__switcher {
+    margin-top: 6px;
+    max-width: 320px;
+}
+
+.tfe-bowl__stat {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.tfe-bowl__stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #e0263f;
+    font-variant-numeric: tabular-nums;
+}
+
+.tfe-bowl__stat-label {
+    font-size: 0.7rem;
+    color: rgb(255 255 255 / 0.5);
+}
+
+/* ---- canvas stage ---- */
+
+.tfe-bowl__stage {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0a0a0c;
+    border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.tfe-bowl__canvas {
+    width: 100%;
+    cursor: grab;
+
+    /* Touch drag must reach the pointer handlers rather than scrolling the
+       page; the renderer re-applies this on its own canvas too. */
+    touch-action: none;
+}
+
+.tfe-bowl__stage.is-dragging .tfe-bowl__canvas,
+.tfe-bowl__canvas:active {
+    cursor: grabbing;
+}
+
+.tfe-bowl__fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+    color: rgb(255 255 255 / 0.55);
+    font-size: 0.82rem;
+}
+
+.tfe-bowl__fallback i {
+    font-size: 1.6rem;
+    opacity: 0.5;
+}
+
+.tfe-bowl__fallback p {
+    margin: 0;
+    max-width: 38ch;
+}
+
+.tfe-bowl__tooltip {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+    transform: translate(-50%, -140%);
+    padding: 7px 11px;
+    border-radius: 8px;
+    background: rgb(10 10 12 / 0.95);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    font-size: 0.74rem;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.tfe-bowl__tooltip span {
+    color: rgb(255 255 255 / 0.55);
+}
+
+.tfe-bowl__hint {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    margin: 0;
+    font-size: 0.66rem;
+    color: rgb(255 255 255 / 0.35);
+    pointer-events: none;
+}
+
+/* ---- legend ---- */
+
+.tfe-bowl__legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 6px;
+}
+
+.tfe-bowl__legend-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 9px;
+    border: 1px solid rgb(255 255 255 / 0.07);
+    background: rgb(255 255 255 / 0.03);
+    font-size: 0.78rem;
+    color: #f6f6f7;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.tfe-bowl__legend-row.is-pickable {
+    cursor: pointer;
+}
+
+.tfe-bowl__legend-row.is-hovered {
+    background: rgb(255 255 255 / 0.07);
+}
+
+.tfe-bowl__legend-row.is-active {
+    border-color: rgb(224 38 63 / 0.55);
+    background: rgb(224 38 63 / 0.16);
+}
+
+.tfe-bowl__legend-row.is-soldout {
+    opacity: 0.45;
+}
+
+.tfe-bowl__legend-row.is-soldout.is-pickable {
+    cursor: not-allowed;
+}
+
+.tfe-bowl__swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgb(255 255 255 / 0.18);
+}
+
+.tfe-bowl__legend-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tfe-bowl__legend-price {
+    color: rgb(255 255 255 / 0.72);
+    font-variant-numeric: tabular-nums;
+}
+
+.tfe-bowl__legend-figure {
+    color: rgb(255 255 255 / 0.5);
+    font-variant-numeric: tabular-nums;
+    min-width: 3.4em;
+    text-align: right;
+}
+
+.tfe-bowl__note {
+    margin: 0;
+    font-size: 0.7rem;
+    color: rgb(255 255 255 / 0.4);
+}
+
+/* ---- narrow viewports ---- */
+
+@media (width <= 640px) {
+    .tfe-bowl__head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tfe-bowl__stat {
+        text-align: left;
+    }
+
+    .tfe-bowl__switcher {
+        max-width: 100%;
+    }
+
+    .tfe-bowl__legend {
+        grid-template-columns: 1fr;
+    }
+
+    /* The hint overlaps the bowl on a phone and the gesture is discoverable
+       there anyway. */
+    .tfe-bowl__hint {
+        display: none;
+    }
+}

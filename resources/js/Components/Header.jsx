@@ -14,8 +14,12 @@ import '../../css/header.css';
  */
 export default function Header() {
     const page = usePage();
-    const { assetUrl, auth } = page.props;
-    const logo = assetPath((assetUrl || '') + 'assets/img/logo/TFE-logo.png');
+    const { auth } = page.props;
+    // Root-relative, not `assetUrl + path`: assetUrl is absolute, so the
+    // concatenation produced a double slash and assetPath then left it alone
+    // (it treats `//…` as protocol-relative). This is the exact pattern
+    // CLAUDE.md forbids.
+    const logo = assetPath('/assets/img/logo/TFE-logo.png');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const user = auth?.user;
 

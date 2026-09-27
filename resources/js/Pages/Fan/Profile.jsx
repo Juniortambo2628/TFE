@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import '../../../css/fan/profile.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
 import IdentityPreview from '@/Components/Common/IdentityPreview';
 import TeamAvatar from '@/Components/Common/TeamAvatar';
@@ -599,9 +599,9 @@ export default function Profile({
                 />
 
                 {/* Network (followers / following) */}
-                <DashboardModal
+                <TfeModal
                     open={showNetworkModal}
-                    onOpenChange={setShowNetworkModal}
+                    onClose={() => setShowNetworkModal(false)}
                     title={networkTab === 'followers' ? 'Followers' : 'Following'}
                     maxWidth="md"
                 >
@@ -643,7 +643,7 @@ export default function Profile({
                             )}
                         </div>
                     </div>
-                </DashboardModal>
+                </TfeModal>
             </div>
         </FanLayout>
     );

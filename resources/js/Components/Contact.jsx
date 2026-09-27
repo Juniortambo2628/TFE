@@ -9,21 +9,21 @@ import { useTournament } from '@/Context/TournamentContext';
 // caller does not pass any (and must stay in step with that config).
 const CONTACT_CARDS = [
     {
-        image: 'assets/img/IMG-15.jpg',
+        image: '/assets/img/IMG-15.jpg',
         title: 'Speak With Our Team',
         subtitle: 'Personalised guidance for your journey',
         tags: ['Support', '24/7'],
         description: 'Our experienced travel concierges help you choose the right package, financing plan, and matches to attend. We respond within 2 hours during business days.',
     },
     {
-        image: 'assets/img/backdrops/plane-square.jpg',
+        image: '/assets/img/backdrops/plane-square.jpg',
         title: 'Custom Travel Requests',
         subtitle: 'Tell us what you want to see',
         tags: ['Custom', 'Bespoke'],
         description: 'Planning to combine matches with a city break, family visit, or group tour? Send us your wishlist and we will craft a bespoke itinerary and quote.',
     },
     {
-        image: 'assets/img/IMG-13.jpg',
+        image: '/assets/img/IMG-13.jpg',
         title: 'Partner With Us',
         subtitle: 'Travel agencies, sponsors, media',
         tags: ['B2B', 'Partners'],

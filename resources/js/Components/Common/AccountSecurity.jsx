@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/Components/ui/dialog';
+import ModalRow from '@/Components/Common/ModalRow';
+import TfeModal from '@/Components/Common/TfeModal';
 import { startRegistration } from '@simplewebauthn/browser';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
@@ -473,55 +468,61 @@ export default function AccountSecurity({
                 </div>
             </SplitEditorLayout>
 
-            {/* 2FA setup */}
-            <Dialog open={show2FAModal} onOpenChange={setShow2FAModal}>
-                {/* `admin-card-dark` lives in admin-theme.css, which only
-                    the admin dashboard loads — so on the fan and partner
-                    pages this panel fell back to the shadcn default and the
-                    QR dialog came up navy blue next to every other dialog on
-                    the platform. These are the classes StatusDialog and
-                    ConfirmationDialog use. */}
-                <DialogContent className="bg-[#0a0a0b] border-white/5 rounded-3xl shadow-2xl text-center twofa-modal">
-                    <DialogHeader>
-                        <DialogTitle className="twofa-modal__title">Setup Two-Factor Authentication</DialogTitle>
-                    </DialogHeader>
-                    <div>
-                        <p className="text-white-50 mb-4">
-                            Scan this QR code with your authenticator app (e.g. Google Authenticator, Authy) and enter the 6-digit code to confirm.
-                        </p>
+            {/* 2FA setup — on the unified dialog like everything else. It was
+                the last shadcn Dialog on this page, and the reason its panel
+                kept needing per-role colour patching. */}
+            <TfeModal
+                open={show2FAModal}
+                onClose={() => setShow2FAModal(false)}
+                size="sm"
+                label="Security"
+                title="Two-factor authentication"
+                tabs={[{ id: 'setup', label: 'Set up', icon: 'fas fa-qrcode' }]}
+                heading="Scan the QR code"
+                subheading="Use an authenticator app such as Google Authenticator or Authy."
+                footer={(
+                    <>
+                        <button type="button" className="tfe-btn" onClick={() => setShow2FAModal(false)}>
+                            Cancel
+                        </button>
+                        <button type="submit" form="twofa-form" className="tfe-btn tfe-btn--filled">
+                            Confirm &amp; Enable
+                        </button>
+                    </>
+                )}
+            >
+                <div className="twofa-modal">
+                    {flash?.two_factor_setup?.qr_code && (
+                        <div
+                            className="twofa-modal__qr"
+                            dangerouslySetInnerHTML={{ __html: flash.two_factor_setup.qr_code }}
+                        />
+                    )}
 
-                        {flash?.two_factor_setup?.qr_code && (
-                            <div
-                                className="twofa-modal__qr"
-                                dangerouslySetInnerHTML={{ __html: flash.two_factor_setup.qr_code }}
+                    <form id="twofa-form" onSubmit={confirm2FA}>
+                        <ModalRow
+                            title="Verification code"
+                            desc="Enter the 6-digit code your app is showing."
+                            htmlFor="twofa-code"
+                            stacked
+                        >
+                            <input
+                                id="twofa-code"
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                className="tfe-input twofa-modal__code"
+                                placeholder="000000"
+                                maxLength="6"
+                                value={setupCode}
+                                onChange={(e) => setSetupCode(e.target.value)}
+                                required
+                                data-autofocus
                             />
-                        )}
-
-                        <form onSubmit={confirm2FA}>
-                            <div className="tfe-form-field">
-                                <label className="tfe-form-label text-start">Verification code</label>
-                                <input
-                                    type="text"
-                                    className="tfe-input twofa-modal__code"
-                                    placeholder="000000"
-                                    maxLength="6"
-                                    value={setupCode}
-                                    onChange={(e) => setSetupCode(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <DialogFooter className="dash-modal-footer">
-                                <button type="button" className="tfe-btn flex-fill justify-content-center" onClick={() => setShow2FAModal(false)}>
-                                    Cancel
-                                </button>
-                                <button type="submit" className="tfe-btn tfe-btn--filled flex-fill justify-content-center">
-                                    Confirm &amp; Enable
-                                </button>
-                            </DialogFooter>
-                        </form>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                        </ModalRow>
+                    </form>
+                </div>
+            </TfeModal>
 
             <StatusDialog
                 open={!!successMessage || !!errorMessage}

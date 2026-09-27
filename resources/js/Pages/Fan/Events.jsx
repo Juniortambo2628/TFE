@@ -7,15 +7,8 @@ import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { useTournament } from '@/Context/TournamentContext';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/Components/ui/dialog";
 
 export default function Events({ auth, events, userRsvps = [] }) {
     const { tournament } = useTournament();
@@ -219,9 +212,9 @@ export default function Events({ auth, events, userRsvps = [] }) {
 
             {/* Reusable Dashboard Modal for Event Details */}
             {selectedEvent && (
-                <DashboardModal
+                <TfeModal
                     open={!!selectedEvent}
-                    onOpenChange={(open) => !open && setSelectedEvent(null)}
+                    onClose={() => setSelectedEvent(null)}
                     title={selectedEvent.title}
                     label="Event Details"
                     activeTab={activeTab}
@@ -317,7 +310,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
                             </div>
                         </>
                     )}
-                </DashboardModal>
+                </TfeModal>
             )}
         </FanLayout>
     );

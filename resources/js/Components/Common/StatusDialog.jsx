@@ -1,69 +1,59 @@
 import React from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/Components/ui/dialog";
-import { cn } from "@/lib/utils";
+
+import TfeModal from '@/Components/Common/TfeModal';
 
 /**
- * A premium global status dialog for success and error messages
+ * StatusDialog — the shared success / error acknowledgement.
+ *
+ * On the unified `TfeModal` like every other dialog. It was previously its own
+ * shadcn Dialog with a hand-rolled 96px status disc and a `bg-red-600` button;
+ * the disc survives as `.tfe-modal__status`, the button is now `.tfe-btn`.
+ *
+ * Props unchanged from the previous version.
  */
-export default function StatusDialog({ 
-    open, 
-    onOpenChange, 
-    type = 'success', // 'success' | 'error'
-    title, 
-    message, 
-    buttonText = "Great, Thanks!",
-    onButtonClick
+export default function StatusDialog({
+    open,
+    onOpenChange,
+    type = 'success',
+    title,
+    message,
+    buttonText = 'Great, Thanks!',
+    onButtonClick,
 }) {
     const isSuccess = type === 'success';
 
+    const dismiss = () => {
+        if (onButtonClick) onButtonClick();
+        onOpenChange(false);
+    };
+
+    const resolvedTitle = title || (isSuccess ? 'Everything set' : 'Something went wrong');
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-[#0a0a0b] border-white/5 max-w-sm text-center py-10 rounded-3xl overflow-hidden shadow-2xl p-8">
-                {/* Icon Section */}
-                <div className="flex justify-center mb-8 relative">
-                    <div className={cn(
-                        "w-24 h-24 rounded-full flex items-center justify-center relative",
-                        isSuccess ? "bg-red-600 shadow-[0_0_30px_rgba(220,20,60,0.3)]" : "bg-red-800 shadow-[0_0_30px_rgba(153,27,27,0.3)]"
-                    )}>
-                        <i className={cn(
-                            "fas text-4xl text-white",
-                            isSuccess ? "fa-check" : "fa-exclamation"
-                        )}></i>
-                    </div>
-                </div>
-
-                <DialogHeader className="mb-2">
-                    <DialogTitle className="text-2xl font-bold text-white tracking-tight">
-                        {title || (isSuccess ? "Everything Set!" : "System Error")}
-                    </DialogTitle>
-                </DialogHeader>
-
-                <div className="px-4 mb-8">
-                    <p className="text-white/60 text-base leading-relaxed">
-                        {message}
-                    </p>
-                </div>
-
-                <div className="px-6">
-                    <button 
-                        onClick={() => {
-                            if (onButtonClick) onButtonClick();
-                            onOpenChange(false);
-                        }}
-                        className={cn(
-                            "w-full py-4 rounded-xl font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg",
-                            isSuccess ? "bg-red-600 hover:bg-red-700 shadow-red-600/20" : "bg-white/10 hover:bg-white/20"
-                        )}
-                    >
-                        {buttonText || (isSuccess ? "Great, Thanks!" : "Try Again")}
-                    </button>
-                </div>
-            </DialogContent>
-        </Dialog>
+        <TfeModal
+            open={open}
+            onClose={() => onOpenChange(false)}
+            size="sm"
+            label={isSuccess ? 'Success' : 'Error'}
+            title={resolvedTitle}
+            tabs={[{
+                id: 'status',
+                label: isSuccess ? 'Success' : 'Error',
+                icon: isSuccess ? 'fas fa-circle-check' : 'fas fa-circle-exclamation',
+            }]}
+            heading={resolvedTitle}
+            footer={(
+                <button type="button" className="tfe-btn tfe-btn--filled" onClick={dismiss} data-autofocus>
+                    {buttonText || (isSuccess ? 'Great, Thanks!' : 'Try Again')}
+                </button>
+            )}
+        >
+            <div className="tfe-modal__status" data-state={isSuccess ? 'success' : 'error'}>
+                <span className="tfe-modal__status-disc" aria-hidden="true">
+                    <i className={`fas ${isSuccess ? 'fa-check' : 'fa-exclamation'}`} />
+                </span>
+                {message && <p className="tfe-modal__prose">{message}</p>}
+            </div>
+        </TfeModal>
     );
 }

@@ -35,6 +35,27 @@
 | is ample for a country-scale SVG projection and route distances quoted to
 | the nearest kilometre.
 |
+| `roof_style`, `partial_bowl` and `corner_ratio` drive the 3D seat map
+| (`StadiumBowlService` -> `Components/Common/StadiumBowl3D`). They live here
+| rather than in a migration for the same reason everything else does: there
+| is no stadium table to migrate — this catalogue IS the venue list (see
+| StadiumImageService::catalogueVenues). They are architectural constants that
+| change only when someone edits this file.
+|
+|   roof_style    shield | dome | arch | crown | petal | facet | canopy
+|                 Keyed to each ground's real documented design. `canopy` is
+|                 the generic flat ring and the default for anything unset.
+|   partial_bowl  true for a ground where only the main stand is covered and
+|                 the rest is open terracing (older/smaller venues).
+|   corner_ratio  0..1, tightens the footprint corners. null means a full
+|                 discorectangle — the shape an athletics track forces. A
+|                 football-only bowl sits nearer 0.4-0.55.
+|   is_alternate  Not a primary match venue (training/reserve ground).
+|
+| The bowl is a GENERIC parametric shape, not an architectural replica —
+| public blueprints do not exist for most of these grounds (several are still
+| under construction). That is a known, accepted limitation; do not chase it.
+|
 */
 
 return [
@@ -52,16 +73,23 @@ return [
              * ---- Kenya ----
              */
             'talanta-sports-city' => [
-                // Renamed to Raila Odinga International Stadium (2025). Wikipedia
-                // flips between the two names between edits — we saw both in
+                // Officially renamed Raila Odinga International Stadium in
+                // December 2025. The slug keeps the old name for continuity
+                // (it is the image filename and the admin override key), but
+                // `name` is user-facing and must be the current one. Wikipedia
+                // flips between the two between edits — we saw both in
                 // consecutive fetches — so both must resolve.
-                'name' => 'Talanta Sports City Stadium',
+                'name' => 'Raila Odinga International Stadium',
+                'formerly' => 'Talanta Sports City Stadium',
                 'city' => 'Nairobi',
                 'country' => 'Kenya',
                 'lat' => -1.3006,
                 'lng' => 36.7566,
                 'country_code' => 'ke',
                 'capacity' => 60000,
+                'roof_style' => 'shield',
+                'corner_ratio' => 0.42,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Talanta Sports City Stadium',
                 'image' => 'stadiums/AFCON/talanta-sports-city_hero.webp',
                 'aliases' => [
@@ -86,6 +114,9 @@ return [
                 'lng' => 36.8945,
                 'country_code' => 'ke',
                 'capacity' => 48000,
+                'roof_style' => 'dome',
+                'corner_ratio' => null,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Moi International Sports Centre',
                 'image' => 'stadiums/AFCON/moi-kasarani_hero.webp',
                 'aliases' => [
@@ -109,6 +140,9 @@ return [
                 'lng' => 36.8265,
                 'country_code' => 'ke',
                 'capacity' => 30000,
+                'roof_style' => 'canopy',
+                'corner_ratio' => null,
+                'partial_bowl' => true,
                 'wikipedia_title' => 'Nyayo National Stadium',
                 'image' => 'stadiums/AFCON/nyayo-national_hero.webp',
                 'aliases' => [
@@ -127,6 +161,9 @@ return [
                 'lng' => 34.7519,
                 'country_code' => 'ke',
                 'capacity' => 20000,
+                'roof_style' => 'canopy',
+                'corner_ratio' => null,
+                'partial_bowl' => true,
                 'wikipedia_title' => 'Bukhungu Stadium',
                 'image' => 'stadiums/AFCON/bukhungu_hero.webp',
                 'aliases' => [
@@ -143,6 +180,10 @@ return [
                 'lng' => 35.2698,
                 'country_code' => 'ke',
                 'capacity' => 15000,
+                'roof_style' => 'canopy',
+                'corner_ratio' => null,
+                'partial_bowl' => true,
+                'is_alternate' => true,
                 'wikipedia_title' => 'Kipchoge Keino Stadium',
                 'image' => 'stadiums/AFCON/kipchoge-keino_hero.webp',
                 'aliases' => [
@@ -162,6 +203,9 @@ return [
                 'lng' => 32.6553,
                 'country_code' => 'ug',
                 'capacity' => 45000,
+                'roof_style' => 'arch',
+                'corner_ratio' => null,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Mandela National Stadium',
                 'image' => 'stadiums/AFCON/mandela-national_hero.webp',
                 'aliases' => [
@@ -182,6 +226,9 @@ return [
                 'lng' => 31.3520,
                 'country_code' => 'ug',
                 'capacity' => 20000,
+                'roof_style' => 'canopy',
+                'corner_ratio' => 0.55,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Hoima Stadium',
                 'image' => 'stadiums/AFCON/hoima-city_hero.webp',
                 'aliases' => [
@@ -203,6 +250,9 @@ return [
                 'lng' => 32.8998,
                 'country_code' => 'ug',
                 'capacity' => 20000,
+                'roof_style' => 'canopy',
+                'corner_ratio' => null,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Akii-Bua Olympic Stadium',
                 'image' => 'stadiums/AFCON/akii-bua_hero.webp',
                 'aliases' => [
@@ -226,6 +276,9 @@ return [
                 'lng' => 39.2378,
                 'country_code' => 'tz',
                 'capacity' => 60000,
+                'roof_style' => 'crown',
+                'corner_ratio' => 0.5,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Benjamin Mkapa Stadium',
                 'image' => 'stadiums/AFCON/benjamin-mkapa_hero.webp',
                 'aliases' => [
@@ -245,6 +298,9 @@ return [
                 'lng' => 36.6830,
                 'country_code' => 'tz',
                 'capacity' => 30000,
+                'roof_style' => 'petal',
+                'corner_ratio' => 0.5,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Samia Suluhu Hassan Stadium',
                 'image' => 'stadiums/AFCON/samia-suluhu-hassan_hero.webp',
                 'aliases' => [
@@ -262,6 +318,9 @@ return [
                 'lng' => 35.7419,
                 'country_code' => 'tz',
                 'capacity' => 20000,
+                'roof_style' => 'facet',
+                'corner_ratio' => null,
+                'partial_bowl' => false,
                 'wikipedia_title' => 'Jamhuri Stadium',
                 'image' => 'stadiums/AFCON/dodoma_hero.webp',
                 'aliases' => [
@@ -281,6 +340,9 @@ return [
                 'lng' => 39.1990,
                 'country_code' => 'tz',
                 'capacity' => 15000,
+                'roof_style' => 'canopy',
+                'corner_ratio' => null,
+                'partial_bowl' => true,
                 'wikipedia_title' => 'Amaan Stadium',
                 'image' => 'stadiums/AFCON/amaan_hero.webp',
                 'aliases' => [

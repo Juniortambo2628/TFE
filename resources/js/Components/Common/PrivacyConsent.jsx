@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { PrivacyPolicy, CookiePolicy, TermsOfService } from '@/Components/LegalDocs';
 import '../../../css/privacy-consent.css';
 
@@ -85,21 +85,21 @@ export default function PrivacyConsent() {
             )}
 
             {/* Legal Documents Modal */}
-            <DashboardModal
+            <TfeModal
                 open={showLegalModal}
-                onOpenChange={setShowLegalModal}
+                onClose={() => setShowLegalModal(false)}
                 title="Legal Documents"
                 label="Compliance"
                 activeTab={activeLegalTab}
                 onTabChange={setActiveLegalTab}
                 tabs={legalTabs}
             >
-                <div className="modal-body overflow-y-auto" style={{ maxHeight: '80vh' }}>
+                <div>
                     {activeLegalTab === 'privacy' && <PrivacyPolicy />}
                     {activeLegalTab === 'cookies' && <CookiePolicy />}
                     {activeLegalTab === 'terms' && <TermsOfService />}
                 </div>
-            </DashboardModal>
+            </TfeModal>
         </>
     );
 }

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
 import HeroWorldMap from '@/Components/HeroWorldMap';
-import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
+import StadiumBowl from '@/Components/Common/StadiumBowl';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import { resolveStadiumImage, preloadImage } from '@/Data/stadiumImages';
@@ -28,20 +28,9 @@ const calculateTimeLeft = (targetDate) => {
 
 
 
-// Parse a capacity value that arrived as either a number or a string like
-// "82,500" or "~68,000 (expandable)". Falls back to `fallback` on unparsable input.
-function parseCapacity(raw, fallback) {
-    if (raw === null || raw === undefined) return fallback;
-    if (typeof raw === 'number' && !Number.isNaN(raw)) return raw;
-    var digits = String(raw).replace(/[^\d]/g, '');
-    var n = parseInt(digits, 10);
-    return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
 // Capacity for display. The catalogue stores a plain integer (60000) while
 // Wikipedia used to hand us a pre-formatted string ("60,000"), so normalise to
-// the grouped form here. parseCapacity() reads either shape, so the numeric
-// consumers (the seat map) are unaffected.
+// the grouped form here.
 function formatCapacity(raw) {
     if (raw === null || raw === undefined || raw === '') return 'TBD';
     if (typeof raw === 'number' && Number.isFinite(raw)) return raw.toLocaleString('en-US');
@@ -51,16 +40,6 @@ function formatCapacity(raw) {
 // Deterministic pseudo-sold-percentage per stadium so the preview reads
 // as "live-ish" without hitting a booking backend. Replaced by real
 // package aggregate once we surface it into the Hero payload.
-function deriveSoldPct(stadiumName) {
-    if (!stadiumName) return 40;
-    var h = 0;
-    for (var i = 0; i < stadiumName.length; i++) {
-        h = (h * 31 + stadiumName.charCodeAt(i)) >>> 0;
-    }
-    // 20..85 range — never sold out, never empty, gives urgency signal.
-    return 20 + (h % 66);
-}
-
 // Map Wikipedia / free-source team names to flag codes.
 function teamNameToCode(name) {
     if (!name) return null;
@@ -80,7 +59,7 @@ const DEFAULT_MATCHES = [
     { id: 104, home: 'gb-eng', away: 'jp', date: 'June 2026', time: 'TBD', type: 'Group Stage' },
 ];
 
-export default function Hero({ stadiums: stadiumsProp }) {
+export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
     const { assetUrl, stadiumImages } = usePage().props;
     var tournamentCtx = useTournament();
     var tournament = tournamentCtx.tournament;
@@ -93,6 +72,27 @@ export default function Hero({ stadiums: stadiumsProp }) {
     var wikipediaMatches = (tournament && tournament.wikipedia_matches) || [];
     var wikipediaAwards = (tournament && tournament.wikipedia_awards) || {};
     var wikipediaTeams = (tournament && tournament.teams) || [];
+
+    // Real seating data for the venue dialog, from StadiumBowlService.
+    // Matched on the resolved image url — the shared `stadiumImages` map
+    // already indexes every alias to the same url a bowl payload carries, so
+    // this reuses the server's alias table rather than growing a second copy.
+    // No match, or no fixtures on sale, means occupancy stays UNKNOWN: the
+    // map draws a seating layout and claims nothing.
+    var bowlForVenue = React.useCallback(function (venue) {
+        if (!venue || !venueBowls.length) return null;
+
+        var url = venue.image || venue.thumbnail || null;
+        if (url) {
+            var byImage = venueBowls.find(function (b) { return b.image === url; });
+            if (byImage) return byImage;
+        }
+
+        var name = (venue.name || '').toLowerCase();
+        return venueBowls.find(function (b) {
+            return (b.name || '').toLowerCase() === name;
+        }) || null;
+    }, [venueBowls]);
     var topScorer = (tournament && tournament.top_scorer) || null;
     var wikipediaFlags = (tournament && tournament.wikipedia_flags) || {};
 
@@ -594,10 +594,10 @@ export default function Hero({ stadiums: stadiumsProp }) {
 
             {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
 
-            {/* Refactored Match Modal using DashboardModal */}
-            <DashboardModal
+            {/* Venue / team detail dialog — the shared tabbed TfeModal. */}
+            <TfeModal
                 open={showMatchModal}
-                onOpenChange={closeModal}
+                onClose={closeModal}
                 title={selectedTeam ? TEAM_NAMES[selectedTeam] : activeStadium.name}
                 label={selectedTeam ? "Team Insights" : "Stadium Schedule"}
                 activeTab={activeModalTab}
@@ -615,8 +615,12 @@ export default function Hero({ stadiums: stadiumsProp }) {
                             { id: 'stats', label: 'Stats & Awards', icon: 'fas fa-trophy' }
                           ]
                 }
+                size="lg"
+                footer={(
+                    <button type="button" className="tfe-btn" onClick={closeModal}>Close view</button>
+                )}
             >
-                <div className="modal-body p-0">
+                <div>
                     {activeModalTab === 'matches' && (
                         <div className="match-modal-card">
                             <div className="match-modal-list overflow-y-auto custom-scrollbar pr-2 hero-modal-matches">
@@ -681,30 +685,40 @@ export default function Hero({ stadiums: stadiumsProp }) {
                         </div>
                     )}
 
-                    {activeModalTab === 'seats' && !selectedTeam && (
-                        <div className="p-4">
-                            <div className="mb-3">
-                                <h5 className="text-white fs-6 mb-1">
-                                    <i className="fas fa-chair text-warning me-2"></i>
-                                    Seat availability preview
-                                </h5>
-                                <p className="text-white text-opacity-50 small mb-0">
-                                    Live indicative view of how sections fill up — hover a block for tier, price and seat count.
-                                </p>
+                    {activeModalTab === 'seats' && !selectedTeam && (() => {
+                        var bowl = bowlForVenue(activeStadium);
+                        var live = !!(bowl && bowl.has_inventory);
+
+                        // The same 3D bowl the fan surfaces draw. It costs the
+                        // landing page nothing until this tab is opened:
+                        // StadiumBowl owns a React.lazy boundary, so `three`
+                        // only downloads once the component actually mounts.
+                        if (!bowl) {
+                            return (
+                                <div className="p-4">
+                                    <div className="tfe-empty tfe-empty--inline">
+                                        <div className="tfe-empty__icon"><i className="fas fa-chair" /></div>
+                                        <div className="tfe-empty__title">No seating data for this ground</div>
+                                        <p className="tfe-empty__body">
+                                            {activeStadium.name || 'This venue'} is not in the stadium catalogue yet.
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className="p-4">
+                                <StadiumBowl
+                                    bowls={bowl}
+                                    height={380}
+                                    note={live
+                                        ? 'Based on tickets sold through TFE. Actual section allocation is confirmed on booking.'
+                                        : undefined}
+                                />
                             </div>
-                            <StadiumSeatMap
-                                stadiumName={activeStadium.name || 'Stadium'}
-                                capacity={parseCapacity(activeStadium.capacity, 60000)}
-                                soldPct={deriveSoldPct(activeStadium.name)}
-                                currency={tournament?.pricing?.currency || 'USD'}
-                                basePrice={tournament?.pricing?.ticket_prices?.['Group Stage'] || 150}
-                            />
-                            <p className="text-white text-opacity-40 small mt-3 mb-0">
-                                <i className="fas fa-info-circle me-1"></i>
-                                Availability updates as fans confirm packages. Actual section allocation is confirmed on booking.
-                            </p>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {activeModalTab === 'details' && (
                         <div className="p-4">
@@ -950,12 +964,7 @@ export default function Hero({ stadiums: stadiumsProp }) {
                     )}
                 </div>
 
-                <div className="modal-footer border-t border-white/5">
-                    <button className="btn-glass-pill py-2 px-4 w-100 justify-content-center" onClick={closeModal}>
-                        <span>Close View</span>
-                    </button>
-                </div>
-            </DashboardModal>
+            </TfeModal>
         </section>
     );
 }

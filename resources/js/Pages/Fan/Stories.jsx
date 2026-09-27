@@ -4,6 +4,7 @@ import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { FilePond, registerPlugin } from 'react-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import ShareModal from '@/Components/ShareModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import '../../../css/fan/stories.css';
 export default function Stories({ auth, stories, myStories, storyAds = [] }) {
@@ -448,74 +449,61 @@ export default function Stories({ auth, stories, myStories, storyAds = [] }) {
                     </div>
                 )}
 
-                {/* Create Story Modal */}
+                {/* Create Story — the shared tabbed dialog. */}
                 {showCreateModal && (
-                    <div className="story-create-modal-overlay" onClick={() => setShowCreateModal(false)}>
-                        <div className="story-create-modal" onClick={(e) => e.stopPropagation()}>
-                            <div className="story-create-header">
-                                <h3>Create Story</h3>
-                                <button
-                                    className="story-create-close"
-                                    onClick={() => setShowCreateModal(false)}
-                                >
-                                    <i className="fas fa-times"></i>
+                    <TfeModal
+                        open={showCreateModal}
+                        onClose={() => setShowCreateModal(false)}
+                        label="Stories"
+                        title="Create story"
+                        tabs={[{ id: 'compose', label: 'Compose', icon: 'fas fa-camera' }]}
+                        heading="Share a story"
+                        subheading="Stories stay up for 24 hours."
+                        footer={(
+                            <>
+                                <button type="button" className="tfe-btn" onClick={() => setShowCreateModal(false)}>
+                                    Cancel
                                 </button>
+                                <button type="submit" form="story-create-form" className="tfe-btn tfe-btn--filled"
+                                    disabled={processing || !data.media}>
+                                    <i className={`fas ${processing ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`} />
+                                    {processing ? 'Posting…' : 'Share Story'}
+                                </button>
+                            </>
+                        )}
+                    >
+                        <form id="story-create-form" onSubmit={handleCreateStory} encType="multipart/form-data">
+                            <div className="story-create-body">
+                                <div className="filepond-container-story">
+                                    <FilePond
+                                        files={data.media ? [data.media] : []}
+                                        onupdatefiles={(fileItems) => {
+                                            if (fileItems.length > 0) {
+                                                setData('media', fileItems[0].file || fileItems[0]);
+                                            } else {
+                                                setData('media', null);
+                                            }
+                                        }}
+                                        allowMultiple={false}
+                                        maxFiles={1}
+                                        acceptedFileTypes={['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4', 'video/mov', 'video/avi']}
+                                        labelIdle='<span class="filepond-label"><i class="far fa-image me-2"></i>Drag & drop or <span class="filepond-link">browse</span> image/video</span>'
+                                        stylePanelLayout="compact"
+                                        server={null}
+                                        instantUpload={false}
+                                    />
+                                </div>
+                                <textarea
+                                    className="story-caption-input"
+                                    placeholder="Add a caption (optional)"
+                                    value={data.caption}
+                                    onChange={e => setData('caption', e.target.value)}
+                                    rows="3"
+                                    maxLength={500}
+                                ></textarea>
                             </div>
-                            <form onSubmit={handleCreateStory} encType="multipart/form-data">
-                                <div className="story-create-body">
-                                    <div className="filepond-container-story">
-                                        <FilePond
-                                            files={data.media ? [data.media] : []}
-                                            onupdatefiles={(fileItems) => {
-                                                if (fileItems.length > 0) {
-                                                    setData('media', fileItems[0].file || fileItems[0]);
-                                                } else {
-                                                    setData('media', null);
-                                                }
-                                            }}
-                                            allowMultiple={false}
-                                            maxFiles={1}
-                                            acceptedFileTypes={['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4', 'video/mov', 'video/avi']}
-                                            labelIdle='<span class="filepond-label"><i class="far fa-image me-2"></i>Drag & drop or <span class="filepond-link">browse</span> image/video</span>'
-                                            stylePanelLayout="compact"
-                                            server={null}
-                                            instantUpload={false}
-                                        />
-                                    </div>
-                                    <textarea
-                                        className="story-caption-input"
-                                        placeholder="Add a caption (optional)"
-                                        value={data.caption}
-                                        onChange={e => setData('caption', e.target.value)}
-                                        rows="3"
-                                        maxLength={500}
-                                    ></textarea>
-                                </div>
-                                <div className="story-create-footer">
-                                    <button
-                                        type="button"
-                                        className="btn-story-cancel"
-                                        onClick={() => setShowCreateModal(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="btn-story-submit"
-                                        disabled={processing || !data.media}
-                                    >
-                                        {processing ? (
-                                            <>
-                                                <i className="fas fa-spinner fa-spin me-2"></i>Posting...
-                                            </>
-                                        ) : (
-                                            'Share Story'
-                                        )}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                        </form>
+                    </TfeModal>
                 )}
 
                 {/* Share Modal */}
@@ -534,56 +522,50 @@ export default function Stories({ auth, stories, myStories, storyAds = [] }) {
 
                 {/* Reply Modal */}
                 {showReplyModal && selectedStoryForReply && (
-                    <div className="story-reply-modal-overlay" onClick={() => setShowReplyModal(false)}>
-                        <div className="story-reply-modal" onClick={(e) => e.stopPropagation()}>
-                            <div className="story-reply-header">
-                                <h4>Replies</h4>
-                                <button className="story-reply-close" onClick={() => setShowReplyModal(false)}>
-                                    <i className="fas fa-times"></i>
+                    <TfeModal
+                        open={showReplyModal}
+                        onClose={() => setShowReplyModal(false)}
+                        label="Story"
+                        title="Replies"
+                        tabs={[{ id: 'replies', label: 'Replies', icon: 'fas fa-comments', badge: storyReplies.length || null }]}
+                        heading="Replies"
+                        footer={(
+                            <>
+                                <button type="button" className="tfe-btn" onClick={() => setShowReplyModal(false)}>Close</button>
+                                <button type="submit" form="story-reply-form" className="tfe-btn tfe-btn--filled"
+                                    disabled={replyForm.processing || !replyForm.data.content.trim()}>
+                                    <i className={`fas ${replyForm.processing ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`} />
+                                    {replyForm.processing ? 'Posting…' : 'Reply'}
                                 </button>
-                            </div>
-                            <div className="story-reply-list">
-                                {storyReplies.length > 0 ? (
-                                    storyReplies.map((reply, idx) => (
-                                        <div key={`reply-${reply.id}-${idx}`} className="story-reply-item">
-                                            <img src={getAvatar(reply.user)} alt={reply.user.name} className="story-reply-avatar" />
-                                            <div className="story-reply-content">
-                                                <span className="story-reply-author">{reply.user.name}</span>
-                                                <p className="story-reply-text">{reply.content}</p>
-                                                <span className="story-reply-time">{reply.created_at}</span>
-                                            </div>
+                            </>
+                        )}
+                    >
+                        <div className="story-reply-list">
+                            {storyReplies.length > 0 ? (
+                                storyReplies.map((reply, idx) => (
+                                    <div key={`reply-${reply.id}-${idx}`} className="story-reply-item">
+                                        <img src={getAvatar(reply.user)} alt={reply.user.name} className="story-reply-avatar" />
+                                        <div className="story-reply-content">
+                                            <span className="story-reply-author">{reply.user.name}</span>
+                                            <p className="story-reply-text">{reply.content}</p>
+                                            <span className="story-reply-time">{reply.created_at}</span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="story-reply-empty">No replies yet</div>
-                                )}
-                            </div>
-                            <form onSubmit={handleReplySubmit} className="story-reply-form">
-                                <textarea
-                                    className="story-reply-input"
-                                    placeholder="Write a reply..."
-                                    value={replyForm.data.content}
-                                    onChange={e => replyForm.setData('content', e.target.value)}
-                                    rows="3"
-                                ></textarea>
-                                <button
-                                    type="submit"
-                                    className="story-reply-submit"
-                                    disabled={replyForm.processing || !replyForm.data.content.trim()}
-                                >
-                                    {replyForm.processing ? (
-                                        <>
-                                            <i className="fas fa-spinner fa-spin me-2"></i>Posting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="fas fa-paper-plane me-2"></i>Reply
-                                        </>
-                                    )}
-                                </button>
-                            </form>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="story-reply-empty">No replies yet</div>
+                            )}
                         </div>
-                    </div>
+                        <form id="story-reply-form" onSubmit={handleReplySubmit} className="story-reply-form">
+                            <textarea
+                                className="tfe-textarea"
+                                placeholder="Write a reply..."
+                                value={replyForm.data.content}
+                                onChange={e => replyForm.setData('content', e.target.value)}
+                                rows="3"
+                            ></textarea>
+                        </form>
+                    </TfeModal>
                 )}
 
                 {/* Ad Slots in Story Viewer - Show occasionally */}

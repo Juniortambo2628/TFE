@@ -247,11 +247,23 @@ class StadiumImageResolutionTest extends TestCase
         $this->assertCount(12, $venues, 'All 12 AFCON grounds should be present.');
 
         $names = array_column($venues, 'name');
-        $this->assertContains('Talanta Sports City Stadium', $names);
+        // Renamed Raila Odinga International Stadium in December 2025. The slug
+        // keeps the old name for continuity (it is the image filename and the
+        // admin override key) but `name` is user-facing and must be current.
+        $this->assertContains('Raila Odinga International Stadium', $names);
+        $this->assertNotContains('Talanta Sports City Stadium', $names);
         $this->assertContains('Amaan Stadium', $names);
 
         // Config order is the presentation order the hero slider inherits.
-        $this->assertSame('Talanta Sports City Stadium', $venues[0]['name']);
+        $this->assertSame('Raila Odinga International Stadium', $venues[0]['name']);
+        $this->assertSame('Talanta Sports City Stadium', $venues[0]['formerly']);
+
+        // The old name must still RESOLVE, because Wikipedia flips between the
+        // two between edits and fixture data may carry either.
+        $this->assertNotNull(
+            $this->service->entryFor('Talanta Sports City Stadium', 'afcon_2027'),
+            'The former name must still resolve to the same ground.'
+        );
     }
 
     public function test_every_catalogue_venue_has_an_image_by_construction(): void

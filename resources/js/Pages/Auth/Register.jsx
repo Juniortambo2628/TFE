@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import '../../../css/register-dark.css';
 import axios from 'axios';
 import AuthLayout from '@/Layouts/AuthLayout';
-import DashboardModal from '@/Components/Common/DashboardModal';
+import TfeModal from '@/Components/Common/TfeModal';
 import { TermsOfService, PrivacyPolicy, CookiePolicy } from '../../Components/LegalDocs';
 import { useTournamentTeams } from '@/Hooks/useTournamentTeams';
 import { useTournament } from '@/Context/TournamentContext';
@@ -214,9 +214,9 @@ export default function Register() {
                 { icon: 'fas fa-earth-africa', label: 'Every tournament' },
             ]}
         >
-            <DashboardModal
+            <TfeModal
                 open={activeModal !== null}
-                onOpenChange={(open) => !open && setActiveModal(null)}
+                onClose={() => setActiveModal(null)}
                 title="Legal Documents"
                 label="Compliance"
                 activeTab={activeModal === 'privacy' ? 'privacy' : (activeModal === 'terms' ? 'terms' : 'cookies')}
@@ -227,12 +227,12 @@ export default function Register() {
                     { id: 'cookies', label: 'Cookie Policy', icon: 'fas fa-cookie-bite' }
                 ]}
             >
-                <div className="modal-body overflow-y-auto" style={{ maxHeight: '80vh' }}>
+                <div>
                     {activeModal === 'privacy' && <PrivacyPolicy />}
                     {activeModal === 'terms' && <TermsOfService />}
                     {activeModal === 'cookies' && <CookiePolicy />}
                 </div>
-            </DashboardModal>
+            </TfeModal>
 
             <form onSubmit={submit} className="tfe-auth__form">
                         <div className="tfe-auth__form-head">

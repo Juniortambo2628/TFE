@@ -7,6 +7,7 @@ use App\Models\PartnerProfile;
 use App\Models\Ticket;
 use App\Models\TicketPurchase;
 use App\Models\User;
+use App\Services\StadiumBowlService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -14,6 +15,8 @@ use Inertia\Inertia;
 
 class TicketController extends Controller
 {
+    public function __construct(private StadiumBowlService $bowls) {}
+
     public function index(Request $request)
     {
         $tournamentId = session('active_tournament_id', config('tournaments.default'));
@@ -21,6 +24,7 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->active()
             ->forTournament($tournamentId)
+            ->with('tiers')
             ->orderBy('kickoff_at')
             ->get()
             ->map(fn (Ticket $t) => $this->format($t));
@@ -35,6 +39,13 @@ class TicketController extends Controller
     {
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
+            // Required where the fixture has tiers, which is every fixture
+            // seeded or created since tiered inventory landed. Left optional
+            // so a legacy untiered row stays purchasable.
+            'ticket_tier_id' => [
+                $ticket->tiers()->exists() ? 'required' : 'nullable',
+                'integer',
+            ],
             'paid_with' => ['nullable', 'string', 'in:card,virtual_card,mpesa'],
         ]);
 
@@ -42,16 +53,44 @@ class TicketController extends Controller
 
         return DB::transaction(function () use ($request, $ticket, $data) {
             $ticket->refresh();
-            if ($ticket->remaining < $data['quantity']) {
-                return back()->withErrors(['quantity' => 'Only '.$ticket->remaining.' seats left.']);
+
+            $tier = null;
+
+            if (! empty($data['ticket_tier_id'])) {
+                // Scoped to THIS fixture's tiers — a tier id is client-supplied
+                // and must never be trusted to belong to the ticket in the URL,
+                // or a fan could buy a cheap tier's price into a dear fixture.
+                $tier = $ticket->tiers()
+                    ->whereKey($data['ticket_tier_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $tier) {
+                    return back()->withErrors(['ticket_tier_id' => 'That seating tier is not available for this match.']);
+                }
             }
 
-            $unit = (float) $ticket->price;
+            $available = $tier ? $tier->remaining : $ticket->remaining;
+
+            if ($available < $data['quantity']) {
+                $where = $tier ? $tier->name.' has' : 'Only';
+
+                return back()->withErrors([
+                    'quantity' => $tier
+                        ? $where.' '.$available.' seats left.'
+                        : 'Only '.$available.' seats left.',
+                ]);
+            }
+
+            // Price comes from the tier, never from the request.
+            $unit = (float) ($tier->price ?? $ticket->price);
             $total = round($unit * $data['quantity'], 2);
 
             $purchase = TicketPurchase::create([
                 'user_id' => $request->user()->id,
                 'ticket_id' => $ticket->id,
+                'ticket_tier_id' => $tier?->id,
+                'tier_name' => $tier?->name,
                 'quantity' => $data['quantity'],
                 'unit_price' => $unit,
                 'total' => $total,
@@ -61,7 +100,15 @@ class TicketController extends Controller
                 'paid_with' => $data['paid_with'] ?? 'card',
             ]);
 
-            $ticket->increment('sold', $data['quantity']);
+            if ($tier) {
+                // The tier owns the count; the parent totals are derived from
+                // it. Never increment `tickets.sold` directly (see
+                // Ticket::syncTierTotals).
+                $tier->increment('sold', $data['quantity']);
+                $ticket->syncTierTotals();
+            } else {
+                $ticket->increment('sold', $data['quantity']);
+            }
 
             return redirect()->route('fan.tickets.purchases')
                 ->with('success', 'Ticket booked — reference '.$purchase->reference);
@@ -79,7 +126,7 @@ class TicketController extends Controller
     {
         return TicketPurchase::query()
             ->where('user_id', $userId)
-            ->with('ticket')
+            ->with('ticket.tiers')
             ->orderByDesc('created_at')
             ->get()
             ->map(function (TicketPurchase $p) {
@@ -92,6 +139,9 @@ class TicketController extends Controller
                     'currency' => $p->currency,
                     'status' => $p->status,
                     'paid_with' => $p->paid_with,
+                    // Snapshot, so a receipt still names its tier after the
+                    // tier row itself is gone.
+                    'tier_name' => $p->tier_name,
                     'created_at' => $p->created_at,
                     'ticket' => $p->ticket ? $this->format($p->ticket) : null,
                 ];
@@ -125,6 +175,26 @@ class TicketController extends Controller
             'sold_pct' => $t->sold_pct,
             'is_sold_out' => $t->is_sold_out,
             'hero_image' => $t->hero_image,
+
+            // Seating tiers drive the purchase picker AND the 3D bowl, which
+            // read the same rows so the map cannot disagree with what is on
+            // sale beside it.
+            'tiers' => $t->tiers->map(fn ($tier) => [
+                'id' => $tier->id,
+                'key' => $tier->key,
+                'name' => $tier->name,
+                'price' => (float) $tier->price,
+                'capacity' => $tier->capacity,
+                'sold' => $tier->sold,
+                'remaining' => $tier->remaining,
+                'sold_pct' => $tier->sold_pct,
+                'is_sold_out' => $tier->is_sold_out,
+            ])->values()->all(),
+
+            // Null for a fixture whose venue is not in the stadium catalogue —
+            // the page then simply omits the bowl.
+            'bowl' => $this->bowls->forTicket($t),
+
             'partner' => $partner ? [
                 'slug' => $partner->slug,
                 'display_name' => $partner->display_name,

@@ -435,257 +435,49 @@
     }
 }
 
-/* ==========================================================================
-   LANDING MODAL — Card detail view
-   Separate from DashboardModal — designed for the landing page only
-   ========================================================================== */
-.landing-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+/* ── Landing card dialog ─────────────────────────────────────────────────
+   The dialog itself is the unified `TfeModal` now (see primitives.css); what
+   remains here is only what is particular to a landing card's content — the
+   hero image and the row of calls to action. Everything else this file used
+   to carry (its own overlay, panel, close button, title, form and CTA
+   treatments) went with LandingModal's own overlay. */
+
+.landing-modal-overview {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1100;
-    padding: 2rem;
-    animation: landing-modal-fade 0.25s ease;
-}
-
-@keyframes landing-modal-fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.landing-modal {
-    background: #0a0a0a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1.25rem;
-    overflow: hidden;
-    max-width: 900px;
-    width: 100%;
-    max-height: 90vh;
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    position: relative;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
-    animation: landing-modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes landing-modal-pop {
-    from {
-        opacity: 0;
-        transform: scale(0.92) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+    flex-direction: column;
+    gap: 18px;
 }
 
 .landing-modal-image {
-    width: 100%;
-    height: 100%;
-    min-height: 480px;
-    object-fit: cover;
     display: block;
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 14px;
 }
 
-.landing-modal-body {
-    padding: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    overflow-y: auto;
-}
-
-.landing-modal-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.landing-modal-tag {
-    padding: 0.3rem 0.75rem;
-    background: rgba(227, 27, 35, 0.85);
-    color: #fff;
-    border-radius: 9999px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: 0.5px;
-}
-
-.landing-modal-title {
-    color: #fff;
-    font-size: 1.85rem;
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.15;
-    text-transform: none;
-    letter-spacing: -0.01em;
-}
-
-.landing-modal-subtitle {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 1rem;
-    margin: 0;
-    line-height: 1.6;
-}
-
-.landing-modal-meta {
-    display: flex;
-    gap: 1.5rem;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.8rem;
-    text-transform: none;
-    letter-spacing: 0.5px;
-    margin-top: -0.25rem;
-}
-
-.landing-modal-description {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.92rem;
-    line-height: 1.7;
-    margin: 0;
-}
-
-.landing-modal-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    align-self: flex-start;
-    margin-top: auto;
-    padding: 0.75rem 1.5rem;
-    background: var(--tfe-red, #e31b23);
-    border: 1px solid var(--tfe-red, #e31b23);
-    color: #fff;
-    border-radius: 9999px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-}
-
-.landing-modal-cta:hover {
-    background: var(--accent-hover, #b80b1e);
-    color: #fff;
-    transform: translateY(-1px);
-}
-
-/* Actions stack: primary CTA + partner funnel link */
 .landing-modal-actions {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.85rem;
-    margin-top: auto;
-    padding-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.landing-modal-actions .landing-modal-cta {
-    margin-top: 0;
-}
-
-/* Contact form inside the dialog (data.form). Fields reuse .tfe-input /
-   .tfe-textarea primitives; this only lays out the stack + success state. */
-.landing-modal-form {
+.landing-modal-tags,
+.landing-modal-meta {
     display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    margin-top: auto;
-    padding-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
 }
 
-.landing-modal-form .tfe-form-label {
-    color: rgba(255, 255, 255, 0.8);
+.landing-modal-meta span {
+    font-size: 0.82rem;
+    color: rgb(255 255 255 / 60%);
 }
 
-.landing-modal-form .tfe-btn {
-    margin-top: 0.25rem;
-    align-self: flex-start;
+.landing-modal-meta span + span::before {
+    content: "·";
+    margin-right: 8px;
+    opacity: 0.5;
 }
 
-.landing-modal-sent {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    margin-top: auto;
-    padding: 1rem 1.15rem;
-    border-radius: 14px;
-    background: rgba(22, 163, 74, 0.14);
-    border: 1px solid rgba(22, 163, 74, 0.4);
-    color: #d1fae5;
-    font-weight: 600;
-    font-size: 0.92rem;
-}
-
-.landing-modal-sent i {
-    font-size: 1.4rem;
-    color: #34d399;
-}
-
-.landing-modal-partner {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.75);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.85rem;
-    transition: color 0.18s ease;
-}
-
-.landing-modal-partner:hover {
-    color: #ef4050;
-}
-
-.landing-modal-partner iconify-icon {
-    font-size: 1rem;
-}
-
-.landing-modal-close {
-    position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1rem;
-    z-index: 2;
-    transition: all 0.2s ease;
-}
-
-.landing-modal-close:hover {
-    background: rgba(227, 27, 35, 0.85);
-    border-color: rgba(227, 27, 35, 0.85);
-    transform: rotate(90deg);
-}
-
-@media (max-width: 768px) {
-    .landing-modal {
-        grid-template-columns: 1fr;
-        grid-template-rows: 240px 1fr;
-        max-height: 95vh;
-    }
-
-    .landing-modal-image {
-        min-height: 240px;
-    }
-
-    .landing-modal-body {
-        padding: 1.75rem;
-    }
-
-    .landing-modal-title {
-        font-size: 1.5rem;
-    }
-}

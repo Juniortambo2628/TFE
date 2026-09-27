@@ -19,28 +19,28 @@ import { TournamentProvider } from '@/Context/TournamentContext';
 
 const EXPERIENCES = [
     {
-        image: 'assets/img/backdrops/plane-square.jpg',
+        image: '/assets/img/backdrops/plane-square.jpg',
         title: 'Private Yacht Tours',
         subtitle: 'Coastal match-day cruise experiences',
         tags: ['VIP', 'Cruise'],
         description: 'Sail into match day in style. Private charters along the host coastline with onboard hospitality, transfers to the stadium and a skipper who knows the fixtures. Ideal for groups celebrating a milestone trip.',
     },
     {
-        image: 'assets/img/backdrops/field-spotlight.jpg',
+        image: '/assets/img/backdrops/field-spotlight.jpg',
         title: 'Stadium Pitch Walks',
         subtitle: 'Walk the turf before kick-off',
         tags: ['Pitch Walk', 'Exclusive'],
         description: 'Get closer than the front row. Guided pitch-side access before selected fixtures, with photo opportunities in the tunnel and dugout — a bucket-list moment for any fan.',
     },
     {
-        image: 'assets/img/IMG-15.jpg',
+        image: '/assets/img/IMG-15.jpg',
         title: 'Luxury Stays',
         subtitle: 'Curated 4-5 star properties',
         tags: ['4-5 Star', 'Luxury'],
         description: 'Hand-picked 4 and 5 star hotels within easy reach of the stadiums, with flexible check-in around kick-off times and rates negotiated for travelling fans.',
     },
     {
-        image: 'assets/img/backdrops/argentina-fans.jpg',
+        image: '/assets/img/backdrops/argentina-fans.jpg',
         title: 'Fan Meetups',
         subtitle: 'Connect with travelling fans',
         tags: ['Community', 'Meetups'],
@@ -48,7 +48,7 @@ const EXPERIENCES = [
     },
 ];
 
-export default function Home({ appName }) {
+export default function Home({ appName, venueBowls = [] }) {
     const [experienceModal, setExperienceModal] = useState(null);
 
     // Global Initializations
@@ -94,7 +94,7 @@ export default function Home({ appName }) {
             <Header />
 
             <div className="page-wrapper overflow-hidden bg-black text-white">
-                <Hero />
+                <Hero venueBowls={venueBowls} />
 
                 {/* Top Ad Space */}
                 <div className="container my-5">
