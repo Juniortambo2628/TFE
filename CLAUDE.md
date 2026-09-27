@@ -62,7 +62,42 @@ Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder` +
 | Airline partner | `airline@tfe.com`   | password | Simba Air (`airline`), red #dc2626 |
 | Betting partner | `betting@tfe.com`   | password | GoalBet (`sponsor`), green #16a34a |
 | Ticketing partner | `ticketing@tfe.com` | password | MatchDay Africa (`ticketing_partner`), violet #8b5cf6 |
-| Demo fan        | `fan@tfe.com`       | password | Seeded ad-hoc; use for shots       |
+| Demo fan        | `fan@tfe.com`       | password | `DemoFanActivitySeeder`; use for shots |
+| Other demo fans | `amina@` `joseph@` `fatima@` `tunde@` `grace@` `samir@` `tfe.com` | password | Cohort behind the tribes, queues and sales |
+
+### Demo data (Sprint 59)
+
+`php artisan migrate:fresh --force --seed` now produces a platform with
+something on every surface. Two seeders do it, and both are **deterministic
+on purpose** — no Faker, so a screenshot is reproducible and two runs are
+comparable.
+
+- **`DemoAfconFixturesSeeder`** — 52 AFCON 2027 fixtures (6 groups of 4, then
+  a 16-team bracket). Before it, all 104 seeded fixtures belonged to
+  `wc_2026`, which is `concluded` and so cannot be the active tournament
+  (Sprint 53) — while the DEFAULT tournament is `afcon_2027`, which had
+  none. The Budget Calculator's match step, the Match Schedule and the
+  Itinerary Map were all empty out of the box.
+  Venues are stored by NAME (what `Fixture::venue` holds and what
+  `StadiumImageService` alias-matches); all 11 resolve to both an image and a
+  bowl slug. **Kipchoge Keino is never scheduled** — it is catalogued
+  `is_alternate`, a 15,000-seat training ground.
+- **`DemoFanActivitySeeder`** — 7 fans, 8 budgets, 4 bookings, 4 savings
+  goals, 5 loan applications, 16 ticket purchases, 4 tribes (one per privacy
+  mode) with members and posts. This is also what fills the PARTNER
+  dashboards, since a Convert queue *is* the budgets whose fan picked that
+  partner's listing.
+
+Both are idempotent, and both route through the methods that own
+denormalized counts — `Tribe::addMember()`/`syncCounts()`, and the tier
+increment plus `Ticket::syncTierTotals()` that the real purchase flow uses.
+Ticket purchases are guarded on `reference` so a re-run cannot double-count
+seats sold.
+
+**A seeder that writes fixtures MUST call `FixtureService::clearCache()`.**
+`getFixtures()` caches an empty list as readily as a full one, so without it
+the install you just seeded still reads "No matches found" until the TTL
+lapses. `FixtureService::cacheKey()` is the one place that key is built.
 
 Public hubs to demo: `/partners/serengeti-sports-travel`,
 `/partners/ecobank-fan-finance`, `/partners/simba-air`,
@@ -1563,6 +1598,23 @@ tests/
   `team_flag_codes` resolved to nothing and silently vanished from the fan's
   team list. Fall back to `Data/countries.js`, which has an ISO code for all
   235 (Sprint 56).
+- Never write to `fixtures` without calling `FixtureService::clearCache()`.
+  `getFixtures()` caches an EMPTY list as readily as a full one, so the
+  install you just seeded reads "No matches found" until the TTL lapses —
+  and the seeder looks like it did nothing (Sprint 59).
+- Never seed a `LoanApplication` status in lowercase. The app writes
+  `'PENDING'` and the review endpoint validates
+  `in:APPROVED,REJECTED,DISBURSED`, so the finance dashboard counts
+  UPPERCASE — lowercase gives a queue full of rows above tiles that all
+  read zero (Sprint 59).
+- Never use Faker in a demo seeder. A demo you screenshot must look the same
+  on every machine and every re-seed, or visual regressions hide in the noise
+  and no two screenshots can be compared. Fixed data, `updateOrCreate`
+  (Sprint 59).
+- Never seed a denormalized count by writing the column. Go through
+  `Tribe::addMember()`/`syncCounts()` and the tier increment +
+  `Ticket::syncTierTotals()` that the real flows use, or the seeder
+  reintroduces exactly the drift those methods exist to prevent (Sprint 59).
 - Never hand-roll a progress bar, a numbered step run, or a "Step X of Y"
   caption. Use `StepFlow` (`inline` in a wizard, `docked` for a pinned
   explanatory bar). Four parallel versions is what Sprint 59 had to unpick,
@@ -1713,7 +1765,7 @@ tests/
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 | 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
 | 58     | Landing hero stopped fabricating seat availability (`deriveSoldPct` deleted) and then moved onto the real 3D `StadiumBowl` like every other surface — the SVG `StadiumSeatMap` is gone entirely, and the lazy canvas boundary means the landing bundle pays ~6KB rather than the 578KB that had been assumed and every bare `assets/…` constant in the client got its leading slash back with a test that scans for regressions. One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
-| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had; then all four parallel indicators migrated onto it — Register's hand-rolled progress bar (whose `completed` style was dead CSS, so a finished step looked like the current one) and the financing wizard's bare "Step X of Y", with the ticket purchase modal deliberately left on `TfeModal`'s tab rail |
+| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had; then all four parallel indicators migrated onto it — Register's hand-rolled progress bar (whose `completed` style was dead CSS, so a finished step looked like the current one) and the financing wizard's bare "Step X of Y", with the ticket purchase modal deliberately left on `TfeModal`'s tab rail; then demo data so every surface has something on it — 52 AFCON 2027 fixtures (the default tournament had none, since all 104 seeded fixtures belonged to the concluded wc_2026) and a fan cohort whose budgets, loans, ticket purchases and tribes are also what fill the three partner dashboards |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

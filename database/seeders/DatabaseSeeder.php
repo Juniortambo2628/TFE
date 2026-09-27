@@ -36,6 +36,14 @@ class DatabaseSeeder extends Seeder
             DemoExtraPartnersSeeder::class,
             DemoTicketingPartnerSeeder::class,
             DemoPartnerOfferingsSeeder::class,
+
+            // Order matters below. Fixtures first — the default tournament
+            // is afcon_2027 and had none, since every seeded fixture
+            // belonged to the concluded wc_2026. Fan activity last: it
+            // reads the partner listings seeded above to put budgets in the
+            // right Convert queues.
+            DemoAfconFixturesSeeder::class,
+            DemoFanActivitySeeder::class,
         ]);
     }
 }

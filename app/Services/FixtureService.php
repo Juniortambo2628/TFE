@@ -23,6 +23,35 @@ class FixtureService
     ) {}
 
     /**
+     * Cache key for a tournament's resolved fixture list.
+     *
+     * The ONE place the key is built. Anything that invalidates the list
+     * must go through cacheKey()/clearCache() rather than rebuilding the
+     * md5 itself — a second copy of the format drifts the moment the source
+     * resolution changes, and the symptom is a page that silently shows no
+     * matches.
+     */
+    public static function cacheKey(string $tournamentId): string
+    {
+        $source = config("tournaments.tournaments.{$tournamentId}.data_source", 'database');
+
+        return "fixtures:{$tournamentId}:".md5($source);
+    }
+
+    /**
+     * Drop a tournament's cached fixture list.
+     *
+     * Call this after writing to the `fixtures` table. `getFixtures()`
+     * caches an EMPTY result just as readily as a full one, so a seeder that
+     * inserts a schedule without clearing this leaves the very install it
+     * just populated showing "No matches found" until the TTL lapses.
+     */
+    public static function clearCache(string $tournamentId): void
+    {
+        Cache::forget(self::cacheKey($tournamentId));
+    }
+
+    /**
      * Get all fixtures for a tournament in standardized format.
      */
     public function getFixtures(string $tournamentId): array
@@ -34,7 +63,7 @@ class FixtureService
 
         $source = $config['data_source'] ?? 'database';
         $ttl = $this->tournamentService->ttlFor($config);
-        $cacheKey = "fixtures:{$tournamentId}:".md5($source);
+        $cacheKey = self::cacheKey($tournamentId);
 
         return Cache::remember($cacheKey, $ttl, function () use ($source, $config, $tournamentId) {
             $fixtures = match ($source) {
