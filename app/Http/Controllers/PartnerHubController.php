@@ -183,7 +183,38 @@ class PartnerHubController extends Controller
             'listings' => $listings,
             'tickets' => $tickets,
             'features' => $this->featuresFor($profile),
+            'steps' => self::stepsFor($profile->user->partner_type),
         ]);
+    }
+
+    /**
+     * The fan-to-delivery pipeline as this partner archetype actually runs
+     * it, for the hub's docked StepFlow bar.
+     *
+     * Lives here rather than in the client because it is partner-specific
+     * copy, exactly like featuresFor() above — and because a hardcoded
+     * array in the page component is what this replaced: every partner,
+     * from an airline to a betting sponsor, was told the fan would receive
+     * a "Trip delivered".
+     *
+     * Types with no entry fall back to the travel pipeline, which is the
+     * shape club / federation / destination / event_organiser partners all
+     * follow. Step counts other than four are fine — the primitive numbers
+     * and separates whatever it is given.
+     */
+    public static function stepsFor(?string $partnerType): array
+    {
+        $flows = [
+            'finance_partner' => ['Trip costed', 'Finance request', 'Credit decision', 'Funds released'],
+            'ticketing_partner' => ['Match listed', 'Seat + tier picked', 'Secure payment', 'Ticket issued'],
+            'airline' => ['Route published', 'Fan picks flight', 'Fare confirmed', 'Booking issued'],
+            'hotel_provider' => ['Rooms listed', 'Dates chosen', 'Rate confirmed', 'Stay booked'],
+            'sponsor' => ['Campaign live', 'Fan engages', 'Reward credited'],
+        ];
+
+        $steps = $flows[$partnerType] ?? ['Fan brief', 'Your quote', 'Payment', 'Trip delivered'];
+
+        return array_map(fn (string $title) => ['title' => $title], $steps);
     }
 
     /**

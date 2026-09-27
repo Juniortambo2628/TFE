@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
+import StepFlow from '@/Components/Common/StepFlow';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
 import '../../css/tickets.css';
@@ -18,7 +19,7 @@ import '../../css/virtual-card.css';
  * the shared AccentCard. A slim "How it works" strip stays pinned to the
  * bottom of the viewport until the footer scrolls into view.
  */
-export default function PartnerHub({ profile, listings = [], tickets = [], features = [] }) {
+export default function PartnerHub({ profile, listings = [], tickets = [], features = [], steps = [] }) {
     const { assetUrl } = usePage().props;
     const accent = profile?.theme_accent || '#dc143c';
     const heroBg = profile?.hero_image
@@ -211,9 +212,10 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                 <Footer />
             </div>
 
-            {/* Slim, sticky "How it works" strip — pinned to the bottom of
-                the viewport until the footer scrolls into view. */}
-            <HowItWorksBar accent={accent} />
+            {/* Slim, docked "How it works" strip — the steps are this
+                partner archetype's own pipeline, from the server's
+                PartnerHubController::stepsFor(). */}
+            <StepFlow steps={steps} label="How it works" accent={accent} />
         </TournamentProvider>
     );
 }
@@ -307,63 +309,5 @@ function HowWeSupportStrip({ accent }) {
                 </div>
             </div>
         </section>
-    );
-}
-
-/**
- * HowItWorksBar — the fan-to-delivery pipeline as a slim glass bar pinned
- * to the bottom of the viewport. It appears once the user scrolls past the
- * hero and slides away when the footer enters view so it never covers it.
- */
-function HowItWorksBar({ accent }) {
-    const [visible, setVisible] = useState(false);
-
-    const steps = [
-        { n: 1, title: 'Fan brief' },
-        { n: 2, title: 'Partner quote' },
-        { n: 3, title: 'Payment' },
-        { n: 4, title: 'Delivery' },
-    ];
-
-    useEffect(() => {
-        const footer = document.querySelector('.tfe-footer, .footer');
-        let footerVisible = false;
-
-        const io = footer
-            ? new IntersectionObserver(
-                  ([entry]) => { footerVisible = entry.isIntersecting; update(); },
-                  { threshold: 0 }
-              )
-            : null;
-        if (io && footer) io.observe(footer);
-
-        const update = () => {
-            setVisible(window.scrollY > 320 && !footerVisible);
-        };
-        const onScroll = () => window.requestAnimationFrame(update);
-        window.addEventListener('scroll', onScroll, { passive: true });
-        update();
-
-        return () => {
-            window.removeEventListener('scroll', onScroll);
-            if (io) io.disconnect();
-        };
-    }, []);
-
-    return (
-        <div className={'partner-hub-hiw' + (visible ? ' is-visible' : '')} style={{ '--partner-accent': accent }} aria-hidden={!visible}>
-            <div className="partner-hub-hiw__inner">
-                <span className="partner-hub-hiw__label">How it works</span>
-                <ol className="partner-hub-hiw__steps">
-                    {steps.map((s, i) => (
-                        <li key={s.n} className="partner-hub-hiw__step">
-                            <span className="partner-hub-hiw__num">{s.n}</span>
-                            <span className="partner-hub-hiw__title">{s.title}</span>
-                            {i < steps.length - 1 && <i className="fas fa-chevron-right partner-hub-hiw__sep"></i>}
-                        </li>
-                    ))}
-                </ol>
-            </div>
-        </div>
     );
 }
