@@ -5,7 +5,7 @@ import TfeModal from '@/Components/Common/TfeModal';
 import { useTournament } from '@/Context/TournamentContext';
 import { TEAM_CODES, TEAM_NAMES, TEAM_NAME_VARIATIONS } from '@/Data/countryFlags';
 import HeroWorldMap from '@/Components/HeroWorldMap';
-import StadiumSeatMap from '@/Components/Fan/StadiumSeatMap';
+import StadiumBowl from '@/Components/Common/StadiumBowl';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import { resolveStadiumImage, preloadImage } from '@/Data/stadiumImages';
@@ -28,20 +28,9 @@ const calculateTimeLeft = (targetDate) => {
 
 
 
-// Parse a capacity value that arrived as either a number or a string like
-// "82,500" or "~68,000 (expandable)". Falls back to `fallback` on unparsable input.
-function parseCapacity(raw, fallback) {
-    if (raw === null || raw === undefined) return fallback;
-    if (typeof raw === 'number' && !Number.isNaN(raw)) return raw;
-    var digits = String(raw).replace(/[^\d]/g, '');
-    var n = parseInt(digits, 10);
-    return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
 // Capacity for display. The catalogue stores a plain integer (60000) while
 // Wikipedia used to hand us a pre-formatted string ("60,000"), so normalise to
-// the grouped form here. parseCapacity() reads either shape, so the numeric
-// consumers (the seat map) are unaffected.
+// the grouped form here.
 function formatCapacity(raw) {
     if (raw === null || raw === undefined || raw === '') return 'TBD';
     if (typeof raw === 'number' && Number.isFinite(raw)) return raw.toLocaleString('en-US');
@@ -700,32 +689,33 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                         var bowl = bowlForVenue(activeStadium);
                         var live = !!(bowl && bowl.has_inventory);
 
+                        // The same 3D bowl the fan surfaces draw. It costs the
+                        // landing page nothing until this tab is opened:
+                        // StadiumBowl owns a React.lazy boundary, so `three`
+                        // only downloads once the component actually mounts.
+                        if (!bowl) {
+                            return (
+                                <div className="p-4">
+                                    <div className="tfe-empty tfe-empty--inline">
+                                        <div className="tfe-empty__icon"><i className="fas fa-chair" /></div>
+                                        <div className="tfe-empty__title">No seating data for this ground</div>
+                                        <p className="tfe-empty__body">
+                                            {activeStadium.name || 'This venue'} is not in the stadium catalogue yet.
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        }
+
                         return (
                             <div className="p-4">
-                                <div className="mb-3">
-                                    <h5 className="text-white fs-6 mb-1">
-                                        <i className="fas fa-chair text-warning me-2"></i>
-                                        {live ? 'Seat availability' : 'Seating layout'}
-                                    </h5>
-                                    <p className="text-white text-opacity-50 small mb-0">
-                                        {live
-                                            ? 'How this ground is filling up — hover a block for tier, price and seat count.'
-                                            : 'How this ground is laid out — hover a block for tier, price and seat count.'}
-                                    </p>
-                                </div>
-                                <StadiumSeatMap
-                                    stadiumName={activeStadium.name || 'Stadium'}
-                                    capacity={parseCapacity((bowl && bowl.capacity) || activeStadium.capacity, 60000)}
-                                    soldPct={live ? bowl.sold_pct : null}
-                                    currency={(bowl && bowl.currency) || tournament?.pricing?.currency || 'USD'}
-                                    basePrice={tournament?.pricing?.ticket_prices?.['Group Stage'] || 150}
-                                />
-                                <p className="text-white text-opacity-40 small mt-3 mb-0">
-                                    <i className="fas fa-info-circle me-1"></i>
-                                    {live
+                                <StadiumBowl
+                                    bowls={bowl}
+                                    height={380}
+                                    note={live
                                         ? 'Based on tickets sold through TFE. Actual section allocation is confirmed on booking.'
-                                        : 'No fixtures are on sale at this ground yet — availability appears here once they are.'}
-                                </p>
+                                        : undefined}
+                                />
                             </div>
                         );
                     })()}

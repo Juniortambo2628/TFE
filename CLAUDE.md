@@ -329,14 +329,15 @@ tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
 
 `Components/Common/StadiumBowl` is the ONE seat map. A parametric Three.js
 bowl — four concentric tiers on a real rounded-rectangle footprint, per-venue
-roof, per-tier occupancy — replacing the procedural SVG `Fan/StadiumSeatMap`
-on every fan surface. Mounted on:
+roof, per-tier occupancy. It replaced the procedural SVG `Fan/StadiumSeatMap`
+**everywhere** — that component is deleted, not deprecated. Mounted on:
 
 | surface | payload | occupancy |
 |---------|---------|-----------|
 | `Fan/Tickets/Index` purchase modal | one fixture (`forTicket`) | real, and **it is the tier picker** |
 | `Fan/BudgetCalculator` results | every venue (`forTournament`, deferred) | real, aggregated |
 | `Fan/PackageDetail` | the package's venues | real, aggregated |
+| **Landing hero** venue dialog | every venue (`forTournament`, deferred) | real, aggregated |
 
 **The bowl is a GENERIC parametric shape, not an architectural replica.**
 Public blueprints do not exist for most AFCON 2027 grounds (several are still
@@ -374,15 +375,19 @@ a figure when they had none: PackageDetail passed the package's own
 availability as if it were the ground's, and `Hero.jsx` hashed the stadium NAME
 into a 20-85% "urgency signal" presented as a "Live indicative view".
 
-**The public landing hero keeps the lightweight SVG `Fan/StadiumSeatMap`** — a
-WebGL canvas has no business in the landing hero — but it is fed real data now
-(Sprint 58). `HomeController::index` defers `venueBowls` from the same
-`StadiumBowlService::forTournament()`, `Hero` matches a slide to its payload on
-the resolved image url, and `StadiumSeatMap` takes **`soldPct = null` meaning
-unknown**: no heat overlay, no "Sold" key, no percentage in the caption or the
-tooltip, and the heading reads "Seating layout" rather than "Seat availability".
-Null, never 0 — zero paints an empty stadium, which is as much a claim as a
-full one.
+**The landing hero draws it too** (Sprint 58). Sprint 57 left the hero on the
+old SVG map to keep `three` off the landing bundle — that reasoning was wrong:
+`StadiumBowl` owns the `React.lazy` boundary, so the 578KB canvas chunk only
+downloads when the venue dialog's Seat Map tab is actually opened. The landing
+page's initial bundle gains the ~6KB wrapper and nothing else (verified: the
+`Home` chunk contains zero `three` symbols and the canvas chunk is not
+requested on load).
+
+`HomeController::index` defers `venueBowls` from `StadiumBowlService::forTournament()`
+and `Hero` matches a slide to its payload on the **resolved image url** — the
+shared `stadiumImages` map already indexes every alias to the same url a bowl
+payload carries, so this reuses the server's alias table rather than growing a
+second copy. A venue with no payload renders an empty state, never a guess.
 
 ### Tiered ticket inventory (Sprint 57)
 
@@ -1291,7 +1296,7 @@ resources/
                #   PoweredByBadge, MetricTile, CapacityBar, TournamentPill,
                #   TournamentSwitcher, DashboardHeader, HeaderDropdown)
       Fan/     # fan-only pieces (PackagePicker, FinanceThisTrip,
-               #   ActiveLoanTile, ItineraryMap, StadiumSeatMap, …)
+               #   ActiveLoanTile, ItineraryMap, MatchCard, …)
       Admin/   # admin sidebar, toolbar, category card
       Partner/ # partner sidebar, LoanReviewPanel
     Layouts/
@@ -1527,10 +1532,16 @@ tests/
 - Never show an occupancy percentage for a venue with no ticket rows. Read
   `has_inventory` and render capacities instead. Inventing one is what
   `Hero.jsx`'s `deriveSoldPct()` did — it hashed the stadium NAME into a
-  20-85% "urgency signal" and labelled it "Live". Deleted in Sprint 58; the
-  landing hero now takes real `venueBowls` and `StadiumSeatMap` accepts
-  `soldPct = null` for unknown. Pass null, never 0 — an empty stadium is a
-  claim too (Sprint 57/58).
+  20-85% "urgency signal" and labelled it "Live". Deleted in Sprint 58, along
+  with the SVG `StadiumSeatMap` it fed — the landing hero draws the real
+  `StadiumBowl` on real `venueBowls` now. Where occupancy is genuinely unknown
+  pass null, never 0: an empty stadium is a claim too (Sprint 57/58).
+- Never keep a second, lesser version of a component "for bundle reasons"
+  without checking the bundle. The landing hero was left on the old SVG seat
+  map to keep `three` off the landing page, but `StadiumBowl` already lazy-loads
+  its canvas — the cost was ~6KB, not 578KB, and the platform carried two seat
+  maps and two visual languages for a sprint over an assumption nobody measured
+  (Sprint 58).
 - Never leave a default prop value to drift from the config it mirrors. The
   four landing section components and `Home.jsx` kept bare `assets/img/…`
   constants after Sprint 49 rooted `config/site_sections.php`, because those
@@ -1616,7 +1627,7 @@ tests/
 | 55     | Peeps link-out for 3D avatars (UI8's hosted builder, kept out-of-product for licence reasons) + alpha preserved end-to-end through the cropper so a cut-out avatar shows the team ring through it |
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 | 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
-| 58     | Landing hero stopped fabricating seat availability (`deriveSoldPct` deleted; real `venueBowls` deferred from `StadiumBowlService`, `StadiumSeatMap` gained a null = unknown mode) and every bare `assets/…` constant in the client got its leading slash back with a test that scans for regressions. One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
+| 58     | Landing hero stopped fabricating seat availability (`deriveSoldPct` deleted) and then moved onto the real 3D `StadiumBowl` like every other surface — the SVG `StadiumSeatMap` is gone entirely, and the lazy canvas boundary means the landing bundle pays ~6KB rather than the 578KB that had been assumed and every bare `assets/…` constant in the client got its leading slash back with a test that scans for regressions. One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 
