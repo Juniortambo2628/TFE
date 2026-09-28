@@ -18,7 +18,7 @@ class AdminUserSeeder extends Seeder
             ['email' => 'admin@tfe.com'],
             [
                 'name' => 'System Admin',
-                'password' => Hash::make('password'), // Change in production
+                'password' => Hash::make(DemoCredentials::password()), // Change in production
                 'email_verified_at' => now(),
                 'is_admin' => true,
                 'is_partner' => false,

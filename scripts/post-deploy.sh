@@ -58,6 +58,30 @@ echo "─── Running migrations ───"
 php artisan migrate --force
 
 # ─────────────────────────────────────────────
+# 4b. SEED
+# ─────────────────────────────────────────────
+# Every seeder is idempotent (updateOrCreate / firstOrCreate throughout), so
+# this re-runs safely on each deploy and brings new reference and demo data
+# with the release that added it.
+#
+# Deliberately NOT fatal. `set -e` is on, and a seeder that throws would
+# abort the deploy here — after the caches were cleared in step 3 and before
+# they are rebuilt in step 5, which leaves the site slower and half-configured
+# over data that is not what anyone came to the site for. It fails loudly in
+# the Actions log instead.
+#
+# Seeded accounts take their password from DEMO_ACCOUNT_PASSWORD (see
+# config/app.php). Leave it unset and they are all `password`, which on a
+# reachable site is a known credential for the admin account.
+echo "─── Seeding ───"
+if php artisan db:seed --force; then
+  echo "Seeding complete."
+else
+  echo "!!! SEEDING FAILED — deploy continues, but demo/reference data may be stale."
+  echo "!!! Run 'php artisan db:seed --force' manually and read the error above."
+fi
+
+# ─────────────────────────────────────────────
 # 5. REBUILD CACHES
 # ─────────────────────────────────────────────
 echo "─── Rebuilding caches ───"

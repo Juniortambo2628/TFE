@@ -87,7 +87,7 @@ class DemoExtraPartnersSeeder extends Seeder
         $partner = User::firstOrCreate(
             ['email' => $data['email']],
             array_merge($data, [
-                'password' => Hash::make('password'),
+                'password' => Hash::make(DemoCredentials::password()),
                 'email_verified_at' => now(),
                 'is_admin' => false,
                 'is_partner' => true,

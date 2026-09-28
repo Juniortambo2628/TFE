@@ -190,7 +190,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                                     <div key={l.id} className="col-md-6 col-lg-4 col-xl-3">
                                         <AccentCard
                                             LinkComponent={Link}
-                                            href={route('fan.packages.show', l.id)}
+                                            href={route('listings.show', l.id)}
                                             accent={accent}
                                             artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
                                             status={l.tournament_short || undefined}
