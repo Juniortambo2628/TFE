@@ -7,6 +7,7 @@ import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
 import StadiumImageCard from '@/Components/Admin/StadiumImageCard';
 import { Link, router, usePage } from '@inertiajs/react';
 import { assetPath } from '@/lib/assets';
+import { titleCase } from '@/lib/utils';
 
 /**
  * Admin → Tournaments → edit one tournament.
@@ -123,7 +124,7 @@ export default function TournamentEdit({ tournament, fields, isFeatured, venues 
                             title={tournament.name}
                             eyebrow={tournament.short_name || tournament.id}
                             desc={tagline || fields.tagline.default}
-                            status={tournament.status}
+                            status={titleCase(tournament.status)}
                             bgImage={previewFor('organizer_card_bg') || undefined}
                             artwork={previewFor('trophy_image')
                                 ? { src: previewFor('trophy_image'), alt: '', variant: 'float' }

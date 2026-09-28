@@ -15,6 +15,7 @@ const ROLE_LABEL = {
     event_organiser: 'Event Organiser',
     sponsor: 'Sponsor',
     ticketing_partner: 'Ticketing Partner',
+    school_community: 'Schools & Communities',
 };
 
 export default function PartnerSidebar({ user }) {

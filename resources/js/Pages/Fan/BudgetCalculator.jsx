@@ -11,6 +11,7 @@ import PackagePicker from '@/Components/Fan/PackagePicker';
 import AccentCard from '@/Components/Common/AccentCard';
 import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
 import StadiumBowl from '@/Components/Common/StadiumBowl';
+import StepFlow from '@/Components/Common/StepFlow';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
 import '../../../css/fan/travel-preferences-wizard.css';
@@ -100,6 +101,31 @@ export default function BudgetCalculator({
     const [showResults, setShowResults] = useState(false);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    // Wizard progress — the labelled run for the StepFlow bar, plus the
+    // 1-based cursor into it. Step 0 (the package picker) only exists when
+    // this tournament has packages, so both the list and the cursor shift
+    // by one with it; `showResults` is the last position, since the summary
+    // is somewhere the fan arrives rather than a state outside the flow.
+    const hasPackageStep = Boolean(packages && packages.length > 0);
+    const wizardStepLabels = [
+        hasPackageStep ? { title: 'Start', icon: 'fas fa-layer-group' } : null,
+        { title: 'Approach', icon: 'fas fa-futbol' },
+        { title: 'Matches', icon: 'fas fa-calendar-check' },
+        { title: 'Travel', icon: 'fas fa-suitcase-rolling' },
+        { title: 'Flights + stay', icon: 'fas fa-plane' },
+        { title: 'Summary', icon: 'fas fa-receipt' },
+    ].filter(Boolean);
+    // Clamped because a tournament with no packages starts at wizardStep 0
+    // for the one frame before the skip effect moves it to 1 — position 0
+    // is not a step in that list, and reading as "not started" would be a
+    // visible flicker on every load.
+    const wizardCursor = showResults
+        ? wizardStepLabels.length
+        : Math.min(
+            Math.max(wizardStep + (hasPackageStep ? 1 : 0), 1),
+            wizardStepLabels.length,
+        );
     
     // Quick Estimate Mode (for tournaments without fixtures)
     const [quickEstimate, setQuickEstimate] = useState(false);
@@ -906,6 +932,18 @@ export default function BudgetCalculator({
                         </div>
                     </div>
                 </DashboardHero>
+
+                {/* Wizard progress. The package picker (step 0) is only
+                    reachable when this tournament has packages, so it joins
+                    the run conditionally and the cursor shifts with it —
+                    numbering a step the fan can never visit would misreport
+                    how far along they are. */}
+                <StepFlow
+                    variant="inline"
+                    className="mb-4"
+                    steps={wizardStepLabels}
+                    cursor={wizardCursor}
+                />
 
                 {/* Wizard Step 0: Package picker — fast-path prepacked options.
                     Only rendered when packages exist for this tournament and the

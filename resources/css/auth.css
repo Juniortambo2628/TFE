@@ -249,7 +249,9 @@
 }
 
 /* Compact spacing overrides scoped to the fitted register card. */
-.tfe-auth__card--fit .progress-indicator { margin-bottom: 0.5rem !important; }
+/* Margin only — the fit card tightens spacing, it does not restyle the
+   StepFlow primitive itself. */
+.tfe-auth__card--fit .tfe-stepflow { margin-bottom: 0.5rem !important; }
 .tfe-auth__card--fit .social-login-section { margin-bottom: 0.75rem !important; }
 .tfe-auth__card--fit .social-login-section .divider { margin: 0.85rem 0 !important; }
 .tfe-auth__card--fit .form-step h3 { margin-bottom: 1rem !important; font-size: 1rem; }

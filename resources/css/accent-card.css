@@ -162,9 +162,13 @@
     margin-bottom: 0.4rem;
 }
 
+/* No text-transform: the callsite decides case, as it does for .tfe-btn.
+   `capitalize` here re-cased every written label it was handed — a category
+   of "Running a club" rendered as "Running A Club" — because it exists only
+   to prettify the raw lowercase status slugs two admin pages pass. Those
+   two now pass a label instead. */
 .tfe-acard__status {
     align-self: flex-start;
-    text-transform: capitalize;
 }
 
 .tfe-acard__eyebrow {

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import TfeModal from '@/Components/Common/TfeModal';
+import StepFlow from '@/Components/Common/StepFlow';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 import { formatMoney } from '@/lib/utils';
 
@@ -174,7 +175,15 @@ export default function RequestFinancingWizard({
         );
     }
 
-    const totalSteps = partners.length > 1 ? 3 : 2;
+    // The partner step only exists when there is a choice to make, so it
+    // joins the run conditionally — offering a step the fan will never see
+    // would overstate how much is left.
+    const wizardSteps = [
+        { title: 'Budget', icon: 'fas fa-wallet' },
+        partners.length > 1 ? { title: 'Partner', icon: 'fas fa-handshake' } : null,
+        { title: 'Review', icon: 'fas fa-file-signature' },
+    ].filter(Boolean);
+    const totalSteps = wizardSteps.length;
     const isBudgetStep = step === 1;
     const isPartnerStep = step === 2 && partners.length > 1;
     const isConsentStep = step === totalSteps;
@@ -187,8 +196,7 @@ export default function RequestFinancingWizard({
             onClose={close}
             size="md"
             footer={
-                <div className="d-flex justify-content-between align-items-center w-100">
-                    <span className="text-white-50 small">Step {step} of {totalSteps}</span>
+                <div className="d-flex justify-content-end align-items-center w-100">
                     <div className="d-flex gap-2">
                         {step > 1 && (
                             <button type="button" onClick={() => setStep(step - 1)} className="tfe-btn">
@@ -219,6 +227,14 @@ export default function RequestFinancingWizard({
                 </div>
             }
         >
+            <StepFlow
+                variant="inline"
+                className="mb-4"
+                label={`Step ${step} of ${totalSteps}`}
+                steps={wizardSteps}
+                cursor={step}
+            />
+
             {isBudgetStep && (
                 <StepPickBudget
                     options={options}

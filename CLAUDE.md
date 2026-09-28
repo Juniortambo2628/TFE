@@ -62,7 +62,43 @@ Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder` +
 | Airline partner | `airline@tfe.com`   | password | Simba Air (`airline`), red #dc2626 |
 | Betting partner | `betting@tfe.com`   | password | GoalBet (`sponsor`), green #16a34a |
 | Ticketing partner | `ticketing@tfe.com` | password | MatchDay Africa (`ticketing_partner`), violet #8b5cf6 |
-| Demo fan        | `fan@tfe.com`       | password | Seeded ad-hoc; use for shots       |
+| Demo fan        | `fan@tfe.com`       | password | `DemoFanActivitySeeder`; use for shots |
+| Schools partner | `schools@tfe.com`   | password | East Africa Schools Sports (`school_community`), green #15803d |
+| Other demo fans | `amina@` `joseph@` `fatima@` `tunde@` `grace@` `samir@` `tfe.com` | password | Cohort behind the tribes, queues and sales |
+
+### Demo data (Sprint 59)
+
+`php artisan migrate:fresh --force --seed` now produces a platform with
+something on every surface. Two seeders do it, and both are **deterministic
+on purpose** — no Faker, so a screenshot is reproducible and two runs are
+comparable.
+
+- **`DemoAfconFixturesSeeder`** — 52 AFCON 2027 fixtures (6 groups of 4, then
+  a 16-team bracket). Before it, all 104 seeded fixtures belonged to
+  `wc_2026`, which is `concluded` and so cannot be the active tournament
+  (Sprint 53) — while the DEFAULT tournament is `afcon_2027`, which had
+  none. The Budget Calculator's match step, the Match Schedule and the
+  Itinerary Map were all empty out of the box.
+  Venues are stored by NAME (what `Fixture::venue` holds and what
+  `StadiumImageService` alias-matches); all 11 resolve to both an image and a
+  bowl slug. **Kipchoge Keino is never scheduled** — it is catalogued
+  `is_alternate`, a 15,000-seat training ground.
+- **`DemoFanActivitySeeder`** — 7 fans, 8 budgets, 4 bookings, 4 savings
+  goals, 5 loan applications, 16 ticket purchases, 4 tribes (one per privacy
+  mode) with members and posts. This is also what fills the PARTNER
+  dashboards, since a Convert queue *is* the budgets whose fan picked that
+  partner's listing.
+
+Both are idempotent, and both route through the methods that own
+denormalized counts — `Tribe::addMember()`/`syncCounts()`, and the tier
+increment plus `Ticket::syncTierTotals()` that the real purchase flow uses.
+Ticket purchases are guarded on `reference` so a re-run cannot double-count
+seats sold.
+
+**A seeder that writes fixtures MUST call `FixtureService::clearCache()`.**
+`getFixtures()` caches an empty list as readily as a full one, so without it
+the install you just seeded still reads "No matches found" until the TTL
+lapses. `FixtureService::cacheKey()` is the one place that key is built.
 
 Public hubs to demo: `/partners/serengeti-sports-travel`,
 `/partners/ecobank-fan-finance`, `/partners/simba-air`,
@@ -155,7 +191,8 @@ Shipped across Sprints 9–17. Full loop:
 
 1. **User** row with `is_partner=true` + `partner_type` (`travel_agent`,
    `finance_partner`, `airline`, `hotel_provider`, `destination`, `club`,
-   `federation`, `event_organiser`, `sponsor`) + `verification_status`
+   `federation`, `event_organiser`, `sponsor`, `ticketing_partner`,
+   `school_community`) + `verification_status`
    (`unverified` / `pending` / `verified`).
 2. **PartnerProfile** 1:1 with User: `slug`, `display_name`, `tagline`, `about`,
    `hero_image`, `logo_url`, `theme_accent` (drives `--partner-accent` in
@@ -324,6 +361,159 @@ tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
   `closeOnBackdrop={false}` for a destructive form; `ConfirmationDialog` does.
 - `ConfirmationDialog` and `StatusDialog` keep their previous props exactly —
   twenty call sites use the first, and none of them moved.
+
+### Listing schedule + Learning Hub (Sprint 60)
+
+**`listings` now knows when and where a listing runs** — `starts_at`,
+`ends_at`, `location`, all nullable, with an index on `starts_at`. A trip
+package got away without them (its dates come from the matches it includes);
+a schools programme could not. Three plain columns, not a sessions table: a
+single run is what every current type needs, and a many-session programme is
+a real modelling question that should get its own table when something asks.
+
+`resources/js/lib/schedule.js` is the pure half (14 tests):
+
+- **`toLocalInput()`** — `<input type="datetime-local">` accepts ONLY a naive
+  `YYYY-MM-DDTHH:mm` and renders blank for anything else with no error. Never
+  feed it `toISOString()`: that converts to UTC and silently shifts the time
+  the partner typed.
+- **`formatDateRange()` does not use `toLocaleDateString`** — its output
+  varies with the host locale and ICU build, so the same listing would read
+  differently on two machines and no test could pin it.
+- **`formatSchedule()` returns null when there is nothing to say.** A listing
+  with no schedule is legitimate (a grant open all season shows its region
+  alone), and a caller must not render an empty chip.
+- The hub orders `starts_at IS NULL, starts_at ASC` so undated rows sort
+  after dated ones rather than to the front, where a bare NULL lands.
+
+**The Learning Hub** is `/learn` (`LearningHubController`, `Pages/Learn/`).
+`LearningResource` is a separate model from `Listing` on purpose: the Coaches
+Education Programme is a `Listing type=program` you enrol in (capacity,
+price, dates); its four modules are resources you read. Putting modules in
+`listings` would give each one a capacity and a sell-through bar that mean
+nothing. `listing_id` is nullable, so a resource either stands alone or is a
+module of a programme.
+
+- **`LearningResource::CATEGORIES` / `AUDIENCES` / `LEVELS` are the ONE
+  taxonomy** — the controller validates against them, the index renders its
+  chips from them, the seeder picks from them. `audience` is what makes the
+  same library useful to a parent as well as a coach.
+- **It is open, not gated.** Gating to registered schools would couple the
+  library to an enrolment model that does not exist yet, and a safeguarding
+  policy is worth more the more widely it is read.
+- **An unknown `?category=` shows everything, not nothing.** An empty grid
+  reads as "we have no resources", a different and wrong claim.
+- Filters are a server round-trip into the URL, so a coach can send "the
+  safeguarding ones" to a colleague as a link.
+- The body renders as TEXT, never `dangerouslySetInnerHTML` — it is
+  partner-authored, and that is the same stored-XSS reasoning that keeps SVG
+  out of the uploaders.
+- `HomeController::pageHero()` is now **public static** so the Learning Hub
+  reads the same config-then-CMS hero rather than growing a second copy.
+
+Guarded by `tests/Feature/LearningHubTest.php` and
+`tests/JS/schedule.test.mjs`.
+
+### Schools & Communities archetype (Sprint 59)
+
+`school_community` is the stakeholder between the platform and the next
+generation of fans, players and coaches — modelled on the ASE ecosystem
+reference (Watch / Play / Learn / Develop, with Schools & Universities as a
+first-class stakeholder alongside Fans, Airlines and Clubs).
+
+**It needed new copy and new data, not a new page.** The public hub, the
+listings grid, the docked StepFlow and the AccentCard layout all carried it
+unchanged. What is archetype-specific lives server-side:
+
+- **`stepsFor('school_community')`** — the five-step schools journey
+  (Register → Discover → Join & participate → Develop & learn → Compete &
+  grow). The only archetype whose journey belongs to an INSTITUTION rather
+  than a fan: a school registers once and returns season after season.
+- **`pillarsFor($partnerType)`** (new) — the "how we support you" trio.
+  Same bug class the steps had, same fix: every hub rendered
+  Publish / Convert / Measure in travel-agent copy ("Package experiences
+  fans actually want — matches, stays, transfers"), which a betting sponsor
+  was already being shown. Schools get Programs / Pathways / Outcomes;
+  finance and ticketing get their own; unmapped types keep the default,
+  which is accurate for the partners whose dashboard has those tabs.
+- **`type = 'program'`** on `Listing` — schools publish leagues, festivals,
+  coaching courses, grants and community projects, none of which is a
+  package, offer, event or tour. `listings.type` is `string(32)`, so no
+  migration; add it to `ListingController`'s `in:` rule, the form's option
+  list and `DEFAULT_TYPE` together.
+- **A zero price means Free, not "USD 0".** Most of the schools catalogue is
+  free to enter, and that is a claim worth making rather than something that
+  reads as a missing value (`priceFact()` in `PartnerHub.jsx`).
+
+**The hub eyebrow now uses the server's label.** It used to title-case the
+raw key client-side, which rendered `school_community` as "School Community"
+while the directory showed "Schools & Communities" from `partnerTypes()` —
+two sources for one label. `partnerEyebrow()` only trims a trailing
+"Partner" so `finance_partner` does not read "Official Finance Partner
+Partner". Seeded by `DemoSchoolsPartnerSeeder` (6 programmes). Guarded by
+`tests/Feature/PartnerHubStepsTest.php`.
+
+### StepFlow (Sprint 59)
+
+`Components/Common/StepFlow` is the ONE step-sequence indicator. A numbered
+run of steps with chevrons between them, in **two variants that are the same
+component**:
+
+| variant  | where | behaviour |
+|----------|-------|-----------|
+| `docked` | public partner hub | glass pill fixed bottom-centre, reveals on scroll, retracts before the footer |
+| `inline` | wizards (Budget Calculator) | sits in flow, with a slim completion fill |
+
+A docked "how it works" bar and a wizard's progress rail are one widget in two
+positions. It replaced **four** parallel implementations, all migrated:
+
+| was | now |
+|-----|-----|
+| `PartnerHub`'s private `HowItWorksBar` | `docked`, steps from the server |
+| `Auth/Register`'s `.progress-steps` / `.progress-fill` | `inline`, and the CSS is deleted |
+| `RequestFinancingWizard`'s bare "Step {n} of {total}" | `inline` in the dialog pane |
+| *nothing at all* on the five-step Budget Calculator | `inline` |
+
+**A dialog whose sections are freely navigable uses `TfeModal`'s own tab rail,
+not StepFlow** — the ticket purchase modal is the example. Reach for StepFlow
+in a dialog only when the steps are *gated*, as the financing wizard's are: a
+tab rail implies you may jump, and that wizard will not let you.
+
+- **Progress is opt-in.** A step with no `state` is `unstated`: the bar draws
+  no fill and marks nothing current. That is the honest rendering for the
+  public hub, where it explains a flow that has no instance behind it. Pass
+  `cursor` (a 1-based position) or per-step `state` to turn it into a
+  tracker — `budgets.partner_status`, `loan_applications.status` and
+  `bookings.status` are all real enums it can read.
+- **The pure half is `resources/js/lib/stepFlow.js`** — JSX-free so
+  `node --test` loads it; guarded by `tests/JS/stepFlow.test.mjs`. `cursor: 0`
+  means "not started" (every step `todo`), which is NOT the same as
+  `unstated`. A `current` step counts as HALF in `completionPct` — rendering
+  it as 0 or 100 misreports the flow.
+- **The docked variant portals to `document.body`.** `position: fixed` is
+  measured against the nearest transformed ancestor, and `.tfe-page` runs a
+  `translateY` page-enter animation — so a docked bar left in the page tree
+  visibly jumps for 220ms on every Inertia visit. Same containing-block trap
+  documented under Sprint 54.
+- **Under 640px it shows the current step, not a row of numerals.** The bar
+  this replaced hid both the label and every step title below that width,
+  leaving four bare numbers and three chevrons that conveyed nothing.
+- Step counts other than four are fine — the sponsor pipeline is three, and
+  the financing wizard is two or three depending on whether more than one
+  finance partner is public.
+- `register-dark.css`'s `.progress-steps` / `.progress-bar` / `.progress-fill`
+  are **gone**. Note `.progress-steps .step.completed` was styled but never
+  applied — Register only ever set `active`, and `currentStep >= 1` is always
+  true, so step 1 read as active from the start and nothing distinguished a
+  finished step from the current one. StepFlow draws all three states.
+
+**The partner hub's steps come from the server.**
+`PartnerHubController::stepsFor($partnerType)` returns the pipeline that
+archetype actually runs, next to `featuresFor()` for the same reason. The
+hardcoded four steps it replaced told an airline and a betting sponsor alike
+that the fan would receive a "Trip delivered". Unmapped types
+(`club`, `federation`, `destination`, `event_organiser`) fall back to the
+travel pipeline by design. Guarded by `tests/Feature/PartnerHubStepsTest.php`.
 
 ### 3D stadium seat map (Sprint 57)
 
@@ -1025,6 +1215,9 @@ new card / table / list CSS:
   `mimes:jpg,jpeg,png,webp` rule). Parent posts the File with
   `forceFormData`; the controller stores it and keeps the string field as a
   fallback for existing URLs.
+- **`StepFlow`** (Sprint 59, `Components/Common/StepFlow.jsx`) — the ONE
+  step-sequence indicator. See **StepFlow** below. Never hand-roll a
+  progress bar or a "Step X of Y" caption.
 
 ### Global form baseline (Sprint 48)
 
@@ -1498,6 +1691,78 @@ tests/
   `team_flag_codes` resolved to nothing and silently vanished from the fan's
   team list. Fall back to `Data/countries.js`, which has an ISO code for all
   235 (Sprint 56).
+- Never assume a missing image announces itself. `DashboardHero` lands its
+  `bgImage` as a CSS `background-image`, so a 404 draws no broken-image icon
+  — the hero just loses its backdrop, which is invisible without devtools.
+  `payments_hero.png` was referenced by the Wallet and Savings Goals heroes
+  and had **never been committed**. Both now use `finance_hero.png`, the
+  money-themed backdrop the Budget Calculator already uses, and
+  `tests/JS/assetLiterals.test.mjs` asserts every committed image path in
+  the client exists on disk (Sprint 59).
+- Never write to `fixtures` without calling `FixtureService::clearCache()`.
+  `getFixtures()` caches an EMPTY list as readily as a full one, so the
+  install you just seeded reads "No matches found" until the TTL lapses —
+  and the seeder looks like it did nothing (Sprint 59).
+- Never seed a `LoanApplication` status in lowercase. The app writes
+  `'PENDING'` and the review endpoint validates
+  `in:APPROVED,REJECTED,DISBURSED`, so the finance dashboard counts
+  UPPERCASE — lowercase gives a queue full of rows above tiles that all
+  read zero (Sprint 59).
+- Never use Faker in a demo seeder. A demo you screenshot must look the same
+  on every machine and every re-seed, or visual regressions hide in the noise
+  and no two screenshots can be compared. Fixed data, `updateOrCreate`
+  (Sprint 59).
+- Never seed a denormalized count by writing the column. Go through
+  `Tribe::addMember()`/`syncCounts()` and the tier increment +
+  `Ticket::syncTierTotals()` that the real flows use, or the seeder
+  reintroduces exactly the drift those methods exist to prevent (Sprint 59).
+- Never hand-roll a progress bar, a numbered step run, or a "Step X of Y"
+  caption. Use `StepFlow` (`inline` in a wizard, `docked` for a pinned
+  explanatory bar). Four parallel versions is what Sprint 59 had to unpick,
+  and the five-step Budget Calculator had none of them (Sprint 59).
+- Never put a StepFlow in a dialog whose sections are freely navigable —
+  that is what `TfeModal`'s tab rail is for, and two indicators for one
+  progression is the duplication this primitive exists to remove. StepFlow
+  belongs in a dialog only when the steps are gated (Sprint 59).
+- Never render a step sequence as complete by default. A bar with no
+  instance behind it is `unstated` — it explains a flow, it does not claim
+  the reader is partway through one. Same honesty rule as the seat map's
+  `has_inventory` (Sprint 59).
+- Never feed `toISOString()` to an `<input type="datetime-local">`. It wants
+  a naive `YYYY-MM-DDTHH:mm`; an ISO string renders the field blank with no
+  error, and the UTC conversion shifts the time that was typed. Use
+  `toLocalInput()` (Sprint 60).
+- Never format a date with `toLocaleDateString` in something a test must
+  pin. Its output varies with the host's locale and ICU build, so the same
+  row reads differently on two machines (Sprint 60).
+- Never `text-transform: capitalize` a chip that renders arbitrary text. It
+  exists to prettify a raw slug, and it re-cased every written label handed
+  to it — a category of "Running a club" rendered "Running A Club". Case at
+  the callsite (`titleCase()` in `lib/utils`), as `.tfe-btn` already
+  requires (Sprint 60).
+- Never render partner-authored prose with `dangerouslySetInnerHTML`. Same
+  stored-XSS reasoning that keeps SVG out of every uploader (Sprint 60).
+- Never `ORDER BY` a nullable date without saying where NULL goes. `ORDER BY
+  starts_at ASC` puts every undated row FIRST, so the listings with no
+  schedule lead a list meant to show what is coming up. `starts_at IS NULL,
+  starts_at ASC` (Sprint 60).
+- Never add a `partner_type` without adding its label to BOTH
+  `DashboardHeader.jsx`'s and `Partner/Sidebar.jsx`'s maps AND
+  `PartnerController::partnerTypes()`. A missing entry falls back to a
+  generic "Partner" in the chrome while the directory shows the real name
+  (Sprint 59).
+- Never derive a display label client-side that the server already computes.
+  The hub title-cased `partner_type` into "School Community" while the
+  directory rendered "Schools & Communities" from `partnerTypes()` — one
+  label, two sources, guaranteed to disagree (Sprint 59).
+- Never hardcode partner-facing copy that differs by archetype. The hub's
+  "how it works" steps told an airline its fan would receive a "Trip
+  delivered" for nine sprints; they come from
+  `PartnerHubController::stepsFor()` now, beside `featuresFor()` (Sprint 59).
+- Never leave a `position: fixed` element inside the page tree when a
+  dashboard could mount it. `.tfe-page`'s enter animation makes it a
+  containing block for those 220ms and the element visibly jumps on every
+  visit — portal it to `document.body` (Sprint 59).
 - Never add a second dialog component, and never restyle a form control or a
   button inside one. Everything goes through `TfeModal` + `ModalRow` +
   `ContentCard`, using `.tfe-input` / `.tfe-select` / `.tfe-btn`. Six parallel
@@ -1628,6 +1893,7 @@ tests/
 | 56     | Account-surface cleanup across all three roles (fan, partner, admin): avatar first, one sticky save bar at the end of the form, read-only panels out of the editor column; supporting team picked in `TeamPickerDialog` instead of an inline 28-tile grid; team option list sanitised (Wikipedia table furniture out) and every configured `team_flag_codes` entry resolved; partner + admin forms regrouped onto `.tfe-form-grid` with a round avatar field; the shared AccountSecurity page gained its own Password card, real sign-in/failure counts and a dialog that is not admin-only-styled; partner dashboard tiles fit one row, its Convert queue stopped showing other partners' briefs (and show/update stopped serving them), and ticketing partners got a dashboard of their own numbers; admin dashboard onto the same primitives with tiles that agree with the chart beneath them, the dead `userGrowth` query turned into a zero-filled chart, and Tremor's colours safelisted so the bars are not black; the admin profile's duplicate password form gave way to a link to the one AccountSecurity page and it can finally set an avatar; sticky panes fixed platform-wide (the shell's `<main>` was a scroll container) and three silent save bugs (fan bio had no column, partner fields could not be cleared, admin phone had neither column nor controller) |
 | 57     | 3D stadium seat map ported from prototype to `Components/Common/StadiumBowl` (parametric Three.js bowl, per-venue roofs + footprints from `config/stadiums.php`, lazy-chunked so `three` never reaches another page) on the fan ticket modal, budget-calculator results and package detail; tiered ticket inventory (`ticket_tiers`) so the four tiers are real data rather than placeholders, with the tier picker wired THROUGH the map; `StadiumBowlService` as the one payload; a `has_inventory` flag so a ground with no fixtures stops inventing an occupancy figure; Talanta renamed to Raila Odinga International Stadium; fixed the seeded Kasarani fixture's wrong catalogue slug and non-existent hero image |
 | 58     | Landing hero stopped fabricating seat availability (`deriveSoldPct` deleted) and then moved onto the real 3D `StadiumBowl` like every other surface — the SVG `StadiumSeatMap` is gone entirely, and the lazy canvas boundary means the landing bundle pays ~6KB rather than the 578KB that had been assumed and every bare `assets/…` constant in the client got its leading slash back with a test that scans for regressions. One dialog for the whole platform: `TfeModal` redesigned as a tabbed shell (identity + section rail left, active section right, actions bottom) after the Dribbble settings-modal reference, with `ModalRow` for labelled settings and `ContentCard` for grouping; six parallel implementations folded into it (`DashboardModal` + its private stylesheet, `LandingModal`, a dead `Modal.jsx`, and the shadcn `Dialog` behind ConfirmationDialog / StatusDialog / ShareModal / 2FA setup) across ~30 call sites; the partner listing form, ticket purchase and landing card dialogs gained real tabs; found and fixed a scroll-lock leak that left the page unscrollable after closing, a ShareModal with no imports at all (Share crashed on three pages), and a footer button targeting a form its tab did not render |
+| 59     | `StepFlow` extracted from the partner hub's docked "how it works" bar into the ONE step-sequence primitive (docked + inline variants, opt-in progress, portalled out of the page tree, a compact rendering that replaces a row of bare numerals below 640px); the hub's steps became per-archetype server-side copy via `PartnerHubController::stepsFor()` instead of one hardcoded pipeline shown to airlines and betting sponsors alike; the five-step Budget Calculator wizard gained the progress indicator it never had; then all four parallel indicators migrated onto it — Register's hand-rolled progress bar (whose `completed` style was dead CSS, so a finished step looked like the current one) and the financing wizard's bare "Step X of Y", with the ticket purchase modal deliberately left on `TfeModal`'s tab rail; then demo data so every surface has something on it — 52 AFCON 2027 fixtures (the default tournament had none, since all 104 seeded fixtures belonged to the concluded wc_2026) and a fan cohort whose budgets, loans, ticket purchases and tribes are also what fill the three partner dashboards; and the Schools & Communities archetype (`school_community`) landed on that same machinery — a five-step institutional journey through StepFlow, archetype-aware hub pillars replacing the travel-agent copy every partner was shown, a `program` listing type, and a seeded East Africa Schools Sports partner with six programmes |
 
 Full detail in commit history on `claude/brave-newton-o8w4u0`.
 

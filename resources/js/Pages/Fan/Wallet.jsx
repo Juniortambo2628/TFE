@@ -21,7 +21,7 @@ export default function Wallet({ auth, walletData }) {
                     title="Financial Overview"
                     subtitle={`Manage your savings, track your ${tournament?.short_name || 'tournament'} budget, and view recent transactions.`}
                     breadcrumbs={[{ label: 'Wallet' }]}
-                    bgImage="/assets/img/fan/backgrounds/payments_hero.png"
+                    bgImage="/assets/img/fan/backgrounds/finance_hero.png"
                 />
 
                 <div className="container px-4 mx-auto -mt-8">

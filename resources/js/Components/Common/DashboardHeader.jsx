@@ -28,6 +28,7 @@ const PARTNER_TYPE_LABEL = {
     event_organiser: 'Event Organiser',
     sponsor: 'Sponsor',
     ticketing_partner: 'Ticketing Partner',
+    school_community: 'Schools & Communities',
 };
 
 function resolveRoleLabel(role, base, user) {

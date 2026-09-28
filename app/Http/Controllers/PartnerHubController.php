@@ -111,6 +111,10 @@ class PartnerHubController extends Controller
             ->active()
             ->orderByDesc('is_featured')
             ->orderBy('display_order')
+            // A dated run sorts by when it happens; an undated one (a grant
+            // open all season) has no place on that axis, so it sorts after
+            // rather than to the front, which is where NULL would land.
+            ->orderByRaw('starts_at IS NULL, starts_at ASC')
             ->orderBy('name')
             ->get()
             ->map(function (Listing $l) {
@@ -127,6 +131,9 @@ class PartnerHubController extends Controller
                     'currency' => $l->currency,
                     'capacity' => $l->capacity,
                     'sold_count' => $l->sold_count,
+                    'starts_at' => $l->starts_at?->toIso8601String(),
+                    'ends_at' => $l->ends_at?->toIso8601String(),
+                    'location' => $l->location,
                     'availability_pct' => $l->availability_pct,
                     'is_sold_out' => $l->is_sold_out,
                     'is_featured' => $l->is_featured,
@@ -178,12 +185,97 @@ class PartnerHubController extends Controller
                 'contact_phone' => $profile->contact_phone,
                 'website_url' => $profile->website_url,
                 'partner_type' => $profile->user->partner_type,
+                // The hub used to re-derive this client-side by title-casing
+                // the key, which produced "School Community". The directory
+                // already read the real label from partnerTypes(); one source
+                // is enough.
+                'partner_type_label' => AdminPartnerController::partnerTypes()[$profile->user->partner_type] ?? $profile->user->partner_type,
                 'verification_status' => $profile->user->verification_status,
             ],
             'listings' => $listings,
             'tickets' => $tickets,
             'features' => $this->featuresFor($profile),
+            'steps' => self::stepsFor($profile->user->partner_type),
+            'pillars' => self::pillarsFor($profile->user->partner_type),
         ]);
+    }
+
+    /**
+     * The three "how we support you" pillars, per archetype.
+     *
+     * Same problem the steps had, and the same fix. Every hub rendered
+     * Publish / Convert / Measure with travel-agent copy — "Package
+     * experiences fans actually want — matches, stays, transfers" was shown
+     * to a betting sponsor and would have been shown to a school, neither of
+     * which packages a trip.
+     *
+     * Unmapped types keep the Publish / Convert / Measure set, which is
+     * accurate for the partners whose dashboard genuinely has those tabs.
+     */
+    public static function pillarsFor(?string $partnerType): array
+    {
+        $sets = [
+            'school_community' => [
+                ['icon' => 'fa-school', 'title' => 'Programs', 'body' => 'Publish leagues, festivals, clinics and grants in one place, so every school and club in the region can find them.'],
+                ['icon' => 'fa-user-graduate', 'title' => 'Pathways', 'body' => 'Coaching courses and development programmes that build skills, character and confidence — not just results.'],
+                ['icon' => 'fa-chart-line', 'title' => 'Outcomes', 'body' => 'Track participation and progress over time, so the impact on young people is measured rather than assumed.'],
+            ],
+            'finance_partner' => [
+                ['icon' => 'fa-file-invoice-dollar', 'title' => 'Offer', 'body' => 'Publish financing products against real, costed trips rather than an abstract credit line.'],
+                ['icon' => 'fa-user-check', 'title' => 'Underwrite', 'body' => 'Applications arrive with the itinerary and its total attached, so a decision needs no chasing.'],
+                ['icon' => 'fa-chart-line', 'title' => 'Measure', 'body' => 'Track approvals, decline reasons and disbursed value per tournament.'],
+            ],
+            'ticketing_partner' => [
+                ['icon' => 'fa-ticket-alt', 'title' => 'List', 'body' => 'Put fixtures on sale with real tiered inventory — VIP through Upper, each with its own price and capacity.'],
+                ['icon' => 'fa-couch', 'title' => 'Sell', 'body' => 'Fans pick their tier on a 3D map of the actual ground, so they know what they are buying.'],
+                ['icon' => 'fa-chart-line', 'title' => 'Measure', 'body' => 'Seats sold, orders and sell-through per fixture, measured against each ground\'s own capacity.'],
+            ],
+            'sponsor' => [
+                ['icon' => 'fa-bullhorn', 'title' => 'Activate', 'body' => 'Put your campaign in front of fans at the moment they are planning a trip, not after it.'],
+                ['icon' => 'fa-users', 'title' => 'Engage', 'body' => 'Predictions, rewards and tribe activity give fans a reason to come back between matches.'],
+                ['icon' => 'fa-chart-line', 'title' => 'Measure', 'body' => 'Reach and engagement per activation, per tournament.'],
+            ],
+        ];
+
+        return $sets[$partnerType] ?? [
+            ['icon' => 'fa-tags', 'title' => 'Publish', 'body' => 'Package experiences fans actually want — matches, stays, transfers — and put them in front of every buyer on the platform.'],
+            ['icon' => 'fa-handshake', 'title' => 'Convert', 'body' => 'Fans submit briefs against your listings. You quote, they book. No cold pipeline to chase.'],
+            ['icon' => 'fa-chart-line', 'title' => 'Measure', 'body' => 'Track sell-through, turnaround and revenue per listing. Iterate on what wins.'],
+        ];
+    }
+
+    /**
+     * The fan-to-delivery pipeline as this partner archetype actually runs
+     * it, for the hub's docked StepFlow bar.
+     *
+     * Lives here rather than in the client because it is partner-specific
+     * copy, exactly like featuresFor() above — and because a hardcoded
+     * array in the page component is what this replaced: every partner,
+     * from an airline to a betting sponsor, was told the fan would receive
+     * a "Trip delivered".
+     *
+     * Types with no entry fall back to the travel pipeline, which is the
+     * shape club / federation / destination / event_organiser partners all
+     * follow. Step counts other than four are fine — the primitive numbers
+     * and separates whatever it is given.
+     */
+    public static function stepsFor(?string $partnerType): array
+    {
+        $flows = [
+            'finance_partner' => ['Trip costed', 'Finance request', 'Credit decision', 'Funds released'],
+            'ticketing_partner' => ['Match listed', 'Seat + tier picked', 'Secure payment', 'Ticket issued'],
+            'airline' => ['Route published', 'Fan picks flight', 'Fare confirmed', 'Booking issued'],
+            'hotel_provider' => ['Rooms listed', 'Dates chosen', 'Rate confirmed', 'Stay booked'],
+            'sponsor' => ['Campaign live', 'Fan engages', 'Reward credited'],
+            // Five steps, and the only archetype whose journey is the
+            // institution's rather than the fan's — a school registers once
+            // and then keeps coming back to it season after season.
+            'school_community' => ['Register', 'Discover', 'Join & participate', 'Develop & learn', 'Compete & grow'],
+        ];
+
+        $steps = $flows[$partnerType] ?? ['Fan brief', 'Your quote', 'Payment', 'Trip delivered'];
+
+        return array_map(fn (string $title) => ['title' => $title], $steps);
     }
 
     /**

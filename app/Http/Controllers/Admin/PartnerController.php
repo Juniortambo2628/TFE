@@ -178,6 +178,7 @@ class PartnerController extends Controller
             'event_organiser' => 'Event Organiser',
             'sponsor' => 'Sponsor',
             'ticketing_partner' => 'Ticketing Partner',
+            'school_community' => 'Schools & Communities',
         ];
     }
 }

@@ -224,7 +224,10 @@ return [
             'hosts' => ['Kenya', 'Tanzania', 'Uganda'],
             'host_flag_codes' => ['ke', 'tz', 'ug'],
             'data_source' => 'wikipedia',
-            'team_flag_codes' => ['dz', 'bf', 'bi', 'cm', 'cv', 'cf', 'cg', 'eg', 'ga', 'gh', 'gn', 'gw', 'ci', 'mg', 'ml', 'mr', 'ma', 'mz', 'na', 'ng', 'sn', 'za', 'tz', 'tn', 'ug', 'zm', 'zw'],
+            // 'ke' (Kenya) is a HOST and qualifies automatically; it was the only
+            // one of the three missing here, so a Kenyan fan could not pick their
+            // own nation in the profile team picker. Alphabetical by country name.
+            'team_flag_codes' => ['dz', 'bf', 'bi', 'cm', 'cv', 'cf', 'cg', 'eg', 'ga', 'gh', 'gn', 'gw', 'ci', 'ke', 'mg', 'ml', 'mr', 'ma', 'mz', 'na', 'ng', 'sn', 'za', 'tz', 'tn', 'ug', 'zm', 'zw'],
             'wikipedia_title' => '2027 Africa Cup of Nations',
             'wikipedia_extract' => 'The 2027 Africa Cup of Nations, known as AFCON 2027, will be the 36th edition of the Africa Cup of Nations, the biennial international men\'s football championship organised by the Confederation of African Football. It is scheduled to take place from January 15 to February 15, 2027, hosted by Kenya, Tanzania and Uganda.',
             'default_news_category' => 'african',
