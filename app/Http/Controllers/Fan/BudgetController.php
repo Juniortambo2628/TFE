@@ -178,6 +178,7 @@ class BudgetController extends Controller
         // Itineraries lists every plan across every tournament the user has
         // touched — helpful for the multi-tournament planner.
         $itineraries = Budget::where('user_id', $userId)
+            ->with('schoolDeclaration')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($budget) {
@@ -199,6 +200,10 @@ class BudgetController extends Controller
                     'flight' => $budget->flight_class,
                     'tournament_id' => $budget->tournament_id,
                     'tournament_name' => $tournamentConfig['short_name'] ?? $tournamentConfig['name'] ?? null,
+                    // Null for the ordinary case — one fan planning their own
+                    // trip. The itinerary card reads that absence as "not a
+                    // school group", never as missing data.
+                    'school_group' => $budget->schoolDeclaration?->toPayload(),
                 ];
             });
 

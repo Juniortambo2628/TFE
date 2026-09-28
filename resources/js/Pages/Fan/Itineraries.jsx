@@ -3,6 +3,8 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import MinorsBadge from '@/Components/Common/MinorsBadge';
+import SchoolGroupWizard from '@/Components/Fan/SchoolGroupWizard';
 import { formatMoney } from '@/lib/utils';
 import { useState } from 'react';
 import { useTournament } from '@/Context/TournamentContext';
@@ -10,6 +12,8 @@ import { useTournament } from '@/Context/TournamentContext';
 export default function Itineraries({ itineraries }) {
     const { tournament } = useTournament();
     const [itineraryToConfirm, setItineraryToConfirm] = useState(null);
+    const [schoolGroupFor, setSchoolGroupFor] = useState(null);
+    const [withdrawFrom, setWithdrawFrom] = useState(null);
 
     const getStatusPill = (status) => {
         switch (status) {
@@ -30,6 +34,14 @@ export default function Itineraries({ itineraries }) {
                 onSuccess: () => setItineraryToConfirm(null)
             });
         }
+    };
+
+    const handleWithdraw = () => {
+        if (!withdrawFrom) return;
+        router.delete(route('fan.budgets.school-group.destroy', withdrawFrom), {
+            preserveScroll: true,
+            onSuccess: () => setWithdrawFrom(null),
+        });
     };
 
     return (
@@ -82,7 +94,13 @@ export default function Itineraries({ itineraries }) {
                                                     <h3 className="itin-plan-card__title">{itinerary.name}</h3>
                                                     <div className="itin-plan-card__sub">Created on {itinerary.created_at}</div>
                                                 </div>
-                                                <span className={`tfe-pill tfe-pill--${pill.variant}`}>{pill.label}</span>
+                                                <div className="d-flex flex-column align-items-end gap-2">
+                                                    <span className={`tfe-pill tfe-pill--${pill.variant} tfe-pill--standalone`}>{pill.label}</span>
+                                                    {/* Renders nothing unless minors are actually
+                                                        declared — the same component the partner's
+                                                        queue and brief draw. */}
+                                                    <MinorsBadge group={itinerary.school_group} compact />
+                                                </div>
                                             </div>
 
                                             <div className="itin-plan-card__facts">
@@ -116,6 +134,19 @@ export default function Itineraries({ itineraries }) {
                                                 </div>
                                             </div>
 
+                                            {itinerary.school_group && (
+                                                <div className="itin-plan-card__school">
+                                                    <div className="itin-plan-card__fact-label">School group</div>
+                                                    <div className="itin-plan-card__fact-value">
+                                                        {itinerary.school_group.school_name}
+                                                    </div>
+                                                    <div className="itin-plan-card__sub">
+                                                        {itinerary.school_group.party_summary} ·
+                                                        declared by {itinerary.school_group.official_name}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="itin-plan-card__actions">
                                                 <Link
                                                     href={route('fan.budget-calculator', { id: itinerary.id })}
@@ -131,6 +162,25 @@ export default function Itineraries({ itineraries }) {
                                                         <i className="fas fa-check-circle"></i> Review & Confirm
                                                     </button>
                                                 )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSchoolGroupFor(itinerary)}
+                                                    className="tfe-btn tfe-btn--sm"
+                                                >
+                                                    <i className="fas fa-school"></i>
+                                                    {itinerary.school_group ? ' School group' : ' Declare school group'}
+                                                </button>
+                                                {itinerary.school_group && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setWithdrawFrom(itinerary.id)}
+                                                        className="tfe-btn tfe-btn--sm tfe-btn--icon"
+                                                        title="Withdraw the school group declaration"
+                                                        aria-label="Withdraw the school group declaration"
+                                                    >
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                )}
                                                 {itinerary.is_active && (
                                                     <span className="itin-plan-card__active-flag">
                                                         <i className="fas fa-star"></i> Active Plan
@@ -144,6 +194,24 @@ export default function Itineraries({ itineraries }) {
                         )}
                     </div>
                 </div>
+
+                {schoolGroupFor && (
+                    <SchoolGroupWizard
+                        key={schoolGroupFor.id}
+                        open
+                        itinerary={schoolGroupFor}
+                        onClose={() => setSchoolGroupFor(null)}
+                    />
+                )}
+
+                <ConfirmationDialog
+                    open={!!withdrawFrom}
+                    onOpenChange={(open) => !open && setWithdrawFrom(null)}
+                    title="Withdraw this declaration?"
+                    description="The travel partner will stop seeing that this is a school group, including the minors flag. Withdraw it only if the declaration was made on the wrong plan."
+                    onConfirm={handleWithdraw}
+                    confirmText="Withdraw declaration"
+                />
 
                 <ConfirmationDialog
                     open={!!itineraryToConfirm}
@@ -220,6 +288,10 @@ export default function Itineraries({ itineraries }) {
                     font-size: 0.92rem;
                 }
                 .itin-plan-card__fact-value--accent { color: #fcd34d; }
+                .itin-plan-card__school {
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    padding-top: 14px;
+                }
                 .itin-plan-card__fact-value i { margin-right: 6px; opacity: 0.75; }
                 .itin-plan-card__actions {
                     display: flex;

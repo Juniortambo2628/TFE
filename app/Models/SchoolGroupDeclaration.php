@@ -108,8 +108,19 @@ class SchoolGroupDeclaration extends Model
             && $this->declared_at !== null;
     }
 
-    /** The block every partner-facing payload carries. */
-    public function toPartnerPayload(): array
+    /**
+     * The ONE shape this record renders as — the partner's Convert queue and
+     * brief, and the school official's own editor.
+     *
+     * Deliberately one method rather than a partner copy and a fan copy: two
+     * payloads describing one warranty is exactly how the numbers a partner
+     * reads drift from the numbers the school thinks it declared.
+     *
+     * The two warranty booleans are NOT here. Re-opening the form is
+     * re-declaring — a party that grew from 20 minors to 40 is not covered by
+     * the warranty given for 20 — so the boxes start clear every time.
+     */
+    public function toPayload(): array
     {
         return [
             'school_name' => $this->school_name,

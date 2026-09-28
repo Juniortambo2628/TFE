@@ -408,6 +408,41 @@ failure, not the school's. So:
   — one warranty ticked is not a partial warranty, and must not read as
   though a school stood behind the trip.
 
+**The form is `SchoolGroupWizard`** (`Components/Fan/`), opened from a plan
+on `/fan/itineraries` and posting to
+`fan.budgets.school-group.store` (`Fan\SchoolGroupDeclarationController`).
+Three gated steps — school + official, travelling party, warranties — so it
+uses `StepFlow variant="inline"`, not `TfeModal`'s tab rail: you cannot
+warrant a party you have not yet described.
+
+- **`declared_at` is server-stamped, always**, and **re-stamped on an
+  amendment**. The warranty given for 20 minors does not cover the 40 that
+  replaced them, which is also why the two checkboxes start clear every time
+  the form reopens.
+- **Both warranties are `accepted`** server-side. `isComplete()` still guards
+  the render, because a record can reach a partner by routes other than this
+  form, but nothing incomplete starts here.
+- **At least one adult** (`travellers_adults` min 1) — a party of minors with
+  nobody supervising is not a school group. `youngest_traveller_age` is
+  `Rule::requiredIf` on minors > 0 and **forced to null** otherwise; a stored
+  value nothing renders is one that can later contradict the numbers beside it.
+- The wizard renders the real `MinorsBadge` in its "What the partner will
+  see" panel rather than describing it, and shows the counts as separate
+  facts — `partySummary()` is the server's to format (one label, one source).
+- `toPayload()` (was `toPartnerPayload()`) is the ONE shape, read by the
+  partner's queue, the partner's brief and the school's own editor. It omits
+  the warranty booleans on purpose, per the re-declaring rule above.
+- Mount the wizard conditionally and `key` it on the plan — `useForm` reads
+  its initial values on first mount only.
+- Withdrawal (`…school-group.destroy`) exists because a declaration can land
+  on the wrong itinerary; it clears the minors flag, which is correct — with
+  no declaration, nobody has warranted anything.
+
+**Not yet wired: the Budget Calculator's save step.** A plan reaches a
+partner's Convert queue the moment it is saved against their listing, so a
+school that declares afterwards leaves a window where the brief carries no
+flag. Offering the declaration at save time is the next slice.
+
 This works **because the school is the controller**. If TFE ever sells a
 child's place directly to a parent, none of it applies and that flow must
 not be merged into this one.
@@ -1786,6 +1821,10 @@ tests/
 - Never store a flag that can disagree with the numbers beside it.
   `involvesMinors()` is derived from `travellers_minors`, so a partner
   cannot read "MINORS INVOLVED" above a party of six adults (Sprint 61).
+- Never let a client supply the date on a warranty, and never leave an
+  amended declaration wearing the original's timestamp. The consent given
+  for a party of 20 minors does not cover the 40 that replaced them
+  (Sprint 61).
 - Never put a safety-critical fact in a free-text notes field. A note is
   something nobody is obliged to read; the minors flag is a field, rendered
   by `MinorsBadge` on every surface that shows the request (Sprint 61).

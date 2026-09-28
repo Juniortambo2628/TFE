@@ -170,7 +170,7 @@ class DashboardController extends Controller
                 'partner_cost' => $budget->partner_cost,
                 'partner_breakdown' => $budget->partner_breakdown,
                 'partner_notes' => $budget->partner_notes,
-                'school_group' => $budget->schoolDeclaration?->toPartnerPayload(),
+                'school_group' => $budget->schoolDeclaration?->toPayload(),
             ],
         ]);
     }
@@ -311,7 +311,7 @@ class DashboardController extends Controller
                     // so `involves_minors` is visible BEFORE the partner
                     // opens the brief. Knowing minors travel and not saying
                     // so is TFE's failure, not the school's.
-                    'school_group' => $budget->schoolDeclaration?->toPartnerPayload(),
+                    'school_group' => $budget->schoolDeclaration?->toPayload(),
                 ];
             });
     }

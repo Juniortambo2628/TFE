@@ -31,6 +31,7 @@ use App\Http\Controllers\Fan\PackageController;
 use App\Http\Controllers\Fan\PredictWinController;
 use App\Http\Controllers\Fan\ProfileController;
 use App\Http\Controllers\Fan\SavingsGoalController;
+use App\Http\Controllers\Fan\SchoolGroupDeclarationController;
 use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
@@ -127,6 +128,12 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
 
     // Budget Delete
     Route::delete('/budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+
+    // School group declaration (Sprint 61) — a school official declares that
+    // its own consent + safeguarding channels were followed, and how many
+    // adults and minors travel. TFE holds no pupil data.
+    Route::post('/budgets/{budget}/school-group', [SchoolGroupDeclarationController::class, 'store'])->name('budgets.school-group.store');
+    Route::delete('/budgets/{budget}/school-group', [SchoolGroupDeclarationController::class, 'destroy'])->name('budgets.school-group.destroy');
 
     // API Routes for Fan Dashboard
     Route::post('/budget/save', [BudgetController::class, 'store'])->name('budget.save');
