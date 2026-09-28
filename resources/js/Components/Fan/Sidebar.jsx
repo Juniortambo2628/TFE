@@ -1,8 +1,17 @@
 import React from 'react';
 import AppSidebar from '@/Components/Common/AppSidebar';
+import { INSTITUTION_MENU } from '@/Components/Institution/Sidebar';
 
 export default function FanSidebar({ user }) {
-    const menuItems = [
+    // An institution meets the shared planning surfaces (the Budget
+    // Calculator, Itineraries, the Match Schedule) on fan routes, which
+    // mount the fan shell. Without this it would find a personal fan's nav
+    // — Store, Predict, Tribes, Virtual Card — halfway through planning a
+    // school trip. One menu definition, imported, so the two cannot drift
+    // (Sprint 62).
+    const isInstitution = user?.account_type === 'institution';
+
+    const menuItems = isInstitution ? INSTITUTION_MENU : [
         { label: 'Home', icon: 'fas fa-home', route: 'fan.dashboard', path: '/fan/dashboard' },
         { label: 'Profile', icon: 'fas fa-user', route: 'fan.profile', path: '/fan/profile' },
         { label: 'Stories', icon: 'fas fa-circle', route: 'fan.stories', path: '/fan/stories' },
@@ -25,8 +34,8 @@ export default function FanSidebar({ user }) {
     return (
         <AppSidebar
             user={user}
-            roleLabel="Fan Member"
-            accentColor="#e31b23"
+            roleLabel={isInstitution ? 'Institution' : 'Fan Member'}
+            accentColor={isInstitution ? '#0d9488' : '#e31b23'}
             menuItems={menuItems}
         />
     );

@@ -104,6 +104,15 @@ Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('an
 
 require __DIR__.'/auth.php';
 
+// Institution (school / club / community group) group-trip surfaces —
+// Sprint 62. Gated on the whole prefix so a route added later cannot forget
+// the check, the way the partner Convert queue did for six sprints.
+Route::middleware(['auth', 'verified', 'is_institution'])->prefix('institution')->name('institution.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Institution\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [App\Http\Controllers\Institution\ProfileController::class, 'edit'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\Institution\ProfileController::class, 'update'])->name('profile.update');
+});
+
 Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/budget-calculator', [BudgetController::class, 'index'])->name('budget-calculator');

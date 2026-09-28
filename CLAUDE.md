@@ -438,14 +438,96 @@ warrant a party you have not yet described.
   on the wrong itinerary; it clears the minors flag, which is correct — with
   no declaration, nobody has warranted anything.
 
-**Not yet wired: the Budget Calculator's save step.** A plan reaches a
-partner's Convert queue the moment it is saved against their listing, so a
-school that declares afterwards leaves a window where the brief carries no
-flag. Offering the declaration at save time is the next slice.
+**The gap at save time is closed (Sprint 62).** A plan reaches a partner's
+Convert queue the moment it is saved against their listing, so a school
+declaring afterwards left a window where the brief carried no flag.
+`BudgetController::savedResponse()` now flashes `declare_group` with the new
+plan's id when the saver is an institution and the plan has no declaration,
+and the Budget Calculator opens the wizard on it. Flashed, not forced — the
+plan saves either way, because refusing to save a trip until a declaration
+is filled in would lose the work over numbers the official may have to go
+and fetch.
 
 This works **because the school is the controller**. If TFE ever sells a
 child's place directly to a parent, none of it applies and that flow must
 not be merged into this one.
+
+### Institutions are an account type, not a partner type (Sprint 62)
+
+A school taking forty pupils to AFCON is **neither a fan nor a partner**. It
+publishes no inventory, so `partner_type = school_community` — which belongs
+to the organisations that RUN programmes, like East Africa Schools Sports —
+is the wrong shelf for it. It is a buyer whose buyer is an organisation.
+
+- **`users.account_type`** is `individual` (default) | `institution`, and
+  **`User::isInstitution()` reads that COLUMN**, never the presence of the
+  profile row. A profile that failed to save would otherwise silently demote
+  a school back to a fan and 403 it out of its own surfaces with nothing to
+  explain why.
+- **`institution_profiles`** (1:1, unique FK) holds the organisation:
+  `institution_name`, `institution_type`, `registration_number` (nullable —
+  a community group may hold none, and a required field that forces an
+  invention is worse than no field), location, `official_role`,
+  `contact_phone`, `verification_status`.
+- **The official's name and email stay on `users`.** `users.name` is the
+  INSTITUTION (it is what the chrome shows, and the account belongs to the
+  organisation); `first_name`/`last_name` is the person. One record of who
+  to contact, not two that can disagree.
+- **`User::institutionPayload()` is the ONE shape** — the group dashboard,
+  the planner's declaration prefill, anything later. It spans both tables
+  for exactly the reason above.
+- `InstitutionProfile::TYPES` is the ONE taxonomy (school, university,
+  academy, club, community_group, faith_group) — validated, rendered and
+  labelled from it.
+
+**Sign-up is its own front door** at `/register/institution`
+(`RegisteredInstitutionController`, `Auth/RegisterInstitution.jsx`), because
+the questions differ rather than merely multiply: a fan is asked which team
+they support, an institution what it is, where, and who may act for it.
+Three gated steps on `StepFlow`, cross-linked both ways with `/register`.
+
+- **The whole create is ONE transaction.** An account without its profile
+  passes `isInstitution()` and reaches a dashboard with nothing behind it.
+- **`verification_status` is always `pending` on sign-up**, never read from
+  the request. An account that can mark itself verified is an account whose
+  verification means nothing — and `ProfileController::update()` does not
+  accept it either.
+- `authority_confirmed` is `accepted`: group requests are made on the
+  institution's behalf and somebody has to say they may make them.
+
+**The group surfaces are their own role space** — `/institution/*` behind
+the `is_institution` middleware **on the whole prefix**, so a route added
+later cannot forget the check (which is exactly how the partner Convert
+queue stayed unscoped for six sprints). `InstitutionLayout` + `SHELLS`
+entry + `data-role="institution"` (teal, `#0d9488`) in `dashboard-hero.css`
+and `dashboard-header-extras.css`.
+
+- **`ROLE_CONFIG` in `DashboardHeader.jsx` MUST have an entry for every role
+  a layout passes.** The lookup was unguarded, so a missing key took the
+  whole header down on `config.roleBadge`; it now falls back as well, but
+  add the entry.
+- **`FanSidebar` renders `INSTITUTION_MENU` for an institution account.** A
+  school still meets the shared planning surfaces (Budget Calculator,
+  Itineraries, Match Schedule) on fan routes, which mount the fan shell —
+  without this it found Store, Predict, Tribes and Virtual Card halfway
+  through planning a school trip. **One menu constant, exported from
+  `Components/Institution/Sidebar.jsx` and imported by the fan one**, so the
+  two cannot drift.
+- `HandlesPostLogin::dashboardRouteFor()` lands an institution on
+  `institution.dashboard`.
+- The dashboard leads on **`undeclared`** — plans a partner may already be
+  quoting with no declaration behind them. That is the window the whole
+  declaration model exists to close, so it is a called-out panel, not a
+  number somebody has to derive.
+- The declaration wizard takes an `institution` prop for **defaults only**:
+  a school should not retype its own name forty times, but the official
+  signing for a particular trip may not be the account holder.
+
+Seeded by `DemoSchoolsPartnerSeeder` as `games@nairobigirls.sc.ke` —
+deliberately with **two** plans, one declared and one not, because a demo
+whose "Awaiting declaration" panel is always empty never shows the problem
+the feature solves. Guarded by
+`tests/Feature/Institution/InstitutionAccountTest.php`.
 
 ### Listing schedule + Learning Hub (Sprint 60)
 
@@ -1825,6 +1907,19 @@ tests/
   amended declaration wearing the original's timestamp. The consent given
   for a party of 20 minors does not cover the 40 that replaced them
   (Sprint 61).
+- Never model a new kind of actor as a `partner_type` because the enum is
+  there. A school BUYING a trip publishes nothing; it needed
+  `account_type`, not a shelf beside the partners who run programmes
+  (Sprint 62).
+- Never derive "is this account type X" from the presence of its profile
+  row. A profile that failed to save then silently demotes the account and
+  403s it out of its own surfaces with nothing to explain why — read the
+  column (Sprint 62).
+- Never let a sign-up form write its own `verification_status`. Self-
+  declared verification is not verification (Sprint 62).
+- Never add a `role` a layout can pass without adding its `ROLE_CONFIG`
+  entry in `DashboardHeader.jsx`. The lookup was unguarded and a missing
+  key took the whole header down (Sprint 62).
 - Never put a safety-critical fact in a free-text notes field. A note is
   something nobody is obliged to read; the minors flag is a field, rendered
   by `MinorsBadge` on every surface that shows the request (Sprint 61).

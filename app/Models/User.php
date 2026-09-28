@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'registration_completed',
         'status',
         'is_partner',
+        'account_type',
         'partner_type',
         'verification_status',
         'services_offered',
@@ -76,6 +77,61 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
     public function profile()
     {
         return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * The organisation behind an institution account — only institutions
+     * have one (Sprint 62).
+     */
+    public function institutionProfile()
+    {
+        return $this->hasOne(InstitutionProfile::class);
+    }
+
+    /**
+     * Whether this account represents an organisation rather than a person.
+     *
+     * Read the COLUMN, never the presence of the profile row: a profile that
+     * failed to save would silently demote a school back to a fan, and the
+     * group surfaces would 403 with nothing to explain why.
+     */
+    public function isInstitution(): bool
+    {
+        return $this->account_type === 'institution';
+    }
+
+    /**
+     * The ONE institution payload — the group dashboard, the trip planner's
+     * declaration prefill, and anything added later all read this shape.
+     *
+     * It spans both tables on purpose: the organisation's details live on
+     * the profile, its official's name and email live on `users`, and a
+     * second copy of either is how the two come to disagree.
+     *
+     * Null for an individual account, and for an institution whose profile
+     * somehow did not save — callers must treat absence as "no defaults",
+     * never as an error.
+     */
+    public function institutionPayload(): ?array
+    {
+        $profile = $this->institutionProfile;
+
+        if (! $this->isInstitution() || ! $profile) {
+            return null;
+        }
+
+        return [
+            'institution_name' => $profile->institution_name,
+            'institution_type' => $profile->institution_type,
+            'type_label' => $profile->typeLabel(),
+            'location' => $profile->location(),
+            'verification_status' => $profile->verification_status,
+            'is_verified' => $profile->isVerified(),
+            'official_name' => trim($this->first_name.' '.$this->last_name),
+            'official_role' => $profile->official_role,
+            'official_email' => $this->email,
+            'official_phone' => $profile->contact_phone,
+        ];
     }
 
     /**

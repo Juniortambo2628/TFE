@@ -427,6 +427,13 @@ export default function Register() {
             <div className="tfe-auth__alt">
                 Already have an account? <Link href={route('login')}>Sign in here</Link>
             </div>
+
+            {/* Institutions have their own front door (Sprint 62) — the
+                questions are different, not merely more numerous. */}
+            <div className="tfe-auth__alt">
+                Registering a school, club or community group?{' '}
+                <Link href={route('register.institution')}>Create an institution account</Link>
+            </div>
         </AuthLayout>
     );
 }

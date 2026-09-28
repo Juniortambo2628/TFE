@@ -25,15 +25,21 @@ import MinorsBadge from '@/Components/Common/MinorsBadge';
  * initial values on FIRST mount only, so a wizard left mounted across two
  * different itineraries would keep the first one's values (Sprint 57).
  */
-export default function SchoolGroupWizard({ open, onClose, itinerary }) {
+export default function SchoolGroupWizard({ open, onClose, itinerary, institution = null }) {
     const existing = itinerary?.school_group || null;
 
+    // An institution account already knows its own name, its official and
+    // their role, so a first declaration opens pre-filled rather than asking
+    // a school to retype what it typed at sign-up — a field somebody retypes
+    // forty times is one that eventually disagrees with itself. Defaults
+    // only: the form stays editable, because the official signing for a
+    // particular trip may not be the account holder (Sprint 62).
     const form = useForm({
-        school_name: existing?.school_name || '',
-        official_name: existing?.official_name || '',
-        official_role: existing?.official_role || '',
-        official_email: existing?.official_email || '',
-        official_phone: existing?.official_phone || '',
+        school_name: existing?.school_name || institution?.institution_name || '',
+        official_name: existing?.official_name || institution?.official_name || '',
+        official_role: existing?.official_role || institution?.official_role || '',
+        official_email: existing?.official_email || institution?.official_email || '',
+        official_phone: existing?.official_phone || institution?.official_phone || '',
         travellers_adults: existing?.travellers_adults ?? '',
         travellers_minors: existing?.travellers_minors ?? '',
         youngest_traveller_age: existing?.youngest_traveller_age ?? '',

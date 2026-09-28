@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Budget;
+use App\Models\InstitutionProfile;
 use App\Models\Listing;
 use App\Models\PartnerProfile;
 use App\Models\SchoolGroupDeclaration;
@@ -112,15 +113,60 @@ class DemoSchoolsPartnerSeeder extends Seeder
         // previously borrowed a seeded fan, which both misrepresented who
         // was accountable and silently skipped on a fresh install, because
         // that fan is created by a seeder that runs later.
-        $organiser = User::firstOrCreate(
+        $organiser = User::updateOrCreate(
             ['email' => 'games@nairobigirls.sc.ke'],
             [
-                'name' => 'Jane Mwangi',
+                // The account is the SCHOOL, and Jane is its appointed
+                // official — which is why the display name is the school
+                // and first/last name is the person (Sprint 62).
+                'name' => 'Nairobi Girls High School',
                 'first_name' => 'Jane',
                 'last_name' => 'Mwangi',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
                 'is_partner' => false,
+                'account_type' => 'institution',
+            ],
+        );
+
+        InstitutionProfile::updateOrCreate(
+            ['user_id' => $organiser->id],
+            [
+                'institution_name' => 'Nairobi Girls High School',
+                'institution_type' => 'school',
+                'registration_number' => 'MOE/SEC/2291',
+                'country' => 'Kenya',
+                'city' => 'Nairobi',
+                'official_role' => 'Deputy Head, Games',
+                'contact_phone' => '+254 20 555 0142',
+                'verification_status' => 'verified',
+                'verified_at' => now()->subMonths(2),
+            ],
+        );
+
+        // A SECOND plan with no declaration on it, deliberately. It is what
+        // the group dashboard's "Awaiting declaration" panel exists to
+        // surface, and a demo where that panel is always empty never shows
+        // the problem the feature solves.
+        Budget::updateOrCreate(
+            ['user_id' => $organiser->id, 'name' => 'Nairobi Girls High — Quarter-final Weekend'],
+            [
+                'tournament_id' => self::TOURNAMENT,
+                'listing_id' => $travelListing->id,
+                'total_cost' => 7600,
+                'currency' => 'USD',
+                'match_ids' => [],
+                'accommodation_level' => 'standard',
+                'flight_class' => 'economy',
+                'nights' => 3,
+                'is_active' => false,
+                'partner_status' => 'pending',
+                'breakdown' => [
+                    'tickets' => 2400,
+                    'flights' => 3200,
+                    'accommodation' => 1600,
+                    'transport' => 400,
+                ],
             ],
         );
 
@@ -165,7 +211,7 @@ class DemoSchoolsPartnerSeeder extends Seeder
             ],
         );
 
-        $this->command?->info('School group request seeded: 34 under 18, 6 staff.');
+        $this->command?->info('Institution seeded: games@nairobigirls.sc.ke (password: password) — 1 declared trip (34 under 18, 6 staff) + 1 awaiting declaration.');
     }
 
     /**

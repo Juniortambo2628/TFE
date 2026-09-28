@@ -151,6 +151,10 @@ class BudgetController extends Controller
             ->values();
 
         return Inertia::render('Fan/BudgetCalculator', [
+            // Institution accounts declare their travelling party from here
+            // the moment a plan is saved, so the wizard needs the defaults
+            // (Sprint 62). Null for an individual — the prompt never fires.
+            'institution' => Auth::user()->institutionPayload(),
             'savedBudgets' => $savedBudgets,
             'budgetToEdit' => $budgetToEdit,
             'isConcluded' => $isConcluded,
@@ -318,7 +322,7 @@ class BudgetController extends Controller
                 ->where('id', '!=', $budget->id)
                 ->update(['is_active' => false]);
 
-            return back()->with('success', 'Itinerary updated successfully!');
+            return $this->savedResponse($budget, 'Itinerary updated successfully!');
         }
 
         Budget::where('user_id', $user->id)
@@ -340,7 +344,29 @@ class BudgetController extends Controller
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Itinerary saved successfully!');
+        return $this->savedResponse($budget, 'Itinerary saved successfully!');
+    }
+
+    /**
+     * A plan reaches a partner's Convert queue the moment it is saved against
+     * their listing, so an institution that declares its group AFTERWARDS
+     * leaves a window in which the partner reads the brief with no minors
+     * flag on it. That window is the one thing the declaration exists to
+     * close, so the calculator asks at save time (Sprint 62).
+     *
+     * Flashed, not forced: the plan is saved either way. Refusing to save a
+     * trip until a declaration is filled in would lose the fan's work over a
+     * form they may need to go and get numbers for.
+     */
+    private function savedResponse(Budget $budget, string $message)
+    {
+        $response = back()->with('success', $message);
+
+        if (Auth::user()?->isInstitution() && ! $budget->schoolDeclaration()->exists()) {
+            $response->with('declare_group', $budget->id);
+        }
+
+        return $response;
     }
 
     public function getActive()

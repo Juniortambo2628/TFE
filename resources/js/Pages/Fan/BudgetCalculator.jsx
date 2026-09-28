@@ -14,6 +14,7 @@ import StadiumBowl from '@/Components/Common/StadiumBowl';
 import StepFlow from '@/Components/Common/StepFlow';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
+import SchoolGroupWizard from '@/Components/Fan/SchoolGroupWizard';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -28,6 +29,9 @@ import { resolveStadiumImage } from '@/Data/stadiumImages';
 
 export default function BudgetCalculator({
     auth,
+    // Null for an individual account, so the declaration prompt below can
+    // never fire for one (Sprint 62).
+    institution = null,
     savedBudgets: initialBudgets = [],
     financePartners = [],
     budgetToEdit = null,
@@ -43,7 +47,20 @@ export default function BudgetCalculator({
     venueBowls = [],
 }) {
     // Shared, name-keyed stadium imagery (see HandleInertiaRequests).
-    const { stadiumImages } = usePage().props;
+    const { stadiumImages, flash } = usePage().props;
+
+    // A plan reaches a partner's Convert queue the moment it is saved
+    // against their listing, so an institution that declares its group
+    // afterwards leaves a window in which the partner reads the brief with
+    // no minors flag on it. The server flashes the id of a just-saved plan
+    // that has no declaration, and the wizard opens on it (Sprint 62).
+    const [declareFor, setDeclareFor] = useState(null);
+    const pendingDeclaration = flash?.declare_group ?? null;
+
+    useEffect(() => {
+        if (!pendingDeclaration || !institution) return;
+        setDeclareFor({ id: pendingDeclaration, reference_id: null, school_group: null });
+    }, [pendingDeclaration, institution]);
     // Package the fan picked at step 0. null = they're building custom.
     const [selectedPackage, setSelectedPackage] = useState(null);
     // Unpack the deferred bundle with sane defaults so the component
@@ -1810,6 +1827,18 @@ export default function BudgetCalculator({
                         />
                     </div>
                 </div>
+            )}
+
+            {/* Mounted conditionally and keyed — useForm reads its initial
+                values on FIRST mount only (Sprint 57). */}
+            {declareFor && institution && (
+                <SchoolGroupWizard
+                    key={declareFor.id}
+                    open
+                    itinerary={declareFor}
+                    institution={institution}
+                    onClose={() => setDeclareFor(null)}
+                />
             )}
 
         </FanLayout>
