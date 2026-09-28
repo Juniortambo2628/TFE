@@ -362,6 +362,173 @@ tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
 - `ConfirmationDialog` and `StatusDialog` keep their previous props exactly —
   twenty call sites use the first, and none of them moved.
 
+### School groups: the school declares, TFE holds no pupil data (Sprint 61)
+
+**TFE's engagement for a school trip is with the SCHOOL, through an
+appointed official — not with each child's guardian.** The school already
+runs parental consent, safeguarding, supervision ratios and duty of care.
+Rebuilding any of that here would be a worse copy of a process that works,
+and would make TFE a controller for children's data it has no need to hold.
+
+A scoped `dependants` + per-child-consent + age-verification model was
+designed and then **deliberately dropped** for this one. Do not revive it:
+data never collected cannot be breached, misused or subpoenaed.
+
+`school_group_declarations` (one per `Budget`, unique FK) stores:
+
+- the school, and a **named official with a role** at an official school
+  address — "the school agreed" cannot be resolved against in a dispute;
+- `travellers_adults` / `travellers_minors` **split**, because "40
+  travellers" drives nothing while the split drives supervision ratios, room
+  configuration and an airline's own minor policy;
+- `youngest_traveller_age`, which decides whether unaccompanied-minor
+  handling applies — and is still nobody's identity;
+- the two warranties (`channels_confirmed`, `information_accurate`) and
+  `declared_at`.
+
+`tests/Feature/Partner/SchoolGroupDeclarationTest.php` asserts the table
+carries **no** `pupil` / `child` / `date_of_birth` column, so adding one
+later fails the suite rather than passing unnoticed.
+
+**One duty does not transfer with the declaration.** If TFE knows minors are
+travelling and fails to tell the partner booking the flights, that is TFE's
+failure, not the school's. So:
+
+- **`involvesMinors()` is DERIVED from the counts**, never a stored boolean.
+  A stored flag can disagree with the numbers rendered beside it, and then
+  one of them is lying.
+- **`MinorsBadge` (`Components/Common/MinorsBadge.jsx`) is the ONE way a
+  surface says it**, reading a structural field. Never a sentence typed into
+  a notes box — a note is something nobody is obliged to read. It renders on
+  the Convert queue row AND the brief; `.tfe-pill--minors` is deliberately
+  louder than the status pills beside it.
+- It renders **nothing** when no minors travel. An "0 minors" chip on every
+  ordinary trip trains people to ignore the badge that matters.
+- `SchoolDeclarationPanel` says plainly when a declaration is **incomplete**
+  — one warranty ticked is not a partial warranty, and must not read as
+  though a school stood behind the trip.
+
+**The form is `SchoolGroupWizard`** (`Components/Fan/`), opened from a plan
+on `/fan/itineraries` and posting to
+`fan.budgets.school-group.store` (`Fan\SchoolGroupDeclarationController`).
+Three gated steps — school + official, travelling party, warranties — so it
+uses `StepFlow variant="inline"`, not `TfeModal`'s tab rail: you cannot
+warrant a party you have not yet described.
+
+- **`declared_at` is server-stamped, always**, and **re-stamped on an
+  amendment**. The warranty given for 20 minors does not cover the 40 that
+  replaced them, which is also why the two checkboxes start clear every time
+  the form reopens.
+- **Both warranties are `accepted`** server-side. `isComplete()` still guards
+  the render, because a record can reach a partner by routes other than this
+  form, but nothing incomplete starts here.
+- **At least one adult** (`travellers_adults` min 1) — a party of minors with
+  nobody supervising is not a school group. `youngest_traveller_age` is
+  `Rule::requiredIf` on minors > 0 and **forced to null** otherwise; a stored
+  value nothing renders is one that can later contradict the numbers beside it.
+- The wizard renders the real `MinorsBadge` in its "What the partner will
+  see" panel rather than describing it, and shows the counts as separate
+  facts — `partySummary()` is the server's to format (one label, one source).
+- `toPayload()` (was `toPartnerPayload()`) is the ONE shape, read by the
+  partner's queue, the partner's brief and the school's own editor. It omits
+  the warranty booleans on purpose, per the re-declaring rule above.
+- Mount the wizard conditionally and `key` it on the plan — `useForm` reads
+  its initial values on first mount only.
+- Withdrawal (`…school-group.destroy`) exists because a declaration can land
+  on the wrong itinerary; it clears the minors flag, which is correct — with
+  no declaration, nobody has warranted anything.
+
+**The gap at save time is closed (Sprint 62).** A plan reaches a partner's
+Convert queue the moment it is saved against their listing, so a school
+declaring afterwards left a window where the brief carried no flag.
+`BudgetController::savedResponse()` now flashes `declare_group` with the new
+plan's id when the saver is an institution and the plan has no declaration,
+and the Budget Calculator opens the wizard on it. Flashed, not forced — the
+plan saves either way, because refusing to save a trip until a declaration
+is filled in would lose the work over numbers the official may have to go
+and fetch.
+
+This works **because the school is the controller**. If TFE ever sells a
+child's place directly to a parent, none of it applies and that flow must
+not be merged into this one.
+
+### Institutions are an account type, not a partner type (Sprint 62)
+
+A school taking forty pupils to AFCON is **neither a fan nor a partner**. It
+publishes no inventory, so `partner_type = school_community` — which belongs
+to the organisations that RUN programmes, like East Africa Schools Sports —
+is the wrong shelf for it. It is a buyer whose buyer is an organisation.
+
+- **`users.account_type`** is `individual` (default) | `institution`, and
+  **`User::isInstitution()` reads that COLUMN**, never the presence of the
+  profile row. A profile that failed to save would otherwise silently demote
+  a school back to a fan and 403 it out of its own surfaces with nothing to
+  explain why.
+- **`institution_profiles`** (1:1, unique FK) holds the organisation:
+  `institution_name`, `institution_type`, `registration_number` (nullable —
+  a community group may hold none, and a required field that forces an
+  invention is worse than no field), location, `official_role`,
+  `contact_phone`, `verification_status`.
+- **The official's name and email stay on `users`.** `users.name` is the
+  INSTITUTION (it is what the chrome shows, and the account belongs to the
+  organisation); `first_name`/`last_name` is the person. One record of who
+  to contact, not two that can disagree.
+- **`User::institutionPayload()` is the ONE shape** — the group dashboard,
+  the planner's declaration prefill, anything later. It spans both tables
+  for exactly the reason above.
+- `InstitutionProfile::TYPES` is the ONE taxonomy (school, university,
+  academy, club, community_group, faith_group) — validated, rendered and
+  labelled from it.
+
+**Sign-up is its own front door** at `/register/institution`
+(`RegisteredInstitutionController`, `Auth/RegisterInstitution.jsx`), because
+the questions differ rather than merely multiply: a fan is asked which team
+they support, an institution what it is, where, and who may act for it.
+Three gated steps on `StepFlow`, cross-linked both ways with `/register`.
+
+- **The whole create is ONE transaction.** An account without its profile
+  passes `isInstitution()` and reaches a dashboard with nothing behind it.
+- **`verification_status` is always `pending` on sign-up**, never read from
+  the request. An account that can mark itself verified is an account whose
+  verification means nothing — and `ProfileController::update()` does not
+  accept it either.
+- `authority_confirmed` is `accepted`: group requests are made on the
+  institution's behalf and somebody has to say they may make them.
+
+**The group surfaces are their own role space** — `/institution/*` behind
+the `is_institution` middleware **on the whole prefix**, so a route added
+later cannot forget the check (which is exactly how the partner Convert
+queue stayed unscoped for six sprints). `InstitutionLayout` + `SHELLS`
+entry + `data-role="institution"` (teal, `#0d9488`) in `dashboard-hero.css`
+and `dashboard-header-extras.css`.
+
+- **`ROLE_CONFIG` in `DashboardHeader.jsx` MUST have an entry for every role
+  a layout passes.** The lookup was unguarded, so a missing key took the
+  whole header down on `config.roleBadge`; it now falls back as well, but
+  add the entry.
+- **`FanSidebar` renders `INSTITUTION_MENU` for an institution account.** A
+  school still meets the shared planning surfaces (Budget Calculator,
+  Itineraries, Match Schedule) on fan routes, which mount the fan shell —
+  without this it found Store, Predict, Tribes and Virtual Card halfway
+  through planning a school trip. **One menu constant, exported from
+  `Components/Institution/Sidebar.jsx` and imported by the fan one**, so the
+  two cannot drift.
+- `HandlesPostLogin::dashboardRouteFor()` lands an institution on
+  `institution.dashboard`.
+- The dashboard leads on **`undeclared`** — plans a partner may already be
+  quoting with no declaration behind them. That is the window the whole
+  declaration model exists to close, so it is a called-out panel, not a
+  number somebody has to derive.
+- The declaration wizard takes an `institution` prop for **defaults only**:
+  a school should not retype its own name forty times, but the official
+  signing for a particular trip may not be the account holder.
+
+Seeded by `DemoSchoolsPartnerSeeder` as `games@nairobigirls.sc.ke` —
+deliberately with **two** plans, one declared and one not, because a demo
+whose "Awaiting declaration" panel is always empty never shows the problem
+the feature solves. Guarded by
+`tests/Feature/Institution/InstitutionAccountTest.php`.
+
 ### Listing schedule + Learning Hub (Sprint 60)
 
 **`listings` now knows when and where a listing runs** — `starts_at`,
@@ -1728,6 +1895,38 @@ tests/
   instance behind it is `unstated` — it explains a flow, it does not claim
   the reader is partway through one. Same honesty rule as the seat map's
   `has_inventory` (Sprint 59).
+- Never build a consent system a stakeholder already runs. TFE scoped a
+  `dependants` table with per-child consent and an age-verification ladder
+  before recognising the school holds all of it already. Leaning on a
+  stakeholder means leaning on their responsibility, not just their
+  inventory (Sprint 61).
+- Never store a flag that can disagree with the numbers beside it.
+  `involvesMinors()` is derived from `travellers_minors`, so a partner
+  cannot read "MINORS INVOLVED" above a party of six adults (Sprint 61).
+- Never let a client supply the date on a warranty, and never leave an
+  amended declaration wearing the original's timestamp. The consent given
+  for a party of 20 minors does not cover the 40 that replaced them
+  (Sprint 61).
+- Never model a new kind of actor as a `partner_type` because the enum is
+  there. A school BUYING a trip publishes nothing; it needed
+  `account_type`, not a shelf beside the partners who run programmes
+  (Sprint 62).
+- Never derive "is this account type X" from the presence of its profile
+  row. A profile that failed to save then silently demotes the account and
+  403s it out of its own surfaces with nothing to explain why — read the
+  column (Sprint 62).
+- Never let a sign-up form write its own `verification_status`. Self-
+  declared verification is not verification (Sprint 62).
+- Never add a `role` a layout can pass without adding its `ROLE_CONFIG`
+  entry in `DashboardHeader.jsx`. The lookup was unguarded and a missing
+  key took the whole header down (Sprint 62).
+- Never put a safety-critical fact in a free-text notes field. A note is
+  something nobody is obliged to read; the minors flag is a field, rendered
+  by `MinorsBadge` on every surface that shows the request (Sprint 61).
+- Never have a seeder depend on a user another seeder creates LATER. The
+  school group request borrowed `joseph@tfe.com` from `DemoFanActivitySeeder`
+  and silently skipped on every fresh install, warning into a log nobody
+  reads (Sprint 61).
 - Never feed `toISOString()` to an `<input type="datetime-local">`. It wants
   a naive `YYYY-MM-DDTHH:mm`; an ISO string renders the field blank with no
   error, and the UTC conversion shifts the time that was typed. Use

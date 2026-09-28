@@ -170,6 +170,7 @@ class DashboardController extends Controller
                 'partner_cost' => $budget->partner_cost,
                 'partner_breakdown' => $budget->partner_breakdown,
                 'partner_notes' => $budget->partner_notes,
+                'school_group' => $budget->schoolDeclaration?->toPayload(),
             ],
         ]);
     }
@@ -289,7 +290,7 @@ class DashboardController extends Controller
     private function getRequestsData(Request $request)
     {
         return $this->baseQuery($request)
-            ->with('user.profile')
+            ->with('user.profile', 'schoolDeclaration')
             ->whereIn('partner_status', ['pending', 'modified', 'approved', 'rejected'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -306,6 +307,11 @@ class DashboardController extends Controller
                     'match_count' => count($budget->match_ids ?? []),
                     'partner_cost' => $budget->partner_cost,
                     'matches' => $budget->match_ids,
+                    // A school group carries its declaration to the queue,
+                    // so `involves_minors` is visible BEFORE the partner
+                    // opens the brief. Knowing minors travel and not saying
+                    // so is TFE's failure, not the school's.
+                    'school_group' => $budget->schoolDeclaration?->toPayload(),
                 ];
             });
     }

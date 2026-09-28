@@ -113,6 +113,10 @@ class HandleInertiaRequests extends Middleware
                 'two_factor_setup' => $request->session()->get('two_factor_setup'),
                 'two_factor_code' => $request->session()->get('two_factor_code'),
                 'tournament_refresh_output' => $request->session()->get('tournament_refresh_output'),
+                // The id of a just-saved plan that still needs its school
+                // group declaration — the Budget Calculator opens the wizard
+                // on it (Sprint 62).
+                'declare_group' => $request->session()->get('declare_group'),
             ],
             // Only load the full settings map when explicitly requested by
             // an admin page — otherwise every admin nav hit reads the whole

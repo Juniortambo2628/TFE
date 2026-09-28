@@ -21,6 +21,10 @@
     --dash-accent: #d97706;
 }
 
+.dashboard-header[data-role="institution"] {
+    --dash-accent: #0d9488;
+}
+
 /* Icon-only round button (bell, envelope) */
 .dash-btn-icon {
     position: relative;

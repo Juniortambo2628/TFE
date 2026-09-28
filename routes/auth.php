@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\RegisteredInstitutionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
@@ -21,6 +22,12 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
+
+    // Institutions sign up through their own form (Sprint 62) — the
+    // questions are different, not merely more numerous.
+    Route::get('register/institution', [RegisteredInstitutionController::class, 'create'])
+        ->name('register.institution');
+    Route::post('register/institution', [RegisteredInstitutionController::class, 'store']);
     Route::post('check-email', [RegisteredUserController::class, 'checkEmail'])->name('check-email');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])

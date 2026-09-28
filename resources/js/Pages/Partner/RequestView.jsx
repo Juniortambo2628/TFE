@@ -4,6 +4,7 @@ import { useForm, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
 import LoanReviewPanel from '@/Components/Partner/LoanReviewPanel';
+import MinorsBadge, { SchoolDeclarationPanel } from '@/Components/Common/MinorsBadge';
 
 /**
  * Partner request review — adjust a fan's travel package and approve / modify /
@@ -122,7 +123,14 @@ export default function RequestView({ budget, variant = 'travel', loan = null })
                 <span className={`tfe-pill tfe-pill--standalone ${STATUS_PILL[status]}`}>
                     {status === 'pending' ? 'Needs Review' : status}
                 </span>
+                {budget.school_group?.involves_minors && (
+                    <MinorsBadge group={budget.school_group} />
+                )}
             </DashboardHero>
+
+            {/* The full declaration sits ABOVE the numbers: who warranted the
+                trip and how to reach them matters before what it costs. */}
+            <SchoolDeclarationPanel group={budget.school_group} />
 
             {/* Summary Cards — Sprint 36 tile primitive */}
             <div className="tfe-stat-grid">

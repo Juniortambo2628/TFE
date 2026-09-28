@@ -118,6 +118,13 @@ trait HandlesPostLogin
             return route('partner.dashboard');
         }
 
+        // An institution is not a fan with extra fields — its home is the
+        // group dashboard, and a personal fan dashboard would show it an
+        // empty Predict streak and a shopping basket (Sprint 62).
+        if ($user->isInstitution()) {
+            return route('institution.dashboard');
+        }
+
         return route('fan.dashboard', absolute: false);
     }
 }

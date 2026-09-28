@@ -31,6 +31,7 @@ use App\Http\Controllers\Fan\PackageController;
 use App\Http\Controllers\Fan\PredictWinController;
 use App\Http\Controllers\Fan\ProfileController;
 use App\Http\Controllers\Fan\SavingsGoalController;
+use App\Http\Controllers\Fan\SchoolGroupDeclarationController;
 use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
@@ -103,6 +104,15 @@ Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('an
 
 require __DIR__.'/auth.php';
 
+// Institution (school / club / community group) group-trip surfaces —
+// Sprint 62. Gated on the whole prefix so a route added later cannot forget
+// the check, the way the partner Convert queue did for six sprints.
+Route::middleware(['auth', 'verified', 'is_institution'])->prefix('institution')->name('institution.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Institution\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [App\Http\Controllers\Institution\ProfileController::class, 'edit'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\Institution\ProfileController::class, 'update'])->name('profile.update');
+});
+
 Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/budget-calculator', [BudgetController::class, 'index'])->name('budget-calculator');
@@ -127,6 +137,12 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
 
     // Budget Delete
     Route::delete('/budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+
+    // School group declaration (Sprint 61) — a school official declares that
+    // its own consent + safeguarding channels were followed, and how many
+    // adults and minors travel. TFE holds no pupil data.
+    Route::post('/budgets/{budget}/school-group', [SchoolGroupDeclarationController::class, 'store'])->name('budgets.school-group.store');
+    Route::delete('/budgets/{budget}/school-group', [SchoolGroupDeclarationController::class, 'destroy'])->name('budgets.school-group.destroy');
 
     // API Routes for Fan Dashboard
     Route::post('/budget/save', [BudgetController::class, 'store'])->name('budget.save');

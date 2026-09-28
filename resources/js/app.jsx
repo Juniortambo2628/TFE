@@ -15,6 +15,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'The Football Experience';
 const SHELLS = {
     Admin: () => import('./Layouts/AdminLayout'),
     Fan: () => import('./Layouts/FanLayout'),
+    Institution: () => import('./Layouts/InstitutionLayout'),
     Partner: () => import('./Layouts/PartnerLayout'),
 };
 

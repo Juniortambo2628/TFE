@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsInstitution;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsPartner;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'is_admin' => IsAdmin::class,
             'is_partner' => IsPartner::class,
+            'is_institution' => EnsureUserIsInstitution::class,
         ]);
 
         // Sprint 44 — analytics is a fire-and-forget metric write that

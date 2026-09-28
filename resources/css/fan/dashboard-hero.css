@@ -3,7 +3,8 @@
  * dashboards. All visual concerns live here so JSX stays semantic.
  *
  * Role palettes are scoped via `data-role` on the hero element:
- *   [data-role="fan"], [data-role="admin"], [data-role="partner"].
+ *   [data-role="fan"], [data-role="admin"], [data-role="partner"],
+ *   [data-role="institution"].
  * A bgImage on the JSX side pushes a --dash-hero-bg-image variable
  * on the element so the CSS can layer the gradient on top.
  */
@@ -40,6 +41,14 @@
     --dash-hero-gradient: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
     --dash-hero-shadow: 0 4px 24px rgba(217, 119, 6, 0.15);
     --dash-hero-border: 1px solid #d97706;
+}
+
+/* Sprint 62 — institutions read as their own context, not a paler fan. */
+.dashboard-hero[data-role="institution"] {
+    --dash-hero-accent: #0d9488;
+    --dash-hero-gradient: linear-gradient(135deg, #0b1f1d 0%, #0a0a0a 100%);
+    --dash-hero-shadow: 0 8px 32px rgba(13, 148, 136, 0.18);
+    --dash-hero-border: 1px solid #115e59;
 }
 
 .dashboard-hero.has-bg {

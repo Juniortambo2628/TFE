@@ -58,10 +58,22 @@ const ROLE_CONFIG = {
         roleBadge: { label: 'Partner', icon: 'fas fa-handshake' },
         navLinks: [],
     },
+    // Sprint 62. An entry here is MANDATORY for every role a layout can
+    // pass: the lookup below is unguarded, so a missing key is a crash on
+    // `config.roleBadge`, not a graceful fallback.
+    institution: {
+        roleBadge: { label: 'Institution', icon: 'fas fa-school' },
+        navLinks: [
+            { label: 'Group Trips', icon: 'fas fa-route', route: 'fan.itineraries' },
+            { label: 'Learning Hub', icon: 'fas fa-graduation-cap', route: 'learn.index' },
+        ],
+    },
 };
 
 export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSidebar }) {
-    const config = ROLE_CONFIG[role];
+    // Fall back rather than throw — a role with no entry used to take the
+    // whole header down on `config.roleBadge` (Sprint 62).
+    const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.fan;
     const { assetUrl: pageAssetUrl } = usePage().props;
     const { toggleSidebar: toggleShadcnSidebar } = useSidebar();
     const baseUrl = assetUrl || pageAssetUrl || '';
