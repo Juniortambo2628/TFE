@@ -77,6 +77,16 @@ log "Running migrations…"
 $PHP_BIN artisan migrate --force
 ok "migrations done"
 
+# Idempotent, and non-fatal for the same reason as scripts/post-deploy.sh:
+# a seeder that throws must not abort a deploy between clearing and
+# rebuilding the caches. Seeded account passwords come from
+# DEMO_ACCOUNT_PASSWORD (config/app.php).
+if $PHP_BIN artisan db:seed --force; then
+  ok "seeding done"
+else
+  echo "!!! SEEDING FAILED — deploy continues; run 'artisan db:seed --force' manually."
+fi
+
 # ── 5. Cache config + routes + views for prod ─────────────────────────────────
 log "Caching config, routes, views, events…"
 $PHP_BIN artisan config:cache

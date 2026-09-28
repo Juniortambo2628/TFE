@@ -178,16 +178,21 @@ function Offerings({ listings = [], accent, baseUrl }) {
                 {listings.length > 0
                     ? listings.map((l) => (
                         <div key={l.id} className="col-md-6 col-lg-4">
+                            {/* Sprint 63 — this used to point at /register, so
+                                a visitor who clicked a specific package got a
+                                signup form having never seen the package. It
+                                opens the listing's own public page now; the
+                                account is asked for at the point of booking. */}
                             <AccentCard
                                 LinkComponent={Link}
-                                href="/register"
+                                href={route('listings.show', l.id)}
                                 accent={l.publisher?.theme_accent || accent}
                                 artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
                                 eyebrow={l.publisher ? `By ${l.publisher.display_name}` : undefined}
                                 title={l.name}
                                 desc={l.description}
                                 meta={[{ label: 'From', value: formatMoney(l.base_price, l.currency) }]}
-                                cta={{ label: l.is_sold_out ? 'Sold out' : 'Sign up to book', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
+                                cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
                             >
                                 <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
                             </AccentCard>

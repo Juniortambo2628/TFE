@@ -1,5 +1,11 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+// Imported here, not left to the role layouts. Its stylesheet lived only in
+// `fan/_shared.css`, so on a PUBLIC page (which mounts no role shell) the
+// badge rendered with no flex and no gap — "SPowered bySerengeti Sports
+// Travel" ran together as one string. Same trap as using an `admin-*` class
+// in a shared component; the component owns its CSS, like HubPreview.
+import '../../../css/fan/powered-by.css';
 
 /**
  * PoweredByBadge — small "Powered by {partner}" credit strip shown on

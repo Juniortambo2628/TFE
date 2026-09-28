@@ -52,7 +52,14 @@ npm install --legacy-peer-deps + migrate --seed.
 
 Seeded by `DemoPartnerSeeder` + `DemoFinancePartnerSeeder` +
 `DemoExtraPartnersSeeder`; placeholder partner offerings by
-`DemoPartnerOfferingsSeeder`. **Dev only** — never in production.
+`DemoPartnerOfferingsSeeder`.
+
+**The deploy seeds automatically (Sprint 63)**, so these accounts now exist
+wherever the app is deployed. The password below is the DEFAULT — set
+`DEMO_ACCOUNT_PASSWORD` in the production `.env` and every seeded account
+uses that instead (`DemoCredentials::password()`, wired through
+`config('app.demo_account_password')`). Leave it unset on a reachable site
+and `password` is a known credential for `admin@tfe.com`.
 
 | Role            | Email               | Password | Notes                              |
 |-----------------|---------------------|----------|------------------------------------|
@@ -451,6 +458,38 @@ and fetch.
 This works **because the school is the controller**. If TFE ever sells a
 child's place directly to a parent, none of it applies and that flow must
 not be merged into this one.
+
+### The public listing page (Sprint 63)
+
+`/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the
+listing page for people **without an account**.
+
+Every public surface used to link to `fan.packages.show`, which sits inside
+the `auth` + `verified` fan group — so a visitor browsing a partner's public
+hub clicked a package and was bounced to the login screen, before they had
+seen what was on offer. The public tournament page was worse: its offerings
+linked to `/register` outright.
+
+- **`Fan\PackageController::show` is unchanged** and still serves signed-in
+  fans. It loads the fixture list, a 3D seat map per venue and an itinerary
+  map — a lot of work to do for somebody still deciding whether to care. The
+  public page renders what a stranger needs to decide: what it is, when and
+  where, what it costs, who is behind it, and how to act. **No `three`, no
+  fixtures, no Wikipedia.**
+- **Only `approved` + `is_active` is public, and a miss is 404 not 403**, so
+  the response never confirms that a draft or rejected id exists (Sprint 22).
+- **The tournament comes from the LISTING, not the session.** A public link
+  must render the same thing for everyone who opens it. `tournamentSummary()`
+  checks `config("tournaments.tournaments.{$id}")` first, because
+  `TournamentService::get()` falls back to the default for an unknown id and
+  so can never double as an existence check (Sprint 49).
+- The CTA says **"You'll be asked to sign in or create an account to
+  continue"** rather than letting the wall be discovered — the wall coming
+  first is the whole reason this page exists.
+- Still fan-only, correctly: `Fan/PackagePicker` and `Fan/LoanApplications`
+  keep the rich page.
+
+Guarded by `tests/Feature/PublicListingPageTest.php`.
 
 ### Institutions are an account type, not a partner type (Sprint 62)
 
@@ -1920,6 +1959,20 @@ tests/
 - Never add a `role` a layout can pass without adding its `ROLE_CONFIG`
   entry in `DashboardHeader.jsx`. The lookup was unguarded and a missing
   key took the whole header down (Sprint 62).
+- Never import a component's stylesheet only from a role layout. `fan/_shared.css`
+  is loaded by the fan/admin/partner shells and by nothing else, so
+  `PoweredByBadge` on a PUBLIC page rendered with no flex and no gap —
+  "SPowered bySerengeti Sports Travel" as one run-on string. A shared
+  component imports its own CSS (the `HubPreview` precedent). Same trap as
+  using an `admin-*` class in a shared component (Sprint 63).
+- Never link a public surface to a route inside the fan auth group. The
+  partner hub and the tournament page sent visitors to `fan.packages.show`
+  and `/register`, so a stranger's first click on a listing was a login
+  wall — asked for before they had seen anything worth an account
+  (Sprint 63).
+- Never leave seeded demo passwords at the default once the deploy seeds
+  automatically. `DEMO_ACCOUNT_PASSWORD` exists so a live site is not
+  shipping `password` for `admin@tfe.com` (Sprint 63).
 - Never put a safety-critical fact in a free-text notes field. A note is
   something nobody is obliged to read; the minors flag is a field, rendered
   by `MinorsBadge` on every surface that shows the request (Sprint 61).
