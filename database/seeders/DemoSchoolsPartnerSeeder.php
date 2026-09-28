@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Budget;
 use App\Models\Listing;
 use App\Models\PartnerProfile;
+use App\Models\SchoolGroupDeclaration;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -79,6 +81,91 @@ class DemoSchoolsPartnerSeeder extends Seeder
         );
 
         $this->programs($partner);
+        $this->groupRequest();
+    }
+
+    /**
+     * A school group request sitting in the travel partner's Convert queue,
+     * with its declaration attached.
+     *
+     * The point it demonstrates: no pupil is a record here. The school
+     * warrants that its own consent channels were followed, and TFE carries
+     * a MINORS INVOLVED flag to the partner who will book the flights.
+     */
+    private function groupRequest(): void
+    {
+        // Routed to a travel partner's listing, which is what puts a budget
+        // in their Convert queue (DashboardController::scopeForPartner).
+        $travelListing = Listing::query()
+            ->whereHas('publisher', fn ($q) => $q->where('partner_type', 'travel_agent'))
+            ->where('tournament_id', self::TOURNAMENT)
+            ->first();
+
+        if (! $travelListing) {
+            $this->command?->warn('No travel partner listing — skipping the school group request.');
+
+            return;
+        }
+
+        // The official's OWN account submits the request, so the budget's
+        // owner and the name on the declaration are the same person. It
+        // previously borrowed a seeded fan, which both misrepresented who
+        // was accountable and silently skipped on a fresh install, because
+        // that fan is created by a seeder that runs later.
+        $organiser = User::firstOrCreate(
+            ['email' => 'games@nairobigirls.sc.ke'],
+            [
+                'name' => 'Jane Mwangi',
+                'first_name' => 'Jane',
+                'last_name' => 'Mwangi',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'is_partner' => false,
+            ],
+        );
+
+        $budget = Budget::updateOrCreate(
+            ['user_id' => $organiser->id, 'name' => 'Nairobi Girls High — AFCON Schools Cup'],
+            [
+                'tournament_id' => self::TOURNAMENT,
+                'listing_id' => $travelListing->id,
+                'total_cost' => 18400,
+                'currency' => 'USD',
+                'match_ids' => [],
+                'accommodation_level' => 'standard',
+                'flight_class' => 'economy',
+                'nights' => 5,
+                'is_active' => true,
+                'partner_status' => 'pending',
+                'breakdown' => [
+                    'tickets' => 5200,
+                    'flights' => 7400,
+                    'accommodation' => 4200,
+                    'transport' => 1100,
+                    'food' => 500,
+                ],
+            ],
+        );
+
+        SchoolGroupDeclaration::updateOrCreate(
+            ['budget_id' => $budget->id],
+            [
+                'school_name' => 'Nairobi Girls High School',
+                'official_name' => 'Jane Mwangi',
+                'official_role' => 'Deputy Head, Games',
+                'official_email' => 'games@nairobigirls.sc.ke',
+                'official_phone' => '+254 20 555 0142',
+                'travellers_adults' => 6,
+                'travellers_minors' => 34,
+                'youngest_traveller_age' => 12,
+                'channels_confirmed' => true,
+                'information_accurate' => true,
+                'declared_at' => now()->subDays(3),
+                'notes' => 'Two staff are first-aid certified. Rooming list follows school policy.',
+            ],
+        );
+
+        $this->command?->info('School group request seeded: 34 under 18, 6 staff.');
     }
 
     /**

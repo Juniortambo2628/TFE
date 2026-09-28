@@ -362,6 +362,56 @@ tabs={[{ id, label, icon, content: <X/> }]}   // content on the tab
 - `ConfirmationDialog` and `StatusDialog` keep their previous props exactly —
   twenty call sites use the first, and none of them moved.
 
+### School groups: the school declares, TFE holds no pupil data (Sprint 61)
+
+**TFE's engagement for a school trip is with the SCHOOL, through an
+appointed official — not with each child's guardian.** The school already
+runs parental consent, safeguarding, supervision ratios and duty of care.
+Rebuilding any of that here would be a worse copy of a process that works,
+and would make TFE a controller for children's data it has no need to hold.
+
+A scoped `dependants` + per-child-consent + age-verification model was
+designed and then **deliberately dropped** for this one. Do not revive it:
+data never collected cannot be breached, misused or subpoenaed.
+
+`school_group_declarations` (one per `Budget`, unique FK) stores:
+
+- the school, and a **named official with a role** at an official school
+  address — "the school agreed" cannot be resolved against in a dispute;
+- `travellers_adults` / `travellers_minors` **split**, because "40
+  travellers" drives nothing while the split drives supervision ratios, room
+  configuration and an airline's own minor policy;
+- `youngest_traveller_age`, which decides whether unaccompanied-minor
+  handling applies — and is still nobody's identity;
+- the two warranties (`channels_confirmed`, `information_accurate`) and
+  `declared_at`.
+
+`tests/Feature/Partner/SchoolGroupDeclarationTest.php` asserts the table
+carries **no** `pupil` / `child` / `date_of_birth` column, so adding one
+later fails the suite rather than passing unnoticed.
+
+**One duty does not transfer with the declaration.** If TFE knows minors are
+travelling and fails to tell the partner booking the flights, that is TFE's
+failure, not the school's. So:
+
+- **`involvesMinors()` is DERIVED from the counts**, never a stored boolean.
+  A stored flag can disagree with the numbers rendered beside it, and then
+  one of them is lying.
+- **`MinorsBadge` (`Components/Common/MinorsBadge.jsx`) is the ONE way a
+  surface says it**, reading a structural field. Never a sentence typed into
+  a notes box — a note is something nobody is obliged to read. It renders on
+  the Convert queue row AND the brief; `.tfe-pill--minors` is deliberately
+  louder than the status pills beside it.
+- It renders **nothing** when no minors travel. An "0 minors" chip on every
+  ordinary trip trains people to ignore the badge that matters.
+- `SchoolDeclarationPanel` says plainly when a declaration is **incomplete**
+  — one warranty ticked is not a partial warranty, and must not read as
+  though a school stood behind the trip.
+
+This works **because the school is the controller**. If TFE ever sells a
+child's place directly to a parent, none of it applies and that flow must
+not be merged into this one.
+
 ### Listing schedule + Learning Hub (Sprint 60)
 
 **`listings` now knows when and where a listing runs** — `starts_at`,
@@ -1728,6 +1778,21 @@ tests/
   instance behind it is `unstated` — it explains a flow, it does not claim
   the reader is partway through one. Same honesty rule as the seat map's
   `has_inventory` (Sprint 59).
+- Never build a consent system a stakeholder already runs. TFE scoped a
+  `dependants` table with per-child consent and an age-verification ladder
+  before recognising the school holds all of it already. Leaning on a
+  stakeholder means leaning on their responsibility, not just their
+  inventory (Sprint 61).
+- Never store a flag that can disagree with the numbers beside it.
+  `involvesMinors()` is derived from `travellers_minors`, so a partner
+  cannot read "MINORS INVOLVED" above a party of six adults (Sprint 61).
+- Never put a safety-critical fact in a free-text notes field. A note is
+  something nobody is obliged to read; the minors flag is a field, rendered
+  by `MinorsBadge` on every surface that shows the request (Sprint 61).
+- Never have a seeder depend on a user another seeder creates LATER. The
+  school group request borrowed `joseph@tfe.com` from `DemoFanActivitySeeder`
+  and silently skipped on every fresh install, warning into a log nobody
+  reads (Sprint 61).
 - Never feed `toISOString()` to an `<input type="datetime-local">`. It wants
   a naive `YYYY-MM-DDTHH:mm`; an ISO string renders the field blank with no
   error, and the UTC conversion shifts the time that was typed. Use

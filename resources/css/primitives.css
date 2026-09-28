@@ -180,6 +180,27 @@
 .tfe-pill--rejected  { background: var(--pill-rejected-bg);  color: var(--pill-rejected-fg); }
 .tfe-pill--info      { background: var(--pill-info-bg);      color: var(--pill-info-fg); }
 
+/* --minors is an OPERATIONAL alert, not a status: a partner must not be able
+   to scan past it when booking flights, rooms or a stand for a school group.
+   Deliberately louder than the status pills beside it, with its own sub-line
+   for the party composition (supervision ratios, an airline's own minor
+   policy). It renders only when minors are actually travelling — an
+   "0 minors" chip on every ordinary trip trains people to ignore it. */
+.tfe-pill--minors {
+    background: rgba(217, 119, 6, 0.18);
+    color: #fcd34d;
+    border: 1px solid rgba(217, 119, 6, 0.55);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    gap: 0.4rem;
+}
+
+.tfe-pill--minors .tfe-pill__sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
 /* A pill that is a direct child of a flex-column container (a card body, a
    form stack) would otherwise be stretched to the container's full width by
    `align-items: stretch`, reading as a colour bar rather than a badge.

@@ -6,6 +6,7 @@ import SummaryTiles from '@/Components/Common/SummaryTiles';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
+import MinorsBadge from '@/Components/Common/MinorsBadge';
 
 /**
  * Partner dashboard. Rebuilt on the shared primitives (`tfe-slab` /
@@ -209,7 +210,12 @@ function RequestRow({ req, isFinance = false, isTicketing = false }) {
                     <strong>{req.reference_id}</strong>
                 )}
             </td>
-            <td>{detail}</td>
+            <td>
+                {detail}
+                {req.school_group?.involves_minors && (
+                    <div className="mt-1"><MinorsBadge group={req.school_group} /></div>
+                )}
+            </td>
             <td><strong>{amount}</strong></td>
             <td>
                 <span className={`tfe-pill ${STATUS_PILL[req.status] || 'tfe-pill--info'}`}>{req.status}</span>

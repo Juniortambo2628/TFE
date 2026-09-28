@@ -60,6 +60,28 @@ class Budget extends Model
     }
 
     /**
+     * The school's declaration, when this request is a school group.
+     *
+     * Null for an ordinary fan's trip, which is the overwhelming majority —
+     * so every reader must treat its absence as normal, not as missing data.
+     */
+    public function schoolDeclaration()
+    {
+        return $this->hasOne(SchoolGroupDeclaration::class);
+    }
+
+    /**
+     * Does this request put minors on a plane, in a hotel or in a stand?
+     *
+     * Derived from the declaration's counts rather than stored, so it can
+     * never disagree with the numbers a partner is reading beside it.
+     */
+    public function involvesMinors(): bool
+    {
+        return (bool) $this->schoolDeclaration?->involvesMinors();
+    }
+
+    /**
      * Resolve the full tournament payload for this budget from config
      * (there is no Tournament model — tournaments live in config/tournaments.php
      * and are enriched at runtime by TournamentService).
