@@ -30,7 +30,7 @@ class DemoFinancePartnerSeeder extends Seeder
                 'name' => 'Ecobank Fan Finance',
                 'first_name' => 'Ecobank',
                 'last_name' => 'Fan Finance',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(DemoCredentials::password()),
                 'email_verified_at' => now(),
                 'is_admin' => false,
                 'is_partner' => true,

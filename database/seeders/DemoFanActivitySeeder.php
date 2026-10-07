@@ -75,7 +75,7 @@ class DemoFanActivitySeeder extends Seeder
                 ['email' => $spec['email']],
                 [
                     'name' => $spec['name'],
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make(DemoCredentials::password()),
                     'email_verified_at' => now(),
                     'is_partner' => false,
                     'team_support' => $spec['team'],

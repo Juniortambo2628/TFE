@@ -41,6 +41,7 @@ use App\Http\Controllers\Fan\VirtualCardController;
 use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LearningHubController;
+use App\Http\Controllers\ListingShowController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
@@ -101,6 +102,14 @@ Route::middleware('auth')->group(function () {
 Route::get('/testimonials', [TestimonialController::class, 'index']);
 Route::post('/testimonials', [TestimonialController::class, 'store']);
 Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('analytics.track');
+
+// Public single-listing page (Sprint 63). Deliberately OUTSIDE the fan auth
+// group: every public surface linked to `fan.packages.show`, so a visitor
+// browsing a partner's hub was bounced to login the moment they clicked a
+// package — before they had seen what was on offer. Signed-in fans still get
+// the richer `fan.packages.show` (fixtures, seat map, itinerary map).
+Route::get('/listings/{listing}', [ListingShowController::class, 'show'])
+    ->name('listings.show');
 
 require __DIR__.'/auth.php';
 

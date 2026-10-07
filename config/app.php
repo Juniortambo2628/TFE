@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Demo Account Password
+    |--------------------------------------------------------------------------
+    |
+    | The password given to every seeded demo account. The deploy seeds
+    | automatically, so leaving the shipped default on a live site would put
+    | a known credential on it — including for the admin account. Set
+    | DEMO_ACCOUNT_PASSWORD on any deployed environment. Unset in dev, where
+    | the documented `password` is used and nothing changes.
+    |
+    */
+
+    'demo_account_password' => env('DEMO_ACCOUNT_PASSWORD'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

@@ -28,7 +28,7 @@ class DemoTicketingPartnerSeeder extends Seeder
                 'name' => 'MatchDay Africa',
                 'first_name' => 'MatchDay',
                 'last_name' => 'Africa',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(DemoCredentials::password()),
                 'email_verified_at' => now(),
                 'is_admin' => false,
                 'is_partner' => true,

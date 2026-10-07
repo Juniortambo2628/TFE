@@ -30,7 +30,7 @@ class DemoPartnerSeeder extends Seeder
                 'name' => 'Serengeti Sports Travel',
                 'first_name' => 'Serengeti',
                 'last_name' => 'Sports Travel',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(DemoCredentials::password()),
                 'email_verified_at' => now(),
                 'is_admin' => false,
                 'is_partner' => true,
