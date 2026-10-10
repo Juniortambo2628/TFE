@@ -6,7 +6,7 @@ import '../../../css/fan/fan-pages.css';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import useUndoableRemoval from '@/hooks/useUndoableRemoval';
 import TfeModal from '@/Components/Common/TfeModal';
 import { useTournament } from '@/Context/TournamentContext';
 
@@ -16,7 +16,9 @@ export default function Events({ auth, events, userRsvps = [] }) {
     const [activeFilter, setActiveFilter] = useState('all');
     const [activeCategory, setActiveCategory] = useState('All');
     const [selectedEvent, setSelectedEvent] = useState(null);
-    const [eventToCancel, setEventToCancel] = useState(null);
+    // Undo instead of "are you sure?" (Sprint 69). The RSVP is only released
+    // when the toast's window closes, so nobody else can take the seat inside it.
+    const { isHidden: isCancelling, remove: cancelLater } = useUndoableRemoval();
 
     const handleRsvp = (eventId) => {
         router.post(route('fan.events.rsvp', eventId), { status: 'attending' }, {
@@ -25,16 +27,10 @@ export default function Events({ auth, events, userRsvps = [] }) {
         });
     };
 
-    const handleCancelRsvp = () => {
-        if (!eventToCancel) return;
-        router.delete(route('fan.events.rsvp.cancel', eventToCancel), {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('RSVP cancelled');
-                setEventToCancel(null);
-            }
-        });
-    };
+    const handleCancelRsvp = (eventId) => cancelLater(eventId, {
+        message: 'RSVP cancelled',
+        url: route('fan.events.rsvp.cancel', eventId),
+    });
 
     // DB Type mapping for inconsistent data
     const categoryMap = {
@@ -45,7 +41,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
         'Fan Meetups': ['meetup', 'fan_meetup', 'Community', 'community']
     };
 
-    const isRsvped = (eventId) => userRsvps.includes(eventId);
+    const isRsvped = (eventId) => userRsvps.includes(eventId) && !isCancelling(eventId);
 
     const categories = ['All', 'Match Events', 'Watch Parties', 'Fan Festivals', 'Fan Meetups'];
 
@@ -149,7 +145,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                                         <span className="event-price">Free</span>
                                                         <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setSelectedEvent(event)}>Details</button>
                                                         {isRsvped(event.id) ? (
-                                                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setEventToCancel(event.id)} aria-label="Cancel RSVP">
+                                                            <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => handleCancelRsvp(event.id)} aria-label="Cancel RSVP">
                                                                 <i className="fas fa-times"></i>
                                                             </button>
                                                         ) : (
@@ -199,16 +195,6 @@ export default function Events({ auth, events, userRsvps = [] }) {
                     </div>
                 </div>
             </div>
-
-            <ConfirmationDialog
-                open={!!eventToCancel}
-                onOpenChange={(open) => !open && setEventToCancel(null)}
-                title="Cancel RSVP?"
-                description="Are you sure you want to cancel your RSVP for this event? You can RSVP again later if spots are available."
-                onConfirm={handleCancelRsvp}
-                confirmText="Cancel RSVP"
-                variant="destructive"
-            />
 
             {/* Reusable Dashboard Modal for Event Details */}
             {selectedEvent && (
@@ -263,7 +249,7 @@ export default function Events({ auth, events, userRsvps = [] }) {
                                         type="button"
                                         className="tfe-btn"
                                         onClick={() => {
-                                            setEventToCancel(selectedEvent.id);
+                                            handleCancelRsvp(selectedEvent.id);
                                             setSelectedEvent(null);
                                         }}
                                     >

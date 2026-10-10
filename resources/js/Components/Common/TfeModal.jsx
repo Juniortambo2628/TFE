@@ -176,7 +176,7 @@ export default function TfeModal({
         if (!closeOnBackdrop || e.pointerType === 'mouse') return;
         if (e.target.closest('button, a, input, select, textarea')) return;
         dragRef.current = { y: e.clientY, t: performance.now() };
-        e.currentTarget.setPointerCapture?.(e.pointerId);
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* synthetic or already released */ }
     };
     const onSheetPointerMove = (e) => {
         if (!dragRef.current) return;
