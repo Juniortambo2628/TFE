@@ -15,6 +15,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
+use App\Http\Controllers\Fan\BookingPaymentController;
 use App\Http\Controllers\Fan\BudgetController;
 use App\Http\Controllers\Fan\CommunicationController;
 use App\Http\Controllers\Fan\ContactController;
@@ -49,6 +50,7 @@ use App\Http\Controllers\Partner\TicketController as PartnerTicketController;
 use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\TripPlannerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
@@ -111,6 +113,18 @@ Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('an
 Route::get('/listings/{listing}', [ListingShowController::class, 'show'])
     ->name('listings.show');
 
+// Public "Plan my trip" dialog (Sprint 64). An estimate without an account,
+// then the estimate itself carries the visitor through sign-in to a booking
+// or to the partner packages for that trip. See TripPlannerController.
+Route::get('/plan-trip/data', [TripPlannerController::class, 'data'])
+    ->middleware('throttle:60,1')->name('plan-trip.data');
+Route::post('/plan-trip/handoff', [TripPlannerController::class, 'handoff'])
+    ->middleware('throttle:30,1')->name('plan-trip.handoff');
+Route::post('/listings/{listing}/book', [TripPlannerController::class, 'bookListing'])
+    ->middleware('throttle:30,1')->name('listings.book');
+Route::get('/plan-trip/resume', [TripPlannerController::class, 'resume'])
+    ->middleware('auth')->name('plan-trip.resume');
+
 require __DIR__.'/auth.php';
 
 // Institution (school / club / community group) group-trip surfaces —
@@ -131,6 +145,9 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/profile/user/{user}', [ProfileController::class, 'show'])->name('profile.user');
     Route::get('/journey', [JourneyController::class, 'index'])->name('journey');
     Route::get('/bookings/{booking}', [JourneyController::class, 'show'])->name('bookings.show');
+    // In-app checkout (Sprint 65) — Paystack, or demo settlement locally.
+    Route::post('/bookings/{booking}/pay', [BookingPaymentController::class, 'pay'])->name('bookings.pay');
+    Route::get('/bookings/{booking}/pay/callback', [BookingPaymentController::class, 'callback'])->name('bookings.pay.callback');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
 
     // Loan Applications (Fan)

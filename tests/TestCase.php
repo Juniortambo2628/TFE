@@ -30,8 +30,10 @@ abstract class TestCase extends BaseTestCase
         // longer behaves differently depending on whether the machine running
         // it can reach the internet.
         //
-        // A test that genuinely needs a response can still call Http::fake()
-        // with its own stubs; the last registered fake wins.
+        // A test that genuinely needs a response must start from a fresh
+        // factory — `Http::swap(new Factory)` then `Http::fake([...])` — because
+        // the FIRST matching stub wins and this catch-all matches everything
+        // (see Fan\BookingPaymentTest::stubPaystack).
         Http::fake();
     }
 }

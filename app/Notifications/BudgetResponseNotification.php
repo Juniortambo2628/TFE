@@ -48,11 +48,18 @@ class BudgetResponseNotification extends Notification implements ShouldQueue
             'rejected' => 'declined your itinerary',
         ];
 
+        $acceptable = in_array($status, ['approved', 'modified'], true);
+
         return [
             'title' => 'Partner response · '.$ref,
-            'body' => 'A travel partner '.($labelByStatus[$status] ?? 'updated your itinerary').'.',
+            'body' => 'A travel partner '.($labelByStatus[$status] ?? 'updated your itinerary').'.'
+                .($acceptable ? ' Tap to accept and pay.' : ''),
             'icon' => $iconByStatus[$status] ?? 'fas fa-suitcase',
-            'action_url' => route('fan.itineraries'),
+            // Sprint 65 — a quote opens straight onto its accept dialog, so
+            // accepting is one tap from the bell instead of a hunt.
+            'action_url' => $acceptable
+                ? route('fan.itineraries', ['accept' => $this->budget->id])
+                : route('fan.itineraries'),
             'type' => 'budget_response',
             'budget_id' => $this->budget->id,
             'partner_status' => $this->budget->partner_status,

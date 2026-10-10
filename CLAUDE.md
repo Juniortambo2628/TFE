@@ -459,6 +459,67 @@ This works **because the school is the controller**. If TFE ever sells a
 child's place directly to a parent, none of it applies and that flow must
 not be merged into this one.
 
+### Public "Plan my trip" (Sprint 64)
+
+Testers: get from planning to payment in as few steps as possible. A visitor
+now gets an estimate in **three steps with no account**, and the estimate is
+what carries them through sign-in.
+
+- **`TripPlannerDialog`** (`Components/Common/`) is mounted ONCE by the public
+  `Header`; any CTA opens it with `openTripPlanner({ tournamentId?, matchId? })`
+  from `lib/tripPlanner.js` (a window event). `PageHero` ctas accept `onClick`.
+- **`lib/tripEstimate.js` is the ONE cost engine** — the fan Budget
+  Calculator's client-side path calls it too, so a number does not change when
+  the visitor signs in. Guarded by `tests/JS/tripPlanner.test.mjs`.
+- `TripPlannerController`: `data()` (public JSON — pricing, fixtures,
+  approved+active packages), `handoff()` (stashes the trip in session
+  `planner.trip`, points `url.intended` at `resume()`, sends a guest to
+  `/register?from=planner`), `resume()` (auth):
+  - `book` + package → Budget + `pending_payment` Booking → booking page to pay.
+    The published package price IS the quote, so no partner round-trip.
+  - `book` without package → Budget saved, calculator opens on it.
+  - `explore` → calculator package step with `plannerEstimate` banner + prefill.
+- `RegisteredUserController` now uses `redirect()->intended()`; email
+  verification already did, and `resume()` re-arms intended for unverified users.
+- Only `approved` + `is_active` listings can be booked via the handoff.
+  Guarded by `tests/Feature/TripPlannerTest.php`.
+
+### Fewer steps to payment (Sprint 65)
+
+Follow-on to Sprint 64, from the same tester feedback.
+
+- **In-app checkout** — `Fan\BookingPaymentController` + `PaystackService`
+  (`fan.bookings.pay` / `.pay.callback`), recording rows in the existing
+  `payments` table. **Opt-in**: with no `PAYSTACK_SECRET_KEY` the booking page
+  keeps the partner checkout link (the old "TFE doesn't process payments"
+  stance still holds by default). Locally/in tests with no key it runs in
+  `demo` mode and settles without a gateway. The callback is **verified
+  server-side**, and amount + currency must match the pending row, or a
+  tampered checkout could settle a dear booking with a cheap payment.
+- **Book now** on `/listings/{id}` (`listings.book` → the same planner
+  hand-off) — package to booking in one click plus sign-in.
+- **Accept & pay** — `BudgetController::confirm` lands on the booking (its Pay
+  button), and `BudgetResponseNotification` links quotes to
+  `fan.itineraries?accept={id}`, which opens the accept dialog.
+- **Sign-up**: the team step is optional and skipped from the planner;
+  `CompleteProfileController` returns to `intended`; Google sign-in skips the
+  team prompt mid-booking. **Security fix**: Google sign-in used to
+  `updateOrCreate` with a FIXED dummy password, resetting any matching
+  account's password to a string in the source. Existing accounts are now
+  left alone; new ones get a random password (`SocialAuthPasswordTest`).
+- **Planner**: remembers answers in `localStorage` (`loadPlannerPrefs`,
+  guarded), a "from X/month" line (`monthlyFrom`, before interest), funnel
+  events via `analytics.track` (`planner_open` / `planner_step` /
+  `planner_handoff`), and "Plan" on unplayed hero matches. Hero match ids are
+  list indexes, so `findFixtureByHint()` matches by BOTH team names and
+  returns null rather than guessing.
+- **Fan calculator** offers the same planner as "Quick plan"; the fan
+  dashboard leads with `DashboardController::nextAction()` (pay → accept →
+  waiting → plan).
+- `tests/TestCase.php` installs a catch-all `Http::fake()`, and the FIRST
+  matching stub wins — a test needing real responses must
+  `Http::swap(new Factory)` first.
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

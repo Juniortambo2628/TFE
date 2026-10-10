@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;
 use App\Services\FixtureService;
+use App\Services\PaystackService;
 use App\Services\WeatherService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Support\Facades\Auth;
@@ -114,6 +115,18 @@ class JourneyController extends Controller
         return Inertia::render('Fan/BookingDetails', [
             'booking' => $booking,
             'matches' => $matches,
+            // Sprint 65 — 'paystack' | 'demo' | null (partner link only).
+            'checkout' => $this->checkoutMode($booking),
         ]);
+    }
+
+    private function checkoutMode(Booking $booking): ?string
+    {
+        $paystack = app(PaystackService::class);
+        if ($paystack->demo()) {
+            return 'demo';
+        }
+
+        return $paystack->enabled() && $paystack->supports($booking->currency ?: 'USD') ? 'paystack' : null;
     }
 }

@@ -1,0 +1,126 @@
+/* Public "Plan my trip" dialog (Sprint 64). Imported by TripPlannerDialog
+   itself — it renders on public pages, which do not load the dashboard
+   sheets (the PoweredByBadge trap, Sprint 63). */
+
+.tfe-planner-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.tfe-planner-footer__spacer { flex: 1 1 auto; }
+
+.tfe-planner-toggle {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.tfe-planner-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.tfe-planner-stepper output {
+    min-width: 2ch;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text-primary, #fff);
+}
+
+.tfe-planner-matches {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+.tfe-planner-match {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 10px;
+    cursor: pointer;
+}
+.tfe-planner-match span { display: flex; flex-direction: column; }
+.tfe-planner-match small { color: var(--text-muted, rgba(255, 255, 255, 0.55)); }
+
+.tfe-planner-total {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 12px;
+}
+.tfe-planner-total strong {
+    font-size: 2rem;
+    line-height: 1.1;
+    color: var(--text-primary, #fff);
+}
+
+.tfe-planner-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 6px 16px;
+    margin: 0;
+}
+.tfe-planner-breakdown div {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-divider, rgba(255, 255, 255, 0.06));
+    padding: 4px 0;
+}
+.tfe-planner-breakdown dt { font-weight: 400; color: var(--text-secondary, rgba(255, 255, 255, 0.7)); }
+.tfe-planner-breakdown dd { margin: 0; color: var(--text-primary, #fff); }
+
+.tfe-planner-packages {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+.tfe-planner-pkg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--glass-surface-subtle, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-left: 3px solid var(--partner-accent, var(--accent, #dc2626));
+    color: var(--text-primary, #fff);
+    cursor: pointer;
+}
+.tfe-planner-pkg.is-active {
+    border-color: var(--partner-accent, var(--accent, #dc2626));
+    box-shadow: 0 0 0 1px var(--partner-accent, var(--accent, #dc2626));
+}
+.tfe-planner-pkg:disabled { opacity: 0.5; cursor: not-allowed; }
+.tfe-planner-pkg__partner {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted, rgba(255, 255, 255, 0.55));
+}
+.tfe-planner-pkg__name { font-weight: 700; }
+.tfe-planner-pkg__meta { font-size: 0.85rem; color: var(--text-secondary, rgba(255, 255, 255, 0.7)); }
+
+.tfe-planner-skeleton { height: 220px; border-radius: 12px; }
+
+.tfe-planner-monthly {
+    font-size: 0.9rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+/* "Plan" on an unplayed match row in the landing hero (Sprint 65). Rides on
+   .vs-badge; only resets what a <button> adds. */
+.hero-plan-match {
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    white-space: nowrap;
+}
+.hero-plan-match:hover { filter: brightness(1.2); }

@@ -64,7 +64,9 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return to_route('fan.dashboard');
+        // `intended` so a visitor sent here by the public trip planner lands
+        // back on their estimate rather than an empty dashboard (Sprint 64).
+        return redirect()->intended(route('fan.dashboard', absolute: false));
     }
 
     public function checkEmail(Request $request)

@@ -162,6 +162,9 @@ class BudgetController extends Controller
             'tournamentPricing' => $pricing,
             'packages' => $packages,
             'financePartners' => $financePartners,
+            // The public "Plan my trip" estimate, carried through sign-in
+            // (Sprint 64). Pulled, so it shows once and then gets out of the way.
+            'plannerEstimate' => $request->session()->pull('planner.estimate'),
             // Defer the heavy fixture bundle — page renders immediately,
             // Inertia fetches this in a background partial reload.
             'fixtureBundle' => Inertia::defer($fixtureBundle),
@@ -235,7 +238,7 @@ class BudgetController extends Controller
         }
 
         // Create the booking scoped to the same tournament + listing as the budget.
-        Booking::create([
+        $booking = Booking::create([
             'user_id' => $budget->user_id,
             'tournament_id' => $budget->tournament_id,
             'listing_id' => $budget->listing_id,
@@ -268,7 +271,8 @@ class BudgetController extends Controller
             'is_active' => false,
         ]);
 
-        return redirect()->route('fan.journey')->with('success', 'Itinerary confirmed! Your booking is now pending payment.');
+        // Straight to the booking, where the Pay button is (Sprint 65).
+        return redirect()->route('fan.bookings.show', $booking)->with('success', 'Itinerary confirmed! Complete payment to secure it.');
     }
 
     public function store(Request $request)

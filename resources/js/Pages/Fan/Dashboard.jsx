@@ -27,7 +27,7 @@ function pillForPartnerStatus(status) {
     return { label: 'Pending', variant: 'pending' };
 }
 
-export default function Dashboard({ auth, activeBudget, activeLoan = null, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
+export default function Dashboard({ auth, nextAction = null, activeBudget, activeLoan = null, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
     const { tournament, switchTournament } = useTournament();
 
     const tutorialSteps = [
@@ -185,6 +185,8 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
                 }
                 bgImage="/assets/img/fan/backgrounds/stadium_hero.png"
             />
+
+            {nextAction && <NextActionCard action={nextAction} />}
 
             {/* Concluded tournament nudge — token-driven, matches the new
                 slab treatment used elsewhere on the dashboard. */}
@@ -376,5 +378,34 @@ export default function Dashboard({ auth, activeBudget, activeLoan = null, stats
 
             </div>
         </FanLayout>
+    );
+}
+
+/**
+ * The one thing to do next (Sprint 65) — computed server-side by
+ * `DashboardController::nextAction()`, so there is one rule for it.
+ */
+function NextActionCard({ action }) {
+    const icon = { pay: 'fas fa-lock', accept: 'fas fa-check-circle', wait: 'fas fa-hourglass-half', plan: 'fas fa-plane' }[action.kind] || 'fas fa-arrow-right';
+    const hoursLeft = action.expires_at
+        ? Math.max(0, Math.round((new Date(action.expires_at) - Date.now()) / 36e5))
+        : null;
+
+    return (
+        <ContentCard className="mb-4 tfe-next-action">
+            <div className="d-flex flex-wrap align-items-center gap-3">
+                <i className={`${icon} fs-3`} aria-hidden="true"></i>
+                <div className="flex-grow-1">
+                    <div className="fw-bold text-white">{action.title}</div>
+                    <div className="tfe-form-help">
+                        {action.amount ? formatMoney(action.amount, action.currency) : null}
+                        {hoursLeft !== null && ` · held for ${hoursLeft}h more`}
+                    </div>
+                </div>
+                <Link href={action.href} className={`tfe-btn ${action.kind === 'wait' ? '' : 'tfe-btn--filled'}`}>
+                    {action.cta}
+                </Link>
+            </div>
+        </ContentCard>
     );
 }

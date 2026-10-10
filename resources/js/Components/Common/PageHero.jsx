@@ -12,7 +12,7 @@ import { assetPath } from '@/lib/assets';
  * Props:
  *  - eyebrow, title, tagline, background (public path or URL), accent
  *  - cta {label, href, icon?} — single CTA (section pages), OR
- *  - ctas [{label, href, icon?, filled?}] — several (first is filled by default)
+ *  - ctas [{label, href | onClick, icon?, filled?}] — several (first is filled by default)
  *  - media {src, alt} — an image (e.g. a trophy) floating on the right
  *  - children — extra hero content under the tagline (host pills, meta, …)
  */
@@ -46,16 +46,22 @@ export default function PageHero({ eyebrow, title, tagline, background, accent =
                         {children}
                         {ctaList.length > 0 && (
                             <div className="page-hero__ctas">
-                                {ctaList.map((c, i) => (
-                                    <a
-                                        key={i}
-                                        href={c.href || '#'}
-                                        className={'tfe-btn tfe-btn--lg' + ((c.filled ?? i === 0) ? ' tfe-btn--filled' : '')}
-                                    >
-                                        {c.icon && <i className={c.icon} />}
-                                        {c.label}
-                                    </a>
-                                ))}
+                                {ctaList.map((c, i) => {
+                                    const cls = 'tfe-btn tfe-btn--lg' + ((c.filled ?? i === 0) ? ' tfe-btn--filled' : '');
+                                    // An action CTA (e.g. opening the trip planner) is a
+                                    // button, not a link to '#'.
+                                    return c.onClick ? (
+                                        <button key={i} type="button" className={cls} onClick={c.onClick}>
+                                            {c.icon && <i className={c.icon} />}
+                                            {c.label}
+                                        </button>
+                                    ) : (
+                                        <a key={i} href={c.href || '#'} className={cls}>
+                                            {c.icon && <i className={c.icon} />}
+                                            {c.label}
+                                        </a>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

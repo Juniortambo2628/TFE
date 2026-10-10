@@ -36,6 +36,6 @@ class CompleteProfileController extends Controller
         $user = User::find(Auth::id());
         $user->update(['team_support' => $request->team_support]);
 
-        return redirect()->route('fan.dashboard');
+        return redirect()->intended(route('fan.dashboard', absolute: false));
     }
 }

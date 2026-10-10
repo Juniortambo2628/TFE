@@ -28,6 +28,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Opt-in in-app checkout (Sprint 65). Empty = partner checkout links only.
+    'paystack' => [
+        'public' => env('PAYSTACK_PUBLIC_KEY'),
+        'secret' => env('PAYSTACK_SECRET_KEY'),
+    ],
+
     'newsapi' => [
         'key' => env('NEWSAPI_KEY'),
     ],

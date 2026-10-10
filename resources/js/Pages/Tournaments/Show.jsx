@@ -1,4 +1,5 @@
 import React from 'react';
+import { openTripPlanner } from '@/lib/tripPlanner';
 import { Link, usePage } from '@inertiajs/react';
 import SectionPageShell from '@/Components/Landing/SectionPageShell';
 import PageHero from '@/Components/Common/PageHero';
@@ -29,9 +30,11 @@ export default function TournamentShow({ tournament = {}, listings = [], upcomin
     const heroCtas = isPast
         ? [upcoming
             ? { label: `Plan for ${upcoming.short_name}`, href: `/tournaments/${upcoming.slug}`, icon: 'fas fa-arrow-right', filled: true }
-            : { label: 'Start planning your trip', href: '/register', icon: 'fas fa-arrow-right', filled: true }]
+            : { label: 'Start planning your trip', onClick: () => openTripPlanner(), icon: 'fas fa-arrow-right', filled: true }]
         : [
-            { label: 'Sign up & attend', href: '/register', icon: 'fas fa-user-plus', filled: true },
+            // Sprint 64 — an estimate first, the account at the point of
+            // booking, rather than a signup form as the opening move.
+            { label: 'Plan my trip', onClick: () => openTripPlanner({ tournamentId: t.id }), icon: 'fas fa-plane', filled: true },
             { label: 'Explore packages', href: '/services', icon: 'fas fa-suitcase-rolling' },
         ];
 
