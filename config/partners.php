@@ -33,7 +33,7 @@ return [
         ],
         [
             'name' => 'FIFA World Cup 2026',
-            'logo' => 'assets/partner-logos/fifa-world-cup-2026-logo-alt.png',
+            'logo' => 'assets/partner-logos/fifa-world-cup-2026-logo-alt.webp',
             'height' => '70px',
             'disclaimer' => 'We are facilitating travel to this tournament. Not officially affiliated with FIFA.',
             'link' => 'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Follow;
+use App\Models\NotificationContact;
 use App\Models\Post;
 use App\Models\Profile;
 use App\Models\User;
@@ -97,7 +98,16 @@ class ProfileController extends Controller
                 ];
             });
 
+        // Sprint 66 — opt-in text alerts. Own profile only, and the number
+        // goes back masked: the page never needs the full digits.
+        $contact = $isOwnProfile ? NotificationContact::where('user_id', Auth::id())->first() : null;
+
         return Inertia::render('Fan/Profile', [
+            'textAlerts' => $contact ? [
+                'phone' => $contact->masked(),
+                'channel' => $contact->channel,
+                'verified' => $contact->isVerified(),
+            ] : null,
             'socialStats' => $stats,
             'profile' => $profile,
             'isOwnProfile' => $isOwnProfile,

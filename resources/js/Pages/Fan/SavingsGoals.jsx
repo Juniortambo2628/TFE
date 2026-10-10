@@ -7,8 +7,12 @@ import TfeModal from '@/Components/Common/TfeModal';
 import { formatMoney } from '@/lib/utils';
 import { SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
 import { useTournament } from '@/Context/TournamentContext';
+import BankConnectDialog from '@/Components/Fan/BankConnectDialog';
+import { Link } from '@inertiajs/react';
 
-export default function SavingsGoals({ auth, goals }) {
+export default function SavingsGoals({ auth, goals, bankLinks = {}, bank = null }) {
+    // Sprint 67 — the goal whose "Save with the bank" consent dialog is open.
+    const [connectFor, setConnectFor] = useState(null);
     const { tournament } = useTournament();
     const [showForm, setShowForm] = useState(false);
     // Sprint 30 — a goal saves for one specific currency; a fan planning
@@ -166,6 +170,19 @@ export default function SavingsGoals({ auth, goals }) {
                                                 style={{ width: `${progress}%` }} />
                                         </div>
                                         <p className="text-white/40 text-xs mt-2 text-right">{Math.round(progress)}%</p>
+
+                                        {/* Sprint 67 — a real account at the bank behind the goal. */}
+                                        <div className="mt-3 pt-3 border-t border-white/10">
+                                            {bankLinks[goal.id]?.status === 'active' ? (
+                                                <Link href={route('fan.bank-savings.show', bankLinks[goal.id].id)} className="tfe-btn tfe-btn--sm w-100 justify-content-center">
+                                                    <i className="fas fa-university" aria-hidden="true"></i> Saving with {bank?.label} · view account
+                                                </Link>
+                                            ) : bank && (
+                                                <button type="button" className="tfe-btn tfe-btn--sm w-100 justify-content-center" onClick={() => setConnectFor(goal)}>
+                                                    <i className="fas fa-university" aria-hidden="true"></i> Save for this in a bank account
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -173,6 +190,9 @@ export default function SavingsGoals({ auth, goals }) {
                     )}
                 </div>
             </div>
+            {connectFor && (
+                <BankConnectDialog key={connectFor.id} goal={connectFor} bank={bank} onClose={() => setConnectFor(null)} />
+            )}
         </FanLayout>
     );
 }

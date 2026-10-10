@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureUserIsInstitution;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsPartner;
+use App\Http\Middleware\RequireFreshPassword;
 use App\Http\Middleware\ResolveTournament;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_admin' => IsAdmin::class,
             'is_partner' => IsPartner::class,
             'is_institution' => EnsureUserIsInstitution::class,
+            'savings.reauth' => RequireFreshPassword::class,
         ]);
 
         // Sprint 44 — analytics is a fire-and-forget metric write that

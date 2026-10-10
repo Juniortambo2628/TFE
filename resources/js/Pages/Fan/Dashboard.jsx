@@ -30,141 +30,31 @@ function pillForPartnerStatus(status) {
 export default function Dashboard({ auth, nextAction = null, activeBudget, activeLoan = null, stats, recentPayments, recentBookings, activities, suggestedMatches = [], isConcluded = false, nextActiveTournament = null }) {
     const { tournament, switchTournament } = useTournament();
 
+    // Four stops, not twenty-five (Sprint 66): testers met a "Step 1 of 25"
+    // overlay on top of the dashboard before they could use it. The tour now
+    // points at the few things that move a trip forward; the sidebar labels
+    // explain the rest themselves.
     const tutorialSteps = [
-        // 1. Welcome
         {
             target: 'dashboard-hero-section',
-            title: 'Welcome to Your Dashboard',
-            content: `This is your central hub for ${tournament?.short_name || tournament?.name || 'the tournament'}. Here you can see your trip overview, budget status, and upcoming activities.`
-        },
-        
-        // 2. Header Links
-        {
-            target: 'nav-link-social',
-            title: 'Social Feed',
-            content: 'Connect with other fans, share your moments, and see what is trending in the community.'
+            title: 'Welcome',
+            content: `This is your home for ${tournament?.short_name || tournament?.name || 'the tournament'}. The card at the top always shows the one thing to do next.`,
         },
         {
-            target: 'nav-link-tribes',
-            title: 'Fan Tribes',
-            content: 'Join or create Tribes to group up with friends and fellow fans for a shared experience.'
-        },
-        {
-            target: 'nav-link-store',
-            title: 'Fan Store',
-            content: 'Browse and purchase official merchandise, kits, and memorabilia.'
-        },
-        {
-            target: 'nav-link-predict',
-            title: 'Predict & Win',
-            content: 'Participate in match predictions and win exciting prizes.'
-        },
-
-        // 3. Sidebar Links
-        {
-            target: 'sidebar-item-home',
-            title: 'Home',
-            content: 'Return to this dashboard overview at any time.'
-        },
-        {
-            target: 'sidebar-item-profile',
-            title: 'Your Profile',
-            content: 'Manage your personal details, preferences, and account settings.'
-        },
-        {
-             target: 'sidebar-item-stories',
-             title: 'Stories',
-             content: 'Watch and share short video stories from your journey.'
-        },
-        {
-            target: 'sidebar-item-journey',
-            title: 'My Journey',
-            content: 'Track your overall travel progress and milestones.'
+            target: 'qa-budget',
+            title: 'Plan a trip',
+            content: 'Get an estimate and the partner packages that fit — book in a few taps.',
         },
         {
             target: 'sidebar-item-my-itineraries',
-            title: 'My Itineraries',
-            content: 'View and manage your saved trip plans and booked itineraries.'
+            title: 'Your plans',
+            content: 'Saved plans and partner quotes live here. Accept a quote and pay in one step.',
         },
-        {
-            target: 'sidebar-item-events',
-            title: 'Events',
-            content: 'Discover events happening around the matches and host cities.'
-        },
-        {
-            target: 'sidebar-item-match-schedule',
-            title: 'Match Schedule',
-            content: 'View the full tournament schedule and add matches to your plan.'
-        },
-        {
-            target: 'sidebar-item-communication',
-            title: 'Messages',
-            content: 'Communicate with support, tribe members, and other fans.'
-        },
-        {
-            target: 'sidebar-item-payments',
-            title: 'Payments',
-            content: 'Track your payment history and manage your budget.'
-        },
-        {
-            target: 'sidebar-item-security',
-            title: 'Security',
-            content: 'Manage your account security, password, and 2FA settings.'
-        },
-        {
-            target: 'sidebar-item-contact',
-            title: 'Contact Support',
-            content: 'Get help and support whenever you need it.'
-        },
-
-        // 4. Quick Actions
-        {
-             target: 'qa-wallet',
-             title: 'My Wallet',
-             content: 'Quickly access your digital wallet to view balance and top up.'
-        },
-        {
-             target: 'qa-travel',
-             title: 'Travel Info',
-             content: 'See your flight and accommodation details at a glance.'
-        },
-        {
-             target: 'qa-store',
-             title: 'Shop Now',
-             content: 'Head directly to the store to grab the latest gear.'
-        },
-        {
-             target: 'qa-predict',
-             title: 'Make a Prediction',
-             content: 'Jump straight into the action and predict the next match result.'
-        },
-        {
-             target: 'qa-events',
-             title: 'Find Events',
-             content: 'Explore what is happening nearby right now.'
-        },
-        {
-             target: 'qa-budget',
-             title: 'Budget Calculator',
-             content: 'Plan your expenses and estimate costs for your trip.'
-        },
-
-        // 5. Header Dropdowns/Icons
         {
             target: 'header-notifications-btn',
-            title: 'Notifications',
-            content: 'Stay updated with real-time alerts about your bookings and activities.'
+            title: 'Updates',
+            content: 'Quotes, payments and booking reminders arrive here.',
         },
-        {
-            target: 'header-messages-btn',
-            title: 'Quick Messages',
-            content: 'Access your recent messages without leaving the dashboard.'
-        },
-        {
-            target: 'header-user-profile',
-            title: 'User Menu',
-            content: 'Access your profile, settings, and logout option here.'
-        }
     ];
 
     return (

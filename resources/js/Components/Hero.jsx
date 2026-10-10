@@ -586,13 +586,15 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                 {/* Stadium Slider Controls */}
                 <div className="stadium-controls-arrows d-flex align-items-center gap-3 position-absolute end-0 bottom-0 mb-5 me-5 d-none d-md-flex hero-stadium-controls">
                     <button 
-                        className="slider-nav-btn prev" 
+                        className="slider-nav-btn prev"
+                        aria-label="Previous stadium"
                         onClick={() => setCurrentSlide((prev) => (prev - 1 + stadiums.length) % stadiums.length)}
                     >
                         <i className="fas fa-chevron-left"></i>
                     </button>
                     <button 
-                        className="slider-nav-btn next" 
+                        className="slider-nav-btn next"
+                        aria-label="Next stadium"
                         onClick={() => setCurrentSlide((prev) => (prev + 1) % stadiums.length)}
                     >
                         <i className="fas fa-chevron-right"></i>

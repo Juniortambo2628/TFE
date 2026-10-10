@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\Listing;
 use App\Services\FixtureService;
 use App\Services\TournamentService;
+use App\Support\VisitorCurrency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,6 +72,8 @@ class TripPlannerController extends Controller
             'pricing' => $tournament['pricing'] ?? [],
             'fixtures' => $matches,
             'packages' => $this->packagesFor($id),
+            // Default only — a saved choice in the browser wins (Sprint 66).
+            'suggested_currency' => VisitorCurrency::guess($request),
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Budget;
+use App\Notifications\Channels\SmsChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -25,7 +26,20 @@ class BudgetResponseNotification extends Notification implements ShouldQueue
     {
         // Sprint 35 — broadcast alongside database so the bell updates
         // live when Reverb is reachable; no-op with BROADCAST_CONNECTION=log.
-        return ['database', 'broadcast'];
+        // Sprint 66 — and a text, for fans who opted in with a verified number.
+        return ['database', 'broadcast', SmsChannel::class];
+    }
+
+    public function toSms(object $notifiable): string
+    {
+        $status = strtolower($this->budget->partner_status ?? '');
+        $name = $this->budget->name;
+
+        return match ($status) {
+            'approved', 'modified' => "TFE: a partner quoted your trip \"{$name}\". Accept and pay: ".route('fan.itineraries', ['accept' => $this->budget->id]),
+            'rejected' => "TFE: a partner could not take \"{$name}\". Pick another package: ".route('fan.budget-calculator'),
+            default => "TFE: there's an update on \"{$name}\": ".route('fan.itineraries'),
+        };
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

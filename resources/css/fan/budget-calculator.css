@@ -1446,3 +1446,14 @@
     border: 0;
     border-radius: 0;
 }
+
+/* Sprint 66 — on a phone the four hero stats ran off the right edge (the
+   currency picker was cut in half). Let them wrap into a 2x2 grid. */
+@media (max-width: 575.98px) {
+    .hero-stats.dash-flex {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px;
+    }
+    .hero-stats .currency-picker select { max-width: 100%; }
+}

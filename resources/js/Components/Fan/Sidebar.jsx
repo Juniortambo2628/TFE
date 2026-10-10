@@ -11,24 +11,36 @@ export default function FanSidebar({ user }) {
     // (Sprint 62).
     const isInstitution = user?.account_type === 'institution';
 
+    // Grouped by what a fan is doing (Sprint 66): planning and booking first
+    // and open, everything else folded. Fifteen flat links put Stories and
+    // Virtual Card on the same level as the trip itself.
     const menuItems = isInstitution ? INSTITUTION_MENU : [
         { label: 'Home', icon: 'fas fa-home', route: 'fan.dashboard', path: '/fan/dashboard' },
-        { label: 'Profile', icon: 'fas fa-user', route: 'fan.profile', path: '/fan/profile' },
-        { label: 'Stories', icon: 'fas fa-circle', route: 'fan.stories', path: '/fan/stories' },
-        { label: 'Journey', icon: 'fas fa-suitcase-rolling', route: 'fan.journey', path: '/fan/journey' },
+
+        { heading: 'Plan & book', defaultOpen: true },
+        { label: 'Plan a Trip', icon: 'fas fa-calculator', route: 'fan.budget-calculator', path: '/fan/budget-calculator' },
         { label: 'My Itineraries', icon: 'fas fa-map-marked-alt', route: 'fan.itineraries', path: '/fan/itineraries' },
-        { label: 'Events', icon: 'fas fa-calendar-alt', route: 'fan.events', path: '/fan/events' },
         { label: 'Match Schedule', icon: 'fas fa-calendar-check', route: 'fan.match-schedule', path: '/fan/match-schedule' },
         { label: 'Tickets', icon: 'fas fa-ticket-alt', route: 'fan.tickets.index', path: '/fan/tickets' },
-        { label: 'Messages', icon: 'fas fa-comments', route: 'fan.communication', path: '/fan/communication' },
         { label: 'Financing', icon: 'fas fa-hand-holding-usd', route: 'fan.loan-applications', path: '/fan/loan-applications' },
+
+        { heading: 'My trip', defaultOpen: true },
+        { label: 'Journey', icon: 'fas fa-suitcase-rolling', route: 'fan.journey', path: '/fan/journey' },
+        { label: 'Messages', icon: 'fas fa-comments', route: 'fan.communication', path: '/fan/communication' },
         { label: 'Virtual Card', icon: 'fas fa-credit-card', route: 'fan.virtual-card', path: '/fan/virtual-card' },
-        { label: 'Security', icon: 'fas fa-shield-alt', route: 'fan.security', path: '/fan/security' },
-        { label: 'Contact Support', icon: 'fas fa-headset', route: 'fan.contact', path: '/fan/contact' },
+
+        { heading: 'Community' },
+        { label: 'Stories', icon: 'fas fa-circle', route: 'fan.stories', path: '/fan/stories' },
+        { label: 'Events', icon: 'fas fa-calendar-alt', route: 'fan.events', path: '/fan/events' },
         { label: 'Social', icon: 'fas fa-users', route: 'fan.feed', path: '/fan/feed', mobileOnly: true },
         { label: 'Tribes', icon: 'fas fa-layer-group', route: 'fan.tribes', path: '/fan/tribes', mobileOnly: true },
         { label: 'Store', icon: 'fas fa-tshirt', route: 'fan.store', path: '/fan/store', mobileOnly: true },
         { label: 'Predict', icon: 'fas fa-futbol', route: 'fan.predict-win', path: '/fan/predict-win', mobileOnly: true },
+
+        { heading: 'Account' },
+        { label: 'Profile', icon: 'fas fa-user', route: 'fan.profile', path: '/fan/profile' },
+        { label: 'Security', icon: 'fas fa-shield-alt', route: 'fan.security', path: '/fan/security' },
+        { label: 'Contact Support', icon: 'fas fa-headset', route: 'fan.contact', path: '/fan/contact' },
     ];
 
     return (

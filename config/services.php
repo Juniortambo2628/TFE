@@ -32,6 +32,17 @@ return [
     'paystack' => [
         'public' => env('PAYSTACK_PUBLIC_KEY'),
         'secret' => env('PAYSTACK_SECRET_KEY'),
+        // KES charged per USD when a USD booking is paid by M-Pesa. Empty =
+        // M-Pesa only for bookings already in KES.
+        'kes_per_usd' => env('PAYSTACK_KES_PER_USD'),
+    ],
+
+    // Opt-in SMS / WhatsApp alerts (Sprint 66). Empty = messages are logged only.
+    'africastalking' => [
+        'username' => env('AT_USERNAME'),
+        'key' => env('AT_API_KEY'),
+        'sender_id' => env('AT_SENDER_ID'),
+        'whatsapp_number' => env('AT_WHATSAPP_NUMBER'),
     ],
 
     'newsapi' => [

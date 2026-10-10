@@ -112,16 +112,20 @@ export default function Itineraries({ itineraries }) {
                                                 </div>
                                             </div>
 
+                                            {itinerary.next_step && (
+                                                <p className="tfe-form-help mb-2">{itinerary.next_step}</p>
+                                            )}
+
                                             <div className="itin-plan-card__facts">
                                                 <div>
                                                     <div className="itin-plan-card__fact-label">Your estimate</div>
-                                                    <div className="itin-plan-card__fact-value">{formatMoney(itinerary.total_cost)}</div>
+                                                    <div className="itin-plan-card__fact-value">{formatMoney(itinerary.total_cost, itinerary.currency)}</div>
                                                 </div>
                                                 {itinerary.partner_cost > 0 && (
                                                     <div>
                                                         <div className="itin-plan-card__fact-label">Partner quote</div>
                                                         <div className="itin-plan-card__fact-value itin-plan-card__fact-value--accent">
-                                                            {formatMoney(itinerary.partner_cost)}
+                                                            {formatMoney(itinerary.partner_cost, itinerary.currency)}
                                                         </div>
                                                     </div>
                                                 )}
