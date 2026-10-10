@@ -10,6 +10,21 @@ class Budget extends Model
 {
     use HasFactory;
 
+    /**
+     * A partner's Convert queue: the active budgets whose fan picked one of
+     * that partner's listings (Sprint 56). The ONE definition — the request
+     * queue, the brief's authorization and partner messaging all use it,
+     * because a second copy is how messaging stayed unscoped (Sprint 70).
+     */
+    public function scopeInPartnerQueue($query, int $partnerId)
+    {
+        $listingIds = Listing::query()
+            ->publishedBy(User::class, $partnerId)
+            ->pluck('id');
+
+        return $query->where('is_active', true)->whereIn('listing_id', $listingIds);
+    }
+
     protected $fillable = [
         'user_id',
         'tournament_id',

@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class EventRsvp extends Model
 {
     protected $fillable = [
-        'user_id', 'event_id', 'status',
+        'user_id', 'event_id', 'status', 'reminded_at',
     ];
+
+    protected $casts = ['reminded_at' => 'datetime'];
 
     public function user()
     {

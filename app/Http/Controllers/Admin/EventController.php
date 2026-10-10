@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Support\ActivityNotifier;
 use App\Traits\Uploadable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -59,7 +60,18 @@ class EventController extends Controller
             $validated['image'] = $this->uploadFile($request->file('image'), 'events');
         }
 
-        Event::create($validated);
+        $event = Event::create($validated);
+
+        // Only for an event still to come — announcing a past one is noise.
+        if ($event->date && $event->date->isFuture()) {
+            ActivityNotifier::broadcastToFans([
+                'type' => 'event',
+                'title' => "New event: {$event->title}",
+                'body' => trim(($event->location ? $event->location.' · ' : '').$event->date->format('D j M')),
+                'icon' => 'fas fa-calendar-plus',
+                'action_url' => route('fan.events'),
+            ]);
+        }
 
         return back()->with('success', 'Event created successfully');
     }

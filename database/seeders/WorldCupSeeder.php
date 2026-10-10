@@ -162,16 +162,19 @@ class WorldCupSeeder extends Seeder
             'type' => 'meetup',
         ]);
 
-        // Seed a system message
+        // Seed a system message. firstOrCreate, not create: the deploy seeds
+        // on every release (Sprint 63), and a bare create() added another
+        // copy of this message each time — the inbox filled with nothing
+        // but welcomes (Sprint 70).
         $admin = User::first();
         if ($admin) {
-            Message::create([
-                'user_id' => $admin->id,
-                'sender_id' => null, // System
-                'subject' => 'Welcome to TFE!',
-                'body' => 'Welcome to your Tournament Fan Experience dashboard. Get ready for an amazing journey!',
-                'is_read' => false,
-            ]);
+            Message::firstOrCreate(
+                ['user_id' => $admin->id, 'sender_id' => null, 'subject' => 'Welcome to TFE!'],
+                [
+                    'body' => 'Welcome to your Tournament Fan Experience dashboard. Get ready for an amazing journey!',
+                    'is_read' => false,
+                ],
+            );
         }
     }
 }

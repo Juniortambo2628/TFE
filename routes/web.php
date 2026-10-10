@@ -110,6 +110,10 @@ Route::post('/testimonials', [TestimonialController::class, 'store']);
 Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('analytics.track');
 // Browser error reports (Sprint 69). Throttled per IP: one broken page in a
 // render loop must not fill the disk.
+// Open a bell notification — any signed-in role (Sprint 70).
+Route::middleware('auth')->get('/notifications/{id}/open', [NotificationController::class, 'open'])
+    ->name('notifications.open');
+
 Route::post('/client-errors', [ClientErrorController::class, 'store'])
     ->middleware('throttle:30,1')
     ->name('client-errors.store');

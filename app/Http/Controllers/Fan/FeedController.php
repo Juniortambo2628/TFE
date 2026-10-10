@@ -9,9 +9,11 @@ use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Models\User;
+use App\Support\ActivityNotifier;
 use App\Traits\HasSocialStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class FeedController extends Controller
@@ -225,6 +227,17 @@ class FeedController extends Controller
         $user = Auth::user();
         $liked = $post->toggleLike($user);
 
+        if ($liked) {
+            ActivityNotifier::notify($post->user, [
+                'type' => 'social',
+                'title' => "{$user->name} liked your post",
+                'body' => Str::limit((string) $post->content, 80),
+                'icon' => 'fas fa-heart',
+                'action_url' => route('fan.feed.post.show', $post),
+                'dedupe' => "like:{$post->id}:{$user->id}",
+            ], $user);
+        }
+
         return back()->with('success', $liked ? 'Post liked!' : 'Post unliked.');
     }
 
@@ -245,6 +258,14 @@ class FeedController extends Controller
 
         $post->increment('comment_count');
 
+        ActivityNotifier::notify($post->user, [
+            'type' => 'social',
+            'title' => Auth::user()->name.' commented on your post',
+            'body' => Str::limit((string) $request->input('content'), 80),
+            'icon' => 'fas fa-comment',
+            'action_url' => route('fan.feed.post.show', $post),
+        ], Auth::user());
+
         return back()->with('success', 'Comment added!');
     }
 
@@ -254,6 +275,15 @@ class FeedController extends Controller
     public function repost(Post $post)
     {
         $repost = $post->repost(Auth::user());
+
+        ActivityNotifier::notify($post->user, [
+            'type' => 'social',
+            'title' => Auth::user()->name.' reposted your post',
+            'body' => Str::limit((string) $post->content, 80),
+            'icon' => 'fas fa-retweet',
+            'action_url' => route('fan.feed.post.show', $post),
+            'dedupe' => "repost:{$post->id}:".Auth::id(),
+        ], Auth::user());
 
         return back()->with('success', 'Post reposted!');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Follow;
 use App\Models\User;
+use App\Support\ActivityNotifier;
 use App\Traits\HasSocialStats;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,6 +37,14 @@ class FollowController extends Controller
                 'following_id' => $user->id,
             ]);
             $isFollowing = true;
+
+            ActivityNotifier::notify($user, [
+                'type' => 'social',
+                'title' => "{$currentUser->name} started following you",
+                'icon' => 'fas fa-user-plus',
+                'action_url' => route('fan.profile.user', $currentUser),
+                'dedupe' => "follow:{$currentUser->id}",
+            ], $currentUser);
         }
 
         return back()->with('success', $isFollowing ? 'You are now following this user.' : 'You unfollowed this user.');

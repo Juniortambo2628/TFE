@@ -1271,6 +1271,21 @@ button.tfe-menu-surface__badge:hover {
     margin: 0 0 2px;
 }
 
+.tfe-menu-surface a.dash-activity-item { color: inherit; text-decoration: none; }
+
+/* Unread notification (Sprint 70): a dot, not a colour wash. */
+.tfe-menu-surface .dash-activity-item.is-unread { position: relative; }
+.tfe-menu-surface .dash-activity-item.is-unread::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tfe-accent, #e0263f);
+}
+
 .tfe-menu-surface .dash-activity-item:hover {
     background: rgba(255, 255, 255, 0.06);
 }

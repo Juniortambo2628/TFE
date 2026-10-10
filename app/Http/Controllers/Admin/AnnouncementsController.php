@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
+use App\Support\ActivityNotifier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class AnnouncementsController extends Controller
@@ -27,7 +29,17 @@ class AnnouncementsController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        Announcement::create($validated);
+        $announcement = Announcement::create($validated);
+
+        if ($announcement->is_active ?? true) {
+            ActivityNotifier::broadcastToFans([
+                'type' => 'announcement',
+                'title' => $announcement->title,
+                'body' => Str::limit(strip_tags((string) $announcement->content), 100),
+                'icon' => 'fas fa-bullhorn',
+                'action_url' => route('fan.communication'),
+            ]);
+        }
 
         return back()->with('success', 'Announcement posted successfully');
     }

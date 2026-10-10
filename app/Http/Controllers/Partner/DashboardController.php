@@ -252,13 +252,7 @@ class DashboardController extends Controller
 
     private function scopeForPartner(int $partnerId)
     {
-        $listingIds = Listing::query()
-            ->publishedBy(User::class, $partnerId)
-            ->pluck('id');
-
-        return Budget::query()
-            ->where('is_active', true)
-            ->whereIn('listing_id', $listingIds);
+        return Budget::query()->inPartnerQueue($partnerId);
     }
 
     /**
