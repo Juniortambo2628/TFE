@@ -59,6 +59,10 @@ jobs:
     - name: Build frontend assets
       run: npm run build
 
+    # The JS unit tests (lib/*, guards) were never run in CI before Sprint 69.
+    - name: Run JS unit tests
+      run: npm run test:js
+
     - name: Set directory permissions
       run: chmod -R 777 storage bootstrap/cache
 
@@ -89,3 +93,39 @@ jobs:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
       run: php artisan test
+
+    # ─── BROWSER SMOKE (Sprint 69) ───
+    # What the PHP suite cannot see: dialogs that clip or render off-screen,
+    # a chart that never draws, a save that fails in the browser.
+    - name: Seed demo data for the browser tests
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan migrate:fresh --seed --force
+
+    - name: Start the app
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: |
+        php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+        for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/ > /dev/null && break; sleep 1; done
+
+    - name: Install Chromium for Playwright
+      run: npx playwright install --with-deps chromium
+
+    - name: Run browser smoke tests
+      env:
+        CI: true
+      run: npm run test:e2e
+
+    - name: Upload Playwright report
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: |
+          playwright-report
+          test-results
+          storage/logs
+        retention-days: 7

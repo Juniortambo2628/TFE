@@ -49,3 +49,7 @@ github-actions-thefootballexperience*
 /routes.json
 /routes.txt
 /routes_audit.json
+
+# Playwright (Sprint 69)
+/test-results
+/playwright-report

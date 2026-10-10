@@ -6,6 +6,11 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import React, { useState } from 'react';
 import IntroLoader from './Components/IntroLoader';
+import { installErrorReporter } from './lib/errorReporter';
+
+// Uncaught errors and failed same-origin asset loads reach the server log
+// instead of only a tester's devtools (Sprint 69).
+installErrorReporter();
 
 const appName = import.meta.env.VITE_APP_NAME || 'The Football Experience';
 

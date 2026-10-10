@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
+use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BankSavingsController;
@@ -107,6 +108,11 @@ Route::middleware('auth')->group(function () {
 Route::get('/testimonials', [TestimonialController::class, 'index']);
 Route::post('/testimonials', [TestimonialController::class, 'store']);
 Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('analytics.track');
+// Browser error reports (Sprint 69). Throttled per IP: one broken page in a
+// render loop must not fill the disk.
+Route::post('/client-errors', [ClientErrorController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('client-errors.store');
 
 // Public single-listing page (Sprint 63). Deliberately OUTSIDE the fan auth
 // group: every public surface linked to `fan.packages.show`, so a visitor

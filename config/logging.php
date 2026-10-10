@@ -73,6 +73,18 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Browser errors reported by resources/js/lib/errorReporter.js
+        // (Sprint 69). A file, not a table: nothing to migrate, rotates
+        // itself, and holds no more than a week of other people's stack
+        // traces.
+        'client' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/client-errors.log'),
+            'level' => 'debug',
+            'days' => 7,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
