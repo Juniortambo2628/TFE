@@ -1,3 +1,4 @@
+import { assetPath } from '@/lib/assets';
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router, Link } from '@inertiajs/react';
@@ -245,7 +246,7 @@ function BettingOffer({ offer }) {
     const remaining = Math.max(0, (offer.capacity || 0) - (offer.sold_count || 0));
     return (
         <article className="betting-card" style={{ '--betting-accent': accent }}>
-            {offer.hero_image && <div className="betting-card__cover" style={{ backgroundImage: `url(/${offer.hero_image})` }} />}
+            {offer.hero_image && <div className="betting-card__cover" style={{ backgroundImage: `url(${assetPath(offer.hero_image)})` }} />}
             <div className="betting-card__body">
                 <div className="betting-card__partner">
                     <span className="betting-card__dot" />

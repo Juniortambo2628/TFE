@@ -106,7 +106,7 @@ class TicketController extends Controller
             'remaining' => $t->remaining,
             'sold_pct' => $t->sold_pct,
             'is_active' => $t->is_active,
-            'hero_image' => $t->hero_image,
+            'hero_image' => $t->coverImage(),
         ];
     }
 }

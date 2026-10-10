@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetPath } from '@/lib/assets';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
@@ -228,19 +229,19 @@ function PartnerHubTicket({ ticket, accent }) {
         <article className="ticket-card" style={{ '--partner-accent': accent }}>
             <div
                 className="ticket-card__cover"
-                style={ticket.hero_image ? { backgroundImage: `url(/${ticket.hero_image})` } : undefined}
+                style={ticket.hero_image ? { backgroundImage: `url(${assetPath(ticket.hero_image)})` } : undefined}
             >
                 <span className="tfe-pill tfe-pill--info ticket-card__stage">{ticket.stage}</span>
             </div>
             <div className="ticket-card__body">
                 <div className="ticket-card__matchup">
                     <div className="ticket-card__team">
-                        {ticket.home_team_code && <img src={`https://flagcdn.com/w80/${ticket.home_team_code}.png`} alt={ticket.home_team} onError={(e) => { e.target.style.display = 'none'; }} />}
+                        {ticket.home_team_code && <img src={`/assets/Flags/${String(ticket.home_team_code).toLowerCase()}.png`} alt={ticket.home_team} onError={(e) => { e.target.style.display = 'none'; }} />}
                         <span>{ticket.home_team}</span>
                     </div>
                     <span className="ticket-card__vs">vs</span>
                     <div className="ticket-card__team">
-                        {ticket.away_team_code && <img src={`https://flagcdn.com/w80/${ticket.away_team_code}.png`} alt={ticket.away_team} onError={(e) => { e.target.style.display = 'none'; }} />}
+                        {ticket.away_team_code && <img src={`/assets/Flags/${String(ticket.away_team_code).toLowerCase()}.png`} alt={ticket.away_team} onError={(e) => { e.target.style.display = 'none'; }} />}
                         <span>{ticket.away_team}</span>
                     </div>
                 </div>

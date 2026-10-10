@@ -164,7 +164,7 @@ class PartnerHubController extends Controller
                     'currency' => $t->currency,
                     'remaining' => $t->remaining,
                     'sold_pct' => $t->sold_pct,
-                    'hero_image' => $t->hero_image,
+                    'hero_image' => $t->coverImage(),
                 ])
                 ->all();
         }

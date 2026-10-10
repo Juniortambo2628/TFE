@@ -174,7 +174,7 @@ class TicketController extends Controller
             'remaining' => $t->remaining,
             'sold_pct' => $t->sold_pct,
             'is_sold_out' => $t->is_sold_out,
-            'hero_image' => $t->hero_image,
+            'hero_image' => $t->coverImage(),
 
             // Seating tiers drive the purchase picker AND the 3D bowl, which
             // read the same rows so the map cannot disagree with what is on

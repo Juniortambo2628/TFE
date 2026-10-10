@@ -48,6 +48,12 @@
     top: 12px;
     left: 12px;
     z-index: 1;
+    /* Over a photo — or the accent fallback, where the violet info pill
+       vanished into the violet cover (Sprint 70). Dark glass reads on both. */
+    background: rgba(10, 8, 14, 0.72);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(6px);
 }
 
 .ticket-card__body {

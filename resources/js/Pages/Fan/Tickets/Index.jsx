@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { assetPath } from '@/lib/assets';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import FanLayout from '@/Layouts/FanLayout';
@@ -74,7 +75,7 @@ function TicketCard({ ticket, onBuy }) {
         <article className="ticket-card" style={{ '--partner-accent': accent }}>
             <div
                 className="ticket-card__cover"
-                style={ticket.hero_image ? { backgroundImage: `url(/${ticket.hero_image})` } : undefined}
+                style={ticket.hero_image ? { backgroundImage: `url(${assetPath(ticket.hero_image)})` } : undefined}
             >
                 <span className="tfe-pill tfe-pill--info ticket-card__stage">{ticket.stage}</span>
             </div>
@@ -129,7 +130,7 @@ function TicketCard({ ticket, onBuy }) {
 function TeamBlock({ name, code }) {
     return (
         <div className="ticket-card__team">
-            {code && <img src={`https://flagcdn.com/w80/${code}.png`} alt={name} onError={(e) => { e.target.style.display = 'none'; }} />}
+            {code && <img src={`/assets/Flags/${String(code).toLowerCase()}.png`} alt={name} onError={(e) => { e.target.style.display = 'none'; }} />}
             <span>{name}</span>
         </div>
     );
