@@ -1,3 +1,4 @@
+import { assetPath } from '@/lib/assets';
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
@@ -88,7 +89,7 @@ export default function PartnerTickets({ auth, tickets = [], stats = {} }) {
                 )}
                 render={(t) => (
                     <article className="ticket-card" style={{ '--partner-accent': '#8b5cf6' }}>
-                        <div className="ticket-card__cover" style={t.hero_image ? { backgroundImage: `url(/${t.hero_image})` } : undefined}>
+                        <div className="ticket-card__cover" style={t.hero_image ? { backgroundImage: `url(${assetPath(t.hero_image)})` } : undefined}>
                             <span className="tfe-pill tfe-pill--info ticket-card__stage">{t.stage}</span>
                         </div>
                         <div className="ticket-card__body">

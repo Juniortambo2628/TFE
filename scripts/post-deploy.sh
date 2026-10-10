@@ -85,6 +85,10 @@ fi
 # 5. REBUILD CACHES
 # ─────────────────────────────────────────────
 echo "─── Rebuilding caches ───"
+# Root-relative image paths: a bare `assets/img/x.jpg` stored before the
+# Sprint 49 fix 404s on nested routes (/fan/assets/...). Idempotent.
+php artisan tfe:fix-asset-paths || true
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
