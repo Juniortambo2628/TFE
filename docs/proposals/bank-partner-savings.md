@@ -213,10 +213,13 @@ uptime; sandbox access and test accounts.
 | Disconnecting deletes the link; the account stays the fan's at the bank | `disconnect()` |
 | The booking keeps only "paid, by bank savings, bank reference" — its own business record | `payments` row on the booking |
 
-Not yet done, recommended before going live: exclude savings responses from
-error trackers / request logs; rotate `APP_KEY` safely (the encrypted ref
-depends on it); a passkey-based re-check for fans who sign in with Google or
-passkeys only and have no password to confirm.
+Done in Sprint 68: a passkey satisfies the re-check (so Google / passkey-only
+fans are not locked out), and the savings controller logs only the bank's
+exception type. No error tracker or request logger is installed today — if one
+is added, exclude `/fan/bank-savings/*` from its request bodies.
+
+Still to do before going live: rotate `APP_KEY` safely (the encrypted account
+ref depends on it — use Laravel's `APP_PREVIOUS_KEYS`).
 
 ## 12. Original open questions
 

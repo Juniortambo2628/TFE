@@ -550,7 +550,7 @@
 .suggested-matches-section .card-header .match-count {
     margin-left: auto;
     font-size: 0.8rem;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.65); /* 0.4 failed AA contrast (Sprint 68) */
 }
 
 .suggested-matches-scroll {

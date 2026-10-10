@@ -89,7 +89,9 @@ class BankSavingsController extends Controller
             $transactions = $provider->transactions($link->external_ref);
             $available = true;
         } catch (\Throwable $e) {
-            Log::warning('Savings provider unavailable: '.$e->getMessage());
+            // The exception TYPE only: a bank's error message can carry figures
+            // or references TFE has no business keeping in its logs (Sprint 68).
+            Log::warning('Savings provider unavailable', ['provider' => $link->provider, 'exception' => $e::class]);
             [$balances, $transactions, $available] = [['balances' => [], 'as_of' => null], [], false];
         }
 

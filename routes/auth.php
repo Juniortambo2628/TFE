@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\WebAuthn\WebAuthnConfirmController;
 use App\Http\Controllers\WebAuthn\WebAuthnLoginController;
 use App\Http\Controllers\WebAuthn\WebAuthnRegisterController;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,13 @@ Route::middleware('auth')->group(function () {
         ->name('password.confirm');
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
+
+    // Sprint 68 — confirm with a passkey instead (Google / passkey-only fans
+    // have no password to type).
+    Route::get('confirm-passkey/options', [WebAuthnConfirmController::class, 'options'])
+        ->name('passkey.confirm.options');
+    Route::post('confirm-passkey', [WebAuthnConfirmController::class, 'confirm'])
+        ->middleware('throttle:10,1')->name('passkey.confirm');
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 

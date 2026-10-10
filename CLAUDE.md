@@ -562,10 +562,23 @@ receives or moves savings, and stores no financial data.**
   `BankSavingsTest` fails if you do.
 - `savings.reauth` (`RequireFreshPassword`): savings pages and pay-from-savings
   need a password check within `SAVINGS_REAUTH_SECONDS` (300) and respond
-  `no-store`. Google/passkey-only fans have no password to confirm — known gap.
+  `no-store`. A passkey also satisfies it (Sprint 68, `WebAuthnConfirmController`
+  → `passkey.confirm`): it uses Laragear's `attemptWhen` so only the SIGNED-IN
+  user's passkey counts, and stamps the same `auth.password_confirmed_at`. A
+  Google sign-up with no passkey is pointed to Security to add one.
 - Pay a booking from savings: explicit `authorise` + fresh password; the
   provider pays the partner; TFE records a `payments` row (`bank_savings`).
 - `lib/savings.js` — progress counts only the goal's currency; no FX guesses.
+
+### Gap fixes (Sprint 68)
+
+- Passkey re-check for savings (above); `PasskeyConfirmTest` signs real ECDSA
+  assertions, including another user's passkey being refused.
+- `dontFlash` covers one-time `code` fields; the savings controller logs only
+  the bank's exception TYPE, never its message.
+- Last axe contrast findings fixed (match counts, ad placeholder, booking help
+  link). The booking page's "Contact Travel Partner" was `href="#"` — it now
+  opens Messages.
 
 ### The public listing page (Sprint 63)
 

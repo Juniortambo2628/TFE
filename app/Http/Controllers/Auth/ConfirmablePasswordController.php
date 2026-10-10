@@ -15,9 +15,16 @@ class ConfirmablePasswordController extends Controller
     /**
      * Show the confirm password view.
      */
-    public function show(): Response
+    public function show(Request $request): Response
     {
-        return Inertia::render('Auth/ConfirmPassword');
+        $user = $request->user();
+
+        return Inertia::render('Auth/ConfirmPassword', [
+            // Sprint 68 — offer a passkey, and say plainly when a Google
+            // sign-up has no password of its own to type here.
+            'hasPasskey' => $user->webAuthnCredentials()->whereEnabled()->exists(),
+            'socialOnly' => filled($user->google_id ?? null),
+        ]);
     }
 
     /**

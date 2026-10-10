@@ -1,8 +1,34 @@
-import { useForm } from '@inertiajs/react';
+import React from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
+import axios from 'axios';
+import { startAuthentication } from '@simplewebauthn/browser';
 import AuthLayout from '@/Layouts/AuthLayout';
 import PasswordField from '@/Components/Common/PasswordField';
 
-export default function ConfirmPassword() {
+export default function ConfirmPassword({ hasPasskey = false, socialOnly = false }) {
+    const [passkeyBusy, setPasskeyBusy] = React.useState(false);
+    const [passkeyError, setPasskeyError] = React.useState(null);
+
+    // Sprint 68 — a fan with no password (Google sign-up, passkey-only)
+    // proves it's them with the passkey they already use to sign in.
+    const confirmWithPasskey = async () => {
+        setPasskeyBusy(true);
+        setPasskeyError(null);
+        try {
+            const options = await axios.get(route('passkey.confirm.options'));
+            const assertion = await startAuthentication({ optionsJSON: options.data });
+            router.post(route('passkey.confirm'), assertion, {
+                onError: (err) => setPasskeyError(err.passkey || 'That passkey could not be verified.'),
+                onFinish: () => setPasskeyBusy(false),
+            });
+        } catch (error) {
+            if (error?.name !== 'NotAllowedError' && error?.name !== 'AbortError') {
+                setPasskeyError('Passkey check is unavailable right now. Use your password instead.');
+            }
+            setPasskeyBusy(false);
+        }
+    };
+
     const { data, setData, post, processing, errors, reset } = useForm({
         password: '',
     });
@@ -45,6 +71,22 @@ export default function ConfirmPassword() {
                     <i className="fas fa-check"></i> Confirm
                 </button>
             </form>
+
+            {hasPasskey && (
+                <div className="tfe-auth__social">
+                    <button type="button" className="tfe-btn justify-content-center w-100" onClick={confirmWithPasskey} disabled={passkeyBusy}>
+                        <i className="fas fa-fingerprint" aria-hidden="true"></i> {passkeyBusy ? 'Waiting for your passkey…' : 'Confirm with a passkey'}
+                    </button>
+                    {passkeyError && <div className="tfe-form-error mt-2">{passkeyError}</div>}
+                </div>
+            )}
+
+            {socialOnly && !hasPasskey && (
+                <div className="tfe-auth__alt">
+                    Signed up with Google? You have no TFE password to type here —{' '}
+                    <Link href={route('fan.security')}>add a passkey under Security</Link> (it takes a few seconds), then confirm with it.
+                </div>
+            )}
         </AuthLayout>
     );
 }

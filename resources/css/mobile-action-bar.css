@@ -26,3 +26,9 @@
 @media (max-width: 991.98px) {
     body:has(.tfe-mobile-actionbar) { padding-bottom: 96px; }
 }
+
+/* Booking page help link (Sprint 68) — the old text-danger red failed AA
+   contrast on the dark card. Lives here because BookingDetails already
+   imports this sheet via MobileActionBar. */
+.tfe-booking-help-link { color: #ff8a93; text-decoration: none; }
+.tfe-booking-help-link:hover { color: #ffb3b9; text-decoration: underline; }

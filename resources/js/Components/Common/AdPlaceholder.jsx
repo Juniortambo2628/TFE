@@ -17,7 +17,7 @@ export default function AdPlaceholder({ position = 'horizontal', className = '' 
         justifyContent: 'center',
         width: '100%',
         minHeight: isHorizontal ? '120px' : '300px',
-        color: '#666',
+        color: '#9a9a9a', // #666 failed AA contrast on the dark card (Sprint 68)
         fontWeight: 'bold',
         textTransform: 'none',
         letterSpacing: '1px',
@@ -31,7 +31,7 @@ export default function AdPlaceholder({ position = 'horizontal', className = '' 
             <div className="text-center p-3">
                 <i className="fas fa-ad fa-2x mb-2 d-block opacity-50"></i>
                 <span>Advertisement Space</span>
-                <div className="small opacity-50 mt-1">
+                <div className="small mt-1">
                     {isHorizontal ? 'Leaderboard / Banner' : 'Sidebar / Rectangle'}
                 </div>
             </div>
@@ -41,7 +41,7 @@ export default function AdPlaceholder({ position = 'horizontal', className = '' 
                 right: '5px',
                 fontSize: '10px',
                 background: '#444',
-                color: '#aaa',
+                color: '#e5e5e5',
                 padding: '2px 5px',
                 borderRadius: '3px'
             }}>
