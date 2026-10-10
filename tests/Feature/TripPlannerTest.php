@@ -116,4 +116,28 @@ class TripPlannerTest extends TestCase
         $this->assertSame(0, Booking::count());
         $this->assertNull(Budget::first()->listing_id);
     }
+
+    public function test_book_now_on_a_public_listing_goes_straight_to_a_booking(): void
+    {
+        $fan = User::factory()->create();
+        $listing = Listing::factory()->create([
+            'tournament_id' => 'afcon_2027', 'moderation_status' => 'approved', 'base_price' => 800, 'capacity' => 10,
+        ]);
+
+        $this->actingAs($fan)
+            ->post(route('listings.book', $listing), ['group_size' => 3])
+            ->assertRedirect(route('plan-trip.resume'));
+
+        $this->actingAs($fan)->get(route('plan-trip.resume'))
+            ->assertRedirect(route('fan.bookings.show', Booking::first()));
+
+        $this->assertEquals(2400, Booking::first()->total_amount);
+    }
+
+    public function test_book_now_refuses_a_non_trip_listing(): void
+    {
+        $listing = Listing::factory()->create(['moderation_status' => 'approved', 'type' => 'offer']);
+
+        $this->post(route('listings.book', $listing), ['group_size' => 1])->assertNotFound();
+    }
 }

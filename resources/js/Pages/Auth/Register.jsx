@@ -145,13 +145,14 @@ export default function Register() {
 
     const nextStep = () => {
         if (validateStep(currentStep)) {
-            setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+            // From the trip planner, skip the team step: they came to book.
+            setCurrentStep(prev => Math.min(prev + (fromPlanner && prev === 1 ? 2 : 1), totalSteps));
             window.scrollTo(0, 0);
         }
     };
 
     const prevStep = () => {
-        setCurrentStep(prev => Math.max(prev - 1, 1));
+        setCurrentStep(prev => Math.max(prev - (fromPlanner && prev === 3 ? 2 : 1), 1));
         window.scrollTo(0, 0);
     };
 
@@ -166,12 +167,8 @@ export default function Register() {
                 return false;
             }
         }
-        if (step === 2) {
-            if (!data.team_support) {
-                toast.warning('Please select a team.');
-                return false;
-            }
-        }
+        // The team is optional (the server always allowed null) — it frames
+        // the avatar, and can be picked later on the profile page (Sprint 65).
         return true;
     };
 
@@ -351,7 +348,7 @@ export default function Register() {
                                     <h3 className="mb-5 font-standard-section-pill">
                                         <i className="fas fa-flag me-2"></i>Team Support
                                     </h3>
-                                    <label className="tfe-form-label mb-3">Which team will you be supporting? <span className="text-danger">*</span></label>
+                                    <label className="tfe-form-label mb-3">Which team will you be supporting? <span className="text-white-50">(optional — you can pick later)</span></label>
                                     <div className="team-grid dash-team-grid">
                                         {teams.map(team => (
                                             <div 

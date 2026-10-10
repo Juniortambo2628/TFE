@@ -47,7 +47,7 @@ class BookingCurrencyTest extends TestCase
 
         $this->actingAs($fan)
             ->post(route('fan.budget.confirm', $budget->id))
-            ->assertRedirect(route('fan.journey'));
+            ->assertRedirectContains('/fan/bookings/'); // straight to the Pay button (Sprint 65)
 
         $booking = Booking::where('user_id', $fan->id)->firstOrFail();
         $this->assertSame('EUR', $booking->currency);
@@ -62,7 +62,7 @@ class BookingCurrencyTest extends TestCase
 
             $this->actingAs($fan)
                 ->post(route('fan.budget.confirm', $budget->id))
-                ->assertRedirect(route('fan.journey'));
+                ->assertRedirectContains('/fan/bookings/'); // straight to the Pay button (Sprint 65)
 
             $this->assertSame(
                 $code,

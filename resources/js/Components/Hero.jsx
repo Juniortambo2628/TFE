@@ -250,6 +250,10 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
             var code2 = teamNameToCode(m.team2) || m.team2;
             return {
                 id: idx + 1,
+                // Raw names, for handing the match to the trip planner — this
+                // id is a list index, not a fixture id (Sprint 65).
+                team1: m.team1,
+                team2: m.team2,
                 home: code1,
                 away: code2,
                 score: m.score || null,
@@ -655,8 +659,23 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                                                         )}
                                                     </div>
                                                     
-                                                    {/* VS or Score */}
-                                                    <div className="vs-badge">{match.score || 'VS'}</div>
+                                                    {/* VS or Score — and, for an unplayed match, a
+                                                        one-tap way to plan the trip around it. */}
+                                                    {match.score ? (
+                                                        <div className="vs-badge">{match.score}</div>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            className="vs-badge hero-plan-match"
+                                                            title="Plan a trip to this match"
+                                                            onClick={() => {
+                                                                closeModal();
+                                                                openTripPlanner({ tournamentId: tournament?.id, matchHint: { teams: [match.team1, match.team2], date: match.date } });
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-plane me-1" aria-hidden="true"></i>Plan
+                                                        </button>
+                                                    )}
                                                     
                                                     {/* Away Team */}
                                                     <div className="d-flex align-items-center justify-content-start gap-3 hero-match-team">

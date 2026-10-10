@@ -1,11 +1,19 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
 
-export default function BookingDetails({ auth, booking, matches }) {
+export default function BookingDetails({ auth, booking, matches, checkout = null }) {
     const partnerPayUrl = booking?.partner_pay_url || null;
+    const currency = booking?.currency || 'USD';
+    const [paying, setPaying] = React.useState(false);
+    const expiresAt = booking?.expires_at ? new Date(booking.expires_at) : null;
+
+    const payNow = () => {
+        setPaying(true);
+        router.post(route('fan.bookings.pay', booking.id), {}, { onFinish: () => setPaying(false) });
+    };
 
     const getStatusPill = (status) => {
         switch (status) {
@@ -90,16 +98,16 @@ export default function BookingDetails({ auth, booking, matches }) {
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between mb-2">
                                     <span className="text-white-50">Total Package Cost</span>
-                                    <span className="fw-bold">{formatMoney(booking.total_amount)}</span>
+                                    <span className="fw-bold">{formatMoney(booking.total_amount, currency)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-2">
                                     <span className="text-white-50">Amount Paid</span>
-                                    <span className="text-success fw-bold">{formatMoney(booking.amount_paid)}</span>
+                                    <span className="text-success fw-bold">{formatMoney(booking.amount_paid, currency)}</span>
                                 </div>
                                 <hr className="border-secondary" />
                                 <div className="d-flex justify-content-between">
                                     <span className="fs-5 fw-bold">Balance Due</span>
-                                    <span className="fs-5 fw-bold text-danger">{formatMoney(booking.total_amount - booking.amount_paid)}</span>
+                                    <span className="fs-5 fw-bold text-danger">{formatMoney(booking.total_amount - booking.amount_paid, currency)}</span>
                                 </div>
                             </div>
 
@@ -107,9 +115,21 @@ export default function BookingDetails({ auth, booking, matches }) {
                                 <>
                                     <div className="alert alert-warning border-warning bg-transparent text-warning-emphasis p-3 mb-4 rounded-3">
                                         <i className="fas fa-exclamation-triangle me-2"></i>
-                                        Payment is required to secure this booking. Complete it on the partner's platform.
+                                        Payment is required to secure this booking.
+                                        {expiresAt && ` It is held until ${expiresAt.toLocaleString()}.`}
                                     </div>
-                                    {partnerPayUrl ? (
+                                    {checkout ? (
+                                        <button
+                                            type="button"
+                                            onClick={payNow}
+                                            disabled={paying}
+                                            className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3"
+                                        >
+                                            <i className="fas fa-lock me-2"></i>
+                                            {paying ? 'Opening checkout…' : `Pay ${formatMoney(booking.total_amount - booking.amount_paid, currency)} now`}
+                                            {checkout === 'demo' && ' (demo)'}
+                                        </button>
+                                    ) : partnerPayUrl ? (
                                         <a href={partnerPayUrl} target="_blank" rel="noreferrer" className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3">
                                             <i className="fas fa-external-link-alt me-2"></i> Complete on partner
                                         </a>

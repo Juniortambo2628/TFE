@@ -15,6 +15,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
+use App\Http\Controllers\Fan\BookingPaymentController;
 use App\Http\Controllers\Fan\BudgetController;
 use App\Http\Controllers\Fan\CommunicationController;
 use App\Http\Controllers\Fan\ContactController;
@@ -119,6 +120,8 @@ Route::get('/plan-trip/data', [TripPlannerController::class, 'data'])
     ->middleware('throttle:60,1')->name('plan-trip.data');
 Route::post('/plan-trip/handoff', [TripPlannerController::class, 'handoff'])
     ->middleware('throttle:30,1')->name('plan-trip.handoff');
+Route::post('/listings/{listing}/book', [TripPlannerController::class, 'bookListing'])
+    ->middleware('throttle:30,1')->name('listings.book');
 Route::get('/plan-trip/resume', [TripPlannerController::class, 'resume'])
     ->middleware('auth')->name('plan-trip.resume');
 
@@ -142,6 +145,9 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/profile/user/{user}', [ProfileController::class, 'show'])->name('profile.user');
     Route::get('/journey', [JourneyController::class, 'index'])->name('journey');
     Route::get('/bookings/{booking}', [JourneyController::class, 'show'])->name('bookings.show');
+    // In-app checkout (Sprint 65) — Paystack, or demo settlement locally.
+    Route::post('/bookings/{booking}/pay', [BookingPaymentController::class, 'pay'])->name('bookings.pay');
+    Route::get('/bookings/{booking}/pay/callback', [BookingPaymentController::class, 'callback'])->name('bookings.pay.callback');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
 
     // Loan Applications (Fan)

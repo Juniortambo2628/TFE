@@ -33,3 +33,58 @@ export function rankPackages(packages = [], { nights = 7, matchIds = [] } = {}) 
 export function packageTotal(pkg, groupSize = 1) {
     return (Number(pkg?.base_price) || 0) * Math.max(1, Number(groupSize) || 1);
 }
+
+/**
+ * The planner remembers a visitor's answers between visits (Sprint 65), in
+ * their own browser only. Storage can be missing or throw (private windows,
+ * blocked site data), so every access is guarded and a failure just means
+ * starting fresh.
+ */
+export const PREFS_KEY = 'tfe.planner.v1';
+const PREF_FIELDS = ['mode', 'matchCount', 'matchIds', 'origin', 'groupSize', 'nights', 'flightClass', 'accommodation', 'currency', 'tournamentId'];
+
+export function loadPlannerPrefs(storage = globalThis.localStorage) {
+    try {
+        const raw = storage?.getItem(PREFS_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed || typeof parsed !== 'object') return {};
+        return Object.fromEntries(PREF_FIELDS.filter((k) => k in parsed).map((k) => [k, parsed[k]]));
+    } catch {
+        return {};
+    }
+}
+
+export function savePlannerPrefs(prefs, storage = globalThis.localStorage) {
+    try {
+        const picked = Object.fromEntries(PREF_FIELDS.filter((k) => k in prefs).map((k) => [k, prefs[k]]));
+        storage?.setItem(PREFS_KEY, JSON.stringify(picked));
+    } catch {
+        // Storage unavailable — nothing to remember, nothing broken.
+    }
+}
+
+/**
+ * The trip spread evenly over `months`, BEFORE interest. Shown beside the
+ * estimate so financing is visible at the moment of deciding; the real
+ * terms are the finance partner's to quote, so the copy says so.
+ */
+export function monthlyFrom(total, months = 12) {
+    const n = Math.max(1, Math.floor(Number(months) || 1));
+    return Math.ceil((Number(total) || 0) / n);
+}
+
+/**
+ * Find the fixture a "Plan this match" hint names. Hints come from surfaces
+ * whose match ids are NOT fixture ids (the landing hero numbers its rows), so
+ * the match is by team names, both of which must appear. Returns null rather
+ * than a guess — planning the wrong match is worse than asking.
+ */
+export function findFixtureByHint(fixtures = [], hint = {}) {
+    const teams = (hint.teams || []).map((t) => String(t || '').trim().toLowerCase()).filter((t) => t && t !== 'tbd');
+    if (teams.length < 2) return null;
+    const has = (name, t) => {
+        const n = String(name || '').toLowerCase();
+        return n && (n === t || n.includes(t) || t.includes(n));
+    };
+    return fixtures.find((f) => teams.every((t) => has(f.homeTeam, t) || has(f.awayTeam, t))) || null;
+}

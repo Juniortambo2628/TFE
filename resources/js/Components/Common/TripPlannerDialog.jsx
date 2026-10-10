@@ -8,7 +8,7 @@ import ContentCard from '@/Components/Common/ContentCard';
 import ModalRow from '@/Components/Common/ModalRow';
 import { formatMoney, titleCase } from '@/lib/utils';
 import { estimateTrip } from '@/lib/tripEstimate';
-import { OPEN_EVENT, packageTotal, rankPackages } from '@/lib/tripPlanner';
+import { OPEN_EVENT, findFixtureByHint, loadPlannerPrefs, monthlyFrom, packageTotal, rankPackages, savePlannerPrefs } from '@/lib/tripPlanner';
 import {
     getAccommodationFactors,
     getFlightOrigins,
@@ -59,18 +59,21 @@ export default function TripPlannerDialog() {
     const [step, setStep] = useState(1);
     const [submitting, setSubmitting] = useState(null);
     const loadedFor = useRef(null);
+    const dataRef = useRef(null);
 
     // Trip inputs. Defaults are the calculator's own.
-    const [mode, setMode] = useState('quick');
-    const [matchCount, setMatchCount] = useState(3);
-    const [matchIds, setMatchIds] = useState([]);
+    // A returning visitor finds their last answers (Sprint 65).
+    const prefs = useMemo(() => loadPlannerPrefs(), []);
+    const [mode, setMode] = useState(prefs.mode || 'quick');
+    const [matchCount, setMatchCount] = useState(prefs.matchCount || 3);
+    const [matchIds, setMatchIds] = useState(Array.isArray(prefs.matchIds) ? prefs.matchIds : []);
     const [teamFilter, setTeamFilter] = useState('');
-    const [origin, setOrigin] = useState('');
-    const [groupSize, setGroupSize] = useState(1);
-    const [nights, setNights] = useState(7);
-    const [flightClass, setFlightClass] = useState('economy');
-    const [accommodation, setAccommodation] = useState('3_star');
-    const [currency, setCurrency] = useState('USD');
+    const [origin, setOrigin] = useState(prefs.origin || '');
+    const [groupSize, setGroupSize] = useState(prefs.groupSize || 1);
+    const [nights, setNights] = useState(prefs.nights || 7);
+    const [flightClass, setFlightClass] = useState(prefs.flightClass || 'economy');
+    const [accommodation, setAccommodation] = useState(prefs.accommodation || '3_star');
+    const [currency, setCurrency] = useState(prefs.currency || 'USD');
     const [packageId, setPackageId] = useState(null);
 
     useEffect(() => {
@@ -78,15 +81,17 @@ export default function TripPlannerDialog() {
             const detail = e.detail || {};
             setStep(1);
             setOpen(true);
-            load(detail.tournamentId || '', detail.matchId);
+            track('planner_open', { tournament: detail.tournamentId || null, match: detail.matchId || null });
+            load(detail.tournamentId || '', detail.matchId, detail.matchHint);
         };
         window.addEventListener(OPEN_EVENT, onOpen);
         return () => window.removeEventListener(OPEN_EVENT, onOpen);
     }, []);
 
-    function load(tournamentId, matchId) {
-        if (loadedFor.current === tournamentId) {
+    function load(tournamentId, matchId, matchHint) {
+        if (loadedFor.current === tournamentId && dataRef.current) {
             if (matchId) preselectMatch(matchId);
+            if (matchHint) applyHint(dataRef.current.fixtures, matchHint);
             return;
         }
         setLoadError(false);
@@ -96,17 +101,39 @@ export default function TripPlannerDialog() {
                 setData(res.data);
                 const origins = getFlightOrigins(res.data.pricing);
                 setOrigin((o) => o || origins[0]?.id || '');
-                setMatchIds([]);
+                const ids = new Set((res.data.fixtures || []).map((f) => f.id));
+                setMatchIds((prev) => prev.filter((id) => ids.has(id)));
                 setPackageId(null);
+                dataRef.current = res.data;
                 if (matchId) preselectMatch(matchId);
+                if (matchHint) applyHint(res.data.fixtures, matchHint);
             })
             .catch(() => setLoadError(true));
+    }
+
+    // A hint from a surface without fixture ids: preselect the match if it
+    // can be found, otherwise open the picker filtered to the first team.
+    function applyHint(list, hint) {
+        const found = findFixtureByHint(list || [], hint);
+        setMode('pick');
+        if (found) {
+            setMatchIds([found.id]);
+        } else {
+            setTeamFilter(String(hint.teams?.[0] || ''));
+        }
     }
 
     function preselectMatch(matchId) {
         setMode('pick');
         setMatchIds([Number(matchId)]);
     }
+
+    useEffect(() => {
+        savePlannerPrefs({
+            mode, matchCount, matchIds, origin, groupSize, nights, flightClass, accommodation, currency,
+            tournamentId: data?.tournament?.id || null,
+        });
+    }, [mode, matchCount, matchIds, origin, groupSize, nights, flightClass, accommodation, currency, data]);
 
     const pricing = data?.pricing || {};
     const fixtures = data?.fixtures || [];
@@ -158,8 +185,14 @@ export default function TripPlannerDialog() {
         setMatchIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
     }
 
+    function next() {
+        track('planner_step', { from: step, to: step + 1 });
+        setStep(step + 1);
+    }
+
     function handoff(intent) {
         if (!estimate || !data) return;
+        track('planner_handoff', { intent, with_package: Boolean(packageId), total: Math.round(estimate.total), currency });
         setSubmitting(intent);
         router.post(route('plan-trip.handoff'), {
             intent,
@@ -198,7 +231,7 @@ export default function TripPlannerDialog() {
                     type="button"
                     className="tfe-btn tfe-btn--filled"
                     disabled={!data || !canAdvance}
-                    onClick={() => setStep(step + 1)}
+                    onClick={next}
                 >
                     {step === 2 ? 'See my estimate' : 'Next'}
                 </button>
@@ -346,6 +379,10 @@ export default function TripPlannerDialog() {
                         <div className="tfe-planner-total">
                             <span className="tfe-form-help">Estimated total</span>
                             <strong>{formatMoney(estimate.total, currency)}</strong>
+                            <span className="tfe-planner-monthly">
+                                or about {formatMoney(monthlyFrom(estimate.total, 12), currency)}/month over 12 months
+                                with a finance partner (before interest — they quote the terms)
+                            </span>
                             <span className="tfe-form-help">
                                 {groupSize} traveller{groupSize > 1 ? 's' : ''} · {estimate.matchCount} match{estimate.matchCount === 1 ? '' : 'es'} · {nights} nights
                             </span>
@@ -415,4 +452,14 @@ function Stepper({ value, min, max, onChange }) {
             </button>
         </div>
     );
+}
+
+// Funnel analytics (Sprint 65): which step loses people. Fire-and-forget —
+// a failed beacon must never get in the visitor's way.
+function track(event, data) {
+    try {
+        axios.post(route('analytics.track'), { event, data }).catch(() => {});
+    } catch {
+        // route() or axios unavailable — ignore.
+    }
 }

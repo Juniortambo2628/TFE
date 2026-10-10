@@ -109,3 +109,18 @@
 .tfe-planner-pkg__meta { font-size: 0.85rem; color: var(--text-secondary, rgba(255, 255, 255, 0.7)); }
 
 .tfe-planner-skeleton { height: 220px; border-radius: 12px; }
+
+.tfe-planner-monthly {
+    font-size: 0.9rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+/* "Plan" on an unplayed match row in the landing hero (Sprint 65). Rides on
+   .vs-badge; only resets what a <button> adds. */
+.hero-plan-match {
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    white-space: nowrap;
+}
+.hero-plan-match:hover { filter: brightness(1.2); }

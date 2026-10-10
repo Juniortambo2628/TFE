@@ -15,6 +15,15 @@ export default function Itineraries({ itineraries }) {
     const [schoolGroupFor, setSchoolGroupFor] = useState(null);
     const [withdrawFrom, setWithdrawFrom] = useState(null);
 
+    // ?accept=<id> (the quote notification's link) opens that plan's accept
+    // dialog directly — one tap from the bell to payment (Sprint 65).
+    React.useEffect(() => {
+        const id = new URLSearchParams(window.location.search).get('accept');
+        if (!id) return;
+        const plan = itineraries.find((i) => String(i.id) === id);
+        if (plan && ['approved', 'modified'].includes(plan.status)) setItineraryToConfirm(plan.id);
+    }, []);
+
     const getStatusPill = (status) => {
         switch (status) {
             case 'approved':
@@ -219,7 +228,7 @@ export default function Itineraries({ itineraries }) {
                     title="Confirm Itinerary?"
                     description="Are you sure you want to confirm this itinerary? This will create an official booking pending payment."
                     onConfirm={handleConfirm}
-                    confirmText="Review & Confirm"
+                    confirmText="Accept & pay"
                 />
             </div>
 

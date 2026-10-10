@@ -94,7 +94,45 @@ class TripPlannerController extends Controller
 
         abort_unless(config("tournaments.tournaments.{$validated['tournament_id']}"), 422);
 
-        $request->session()->put(self::SESSION_KEY, $validated);
+        return $this->stash($request, $validated);
+    }
+
+    /**
+     * "Book now" on a public listing page (Sprint 65): one click from a
+     * package to its booking, with no planner in between. The package's own
+     * trip fields stand in for the estimate.
+     */
+    public function bookListing(Request $request, Listing $listing): RedirectResponse
+    {
+        abort_if(
+            $listing->moderation_status !== 'approved' || ! $listing->is_active
+                || ! in_array($listing->type, ['package', 'tour'], true),
+            404,
+        );
+
+        $group = (int) $request->validate(['group_size' => 'required|integer|min:1|max:200'])['group_size'];
+        $total = $this->packageTotal($listing, ['group_size' => $group]);
+
+        return $this->stash($request, [
+            'intent' => 'book',
+            'tournament_id' => $listing->tournament_id,
+            'total_cost' => $total,
+            'currency' => $listing->currency ?: 'USD',
+            'breakdown' => ['package' => $total],
+            'match_ids' => $listing->included_match_ids ?? [],
+            'match_count' => count($listing->included_match_ids ?? []),
+            'nights' => $listing->nights ?: 7,
+            'group_size' => $group,
+            'flight_class' => $listing->flight_class ?: 'economy',
+            'flight_origin' => null,
+            'accommodation_level' => $listing->accommodation_level ?: '3_star',
+            'listing_id' => $listing->id,
+        ]);
+    }
+
+    private function stash(Request $request, array $trip): RedirectResponse
+    {
+        $request->session()->put(self::SESSION_KEY, $trip);
         $request->session()->put('url.intended', route('plan-trip.resume'));
 
         if (Auth::check()) {

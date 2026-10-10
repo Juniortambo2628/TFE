@@ -13,6 +13,8 @@ import AccentCard from '@/Components/Common/AccentCard';
 import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
 import StadiumBowl from '@/Components/Common/StadiumBowl';
 import StepFlow from '@/Components/Common/StepFlow';
+import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
+import { openTripPlanner } from '@/lib/tripPlanner';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
 import SchoolGroupWizard from '@/Components/Fan/SchoolGroupWizard';
@@ -909,6 +911,28 @@ export default function BudgetCalculator({
                         </div>
                     </div>
                 </DashboardHero>
+
+                {/* The short road (Sprint 65): the same three-step planner the
+                    public site uses, for a fan who wants a number and a booking
+                    rather than every lever below. Same engine, same result. */}
+                {!budgetToEdit && !showResults && !plannerEstimate && (
+                    <div className="tfe-slab mb-4">
+                        <div className="tfe-slab__body d-flex flex-wrap align-items-center gap-3">
+                            <div className="flex-grow-1">
+                                <div className="fw-bold text-white">In a hurry?</div>
+                                <div className="tfe-form-help">Three questions, an estimate, and the partner packages that fit — book in one more tap.</div>
+                            </div>
+                            <button
+                                type="button"
+                                className="tfe-btn tfe-btn--filled"
+                                onClick={() => openTripPlanner({ tournamentId: initialTournamentId || tournament?.id })}
+                            >
+                                <i className="fas fa-bolt" aria-hidden="true"></i> Quick plan
+                            </button>
+                        </div>
+                    </div>
+                )}
+                <TripPlannerDialog />
 
                 {plannerEstimate && !budgetToEdit && !showResults && (
                     <div className="tfe-slab mb-4 planner-carry">

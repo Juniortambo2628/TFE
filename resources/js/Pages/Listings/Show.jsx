@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import SectionPageShell from '@/Components/Landing/SectionPageShell';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 import CapacityBar from '@/Components/Common/CapacityBar';
@@ -113,12 +113,14 @@ export default function ListingShow({ listing, tournament, more = [] }) {
                                     >
                                         See what else is on
                                     </Link>
+                                ) : isTrip ? (
+                                    <BookNow listing={listing} />
                                 ) : (
                                     <Link
                                         href={route('fan.budget-calculator', { package: listing.id })}
                                         className="tfe-btn tfe-btn--filled tfe-btn--lg"
                                     >
-                                        {isTrip ? 'Plan this trip' : 'Get started'}
+                                        Get started
                                     </Link>
                                 )}
                                 {/* Said plainly rather than discovered at the
@@ -239,6 +241,11 @@ export default function ListingShow({ listing, tournament, more = [] }) {
                 .listing-page__row--block { display: block; }
                 .listing-page__row i { opacity: 0.7; }
                 .listing-page__cta { margin-top: 24px; }
+                .listing-page__book { display: flex; flex-direction: column; gap: 10px; }
+                .listing-page__book-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+                .listing-page__stepper { display: inline-flex; align-items: center; gap: 10px; }
+                .listing-page__stepper output { min-width: 2ch; text-align: center; font-weight: 700; }
+                .listing-page__cta .listing-page__stepper .tfe-btn { width: auto; }
                 .listing-page__cta .tfe-btn { width: 100%; justify-content: center; }
                 .listing-page__cta-note {
                     margin: 10px 0 0;
@@ -276,6 +283,44 @@ function Fact({ label, value }) {
         <div>
             <div className="listing-page__fact-label">{label}</div>
             <div className="listing-page__fact-value">{value}</div>
+        </div>
+    );
+}
+
+/**
+ * One click from a package to its booking (Sprint 65): pick the number of
+ * travellers, book, sign in, pay. The published price is the quote.
+ */
+function BookNow({ listing }) {
+    const [group, setGroup] = React.useState(1);
+    const [busy, setBusy] = React.useState(false);
+    const total = (Number(listing.base_price) || 0) * group;
+
+    const book = () => {
+        setBusy(true);
+        router.post(route('listings.book', listing.id), { group_size: group }, { onFinish: () => setBusy(false) });
+    };
+
+    return (
+        <div className="listing-page__book">
+            <div className="listing-page__book-row">
+                <span>Travellers</span>
+                <div className="listing-page__stepper">
+                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="Fewer travellers" disabled={group <= 1} onClick={() => setGroup(group - 1)}>
+                        <i className="fas fa-minus" aria-hidden="true" />
+                    </button>
+                    <output aria-live="polite">{group}</output>
+                    <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label="More travellers" disabled={group >= 50} onClick={() => setGroup(group + 1)}>
+                        <i className="fas fa-plus" aria-hidden="true" />
+                    </button>
+                </div>
+            </div>
+            <button type="button" className="tfe-btn tfe-btn--filled tfe-btn--lg" disabled={busy} onClick={book}>
+                <i className="fas fa-lock" aria-hidden="true" /> Book now · {formatMoney(total, listing.currency)}
+            </button>
+            <Link href={route('fan.budget-calculator', { package: listing.id })} className="tfe-btn tfe-btn--lg mt-2">
+                Customise this trip first
+            </Link>
         </div>
     );
 }
