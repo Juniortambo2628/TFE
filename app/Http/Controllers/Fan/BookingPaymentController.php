@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Notifications\BookingPaidNotification;
 use App\Services\PaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,8 +21,10 @@ class BookingPaymentController extends Controller
 {
     public function __construct(private PaystackService $paystack) {}
 
-    public function pay(Booking $booking)
+    public function pay(Request $request, Booking $booking)
     {
+        $method = $request->validate(['method' => 'nullable|in:card,mpesa'])['method'] ?? 'card';
+
         abort_unless($booking->user_id === Auth::id(), 403);
 
         $balance = $this->balance($booking);
@@ -43,24 +46,38 @@ class BookingPaymentController extends Controller
                 ->with('success', 'Demo payment recorded — your booking is confirmed.');
         }
 
-        if (! $this->paystack->enabled() || ! $this->paystack->supports($currency)) {
+        // What the gateway charges. For M-Pesa that is KES, possibly converted
+        // from a USD booking; `settles_amount` remembers the booking-currency
+        // balance it clears (Sprint 66).
+        $chargeAmount = $balance;
+        $chargeCurrency = $currency;
+        $channels = null;
+
+        if ($method === 'mpesa') {
+            $kes = $this->paystack->mpesaAmount($balance, $currency);
+            if (! $this->paystack->enabled() || $kes === null) {
+                return back()->with('error', 'M-Pesa is not available for this booking. Try paying by card.');
+            }
+            [$chargeAmount, $chargeCurrency, $channels] = [$kes, 'KES', ['mobile_money']];
+        } elseif (! $this->paystack->enabled() || ! $this->paystack->supports($currency)) {
             return back()->with('error', 'Online payment is not available for this booking. Use the partner checkout link.');
         }
 
         Payment::create([
             'user_id' => $booking->user_id,
             'booking_id' => $booking->id,
-            'amount' => $balance,
-            'currency' => $currency,
-            'payment_method' => 'paystack',
+            'amount' => $chargeAmount,
+            'currency' => $chargeCurrency,
+            'settles_amount' => $balance,
+            'payment_method' => $method === 'mpesa' ? 'mpesa' : 'paystack',
             'transaction_id' => $reference,
             'status' => 'pending',
         ]);
 
         try {
             $url = $this->paystack->initialize(
-                Auth::user()->email, $balance, $currency, $reference,
-                route('fan.bookings.pay.callback', $booking),
+                Auth::user()->email, $chargeAmount, $chargeCurrency, $reference,
+                route('fan.bookings.pay.callback', $booking), $channels,
             );
         } catch (\Throwable $e) {
             Log::error('Paystack initialize failed: '.$e->getMessage());
@@ -106,7 +123,9 @@ class BookingPaymentController extends Controller
             return redirect()->route('fan.bookings.show', $booking)->with('error', 'Payment was not completed.');
         }
 
-        $this->settle($booking, $reference, (float) $payment->amount, $payment->currency, 'paystack', $payment);
+        // Settle what the payment covers in the BOOKING's currency, not the
+        // gateway's: a KES M-Pesa payment clears a USD balance.
+        $this->settle($booking, $reference, (float) ($payment->settles_amount ?? $payment->amount), $booking->currency ?: 'USD', $payment->payment_method, $payment);
 
         return redirect()->route('fan.bookings.show', $booking)->with('success', 'Payment received — your booking is confirmed.');
     }
@@ -135,6 +154,8 @@ class BookingPaymentController extends Controller
                 'status' => $paid + 0.001 >= (float) $booking->total_amount ? 'confirmed' : 'pending_payment',
             ]);
         });
+
+        $booking->user?->notify(new BookingPaidNotification($booking->fresh(), $amount, $currency));
     }
 
     private function balance(Booking $booking): float

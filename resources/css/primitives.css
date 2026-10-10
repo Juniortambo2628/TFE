@@ -312,7 +312,8 @@ a.tfe-sidebar-nav-item.is-active {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
+    /* 0.62, not 0.4: the lighter one failed WCAG AA contrast (Sprint 66). */
+    color: rgba(255, 255, 255, 0.62);
     transition: color 0.15s ease;
 }
 
@@ -330,7 +331,11 @@ a.tfe-sidebar-nav-item.is-active {
     transform: rotate(180deg);
 }
 
+.tfe-sidebar-group { list-style: none; }
 .tfe-sidebar-group__body {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;

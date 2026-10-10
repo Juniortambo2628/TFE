@@ -14,6 +14,7 @@ class Payment extends Model
         'booking_id',
         'amount',
         'currency',
+        'settles_amount',
         'payment_method',
         'transaction_id',
         'status',
@@ -23,6 +24,7 @@ class Payment extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'settles_amount' => 'decimal:2',
         'paid_at' => 'datetime',
     ];
 

@@ -520,6 +520,33 @@ Follow-on to Sprint 64, from the same tester feedback.
   matching stub wins — a test needing real responses must
   `Http::swap(new Factory)` first.
 
+### Mobile, trust and alerts (Sprint 66)
+
+- **M-Pesa** — `pay()` takes `method=mpesa`: Paystack `channels: ['mobile_money']`,
+  charged in KES. A USD booking converts at `PAYSTACK_KES_PER_USD` (blank = KES
+  bookings only). `payments.settles_amount` is what the payment clears in the
+  BOOKING's currency; the callback settles that, not the KES amount.
+- **Opt-in SMS / WhatsApp** — `notification_contacts` (NOT `users.phone`: Sprint
+  47 dropped phone to stay out of KYC). Verified by a 6-digit code before
+  anything is sent; "Stop texts" deletes the row. `SmsChannel` sends a
+  notification's `toSms()` via `SmsService` (Africa's Talking; logs only when
+  `AT_*` is unset). Used by quotes, `BookingPaidNotification` and
+  `BookingHoldExpiringNotification` (`bookings:remind-expiring`, hourly, once
+  per booking via `hold_reminded_at`).
+- **Booking page = the whole trip** — `lib/tripTimeline.js` on `StepFlow`.
+  Flights/stay has no confirmation record, so that step only ever says the
+  partner is arranging it. `MobileActionBar` (portalled) pins Pay below 992px.
+- **Trust** — `TrustSignals` states only backed facts (verified partner, the
+  48h hold, Paystack when enabled). Plan cards say who a plan waits on
+  (`BudgetController::nextStepFor()`). `VisitorCurrency` defaults the planner
+  currency from `CF-IPCountry` / `Accept-Language` (a saved choice wins).
+- **Fan shell** — the sidebar is grouped (heading markers take `defaultOpen`),
+  the dashboard tour is 4 steps, and the cookie banner is public-only.
+- **Images** — tournament trophies and organiser card art are WebP (~6MB of
+  PNG off the landing page). The PNGs stay as source art.
+- **Instalments are NOT built** — see `docs/proposals/bank-partner-savings.md`:
+  TFE never holds fan savings; the bank does.
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

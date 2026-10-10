@@ -33,31 +33,32 @@ export default function Breadcrumbs({ title, breadcrumbs = [], showBack = false,
                     </button>
                 )}
 
-                <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Link
                         href={route(homeRoute)}
-                        style={{ color: '#888', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease' }}
+                        aria-label="Dashboard home"
+                        style={{ color: '#a3a3a3', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease' }}
                         onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#888'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#a3a3a3'}
                     >
-                        <i className="fas fa-home"></i>
+                        <i className="fas fa-home" aria-hidden="true"></i>
                     </Link>
 
                     {breadcrumbs.map((crumb, index) => (
                         <React.Fragment key={index}>
-                            <span style={{ color: '#555', fontSize: '0.875rem' }}>/</span>
+                            <span aria-hidden="true" style={{ color: '#555', fontSize: '0.875rem' }}>/</span>
                             {crumb.href ? (
                                 <Link
                                     href={crumb.href}
-                                    style={{ color: '#888', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease' }}
+                                    style={{ color: '#a3a3a3', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease' }}
                                     onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = '#888'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = '#a3a3a3'}
                                 >
                                     {crumb.icon && <i className={`${crumb.icon} me-1`}></i>}
                                     {crumb.label}
                                 </Link>
                             ) : (
-                                <span style={{ color: accentColor, fontSize: '0.875rem', fontWeight: '500' }}>
+                                <span aria-current="page" style={{ color: '#f5f5f5', fontSize: '0.875rem', fontWeight: '600', borderBottom: `2px solid ${accentColor}` }}>
                                     {crumb.icon && <i className={`${crumb.icon} me-1`}></i>}
                                     {crumb.label}
                                 </span>
@@ -67,8 +68,8 @@ export default function Breadcrumbs({ title, breadcrumbs = [], showBack = false,
 
                     {title && breadcrumbs.length === 0 && (
                         <>
-                            <span style={{ color: '#555', fontSize: '0.875rem' }}>/</span>
-                            <span style={{ color: accentColor, fontSize: '0.875rem', fontWeight: '500' }}>
+                            <span aria-hidden="true" style={{ color: '#555', fontSize: '0.875rem' }}>/</span>
+                            <span aria-current="page" style={{ color: '#f5f5f5', fontSize: '0.875rem', fontWeight: '600', borderBottom: `2px solid ${accentColor}` }}>
                                 {title}
                             </span>
                         </>

@@ -13,9 +13,9 @@ The path for each tournament is configured in `config/tournaments.php` under
 
 | Tournament | File |
 |------------|------|
-| AFCON 2027 (`afcon_2027`) | `CAF-AFCON-visual-cardbg.png` |
-| World Cup 2026 (`wc_2026`) | `FIFA-world-cup-visual-cardbg.png` |
-| Euro 2024 (`euro_2024`) | `UEFA-euros-visual-cardbg.png` |
+| AFCON 2027 (`afcon_2027`) | `CAF-AFCON-visual-cardbg.webp` (PNG kept as source art) |
+| World Cup 2026 (`wc_2026`) | `FIFA-world-cup-visual-cardbg.webp` (PNG kept as source art) |
+| Euro 2024 (`euro_2024`) | `UEFA-euros-visual-cardbg.webp` (PNG kept as source art) |
 
 Filenames are **case-sensitive** on the server. Served publicly at
 `/tournament-organizers-card-visuals/<file>`. A missing file is hidden

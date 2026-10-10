@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Services\PaystackService;
 use App\Services\TournamentService;
 use Inertia\Inertia;
 
@@ -72,6 +73,8 @@ class ListingShowController extends Controller
             ],
             'tournament' => $this->tournamentSummary($listing->tournament_id, $tournaments),
             'more' => $this->morePublishedBy($listing),
+            // Sprint 66 trust line: say "secure online payment" only when it is.
+            'onlinePayment' => app(PaystackService::class)->enabled(),
         ]);
     }
 

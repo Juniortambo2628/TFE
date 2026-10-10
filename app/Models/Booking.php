@@ -24,6 +24,7 @@ class Booking extends Model
         'accommodation',
         'matches',
         'expires_at',
+        'hold_reminded_at',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Booking extends Model
         'booking_date' => 'date',
         'matches' => 'json',
         'expires_at' => 'datetime',
+        'hold_reminded_at' => 'datetime',
     ];
 
     public function user()

@@ -36,6 +36,7 @@ use App\Http\Controllers\Fan\SchoolGroupDeclarationController;
 use App\Http\Controllers\Fan\SecurityController;
 use App\Http\Controllers\Fan\ShareController;
 use App\Http\Controllers\Fan\StoriesController;
+use App\Http\Controllers\Fan\TextAlertsController;
 use App\Http\Controllers\Fan\TicketController as FanTicketController;
 use App\Http\Controllers\Fan\TribeController;
 use App\Http\Controllers\Fan\VirtualCardController;
@@ -201,6 +202,10 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     // Profile API
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    // Opt-in SMS / WhatsApp alerts (Sprint 66).
+    Route::post('/text-alerts', [TextAlertsController::class, 'store'])->middleware('throttle:5,10')->name('text-alerts.store');
+    Route::post('/text-alerts/verify', [TextAlertsController::class, 'verify'])->middleware('throttle:10,10')->name('text-alerts.verify');
+    Route::delete('/text-alerts', [TextAlertsController::class, 'destroy'])->name('text-alerts.destroy');
 
     // Social Feed
     Route::get('/feed', [FeedController::class, 'index'])->name('feed');

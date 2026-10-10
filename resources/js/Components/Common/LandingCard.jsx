@@ -30,10 +30,12 @@ export default function LandingCard({ image, title, subtitle, tags, alt, onClick
             desc={subtitle}
             cta={onClick ? { label: 'Learn More', icon: 'fas fa-arrow-up-right' } : undefined}
             cornerButton={onClick ? { icon: 'fas fa-plus', label: `More about ${title}`, onClick: handleClick } : undefined}
-            role={onClick ? 'button' : undefined}
-            tabIndex={onClick ? 0 : undefined}
+            // The whole card stays clickable for the mouse, but it is NOT a
+            // second button: the labelled "+" corner button is the one control
+            // keyboards and screen readers meet. A role="button" card holding a
+            // <button> is nested-interactive, which assistive tech cannot
+            // operate reliably (Sprint 66 a11y pass).
             onClick={onClick ? handleClick : undefined}
-            onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } } : undefined}
             aria-label={alt || title}
         />
     );

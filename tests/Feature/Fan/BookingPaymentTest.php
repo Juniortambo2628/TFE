@@ -121,4 +121,40 @@ class BookingPaymentTest extends TestCase
         $this->assertSame('pending_payment', $booking->fresh()->status);
         $this->assertSame('failed', Payment::first()->status);
     }
+
+    public function test_mpesa_charges_kes_and_settles_the_usd_balance(): void
+    {
+        config(['services.paystack.secret' => 'sk_test_x', 'services.paystack.kes_per_usd' => 130]);
+        $this->stubPaystack([
+            'https://api.paystack.co/transaction/initialize' => Http::response(['data' => ['authorization_url' => 'https://checkout.paystack.com/m']]),
+            'https://api.paystack.co/transaction/verify/*' => Http::response(['data' => ['status' => 'success', 'amount' => 19500000, 'currency' => 'KES']]),
+        ]);
+        $fan = User::factory()->create();
+        $booking = $this->booking($fan); // USD 1500
+
+        $this->actingAs($fan)->post(route('fan.bookings.pay', $booking), ['method' => 'mpesa'], ['X-Inertia' => 'true'])
+            ->assertStatus(409);
+
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'initialize')
+            && $r['currency'] === 'KES' && $r['amount'] === 19500000 && $r['channels'] === ['mobile_money']);
+
+        $payment = Payment::first();
+        $this->assertSame('KES', $payment->currency);
+        $this->assertEquals(1500, $payment->settles_amount);
+
+        $this->actingAs($fan)->get(route('fan.bookings.pay.callback', [$booking, 'reference' => $payment->transaction_id]));
+
+        $this->assertSame('confirmed', $booking->fresh()->status);
+        $this->assertEquals(1500, $booking->fresh()->amount_paid);
+    }
+
+    public function test_mpesa_is_refused_for_a_usd_booking_with_no_rate(): void
+    {
+        config(['services.paystack.secret' => 'sk_test_x', 'services.paystack.kes_per_usd' => null]);
+        $fan = User::factory()->create();
+        $booking = $this->booking($fan);
+
+        $this->actingAs($fan)->post(route('fan.bookings.pay', $booking), ['method' => 'mpesa'])->assertSessionHas('error');
+        $this->assertSame(0, Payment::count());
+    }
 }

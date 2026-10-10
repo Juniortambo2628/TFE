@@ -185,7 +185,7 @@ class BudgetController extends Controller
         // Itineraries lists every plan across every tournament the user has
         // touched — helpful for the multi-tournament planner.
         $itineraries = Budget::where('user_id', $userId)
-            ->with('schoolDeclaration')
+            ->with(['schoolDeclaration', 'listing.publisher.partnerProfile'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($budget) {
@@ -199,6 +199,9 @@ class BudgetController extends Controller
                     'reference_id' => $budget->reference_id,
                     'created_at' => $budget->created_at->format('M d, Y'),
                     'total_cost' => $budget->total_cost,
+                    'currency' => $budget->currency ?: 'USD',
+                    // Sprint 66 — say who the plan is waiting on, or what to do.
+                    'next_step' => $this->nextStepFor($budget),
                     'partner_cost' => $budget->partner_cost,
                     'status' => $budget->partner_status,
                     'is_active' => $budget->is_active,
@@ -394,5 +397,24 @@ class BudgetController extends Controller
         $budget->delete();
 
         return back()->with('success', 'Itinerary deleted.');
+    }
+
+    /**
+     * One plain sentence for a plan card (Sprint 66). "Pending" alone did not
+     * say whether a partner had the plan, or whether the fan had to act.
+     */
+    private function nextStepFor(Budget $budget): string
+    {
+        $partner = $budget->listing?->publisherSummary()['display_name'] ?? null;
+
+        return match ($budget->partner_status) {
+            'approved' => ($partner ?: 'Your partner').' quoted this trip — accept it to book and pay.',
+            'modified' => ($partner ?: 'Your partner').' suggested changes — review the new quote, then accept to book.',
+            'rejected' => ($partner ?: 'The partner').' could not take this trip. Pick another package to get a new quote.',
+            'confirmed' => 'Booked. Payment and trip details are on the booking page.',
+            default => $partner
+                ? "Waiting on {$partner}'s quote. You'll get a notification when it arrives."
+                : 'Not sent to a partner yet — pick a package in the planner to get a quote.',
+        };
     }
 }

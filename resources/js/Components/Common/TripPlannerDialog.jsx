@@ -105,6 +105,8 @@ export default function TripPlannerDialog() {
                 setMatchIds((prev) => prev.filter((id) => ids.has(id)));
                 setPackageId(null);
                 dataRef.current = res.data;
+                // Open in the visitor's own currency unless they chose one before.
+                if (!prefs.currency && res.data.suggested_currency) setCurrency(res.data.suggested_currency);
                 if (matchId) preselectMatch(matchId);
                 if (matchHint) applyHint(res.data.fixtures, matchHint);
             })
@@ -420,7 +422,12 @@ export default function TripPlannerDialog() {
                                         style={p.publisher?.theme_accent ? { '--partner-accent': p.publisher.theme_accent } : undefined}
                                         onClick={() => setPackageId(packageId === p.id ? null : p.id)}
                                     >
-                                        <span className="tfe-planner-pkg__partner">{p.publisher?.display_name || 'TFE'}</span>
+                                        <span className="tfe-planner-pkg__partner">
+                                            {p.publisher?.display_name || 'TFE'}
+                                            {p.publisher?.verified && (
+                                                <i className="fas fa-check-circle ms-1" aria-label="Verified partner" title="Verified partner"></i>
+                                            )}
+                                        </span>
                                         <span className="tfe-planner-pkg__name">{p.name}</span>
                                         <span className="tfe-planner-pkg__meta">
                                             {p.is_sold_out

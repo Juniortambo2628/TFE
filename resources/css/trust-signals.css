@@ -1,0 +1,13 @@
+/* TrustSignals (Sprint 66). Imported by the component: it renders on public
+   pages, which do not load the dashboard sheets. */
+.tfe-trust {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+}
+.tfe-trust li { display: flex; gap: 8px; align-items: flex-start; }
+.tfe-trust i { margin-top: 3px; color: var(--success, #22c55e); }

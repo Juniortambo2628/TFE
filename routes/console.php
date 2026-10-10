@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Booking;
+use App\Notifications\BookingHoldExpiringNotification;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -25,3 +27,21 @@ Schedule::call(function () {
         Cache::forget('news_feed:transfers:8');
     }
 })->everyThirtyMinutes()->name('news:refresh-cache');
+
+// Sprint 66 — remind fans once before an unpaid booking hold lapses (bell +
+// opt-in text). The hold is 48h; this fires when 12h or less remain.
+Artisan::command('bookings:remind-expiring', function () {
+    $sent = 0;
+    Booking::where('status', 'pending_payment')
+        ->whereNull('hold_reminded_at')
+        ->whereBetween('expires_at', [now(), now()->addHours(12)])
+        ->with('user')
+        ->each(function ($booking) use (&$sent) {
+            $booking->user?->notify(new BookingHoldExpiringNotification($booking));
+            $booking->forceFill(['hold_reminded_at' => now()])->save();
+            $sent++;
+        });
+    $this->info("Reminded {$sent} booking(s).");
+})->purpose('Remind fans whose booking hold ends within 12 hours');
+
+Schedule::command('bookings:remind-expiring')->hourly()->withoutOverlapping()->onOneServer();

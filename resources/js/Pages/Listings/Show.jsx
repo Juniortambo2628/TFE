@@ -3,6 +3,7 @@ import { Link, router } from '@inertiajs/react';
 import SectionPageShell from '@/Components/Landing/SectionPageShell';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 import CapacityBar from '@/Components/Common/CapacityBar';
+import TrustSignals from '@/Components/Common/TrustSignals';
 import AccentCard from '@/Components/Common/AccentCard';
 import { formatMoney, titleCase } from '@/lib/utils';
 import { formatSchedule, hasEnded } from '@/lib/schedule';
@@ -19,7 +20,7 @@ import { assetPath } from '@/lib/assets';
  * those costs a query or a 578KB chunk to answer a question they have not
  * asked yet. `fan.packages.show` still does all of it for a signed-in fan.
  */
-export default function ListingShow({ listing, tournament, more = [] }) {
+export default function ListingShow({ listing, tournament, more = [], onlinePayment = false }) {
     const schedule = formatSchedule(listing.starts_at, listing.ends_at, listing.location);
     const ended = hasEnded(listing.ends_at);
     const isFree = Number(listing.base_price) === 0;
@@ -114,7 +115,7 @@ export default function ListingShow({ listing, tournament, more = [] }) {
                                         See what else is on
                                     </Link>
                                 ) : isTrip ? (
-                                    <BookNow listing={listing} />
+                                    <BookNow listing={listing} onlinePayment={onlinePayment} />
                                 ) : (
                                     <Link
                                         href={route('fan.budget-calculator', { package: listing.id })}
@@ -291,7 +292,7 @@ function Fact({ label, value }) {
  * One click from a package to its booking (Sprint 65): pick the number of
  * travellers, book, sign in, pay. The published price is the quote.
  */
-function BookNow({ listing }) {
+function BookNow({ listing, onlinePayment = false }) {
     const [group, setGroup] = React.useState(1);
     const [busy, setBusy] = React.useState(false);
     const total = (Number(listing.base_price) || 0) * group;
@@ -321,6 +322,11 @@ function BookNow({ listing }) {
             <Link href={route('fan.budget-calculator', { package: listing.id })} className="tfe-btn tfe-btn--lg mt-2">
                 Customise this trip first
             </Link>
+            <TrustSignals
+                verified={Boolean(listing.publisher?.verified)}
+                partnerName={listing.publisher?.display_name}
+                onlinePayment={onlinePayment}
+            />
         </div>
     );
 }

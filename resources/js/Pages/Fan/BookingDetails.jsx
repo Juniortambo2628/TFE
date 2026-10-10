@@ -3,16 +3,28 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import { formatMoney } from '@/lib/utils';
+import StepFlow from '@/Components/Common/StepFlow';
+import MobileActionBar from '@/Components/Common/MobileActionBar';
+import { bookingTimeline } from '@/lib/tripTimeline';
 
-export default function BookingDetails({ auth, booking, matches, checkout = null }) {
+export default function BookingDetails({ auth, booking, matches, checkout = null, mpesa = null, timeline = {} }) {
+    // The whole trip on one line (Sprint 66) — every state from a real field.
+    const tripSteps = bookingTimeline({
+        status: booking?.status,
+        total: booking?.total_amount,
+        paid: booking?.amount_paid,
+        matchCount: (matches || []).length,
+        ticketsBought: timeline.tickets_bought || 0,
+        firstMatchAt: timeline.first_match_at || null,
+    });
     const partnerPayUrl = booking?.partner_pay_url || null;
     const currency = booking?.currency || 'USD';
     const [paying, setPaying] = React.useState(false);
     const expiresAt = booking?.expires_at ? new Date(booking.expires_at) : null;
 
-    const payNow = () => {
-        setPaying(true);
-        router.post(route('fan.bookings.pay', booking.id), {}, { onFinish: () => setPaying(false) });
+    const payNow = (method = 'card') => {
+        setPaying(method);
+        router.post(route('fan.bookings.pay', booking.id), { method }, { onFinish: () => setPaying(false) });
     };
 
     const getStatusPill = (status) => {
@@ -20,7 +32,7 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
             case 'confirmed':       return { variant: 'approved', label: 'Confirmed' };
             case 'pending_payment': return { variant: 'pending',  label: 'Payment Pending' };
             case 'cancelled':       return { variant: 'rejected', label: 'Cancelled' };
-            default:                return { variant: 'info',     label: status.replace('_', ' ') };
+            default:                return { variant: 'info',     label: String(status || 'unknown').replace('_', ' ') };
         }
     };
 
@@ -41,6 +53,32 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                     bgImage="/assets/img/fan/backgrounds/stadium_hero.png"
                 />
 
+                {booking.status === 'pending_payment' && checkout && (
+                    <MobileActionBar note={`Balance ${formatMoney(booking.total_amount - booking.amount_paid, currency)}${expiresAt ? ` · held until ${expiresAt.toLocaleString()}` : ''}`}>
+                        {mpesa !== null && (
+                            <button type="button" className="tfe-btn tfe-btn--filled" disabled={Boolean(paying)} onClick={() => payNow('mpesa')}>
+                                <i className="fas fa-mobile-alt" aria-hidden="true"></i> M-Pesa
+                            </button>
+                        )}
+                        <button type="button" className={`tfe-btn ${mpesa === null ? 'tfe-btn--filled' : ''}`} disabled={Boolean(paying)} onClick={() => payNow('card')}>
+                            <i className="fas fa-credit-card" aria-hidden="true"></i> {mpesa === null ? 'Pay now' : 'Card'}
+                        </button>
+                    </MobileActionBar>
+                )}
+
+                <div className="content-card p-4 mt-4">
+                    <h2 className="fs-5 fw-bold mb-3 text-white">Your trip</h2>
+                    <StepFlow variant="inline" steps={tripSteps} />
+                    {tripSteps.find((st) => st.key === 'arrangements')?.detail && (
+                        <p className="tfe-form-help mt-2 mb-0">
+                            {tripSteps.find((st) => st.key === 'arrangements').detail}.
+                            {(matches || []).length > (timeline.tickets_bought || 0) && (
+                                <> <Link href={route('fan.tickets.index')}>Get your match tickets</Link>.</>
+                            )}
+                        </p>
+                    )}
+                </div>
+
                 <div className="row mt-4">
                     <div className="col-lg-8">
                         {/* Booking Overview */}
@@ -55,11 +93,11 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                             <div className="tfe-stat-grid mb-4">
                                 <div className="tfe-tile tfe-tile--blue">
                                     <div className="tfe-tile__label">Flight Class</div>
-                                    <div className="tfe-tile__value text-capitalize" style={{ fontSize: '1.5rem' }}>{booking.flight_info}</div>
+                                    <div className="tfe-tile__value text-capitalize" style={{ fontSize: '1.5rem' }}>{booking.flight_info || 'To be arranged'}</div>
                                 </div>
                                 <div className="tfe-tile tfe-tile--teal">
                                     <div className="tfe-tile__label">Accommodation</div>
-                                    <div className="tfe-tile__value text-capitalize" style={{ fontSize: '1.5rem' }}>{booking.accommodation.replace('_', ' ')}</div>
+                                    <div className="tfe-tile__value text-capitalize" style={{ fontSize: '1.5rem' }}>{booking.accommodation ? booking.accommodation.replace('_', ' ') : 'To be arranged'}</div>
                                 </div>
                                 <div className="tfe-tile tfe-tile--amber">
                                     <div className="tfe-tile__label">Booking Date</div>
@@ -119,16 +157,36 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                                         {expiresAt && ` It is held until ${expiresAt.toLocaleString()}.`}
                                     </div>
                                     {checkout ? (
-                                        <button
-                                            type="button"
-                                            onClick={payNow}
-                                            disabled={paying}
-                                            className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3"
-                                        >
-                                            <i className="fas fa-lock me-2"></i>
-                                            {paying ? 'Opening checkout…' : `Pay ${formatMoney(booking.total_amount - booking.amount_paid, currency)} now`}
-                                            {checkout === 'demo' && ' (demo)'}
-                                        </button>
+                                        <>
+                                            {/* M-Pesa first where it is offered: most East African
+                                                fans pay by phone, not card (Sprint 66). */}
+                                            {mpesa !== null && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => payNow('mpesa')}
+                                                    disabled={Boolean(paying)}
+                                                    className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-2"
+                                                >
+                                                    <i className="fas fa-mobile-alt me-2" aria-hidden="true"></i>
+                                                    {paying === 'mpesa' ? 'Opening M-Pesa…' : `Pay KES ${Math.round(mpesa).toLocaleString('en-KE')} with M-Pesa`}
+                                                    {checkout === 'demo' && ' (demo)'}
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => payNow('card')}
+                                                disabled={Boolean(paying)}
+                                                className={`tfe-btn tfe-btn--lg w-100 justify-content-center mb-3 ${mpesa === null ? 'tfe-btn--filled' : ''}`}
+                                            >
+                                                <i className="fas fa-credit-card me-2" aria-hidden="true"></i>
+                                                {paying === 'card' ? 'Opening checkout…' : `Pay ${formatMoney(booking.total_amount - booking.amount_paid, currency)} by card`}
+                                                {checkout === 'demo' && ' (demo)'}
+                                            </button>
+                                            <p className="tfe-form-help mb-3">
+                                                <i className="fas fa-shield-alt me-1" aria-hidden="true"></i>
+                                                Secure payment by Paystack. TFE never sees your card or M-Pesa PIN.
+                                            </p>
+                                        </>
                                     ) : partnerPayUrl ? (
                                         <a href={partnerPayUrl} target="_blank" rel="noreferrer" className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-3">
                                             <i className="fas fa-external-link-alt me-2"></i> Complete on partner

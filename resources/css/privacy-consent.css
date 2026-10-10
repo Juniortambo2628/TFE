@@ -59,14 +59,15 @@
     background: none;
     border: 0;
     padding: 0;
-    color: #ef4050;
+    /* Lighter than the brand red: #ef4050 failed AA contrast on the banner. */
+    color: #ff7381;
     font: inherit;
     text-decoration: underline;
     cursor: pointer;
 }
 
 .tfe-consent__link:hover {
-    color: #ff7381;
+    color: #ffa3ad;
 }
 
 .tfe-consent__actions {

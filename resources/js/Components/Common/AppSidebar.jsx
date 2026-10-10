@@ -50,7 +50,7 @@ export default function AppSidebar({
         out.push(current);
         for (const item of menuItems) {
             if (item.heading) {
-                current = { heading: item.heading, items: [] };
+                current = { heading: item.heading, defaultOpen: !!item.defaultOpen, items: [] };
                 out.push(current);
             } else {
                 current.items.push(item);
@@ -70,7 +70,8 @@ export default function AppSidebar({
         try { stored = JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch { /* ignore */ }
         for (const g of groups) {
             if (!g.heading) continue;
-            initial[g.heading] = stored ? !!stored[g.heading] : g.heading === activeHeading;
+            // `defaultOpen` on a heading marker opens it until the user chooses (Sprint 66).
+            initial[g.heading] = stored ? !!stored[g.heading] : (g.heading === activeHeading || g.defaultOpen);
         }
         return initial;
     });
@@ -188,7 +189,9 @@ export default function AppSidebar({
                                 const isOpen = !!open[group.heading];
                                 const hasActive = group.items.some((it) => isUrlActive(it.path));
                                 return (
-                                    <div key={group.heading} className="tfe-sidebar-group">
+                                    // An <li> holding its own <ul>, so the list stays valid
+                                    // markup for screen readers (Sprint 66 a11y pass).
+                                    <li key={group.heading} className="tfe-sidebar-group">
                                         <button
                                             type="button"
                                             className={`tfe-sidebar-group__toggle${hasActive ? ' has-active' : ''}`}
@@ -202,11 +205,11 @@ export default function AppSidebar({
                                             />
                                         </button>
                                         {isOpen && (
-                                            <div className="tfe-sidebar-group__body">
+                                            <ul className="tfe-sidebar-group__body">
                                                 {group.items.map(renderItem)}
-                                            </div>
+                                            </ul>
                                         )}
-                                    </div>
+                                    </li>
                                 );
                             })}
                         </SidebarMenu>

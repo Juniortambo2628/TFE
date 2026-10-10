@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;
+use App\Models\TicketPurchase;
 use App\Services\FixtureService;
 use App\Services\PaystackService;
 use App\Services\WeatherService;
@@ -117,6 +118,16 @@ class JourneyController extends Controller
             'matches' => $matches,
             // Sprint 65 — 'paystack' | 'demo' | null (partner link only).
             'checkout' => $this->checkoutMode($booking),
+            // Sprint 66 — KES amount when M-Pesa can pay this booking, else null.
+            'mpesa' => $this->mpesaQuote($booking),
+            // Sprint 66 — facts for the whole-trip timeline (lib/tripTimeline).
+            'timeline' => [
+                'tickets_bought' => (int) TicketPurchase::where('user_id', $booking->user_id)
+                    ->where('status', 'paid')
+                    ->whereHas('ticket', fn ($q) => $q->where('tournament_id', $booking->tournament_id))
+                    ->sum('quantity'),
+                'first_match_at' => collect($matches)->pluck('date')->filter()->sort()->first(),
+            ],
         ]);
     }
 
@@ -128,5 +139,16 @@ class JourneyController extends Controller
         }
 
         return $paystack->enabled() && $paystack->supports($booking->currency ?: 'USD') ? 'paystack' : null;
+    }
+
+    private function mpesaQuote(Booking $booking): ?float
+    {
+        $paystack = app(PaystackService::class);
+        if (! $paystack->enabled() && ! $paystack->demo()) {
+            return null;
+        }
+        $balance = max(0, (float) $booking->total_amount - (float) $booking->amount_paid);
+
+        return $paystack->mpesaAmount($balance, $booking->currency ?: 'USD');
     }
 }

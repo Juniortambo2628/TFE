@@ -1,0 +1,28 @@
+/* MobileActionBar (Sprint 66). */
+.tfe-mobile-actionbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(10, 10, 12, 0.94);
+    border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    backdrop-filter: blur(10px);
+}
+.tfe-mobile-actionbar__note {
+    font-size: 0.8rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+    margin-bottom: 6px;
+}
+.tfe-mobile-actionbar__actions { display: flex; gap: 8px; }
+.tfe-mobile-actionbar__actions > * { flex: 1 1 0; justify-content: center; }
+
+@media (min-width: 992px) {
+    .tfe-mobile-actionbar { display: none; }
+}
+
+/* Keep the last of the page clear of the bar. */
+@media (max-width: 991.98px) {
+    body:has(.tfe-mobile-actionbar) { padding-bottom: 96px; }
+}
