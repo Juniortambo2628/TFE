@@ -89,6 +89,10 @@ fi
 
 # ── 5. Cache config + routes + views for prod ─────────────────────────────────
 log "Caching config, routes, views, events…"
+# Root-relative image paths: a bare `assets/img/x.jpg` stored before the
+# Sprint 49 fix 404s on nested routes (/fan/assets/...). Idempotent.
+$PHP_BIN artisan tfe:fix-asset-paths || true
+
 $PHP_BIN artisan config:cache
 $PHP_BIN artisan route:cache
 $PHP_BIN artisan view:cache

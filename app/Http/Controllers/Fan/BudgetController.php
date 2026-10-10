@@ -288,7 +288,9 @@ class BudgetController extends Controller
             // older client bundles keep working). Whitelist is small on
             // purpose: adding a currency means adding a display rate too.
             'currency' => 'nullable|string|in:USD,EUR,GBP,KES,ZAR,NGN,XOF',
-            'match_ids' => 'required|array',
+            // present, not required: `required` rejects [], and a plan priced
+            // before picking matches (the planner's "explore" path) has none.
+            'match_ids' => 'present|array',
             'accommodation_level' => 'required|string',
             'flight_class' => 'required|string',
             'breakdown' => 'required|array',

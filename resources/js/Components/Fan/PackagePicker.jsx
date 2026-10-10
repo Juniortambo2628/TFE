@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import { assetPath } from '@/lib/assets';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
 
@@ -79,7 +80,7 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                 )}
                                 {pkg.hero_image && (
                                     <img
-                                        src={pkg.hero_image}
+                                        src={assetPath(pkg.hero_image)}
                                         alt={pkg.name}
                                         className="w-100"
                                         style={{ height: 130, objectFit: 'cover' }}

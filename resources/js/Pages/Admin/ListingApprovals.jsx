@@ -1,3 +1,4 @@
+import { assetPath } from '@/lib/assets';
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
@@ -60,7 +61,7 @@ export default function ListingApprovals({ listings = [], filter_status = 'live'
                 emptyTitle={filter_status === 'taken_down' ? 'Nothing taken down' : 'No listings to review'}
                 render={(l) => (
                     <div className="tfe-acard" onClick={() => filter_status === 'live' ? setTakingDown(l) : restore(l)} style={{ cursor: 'pointer', '--acard-accent': '#3b82f6' }}>
-                        {l.hero_image && <img src={l.hero_image.startsWith('http') ? l.hero_image : `/${l.hero_image}`} alt="" className="tfe-acard__bg" loading="lazy" onError={(e) => e.currentTarget.style.display = 'none'} />}
+                        {l.hero_image && <img src={assetPath(l.hero_image)} alt="" className="tfe-acard__bg" loading="lazy" onError={(e) => e.currentTarget.style.display = 'none'} />}
                         <div className="tfe-acard__body">
                             <div className="tfe-acard__eyebrow">{l.type} · {l.tournament_name}</div>
                             <div className="tfe-acard__title">{l.name}</div>

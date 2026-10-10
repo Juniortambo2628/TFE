@@ -57,6 +57,17 @@ class BudgetCurrencyTest extends TestCase
         $this->assertSame('EUR', $budget->currency);
     }
 
+    public function test_a_plan_with_no_matches_picked_yet_can_be_saved(): void
+    {
+        $fan = $this->fan();
+
+        $this->actingAs($fan)
+            ->postJson(route('fan.budget.save'), $this->payload(['match_ids' => []]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame([], Budget::where('user_id', $fan->id)->firstOrFail()->match_ids);
+    }
+
     public function test_store_defaults_currency_to_usd_when_absent(): void
     {
         $fan = $this->fan();
