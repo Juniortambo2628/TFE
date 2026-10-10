@@ -1367,6 +1367,10 @@ button.tfe-menu-surface__badge:hover {
 .tfe-modal {
     display: grid;
     grid-template-columns: 208px minmax(0, 1fr);
+    /* An `auto` row grows to the pane's content, so a long pane was clipped
+       by overflow:hidden instead of scrolling, and took the footer with it.
+       minmax(0,1fr) caps the row at max-height; the pane body scrolls. */
+    grid-template-rows: minmax(0, 1fr);
     width: min(880px, 100%);
     max-height: min(88vh, 760px);
     overflow: hidden;
@@ -1514,6 +1518,7 @@ button.tfe-menu-surface__badge:hover {
     display: flex;
     align-items: flex-start;
     gap: 14px;
+    flex-shrink: 0;
     padding: 22px 22px 16px;
     border-bottom: 1px solid rgb(255 255 255 / 7%);
 }
@@ -1568,6 +1573,7 @@ button.tfe-menu-surface__badge:hover {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    flex-shrink: 0;
     gap: 10px;
     padding: 16px 22px;
     border-top: 1px solid rgb(255 255 255 / 7%);
