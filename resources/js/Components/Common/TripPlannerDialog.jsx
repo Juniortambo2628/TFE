@@ -376,7 +376,7 @@ export default function TripPlannerDialog() {
             )}
 
             {data && step === 3 && estimate && (
-                <>
+                <div className="tfe-planner-estimate">
                     <ContentCard>
                         <div className="tfe-planner-total">
                             <span className="tfe-form-help">Estimated total</span>
@@ -440,8 +440,8 @@ export default function TripPlannerDialog() {
                         )}
                     </ContentCard>
 
-                    {signInNote && <p className="tfe-form-help mt-2 mb-0">{signInNote}</p>}
-                </>
+                    {signInNote && <p className="tfe-form-help mb-0">{signInNote}</p>}
+                </div>
             )}
         </TfeModal>
     );

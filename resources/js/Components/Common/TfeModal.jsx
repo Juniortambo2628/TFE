@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import {
     normalizeTabs,
@@ -174,7 +175,11 @@ export default function TfeModal({
     const paneHeading = heading !== undefined ? heading : active?.label;
     const single = list.length === 1;
 
-    return (
+    // Portalled to <body>: a dialog mounted under a transformed or
+    // backdrop-filtered ancestor (the public Header on mobile, the page-enter
+    // animation) is otherwise positioned against that ancestor, not the
+    // viewport — the planner rendered 600px above the screen on a phone.
+    const dialog = (
         <div
             className="tfe-modal-overlay"
             onMouseDown={(e) => {
@@ -265,4 +270,6 @@ export default function TfeModal({
             </div>
         </div>
     );
+
+    return typeof document === 'undefined' ? dialog : createPortal(dialog, document.body);
 }
