@@ -2,6 +2,7 @@ import React from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { countryFlagMap, TEAM_FLAGS } from '@/Data/countryFlags';
 import { resolveStadiumImage } from '@/Data/stadiumImages';
+import { useTournament } from '@/Context/TournamentContext';
 
 /**
  * Reusable Match Card component
@@ -22,9 +23,27 @@ const MatchCard = ({
     onToggleSelect = null,
     mode = 'schedule',
     showAction = false,
-    conflictLabel = null 
+    conflictLabel = null,
+    // { label, onPlan } — the schedule's "plan a trip to this match" action.
+    plan = null,
 }) => {
     const { stadiumImages } = usePage().props;
+    const { tournament } = useTournament();
+
+    // The venue's catalogue row (city, country, country_code). A fixture's
+    // venue string and the catalogue's canonical name do not always agree,
+    // so fall back to joining on the resolved image url — the shared
+    // stadiumImages map already indexes every alias to it (the calculator's
+    // seat-map ordering does the same). Sprint 69: this used to be a
+    // WC2026-only guess that defaulted every other venue to "USA".
+    const venueMeta = (venue) => {
+        const list = (tournament && tournament.venues) || [];
+        if (!venue || !list.length) return null;
+        const byName = list.find((v) => v.name === venue);
+        if (byName) return byName;
+        const img = resolveStadiumImage(venue, stadiumImages);
+        return (img && list.find((v) => v.image === img)) || null;
+    };
     const teamSupport = match.homeTeam; // Can be used for specific styling if needed
 
     const getFlagUrl = (team) => {
@@ -94,6 +113,8 @@ const MatchCard = ({
             'Boston Stadium': 'Foxborough, USA',
             'Kansas City Stadium': 'Kansas City, USA',
         };
+        const meta = venueMeta(venue);
+        if (meta?.city) return meta.country ? `${meta.city}, ${meta.country}` : meta.city;
         return venueCityMap[venue] || venue;
     };
 
@@ -149,13 +170,17 @@ const MatchCard = ({
         return TEAM_FLAGS[country] || '🏟️';
     };
 
-    // Extract country from venue for flag display
+    // Country for the venue's flag: the catalogue's own answer when we have
+    // one, the legacy WC2026 name guess otherwise, and no flag rather than a
+    // wrong one.
     const getVenueCountry = (venue) => {
         if (!venue) return '';
+        const meta = venueMeta(venue);
+        if (meta?.country) return meta.country;
         const venueLower = venue.toLowerCase();
         if (venueLower.includes('mexico') || venueLower.includes('estadio')) return 'Mexico';
         if (venueLower.includes('canada') || venueLower.includes('toronto') || venueLower.includes('vancouver') || venueLower.includes('bmo') || venueLower.includes('bc place')) return 'Canada';
-        return 'USA';
+        return tournament?.id === 'wc_2026' ? 'USA' : '';
     };
 
     return (
@@ -177,6 +202,8 @@ const MatchCard = ({
                         onToggleFavorite(match.id);
                     }}
                     title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                    aria-pressed={isFavorite}
                 >
                     <i className={`${isFavorite ? 'fas' : 'far'} fa-star`}></i>
                 </button>
@@ -211,7 +238,7 @@ const MatchCard = ({
 
             <div className="match-footer">
                 {conflictLabel && (
-                    <span className="badge bg-danger me-2" title={conflictLabel}>
+                    <span className="tfe-pill tfe-pill--rejected me-2" title={conflictLabel}>
                         <i className="fas fa-exclamation-triangle me-1"></i> Conflict
                     </span>
                 )}
@@ -227,6 +254,17 @@ const MatchCard = ({
                     </span>
                 )}
             </div>
+
+            {plan && (
+                <button
+                    type="button"
+                    className="tfe-btn tfe-btn--sm match-card__plan"
+                    onClick={(e) => { e.stopPropagation(); plan.onPlan(match); }}
+                >
+                    <i className="fas fa-bolt" aria-hidden="true"></i>
+                    {plan.label}
+                </button>
+            )}
         </div>
     );
 };

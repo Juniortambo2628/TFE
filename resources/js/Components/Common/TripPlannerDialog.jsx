@@ -8,7 +8,7 @@ import ContentCard from '@/Components/Common/ContentCard';
 import ModalRow from '@/Components/Common/ModalRow';
 import { formatMoney, titleCase } from '@/lib/utils';
 import { estimateTrip } from '@/lib/tripEstimate';
-import { OPEN_EVENT, findFixtureByHint, loadPlannerPrefs, monthlyFrom, packageTotal, rankPackages, savePlannerPrefs } from '@/lib/tripPlanner';
+import { OPEN_EVENT, findFixtureByHint, findFixtureById, loadPlannerPrefs, monthlyFrom, packageTotal, rankPackages, savePlannerPrefs } from '@/lib/tripPlanner';
 import {
     getAccommodationFactors,
     getFlightOrigins,
@@ -90,7 +90,7 @@ export default function TripPlannerDialog() {
 
     function load(tournamentId, matchId, matchHint) {
         if (loadedFor.current === tournamentId && dataRef.current) {
-            if (matchId) preselectMatch(matchId);
+            if (matchId) preselectMatch(dataRef.current.fixtures, matchId);
             if (matchHint) applyHint(dataRef.current.fixtures, matchHint);
             return;
         }
@@ -107,7 +107,7 @@ export default function TripPlannerDialog() {
                 dataRef.current = res.data;
                 // Open in the visitor's own currency unless they chose one before.
                 if (!prefs.currency && res.data.suggested_currency) setCurrency(res.data.suggested_currency);
-                if (matchId) preselectMatch(matchId);
+                if (matchId) preselectMatch(res.data.fixtures, matchId);
                 if (matchHint) applyHint(res.data.fixtures, matchHint);
             })
             .catch(() => setLoadError(true));
@@ -125,9 +125,13 @@ export default function TripPlannerDialog() {
         }
     }
 
-    function preselectMatch(matchId) {
+    // Fixture ids are strings ("db_105"), so match on the string form and
+    // keep the fixture's own id. `Number(matchId)` here made every id NaN,
+    // so opening the planner from a match never actually selected it.
+    function preselectMatch(list, matchId) {
+        const found = findFixtureById(list || [], matchId);
         setMode('pick');
-        setMatchIds([Number(matchId)]);
+        setMatchIds(found ? [found.id] : []);
     }
 
     useEffect(() => {

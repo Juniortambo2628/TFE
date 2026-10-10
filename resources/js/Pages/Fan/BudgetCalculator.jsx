@@ -10,7 +10,7 @@ import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
 import StepFlow from '@/Components/Common/StepFlow';
 import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
-import { openTripPlanner } from '@/lib/tripPlanner';
+import { openTripPlanner, findFixtureById } from '@/lib/tripPlanner';
 import SchoolGroupWizard from '@/Components/Fan/SchoolGroupWizard';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link, usePage } from '@inertiajs/react';
@@ -285,15 +285,17 @@ export default function BudgetCalculator({
         const params = new URLSearchParams(window.location.search);
         const matchIdParam = params.get('match');
         if (matchIdParam) {
-            const matchId = parseInt(matchIdParam, 10);
-            const match = allFixtures.find(m => m.id === matchId);
+            // Ids are strings ("db_105"); parseInt made them NaN, so this deep
+            // link never found its match. Fixtures also arrive deferred, so
+            // wait for them rather than running once against an empty list.
+            const match = findFixtureById(allFixtures, matchIdParam);
             if (match) {
                 setFilteredMatches([match]);
-                setSelectedMatchIds([matchId]);
+                setSelectedMatchIds([match.id]);
                 setWizardStep(2);
             }
         }
-    }, []);
+    }, [allFixtures.length]);
 
     // Sync savedBudgets state when props change
     useEffect(() => {

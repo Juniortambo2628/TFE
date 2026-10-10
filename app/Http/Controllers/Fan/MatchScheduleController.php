@@ -61,6 +61,10 @@ class MatchScheduleController extends Controller
             'stats' => $stats,
             'userFavorites' => $favoriteExternalIds,
             'isConcluded' => $isConcluded,
+            // For the per-match "3-night trip from" price (Sprint 69); the
+            // same pricing block the planner and calculator compute from.
+            'pricing' => $isConcluded ? [] : ($tournament['pricing'] ?? []),
+            'hosts' => $tournament['hosts'] ?? [],
         ]);
     }
 
