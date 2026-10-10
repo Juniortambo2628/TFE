@@ -209,8 +209,10 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                         <div className="p-4 bg-dark rounded border border-secondary">
                             <h3 className="fs-5 fw-bold mb-3 text-white">Need Help?</h3>
                             <p className="text-white-50 small">If you have questions about your itinerary or need to make changes, our support team is available 24/7.</p>
-                            <Link href="#" className="text-danger text-decoration-none small fw-bold">
-                                <i className="fas fa-headset me-2"></i> Contact Travel Partner
+                            {/* Was href="#" — a dead link (Sprint 68). Messages is where
+                                partner conversations live. */}
+                            <Link href={route('fan.communication')} className="tfe-booking-help-link small fw-bold">
+                                <i className="fas fa-headset me-2" aria-hidden="true"></i> Contact Travel Partner
                             </Link>
                         </div>
                     </div>

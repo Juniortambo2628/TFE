@@ -45,5 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Never echo secrets back into the session on a validation error
+        // (Sprint 68): one-time codes and passwords, plus the defaults.
+        $exceptions->dontFlash(['current_password', 'password', 'password_confirmation', 'code']);
     })->create();
