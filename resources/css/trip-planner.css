@@ -97,7 +97,6 @@
     border-radius: 12px;
     background: var(--glass-surface-subtle, rgba(255, 255, 255, 0.04));
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    border-left: 3px solid var(--partner-accent, var(--accent, #dc2626));
     color: var(--text-primary, #fff);
     cursor: pointer;
 }
