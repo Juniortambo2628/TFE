@@ -49,6 +49,7 @@ use App\Http\Controllers\Partner\TicketController as PartnerTicketController;
 use App\Http\Controllers\PartnerHubController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\TripPlannerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
@@ -110,6 +111,16 @@ Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('an
 // the richer `fan.packages.show` (fixtures, seat map, itinerary map).
 Route::get('/listings/{listing}', [ListingShowController::class, 'show'])
     ->name('listings.show');
+
+// Public "Plan my trip" dialog (Sprint 64). An estimate without an account,
+// then the estimate itself carries the visitor through sign-in to a booking
+// or to the partner packages for that trip. See TripPlannerController.
+Route::get('/plan-trip/data', [TripPlannerController::class, 'data'])
+    ->middleware('throttle:60,1')->name('plan-trip.data');
+Route::post('/plan-trip/handoff', [TripPlannerController::class, 'handoff'])
+    ->middleware('throttle:30,1')->name('plan-trip.handoff');
+Route::get('/plan-trip/resume', [TripPlannerController::class, 'resume'])
+    ->middleware('auth')->name('plan-trip.resume');
 
 require __DIR__.'/auth.php';
 

@@ -162,6 +162,9 @@ class BudgetController extends Controller
             'tournamentPricing' => $pricing,
             'packages' => $packages,
             'financePartners' => $financePartners,
+            // The public "Plan my trip" estimate, carried through sign-in
+            // (Sprint 64). Pulled, so it shows once and then gets out of the way.
+            'plannerEstimate' => $request->session()->pull('planner.estimate'),
             // Defer the heavy fixture bundle — page renders immediately,
             // Inertia fetches this in a background partial reload.
             'fixtureBundle' => Inertia::defer($fixtureBundle),

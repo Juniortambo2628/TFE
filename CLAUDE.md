@@ -459,6 +459,31 @@ This works **because the school is the controller**. If TFE ever sells a
 child's place directly to a parent, none of it applies and that flow must
 not be merged into this one.
 
+### Public "Plan my trip" (Sprint 64)
+
+Testers: get from planning to payment in as few steps as possible. A visitor
+now gets an estimate in **three steps with no account**, and the estimate is
+what carries them through sign-in.
+
+- **`TripPlannerDialog`** (`Components/Common/`) is mounted ONCE by the public
+  `Header`; any CTA opens it with `openTripPlanner({ tournamentId?, matchId? })`
+  from `lib/tripPlanner.js` (a window event). `PageHero` ctas accept `onClick`.
+- **`lib/tripEstimate.js` is the ONE cost engine** — the fan Budget
+  Calculator's client-side path calls it too, so a number does not change when
+  the visitor signs in. Guarded by `tests/JS/tripPlanner.test.mjs`.
+- `TripPlannerController`: `data()` (public JSON — pricing, fixtures,
+  approved+active packages), `handoff()` (stashes the trip in session
+  `planner.trip`, points `url.intended` at `resume()`, sends a guest to
+  `/register?from=planner`), `resume()` (auth):
+  - `book` + package → Budget + `pending_payment` Booking → booking page to pay.
+    The published package price IS the quote, so no partner round-trip.
+  - `book` without package → Budget saved, calculator opens on it.
+  - `explore` → calculator package step with `plannerEstimate` banner + prefill.
+- `RegisteredUserController` now uses `redirect()->intended()`; email
+  verification already did, and `resume()` re-arms intended for unverified users.
+- Only `approved` + `is_active` listings can be booked via the handoff.
+  Guarded by `tests/Feature/TripPlannerTest.php`.
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

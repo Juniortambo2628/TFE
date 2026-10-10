@@ -19,6 +19,9 @@ const totalSteps = REGISTER_STEPS.length;
 
 export default function Register() {
     const { assetUrl } = usePage().props;
+    // Sent here by the public trip planner (Sprint 64): say the estimate is
+    // kept, so signing up reads as the next step rather than a detour.
+    const fromPlanner = usePage().url.includes('from=planner');
     const { tournament } = useTournament();
     const tournamentTeams = useTournamentTeams({ assetUrl });
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -238,6 +241,12 @@ export default function Register() {
                 </div>
             </TfeModal>
 
+            {fromPlanner && (
+                <div className="tfe-auth__alt mb-3">
+                    <i className="fas fa-receipt me-2" aria-hidden="true"></i>
+                    Your trip estimate is saved — create an account (or <Link href={route('login')}>sign in</Link>) and we'll pick up right where you left off.
+                </div>
+            )}
             <form onSubmit={submit} className="tfe-auth__form">
                         <div className="tfe-auth__form-head">
                             <div className="form-top-bar">

@@ -3,6 +3,8 @@ import { Link, usePage } from '@inertiajs/react';
 import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
 import assetPath from '@/lib/assets';
+import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
+import { openTripPlanner } from '@/lib/tripPlanner';
 import '../../css/tournament-switcher.css';
 import '../../css/fan/dashboard-header-extras.css';
 import '../../css/header.css';
@@ -68,6 +70,11 @@ export default function Header() {
                     <div className="tfe-header-actions d-flex align-items-center gap-3 ms-auto">
                         {switcherVariant && <TournamentSwitcher variant={switcherVariant} />}
 
+                        <button type="button" className="tfe-btn d-none d-md-inline-flex" onClick={() => openTripPlanner()}>
+                            <i className="fas fa-plane" aria-hidden="true"></i>
+                            <span>Plan my trip</span>
+                        </button>
+
                         {user ? (
                             <div className="d-none d-lg-flex align-items-center gap-2">
                                 <HeaderUserCluster user={user} />
@@ -92,6 +99,13 @@ export default function Header() {
 
                     <div className={'tfe-mobile-nav d-lg-none' + (isMenuOpen ? ' show' : '')}>
                         <ul className="navbar-nav">{renderLinks()}</ul>
+                        <button
+                            type="button"
+                            className="tfe-btn w-100 justify-content-center mt-2"
+                            onClick={() => { setIsMenuOpen(false); openTripPlanner(); }}
+                        >
+                            <i className="fas fa-plane" aria-hidden="true"></i> Plan my trip
+                        </button>
                         {user ? (
                             <div className="mt-3 pt-3 border-top border-secondary d-flex flex-column gap-2">
                                 <div className="text-white-50 small">Signed in as {user.name}</div>
@@ -119,6 +133,9 @@ export default function Header() {
                     </div>
                 </div>
             </div>
+            {/* Mounted once here so every public page shares one planner;
+                any CTA opens it with openTripPlanner() (Sprint 64). */}
+            <TripPlannerDialog />
         </header>
     );
 }

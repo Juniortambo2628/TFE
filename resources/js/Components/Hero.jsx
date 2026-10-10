@@ -10,6 +10,7 @@ import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import { resolveStadiumImage, preloadImage } from '@/Data/stadiumImages';
 import { assetPath } from '@/lib/assets';
+import { openTripPlanner } from '@/lib/tripPlanner';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -564,9 +565,13 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                                         <button type="button" onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
                                             <i className="fas fa-calendar-alt me-2"></i>View Matches
                                         </button>
-                                        <a href="/register" className="btn-glass-pill hero-view-matches-btn">
+                                        <button
+                                            type="button"
+                                            onClick={() => openTripPlanner({ tournamentId: tournament?.id })}
+                                            className="btn-glass-pill hero-view-matches-btn"
+                                        >
                                             <i className="fas fa-plane me-2"></i>Plan My Trip
-                                        </a>
+                                        </button>
                                     </div>
                                 </AccentCard>
                             </motion.div>

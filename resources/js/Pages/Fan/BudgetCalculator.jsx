@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getRateForCurrency, getSpendingTiers, getVisaCosts, getInsuranceDaily, getMerchandisePerMatch, SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
 import { formatMoney } from '@/lib/utils';
+import { estimateTrip } from '@/lib/tripEstimate';
 import MatchCard from '@/Components/Fan/MatchCard';
 import FlightSelector from '@/Components/Fan/FlightSelector';
 import HotelSelector from '@/Components/Fan/HotelSelector';
@@ -45,6 +46,8 @@ export default function BudgetCalculator({
     // the partial reload lands, which is why the seat map section guards on
     // length rather than assuming it is there.
     venueBowls = [],
+    // The public "Plan my trip" estimate, carried through sign-in (Sprint 64).
+    plannerEstimate = null,
 }) {
     // Shared, name-keyed stadium imagery (see HandleInertiaRequests).
     const { stadiumImages, flash } = usePage().props;
@@ -190,6 +193,39 @@ export default function BudgetCalculator({
             }
         }
     }, [budgetToEdit]);
+
+    // Carry the public planner's choices in, so nothing the visitor already
+    // answered is asked again. The wizard stays on the package step — that is
+    // what "Explore packages" promised — with the estimate beside it.
+    useEffect(() => {
+        if (!plannerEstimate || budgetToEdit) return;
+        if (plannerEstimate.currency) setCurrency(plannerEstimate.currency);
+        if (plannerEstimate.nights) setNights(plannerEstimate.nights);
+        if (plannerEstimate.flight_class) setFlightClass(plannerEstimate.flight_class);
+        if (plannerEstimate.flight_origin) setFlightOrigin(plannerEstimate.flight_origin);
+        if (plannerEstimate.accommodation_level) setAccommodation(plannerEstimate.accommodation_level);
+        if (plannerEstimate.group_size) setTravelGroupSize(plannerEstimate.group_size);
+        const ids = plannerEstimate.match_ids || [];
+        if (ids.length) {
+            setSelectedMatchIds(ids);
+        } else if (plannerEstimate.match_count) {
+            setQuickEstimate(true);
+            setQuickEstimateMatches(plannerEstimate.match_count);
+        }
+    }, [plannerEstimate]);
+
+    // Fixtures arrive deferred; fill step 2's list once they land.
+    useEffect(() => {
+        const ids = plannerEstimate?.match_ids || [];
+        if (!ids.length || !allFixtures.length) return;
+        setFilteredMatches(allFixtures.filter((m) => ids.includes(m.id)));
+    }, [plannerEstimate, allFixtures.length]);
+
+    const applyPlannerEstimate = () => {
+        setBreakdown(plannerEstimate.breakdown || {});
+        setEstimatedCost(Number(plannerEstimate.total_cost) || 0);
+        setShowResults(true);
+    };
 
     // Package picker handlers — step-0 chooser wires into these.
     const handlePickPackage = (pkg) => {
@@ -510,110 +546,34 @@ export default function BudgetCalculator({
             });
     };
 
+    // The arithmetic lives in lib/tripEstimate so the public "Plan my trip"
+    // dialog computes the same number from the same inputs.
     const clientSideCalculate = () => {
-        const CITY_TIERS = getCityTiers(tournamentPricing);
-        const SURGE_RATES = getSurgeRates(tournamentPricing);
-        const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
-        const BASE_COSTS = getDailyCosts(tournamentPricing);
-        const TICKET_PRICES = getTicketPrices(tournamentPricing);
-        const ACCOMMODATION_FACTORS = getAccommodationFactors(tournamentPricing);
-        // The engine computes in USD; the fan's currency pick converts
-        // once at the end. See Sprint 28.
-        const RATE = getRateForCurrency(tournamentPricing, currency);
-        const SPENDING_TIERS = getSpendingTiers(tournamentPricing);
-        const VISA_COSTS = getVisaCosts(tournamentPricing);
-        const INSURANCE_DAILY = getInsuranceDaily(tournamentPricing);
-        const MERCH_PER_MATCH = getMerchandisePerMatch(tournamentPricing);
-
-        const tierMultiplier = SPENDING_TIERS[spendingTier] || 1.0;
-
-        let totalTicketCost = 0;
-        let avgMultiplier = 1.0;
-        let avgBaseHotel = 160;
-        let maxSurge = 1.0;
-        let matchCount = 0;
-
-        if (quickEstimate) {
-            matchCount = quickEstimateMatches;
-            const groupMatches = Math.round(matchCount * (1 - quickEstimateKnockoutPct / 100));
-            const knockoutMatches = matchCount - groupMatches;
-            totalTicketCost += groupMatches * (TICKET_PRICES['Group Stage'] || 150);
-            totalTicketCost += knockoutMatches * (TICKET_PRICES['Quarter-finals'] || 350);
-            maxSurge = quickEstimateKnockoutPct > 50 ? 1.4 : 1.15;
-            const allTiers = Object.values(CITY_TIERS);
-            if (allTiers.length > 0) {
-                avgMultiplier = allTiers.reduce((s, t) => s + t.multiplier, 0) / allTiers.length;
-                avgBaseHotel = allTiers.reduce((s, t) => s + t.avg_hotel_3star, 0) / allTiers.length;
-            }
-        } else {
-            const selectedMatches = allFixtures.filter(m => selectedMatchIds.includes(m.id));
-            matchCount = selectedMatches.length;
-            const venues = selectedMatches.map(m => m.venue);
-            const stages = selectedMatches.map(m => m.stage);
-            let totalCityMultiplier = 0;
-            let totalHotelCost = 0;
-            venues.forEach(venue => {
-                const cityData = CITY_TIERS[venue] || { multiplier: 1.0, avg_hotel_3star: 160 };
-                totalCityMultiplier += cityData.multiplier;
-                totalHotelCost += cityData.avg_hotel_3star;
-            });
-            avgMultiplier = venues.length > 0 ? (totalCityMultiplier / venues.length) : 1.0;
-            avgBaseHotel = venues.length > 0 ? (totalHotelCost / venues.length) : 160;
-            stages.forEach(stage => {
-                const stageSurge = SURGE_RATES[stage] || 1.0;
-                if (stageSurge > maxSurge) maxSurge = stageSurge;
-            });
-            selectedMatches.forEach(m => {
-                totalTicketCost += TICKET_PRICES[m.stage] || TICKET_PRICES['Group Stage'] || 150;
-            });
-        }
-
-        const originData = FLIGHT_ORIGINS.find(o => o.id === flightOrigin) || FLIGHT_ORIGINS[0];
-        const baseFlightCost = originData[flightClass] || 1000;
-        let flightCost = baseFlightCost * (1 + ((maxSurge - 1) * 0.5));
-        const accFactor = ACCOMMODATION_FACTORS[accommodation] || 1.0;
-        const sharedAccommodation = Math.max(1, Math.ceil(travelGroupSize / 2));
-        let accommodationCost = (avgBaseHotel * accFactor * maxSurge * nights) / sharedAccommodation;
-
-        // Override with real prices from SerpAPI selections if available
-        if (realFlightPrice !== null) {
-            flightCost = realFlightPrice;
-        }
-        if (realHotelPrice !== null) {
-            accommodationCost = (realHotelPrice * nights) / sharedAccommodation;
-        }
-        const dailyFood = BASE_COSTS.food * avgMultiplier * maxSurge * tierMultiplier;
-        const dailyTransport = BASE_COSTS.transport * avgMultiplier * tierMultiplier;
-        const dailyMisc = BASE_COSTS.misc * avgMultiplier * tierMultiplier;
-        const foodCost = dailyFood * nights;
-        const transportCost = dailyTransport * nights;
-        const miscCost = dailyMisc * nights;
-        const insuranceCost = includeInsurance ? INSURANCE_DAILY * nights : 0;
-        let visaCost = 0;
-        if (includeVisa) {
-            const hosts = tournament?.hosts || [];
-            hosts.forEach(h => { visaCost += VISA_COSTS[h] || 0; });
-        }
-        const merchCost = MERCH_PER_MATCH * matchCount;
-        const perPersonUSD = totalTicketCost + flightCost + accommodationCost + foodCost + transportCost + miscCost + insuranceCost + merchCost;
-        const totalGroupUSD = (perPersonUSD * travelGroupSize) + visaCost;
-        const totalDisplay = totalGroupUSD * RATE;
-
-        setBreakdown({
-            match_tickets: totalTicketCost * travelGroupSize * RATE,
-            flights: flightCost * travelGroupSize * RATE,
-            accommodation: accommodationCost * travelGroupSize * RATE,
-            food_and_drink: foodCost * travelGroupSize * RATE,
-            local_transport: transportCost * travelGroupSize * RATE,
-            insurance: insuranceCost * travelGroupSize * RATE,
-            visa: visaCost * RATE,
-            merchandise: merchCost * travelGroupSize * RATE,
-            miscellaneous: miscCost * travelGroupSize * RATE,
+        const result = estimateTrip(tournamentPricing, {
+            matches: allFixtures.filter(m => selectedMatchIds.includes(m.id)),
+            quickEstimate,
+            quickMatches: quickEstimateMatches,
+            quickKnockoutPct: quickEstimateKnockoutPct,
+            flightOrigin,
+            flightClass,
+            accommodation,
+            nights,
+            spendingTier,
+            groupSize: travelGroupSize,
+            includeInsurance,
+            includeVisa,
+            includeMerchandise: merchandisePerMatch,
+            hosts: tournament?.hosts || [],
+            currency,
+            realFlightPrice,
+            realHotelPrice,
         });
-        setEstimatedCost(totalDisplay);
+
+        setBreakdown(result.breakdown);
+        setEstimatedCost(result.total);
         setLoading(false);
         setShowResults(true);
-        trackUsage(matchCount, totalDisplay);
+        trackUsage(result.matchCount, result.total);
     };
 
     const trackUsage = (matchCount, costKes) => {
@@ -949,6 +909,25 @@ export default function BudgetCalculator({
                         </div>
                     </div>
                 </DashboardHero>
+
+                {plannerEstimate && !budgetToEdit && !showResults && (
+                    <div className="tfe-slab mb-4 planner-carry">
+                        <div className="tfe-slab__body d-flex flex-wrap align-items-center gap-3">
+                            <div className="flex-grow-1">
+                                <div className="tfe-form-help mb-1">Your estimate from Plan my trip</div>
+                                <div className="fs-4 fw-bold text-white">
+                                    {formatMoney(plannerEstimate.total_cost, plannerEstimate.currency || 'USD')}
+                                </div>
+                                <div className="tfe-form-help">
+                                    {plannerEstimate.group_size} traveller{plannerEstimate.group_size > 1 ? 's' : ''} · {plannerEstimate.nights} nights · compare it with the partner packages below.
+                                </div>
+                            </div>
+                            <button type="button" className="tfe-btn" onClick={applyPlannerEstimate}>
+                                Save my estimate as a plan
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Wizard progress. The package picker (step 0) is only
                     reachable when this tournament has packages, so it joins
