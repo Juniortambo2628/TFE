@@ -3072,3 +3072,23 @@ label.tfe-modal-row__title { cursor: pointer; }
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* New-activity count on a nav item, a closed sidebar group, or a top-bar
+   link (Sprint 70). Pushed to the row's end; the accent, not a new colour. */
+.tfe-activity-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--tfe-accent, #e0263f);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.dashboard-header-nav__link .tfe-activity-badge { margin-left: 6px; }
+.tfe-sidebar-group__toggle .tfe-activity-badge { margin-right: 8px; }

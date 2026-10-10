@@ -28,7 +28,6 @@ class SavingsGoalController extends Controller
             'bankLinks' => $links,
             'bank' => ['label' => $provider->label(), 'sandbox' => $provider->key() === 'sandbox'],
             'goals' => $goals,
-            'auth' => ['user' => $user],
         ]);
     }
 

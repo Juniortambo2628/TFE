@@ -159,9 +159,6 @@ class DashboardController extends Controller
             'suggestedMatches' => $isConcluded ? [] : $suggestedMatches,
             'isConcluded' => $isConcluded,
             'nextActiveTournament' => $nextActive ? ['id' => $nextActive['id'], 'name' => $nextActive['name'], 'slug' => $nextActive['slug']] : null,
-            'auth' => [
-                'user' => $user,
-            ],
         ]);
     }
 

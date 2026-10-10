@@ -151,7 +151,6 @@ class LoanApplicationController extends Controller
             'offerings' => $offerings,
             'savedBudgets' => $savedBudgets,
             'stats' => $stats,
-            'auth' => ['user' => $user],
         ]);
     }
 
