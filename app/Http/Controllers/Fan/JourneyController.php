@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankSavingsLink;
 use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\PaymentSchedule;
@@ -120,6 +121,12 @@ class JourneyController extends Controller
             'checkout' => $this->checkoutMode($booking),
             // Sprint 66 — KES amount when M-Pesa can pay this booking, else null.
             'mpesa' => $this->mpesaQuote($booking),
+            // Sprint 67 — bank savings accounts that could pay this booking.
+            // Labels only; the balance is checked by the bank when it pays.
+            'savingsLinks' => BankSavingsLink::with('goal')
+                ->where('user_id', $booking->user_id)->where('status', 'active')->get()
+                ->map(fn ($l) => ['id' => $l->id, 'bank' => $l->provider()->label(), 'goal' => $l->goal?->name])
+                ->values(),
             // Sprint 66 — facts for the whole-trip timeline (lib/tripTimeline).
             'timeline' => [
                 'tickets_bought' => (int) TicketPurchase::where('user_id', $booking->user_id)

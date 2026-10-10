@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankSavingsLink;
 use App\Models\SavingsGoal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,15 @@ class SavingsGoalController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Sprint 67 — which goals have a bank account behind them. Link status
+        // only: the balance is the bank's, fetched live on the account page.
+        $links = BankSavingsLink::where('user_id', $user->id)->get()
+            ->mapWithKeys(fn ($l) => [$l->savings_goal_id => ['id' => $l->id, 'status' => $l->status]]);
+        $provider = BankSavingsLink::resolve(config('savings.default'));
+
         return Inertia::render('Fan/SavingsGoals', [
+            'bankLinks' => $links,
+            'bank' => ['label' => $provider->label(), 'sandbox' => $provider->key() === 'sandbox'],
             'goals' => $goals,
             'auth' => ['user' => $user],
         ]);

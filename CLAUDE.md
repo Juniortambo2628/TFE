@@ -547,6 +547,26 @@ Follow-on to Sprint 64, from the same tester feedback.
 - **Instalments are NOT built** — see `docs/proposals/bank-partner-savings.md`:
   TFE never holds fan savings; the bank does.
 
+### Saving with a bank partner — prototype (Sprint 67)
+
+Design + decisions: `docs/proposals/bank-partner-savings.md`. **TFE never holds,
+receives or moves savings, and stores no financial data.**
+
+- `App\Savings\SavingsProvider` is the ONE interface; each bank gets an adapter
+  registered in `config/savings.php`. `SandboxBankProvider` simulates a bank
+  (its `sandbox_bank_*` tables are the fake BANK's ledger, not TFE data; its
+  `/sandbox-bank/*` pages stand in for the bank's onboarding and phone prompt,
+  signed URLs, off in production unless `SAVINGS_SANDBOX`).
+- `bank_savings_links` is all TFE keeps: bank, encrypted opaque ref, goal,
+  consent scopes. **Never add a balance or transaction column** —
+  `BankSavingsTest` fails if you do.
+- `savings.reauth` (`RequireFreshPassword`): savings pages and pay-from-savings
+  need a password check within `SAVINGS_REAUTH_SECONDS` (300) and respond
+  `no-store`. Google/passkey-only fans have no password to confirm — known gap.
+- Pay a booking from savings: explicit `authorise` + fresh password; the
+  provider pays the partner; TFE records a `payments` row (`bank_savings`).
+- `lib/savings.js` — progress counts only the goal's currency; no FX guesses.
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

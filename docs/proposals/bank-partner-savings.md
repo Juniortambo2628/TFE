@@ -1,7 +1,9 @@
 # Saving for a trip with a bank partner — design for review
 
-Status: **proposal, not built.** Nothing in this document exists in the
-codebase yet. It is written to be argued with before Phase 1 starts.
+Status: **prototype built (Sprint 67) against a simulated bank.** No banking
+partner is signed yet, so a sandbox bank plays the bank's part end to end.
+Swapping it for a real bank means writing one adapter (section 4); nothing
+else in TFE changes.
 
 ## 1. The rule everything else follows
 
@@ -184,7 +186,39 @@ uptime; sandbox access and test accounts.
 | 3 | Scheduled saving (bank standing orders) + reminders | bank support |
 | 4 | Pay a booking from savings; savings record into loan applications | bank payment API |
 
-## 10. Questions for you before Phase 1
+## 10. Decisions taken (Sprint 67)
+
+1. **Bank** — none signed; the sandbox bank stands in. The bank will advise on
+   its own product rules.
+2. **Product rules** (goal-locked or not, withdrawals, interest) — the bank's
+   to define and enforce. TFE builds none of it.
+3. **Currency** — multi-currency accounts. Progress counts only the goal's
+   currency; converting others is the bank's, at its rate.
+4. **Paying a partner** — the bank pays the partner directly, only after the
+   fan ticks an explicit authorisation for that exact amount and booking, and
+   only after a fresh password check.
+5. **Transaction history** — full history is shown, fetched live from the bank
+   behind a fresh password check, and never stored.
+
+## 11. How TFE avoids holding financial data (implemented)
+
+| measure | where |
+|---|---|
+| Only a link + consent is stored: bank, encrypted opaque account ref, goal, scopes, time | `bank_savings_links` (a test asserts it has no balance/amount/account-number column) |
+| Balances and history are fetched from the bank on each view and passed straight to the page | `BankSavingsController::show` |
+| A fresh password check (5 min, `SAVINGS_REAUTH_SECONDS`) before any savings data or payment | `RequireFreshPassword` (`savings.reauth`) |
+| `Cache-Control: no-store` on those responses, so no browser or proxy copy | same middleware |
+| Deposits go fan → bank via the bank's own flow; TFE only redirects | `SavingsProvider::depositInstruction` |
+| Only name + email are shared with the bank, as the consent screen says | `BankConnectDialog`, `connect()` |
+| Disconnecting deletes the link; the account stays the fan's at the bank | `disconnect()` |
+| The booking keeps only "paid, by bank savings, bank reference" — its own business record | `payments` row on the booking |
+
+Not yet done, recommended before going live: exclude savings responses from
+error trackers / request logs; rotate `APP_KEY` safely (the encrypted ref
+depends on it); a passkey-based re-check for fans who sign in with Google or
+passkeys only and have no password to confirm.
+
+## 12. Original open questions
 
 1. Which bank first — Ecobank (the seeded demo partner) or another? Do they
    have a sandbox API today, and does each savings account get an M-Pesa

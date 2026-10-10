@@ -7,7 +7,7 @@ import StepFlow from '@/Components/Common/StepFlow';
 import MobileActionBar from '@/Components/Common/MobileActionBar';
 import { bookingTimeline } from '@/lib/tripTimeline';
 
-export default function BookingDetails({ auth, booking, matches, checkout = null, mpesa = null, timeline = {} }) {
+export default function BookingDetails({ auth, booking, matches, checkout = null, mpesa = null, timeline = {}, savingsLinks = [] }) {
     // The whole trip on one line (Sprint 66) — every state from a real field.
     const tripSteps = bookingTimeline({
         status: booking?.status,
@@ -156,6 +156,7 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                                         Payment is required to secure this booking.
                                         {expiresAt && ` It is held until ${expiresAt.toLocaleString()}.`}
                                     </div>
+                                    {savingsLinks.length > 0 && <PayFromSavings booking={booking} links={savingsLinks} currency={currency} />}
                                     {checkout ? (
                                         <>
                                             {/* M-Pesa first where it is offered: most East African
@@ -227,5 +228,44 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                 }
             `}</style>
         </FanLayout>
+    );
+}
+
+/**
+ * Sprint 67 — the fan authorises their bank to pay the travel partner from
+ * their trip savings. The bank checks the balance and moves the money; TFE
+ * records only that the booking was paid, with the bank's reference.
+ */
+function PayFromSavings({ booking, links, currency }) {
+    const [linkId, setLinkId] = React.useState(links[0].id);
+    const [authorise, setAuthorise] = React.useState(false);
+    const [busy, setBusy] = React.useState(false);
+    const link = links.find((l) => l.id === Number(linkId)) || links[0];
+    const due = booking.total_amount - booking.amount_paid;
+
+    const pay = () => {
+        setBusy(true);
+        router.post(route('fan.bookings.pay-from-savings', booking.id), { link_id: link.id, authorise }, { onFinish: () => setBusy(false) });
+    };
+
+    return (
+        <div className="tfe-slab mb-3">
+            <div className="tfe-slab__body">
+                <div className="fw-bold text-white mb-2"><i className="fas fa-university me-2" aria-hidden="true"></i>Pay from my trip savings</div>
+                {links.length > 1 && (
+                    <select className="tfe-select tfe-select--sm mb-2" value={linkId} onChange={(e) => setLinkId(e.target.value)} aria-label="Savings account">
+                        {links.map((l) => <option key={l.id} value={l.id}>{l.bank}{l.goal ? ` — ${l.goal}` : ''}</option>)}
+                    </select>
+                )}
+                <label className="tfe-check">
+                    <input type="checkbox" checked={authorise} onChange={(e) => setAuthorise(e.target.checked)} />
+                    <span>I authorise {link.bank} to pay {formatMoney(due, currency)} from my savings to the travel partner for this booking.</span>
+                </label>
+                <button type="button" className="tfe-btn tfe-btn--filled w-100 justify-content-center mt-2" disabled={!authorise || busy} onClick={pay}>
+                    {busy ? 'Asking your bank…' : `Pay ${formatMoney(due, currency)} from savings`}
+                </button>
+                <p className="tfe-form-help mt-2 mb-0">You'll confirm your password first. Your bank checks the balance and pays the partner directly.</p>
+            </div>
+        </div>
     );
 }

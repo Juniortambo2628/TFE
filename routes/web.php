@@ -15,6 +15,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
+use App\Http\Controllers\Fan\BankSavingsController;
 use App\Http\Controllers\Fan\BookingPaymentController;
 use App\Http\Controllers\Fan\BudgetController;
 use App\Http\Controllers\Fan\CommunicationController;
@@ -49,6 +50,7 @@ use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
 use App\Http\Controllers\Partner\TicketController as PartnerTicketController;
 use App\Http\Controllers\PartnerHubController;
+use App\Http\Controllers\SandboxBankController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TripPlannerController;
@@ -161,6 +163,18 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::post('/savings-goals', [SavingsGoalController::class, 'store'])->name('savings-goals.store');
     Route::put('/savings-goals/{savingsGoal}', [SavingsGoalController::class, 'update'])->name('savings-goals.update');
     Route::delete('/savings-goals/{savingsGoal}', [SavingsGoalController::class, 'destroy'])->name('savings-goals.destroy');
+
+    // Saving for a trip with a bank partner (Sprint 67, prototype). TFE keeps
+    // a link + consent; balances and history come live from the bank behind a
+    // fresh password check (`savings.reauth`) and are never stored.
+    Route::post('/savings-goals/{savingsGoal}/bank', [BankSavingsController::class, 'connect'])->name('bank-savings.connect');
+    Route::get('/bank-savings/callback', [BankSavingsController::class, 'callback'])->name('bank-savings.callback');
+    Route::delete('/bank-savings/{link}', [BankSavingsController::class, 'disconnect'])->name('bank-savings.disconnect');
+    Route::middleware('savings.reauth')->group(function () {
+        Route::get('/bank-savings/{link}', [BankSavingsController::class, 'show'])->name('bank-savings.show');
+        Route::post('/bank-savings/{link}/deposit', [BankSavingsController::class, 'deposit'])->name('bank-savings.deposit');
+        Route::post('/bookings/{booking}/pay-from-savings', [BankSavingsController::class, 'payBooking'])->name('bookings.pay-from-savings');
+    });
 
     // Budget Delete
     Route::delete('/budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
@@ -456,3 +470,15 @@ Route::middleware(['auth', 'verified', 'is_partner'])->prefix('partner')->name('
     Route::post('/messages', [App\Http\Controllers\Partner\CommunicationController::class, 'store'])->name('messages.store');
     Route::post('/messages/{budget}/read', [App\Http\Controllers\Partner\CommunicationController::class, 'markAsRead'])->name('messages.read');
 });
+
+// The SIMULATED bank's own pages (Sprint 67) — stand-ins for a real bank's
+// hosted onboarding and phone prompt. Signed URLs only, and off in production
+// unless SAVINGS_SANDBOX is set for a demo.
+if (config('savings.sandbox.enabled')) {
+    Route::middleware(['auth', 'signed'])->prefix('sandbox-bank')->name('sandbox-bank.')->group(function () {
+        Route::get('/onboard', [SandboxBankController::class, 'onboard'])->name('onboard');
+        Route::post('/onboard', [SandboxBankController::class, 'open'])->name('open');
+        Route::get('/approve', [SandboxBankController::class, 'approve'])->name('approve');
+        Route::post('/approve', [SandboxBankController::class, 'confirm'])->name('confirm');
+    });
+}

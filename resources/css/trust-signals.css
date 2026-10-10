@@ -11,3 +11,19 @@
 }
 .tfe-trust li { display: flex; gap: 8px; align-items: flex-start; }
 .tfe-trust i { margin-top: 3px; color: var(--success, #22c55e); }
+
+/* Savings progress (Sprint 67) — lives here because the savings page and the
+   connect dialog already import this sheet. */
+.tfe-savings-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-top: 6px;
+}
+.tfe-savings-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--success, #22c55e);
+    border-radius: inherit;
+}
