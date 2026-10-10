@@ -1507,6 +1507,8 @@ button.tfe-menu-surface__badge:hover {
 
 /* ---- pane ---- */
 
+.tfe-modal__grabber { display: none; }
+
 .tfe-modal__pane {
     display: flex;
     flex-direction: column;
@@ -1722,6 +1724,8 @@ label.tfe-modal-row__title { cursor: pointer; }
     }
 
     .tfe-modal__rail {
+        /* vertical swipes drive the sheet; the chip strip still scrolls sideways */
+        touch-action: pan-x;
         gap: 12px;
         padding: 16px 14px 10px;
         border-right: 0;
@@ -1745,6 +1749,18 @@ label.tfe-modal-row__title { cursor: pointer; }
         padding: 8px 12px;
         background: rgb(255 255 255 / 4%);
     }
+
+    /* Swipe-down handle on the bottom sheet (Sprint 69). */
+    .tfe-modal__grabber {
+        display: block;
+        width: 40px;
+        height: 4px;
+        margin: -6px auto 2px;
+        border-radius: 2px;
+        background: rgb(255 255 255 / 28%);
+    }
+
+    .tfe-modal { transition: transform var(--dur-fast, 0.16s) ease; }
 
     /* One section means one chip repeating the title above it — noise. */
     .tfe-modal--single .tfe-modal__nav { display: none; }

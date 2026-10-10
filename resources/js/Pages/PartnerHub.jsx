@@ -11,6 +11,7 @@ import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
 import '../../css/tickets.css';
 import '../../css/virtual-card.css';
+import { formatNumber, formatKickoff, formatMoney } from '@/lib/utils';
 
 /**
  * PartnerHub — public /partners/{slug} page.
@@ -222,9 +223,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
 // Strip the trailing "_partner" before title-casing so "Official {type}
 // Partner" doesn't read "Official Finance Partner Partner".
 function PartnerHubTicket({ ticket, accent }) {
-    const KICK = new Date(ticket.kickoff_at).toLocaleString(undefined, {
-        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
+    const KICK = formatKickoff(ticket.kickoff_at);
     return (
         <article className="ticket-card" style={{ '--partner-accent': accent }}>
             <div
@@ -252,14 +251,14 @@ function PartnerHubTicket({ ticket, accent }) {
                 <div className="ticket-card__stock">
                     <div className="ticket-card__bar"><span style={{ width: `${ticket.sold_pct}%` }} /></div>
                     <div className="ticket-card__stock-meta">
-                        <strong>{ticket.remaining.toLocaleString()}</strong> seats left
+                        <strong>{formatNumber(ticket.remaining)}</strong> seats left
                         <span>{ticket.sold_pct}% sold</span>
                     </div>
                 </div>
                 <div className="ticket-card__foot">
                     <div className="ticket-card__price">
                         <span className="ticket-card__price-label">from</span>
-                        <strong>{ticket.currency} {Number(ticket.price).toLocaleString()}</strong>
+                        <strong>{formatMoney(ticket.price, ticket.currency || 'USD')}</strong>
                     </div>
                     <Link href={route('fan.tickets.index')} className="tfe-btn tfe-btn--filled">
                         <i className="fas fa-ticket-alt"></i> Buy
@@ -300,7 +299,7 @@ function priceFact(listing) {
         return { label: 'Entry', value: 'Free' };
     }
 
-    return { label: 'From', value: `${listing.currency} ${price.toLocaleString()}` };
+    return { label: 'From', value: formatMoney(price, listing.currency || 'USD') };
 }
 
 /**

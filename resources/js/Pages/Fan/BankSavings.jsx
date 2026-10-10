@@ -4,7 +4,7 @@ import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ContentCard from '@/Components/Common/ContentCard';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatDateTime } from '@/lib/utils';
 import { savingsProgress } from '@/lib/savings';
 import '../../../css/trust-signals.css';
 import '../../../css/trip-planner.css';
@@ -41,7 +41,7 @@ export default function BankSavings({ link, goal, available, balances = {}, asOf
 
                 {available && (
                     <div className="tfe-card-grid tfe-card-grid--2 mt-4">
-                        <ContentCard title="Saved" subtitle={asOf ? `From ${link.bank}, ${new Date(asOf).toLocaleString()}` : null}>
+                        <ContentCard title="Saved" subtitle={asOf ? `From ${link.bank}, ${formatDateTime(asOf)}` : null}>
                             {Object.keys(balances).length === 0 ? (
                                 <p className="tfe-form-help mb-0">Nothing saved yet — make your first deposit below.</p>
                             ) : (

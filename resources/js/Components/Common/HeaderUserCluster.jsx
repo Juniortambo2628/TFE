@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import HeaderDropdown from '@/Components/Common/HeaderDropdown';
 import useHeaderLogic from '@/Hooks/useHeaderLogic';
+import { formatDateTime } from '@/lib/utils';
 
 /**
  * HeaderUserCluster — the shared right-side chrome (notifications bell,
@@ -59,7 +60,7 @@ function NotificationItem({ notif }) {
                 <div className="dash-activity-title">{notif.data?.title || notif.title || 'Notification'}</div>
                 <div className="dash-activity-label">{notif.data?.body || notif.body || ''}</div>
                 <small className="dash-activity-timestamp">
-                    {notif.created_at ? new Date(notif.created_at).toLocaleString() : ''}
+                    {notif.created_at ? formatDateTime(notif.created_at) : ''}
                 </small>
             </div>
         </div>

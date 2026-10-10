@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * CapacityBar — the "N of M booked · pct%" progress bar used across
@@ -41,7 +42,7 @@ export default function CapacityBar({
     return (
         <div className={className}>
             <div className="d-flex justify-content-between text-white-50 small mb-1">
-                <span>{sold.toLocaleString()} of {capacity.toLocaleString()} booked</span>
+                <span>{formatNumber(sold)} of {formatNumber(capacity)} booked</span>
                 <span className={textClass}>{value}%</span>
             </div>
             <div className="progress" style={{ height: trackHeight, background: 'rgba(255,255,255,0.08)' }}>
@@ -52,7 +53,7 @@ export default function CapacityBar({
                     <div className="text-danger small mt-1">Sold out</div>
                 ) : (
                     <div className={`small mt-1 ${value >= thresholds.danger ? 'text-danger' : 'text-white-50'}`}>
-                        {(capacity - sold).toLocaleString()} {capacity - sold === 1 ? 'seat' : 'seats'} left
+                        {formatNumber((capacity - sold))} {capacity - sold === 1 ? 'seat' : 'seats'} left
                     </div>
                 )
             )}

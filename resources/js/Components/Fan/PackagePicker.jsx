@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/react';
 import { assetPath } from '@/lib/assets';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
+import { formatMoney } from '@/lib/utils';
 
 /**
  * PackagePicker — Step-0 chooser in the BudgetCalculator wizard.
@@ -90,7 +91,7 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <h4 className="text-white mb-0" style={{ fontSize: '1.1rem' }}>{pkg.name}</h4>
                                         <div className="text-end">
-                                            <div className="text-white fw-bold">{pkg.currency} {Number(pkg.base_price).toLocaleString()}</div>
+                                            <div className="text-white fw-bold">{formatMoney(pkg.base_price, pkg.currency || 'USD')}</div>
                                             <div className="text-white-50 small">{pkg.nights} nights</div>
                                         </div>
                                     </div>

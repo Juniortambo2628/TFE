@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { sheetOffset, shouldDismissSheet } from '@/lib/sheetDrag';
 
 import {
     normalizeTabs,
@@ -159,9 +160,36 @@ export default function TfeModal({
         if (target) target.focus({ preventScroll: true });
     }, [open]);
 
+    // Swipe-down-to-close on the phone bottom sheet (Sprint 69). Driven from
+    // the grabber + rail header only — never from the pane, whose own scroll
+    // a downward swipe must keep. A dialog that will not close on a stray
+    // backdrop tap (a destructive form) will not close on a stray swipe
+    // either.
+    const dragRef = useRef(null);
+    const [dragY, setDragY] = useState(0);
+
     if (!open) return null;
 
     const requestClose = () => onCloseRef.current();
+
+    const onSheetPointerDown = (e) => {
+        if (!closeOnBackdrop || e.pointerType === 'mouse') return;
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        dragRef.current = { y: e.clientY, t: performance.now() };
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+    };
+    const onSheetPointerMove = (e) => {
+        if (!dragRef.current) return;
+        setDragY(sheetOffset(dragRef.current.y, e.clientY));
+    };
+    const onSheetPointerEnd = (e) => {
+        if (!dragRef.current) return;
+        const dy = sheetOffset(dragRef.current.y, e.clientY);
+        const ms = performance.now() - dragRef.current.t;
+        dragRef.current = null;
+        setDragY(0);
+        if (shouldDismissSheet(dy, ms)) requestClose();
+    };
 
     const onRailKeyDown = (e) => {
         const next = tabForKey(list, activeId, e.key);
@@ -196,8 +224,16 @@ export default function TfeModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={`${baseId}-title`}
+                style={dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
             >
-                <aside className="tfe-modal__rail">
+                <aside
+                    className="tfe-modal__rail"
+                    onPointerDown={onSheetPointerDown}
+                    onPointerMove={onSheetPointerMove}
+                    onPointerUp={onSheetPointerEnd}
+                    onPointerCancel={onSheetPointerEnd}
+                >
+                    {closeOnBackdrop && <div className="tfe-modal__grabber" aria-hidden="true"></div>}
                     <div className="tfe-modal__ident">
                         {label && <div className="tfe-modal__label">{label}</div>}
                         <h2 id={`${baseId}-title`} className="tfe-modal__title">

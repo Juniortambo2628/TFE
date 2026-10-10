@@ -4,7 +4,7 @@ import { Head, useForm, router, Link } from '@inertiajs/react';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatNumber } from '@/lib/utils';
 import '../../../css/betting-strip.css';
 
 export default function PredictWin({ auth, upcomingMatches, userStats, leaderboard, prizes, bettingOffers = [] }) {
@@ -258,7 +258,7 @@ function BettingOffer({ offer }) {
                     <div className="betting-card__price">
                         <span>from</span><strong>{formatMoney(offer.base_price, offer.currency)}</strong>
                     </div>
-                    {remaining > 0 && <span className="betting-card__stock">{remaining.toLocaleString()} spots left</span>}
+                    {remaining > 0 && <span className="betting-card__stock">{formatNumber(remaining)} spots left</span>}
                 </div>
                 {offer.partner?.slug && (
                     <Link href={`/partners/${offer.partner.slug}`} className="tfe-btn tfe-btn--sm betting-card__cta">

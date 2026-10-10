@@ -1,22 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { getCityTiers, getFlightOrigins, getSurgeRates, getDailyCosts, getTicketPrices, getAccommodationFactors, getRateForCurrency, getSpendingTiers, getVisaCosts, getInsuranceDaily, getMerchandisePerMatch, SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
+import { getFlightOrigins, getRateForCurrency, SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
 import { formatMoney } from '@/lib/utils';
 import { estimateTrip } from '@/lib/tripEstimate';
 import MatchCard from '@/Components/Fan/MatchCard';
 import FlightSelector from '@/Components/Fan/FlightSelector';
 import HotelSelector from '@/Components/Fan/HotelSelector';
-import ItinerarySummary from '@/Components/Fan/ItinerarySummary';
 import TravelPreferencesWizard from '@/Components/Fan/TravelPreferencesWizard';
 import PackagePicker from '@/Components/Fan/PackagePicker';
-import AccentCard from '@/Components/Common/AccentCard';
-import CostScenarioChart from '@/Components/Fan/CostScenarioChart';
-import StadiumBowl from '@/Components/Common/StadiumBowl';
 import StepFlow from '@/Components/Common/StepFlow';
 import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
 import { openTripPlanner } from '@/lib/tripPlanner';
-import ItineraryMap from '@/Components/Fan/ItineraryMap';
-import FinanceThisTrip from '@/Components/Fan/FinanceThisTrip';
 import SchoolGroupWizard from '@/Components/Fan/SchoolGroupWizard';
 import '../../../css/fan/travel-preferences-wizard.css';
 import { Head, router, Link, usePage } from '@inertiajs/react';
@@ -26,9 +20,18 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import TfeModal from '@/Components/Common/TfeModal';
 import '../../../css/fan/budget-calculator.css';
 import { useTournament } from '@/Context/TournamentContext';
-import { TEAM_FLAGS, countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
+import { countryFlagMap, TEAM_CODES } from '@/Data/countryFlags';
 import { iataForOrigin, iataForDestination, destinationCityForHotel } from '@/Data/airports';
 import { resolveStadiumImage } from '@/Data/stadiumImages';
+import { SkeletonSlab } from '@/Components/Common/Skeleton';
+import MatchFilterDialog from '@/Components/Fan/Calculator/MatchFilterDialog';
+import CalculatorRecap from '@/Components/Fan/Calculator/CalculatorRecap';
+import { saveErrorStep, saveErrorMessage } from '@/lib/calculatorErrors';
+
+// Only needed once there is a result / once the fan asks to print, so they
+// load on demand rather than with step 1 (Sprint 69).
+const CalculatorResults = lazy(() => import('@/Components/Fan/Calculator/CalculatorResults'));
+const ItineraryPrintView = lazy(() => import('@/Components/Fan/Calculator/ItineraryPrintView'));
 
 export default function BudgetCalculator({
     auth,
@@ -157,7 +160,6 @@ export default function BudgetCalculator({
     // Saved Budgets
     const [savedBudgets, setSavedBudgets] = useState(initialBudgets);
     const [showSavedBudgets, setShowSavedBudgets] = useState(false);
-    const [activeAccordion, setActiveAccordion] = useState(null);
 
     // Custom UI States
     const [showNamingModal, setShowNamingModal] = useState(false);
@@ -360,6 +362,11 @@ export default function BudgetCalculator({
         return mine.concat(rest);
     }, [venueBowls, allFixtures, selectedMatchIds, venueImageFor]);
 
+    const selectedMatches = React.useMemo(
+        () => allFixtures.filter((m) => selectedMatchIds.includes(m.id)),
+        [allFixtures, selectedMatchIds],
+    );
+
     // Favorite matches based on fixture_id
     const favoriteMatches = allFixtures.filter(match => {
         if (!Array.isArray(userFavorites) || userFavorites.length === 0) {
@@ -382,13 +389,11 @@ export default function BudgetCalculator({
     // Open filter modal
     const openFilterModal = () => {
         setShowFilterModal(true);
-        document.body.style.overflow = 'hidden';
     };
 
     // Close filter modal
     const closeFilterModal = () => {
         setShowFilterModal(false);
-        document.body.style.overflow = '';
     };
 
     // Toggle stadium selection
@@ -632,55 +637,20 @@ export default function BudgetCalculator({
                 toast.success(budgetToEdit ? 'Itinerary updated successfully!' : 'Itinerary saved successfully! You will receive an official budget and confirmation from our partners shortly.');
             },
             onError: (errors) => {
+                // Say what was wrong and take the fan to the step that sets
+                // it, rather than a generic failure (Sprint 69).
                 setSaving(false);
-                console.error(errors);
-                toast.error('Failed to save budget. Please try again.');
+                setShowNamingModal(false);
+                toast.error(saveErrorMessage(errors));
+                const step = saveErrorStep(errors);
+                if (step !== null) {
+                    setShowResults(false);
+                    setWizardStep(step);
+                }
             }
         });
     };
 
-    // Toggle accordion
-    const toggleAccordion = (key) => {
-        setActiveAccordion(activeAccordion === key ? null : key);
-    };
-
-    // Get breakdown details
-    const getBreakdownDetails = (key) => {
-        const FLIGHT_ORIGINS = getFlightOrigins(tournamentPricing);
-        const originLabel = FLIGHT_ORIGINS.find(o => o.id === flightOrigin)?.label || 'Origin';
-        const TICKET_PRICES = getTicketPrices(tournamentPricing);
-        const ticketStages = Object.entries(TICKET_PRICES).map(([s, p]) => `${s}: $${p}`).join(', ');
-        const matchCount = quickEstimate ? quickEstimateMatches : selectedMatchIds.length;
-        
-        switch (key) {
-            case 'match_tickets':
-                return `Estimated for ${matchCount} match(es). Prices by stage — ${ticketStages}.`;
-            case 'flights':
-                if (selectedFlight) {
-                    return `Real price from Google Flights: ${selectedFlight.segments?.[0]?.airline || 'Airline'} (${selectedFlight.segments?.[0]?.flight_number || ''}), ${selectedFlight.stops === 0 ? 'Non-stop' : selectedFlight.stops + ' stop(s)'}, ${selectedFlight.total_duration_minutes} min flight time.`;
-                }
-                return `Round-trip ${flightClass.replace('_', ' ')} class flight from ${originLabel}. Includes event-time demand adjustments.`;
-            case 'accommodation':
-                if (selectedHotel) {
-                    return `${selectedHotel.name} (${selectedHotel.rating?.toFixed(1)}★, ${selectedHotel.reviews?.toLocaleString()} reviews) — $${realHotelPrice}/night × ${nights} nights${travelGroupSize > 1 ? ` shared by ${travelGroupSize} travelers` : ''}.`;
-                }
-                return `${nights} nights of ${accommodation.replace('_', '-')} accommodation for ${travelGroupSize > 1 ? `${travelGroupSize} travelers (shared)` : '1 traveler'}. Adjusted for city cost tiers and demand surge.`;
-            case 'food_and_drink':
-                return `Daily food and drink allowance adjusted for local cost of living and spending tier.`;
-            case 'local_transport':
-                return `Local transportation (rideshare, metro) estimated per day.`;
-            case 'insurance':
-                return `Travel insurance at $${getInsuranceDaily(tournamentPricing)}/day for ${nights} days.`;
-            case 'visa':
-                return `Visa costs for host country entry (if applicable).`;
-            case 'merchandise':
-                return `Estimated merchandise and souvenirs at $${getMerchandisePerMatch(tournamentPricing)}/match.`;
-            case 'miscellaneous':
-                return `Entertainment, souvenirs, and other expenses.`;
-            default:
-                return '';
-        }
-    };
 
     // Reset wizard
     const resetWizard = () => {
@@ -731,56 +701,6 @@ export default function BudgetCalculator({
         setShowSavedBudgets(false); // Close dropdown
     };
 
-    // Format number
-    const formatNumber = (num) => new Intl.NumberFormat().format(num);
-
-    // Simple Donut Chart Component
-    const DonutChart = ({ data }) => {
-        const total = data.reduce((acc, item) => acc + item.value, 0);
-        let currentAngle = 0;
-        const colors = ['#dc2626', '#ea580c', '#d97706', '#ca8a04', '#65a30d', '#16a34a'];
-        
-        return (
-            <div className="budget-chart-container">
-                <svg viewBox="0 0 100 100" className="donut-chart">
-                    {data.map((item, i) => {
-                        const percentage = item.value / total;
-                        const angle = percentage * 360;
-                        const largeArc = angle > 180 ? 1 : 0;
-                        
-                        const x1 = 50 + 40 * Math.cos((currentAngle - 90) * Math.PI / 180);
-                        const y1 = 50 + 40 * Math.sin((currentAngle - 90) * Math.PI / 180);
-                        
-                        currentAngle += angle;
-                        
-                        const x2 = 50 + 40 * Math.cos((currentAngle - 90) * Math.PI / 180);
-                        const y2 = 50 + 40 * Math.sin((currentAngle - 90) * Math.PI / 180);
-                        
-                        const pathData = `M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`;
-                        
-                        return (
-                            <path 
-                                key={i}
-                                d={pathData} 
-                                fill={colors[i % colors.length]} 
-                                stroke="#111" 
-                                strokeWidth="1"
-                            />
-                        );
-                    })}
-                    <circle cx="50" cy="50" r="25" fill="#111" />
-                </svg>
-                <div className="chart-legend">
-                    {data.map((item, i) => (
-                        <div key={i} className="legend-item">
-                            <span className="legend-color" style={{ backgroundColor: colors[i % colors.length] }}></span>
-                            <span className="legend-label">{item.label}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    };
 
     return (
         <FanLayout title="Budget Calculator">
@@ -805,7 +725,7 @@ export default function BudgetCalculator({
                                 </button>
                                 
                                 {showSavedBudgets && (
-                                    <div className="dropdown-menu show" style={{ right: 0, left: 'auto' }}>
+                                    <div className="dropdown-menu show dropdown-menu--end">
                                         {savedBudgets.map(budget => (
                                             <div 
                                                 key={budget.id} 
@@ -833,12 +753,12 @@ export default function BudgetCalculator({
                         )
                     }
                 >
-                    <div className="hero-content" style={{ flex: '1' }}>
+                    <div className="hero-content flex-grow-1">
                         {/* Partner Status Display - NEW */}
                         {savedBudgets.find(b => b.is_active)?.partner_status && (
-                            <div className="partner-status-box mb-3" style={{ background: 'rgba(0,0,0,0.4)', padding: '10px', borderRadius: '8px', borderLeft: '4px solid #f59e0b' }}>
+                            <div className="partner-status-box mb-3">
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                    <h4 className="m-0 text-white" style={{ fontSize: '1rem' }}><i className="fas fa-handshake me-2 text-warning"></i>Travel Partner Update</h4>
+                                    <h4 className="partner-status-box__title"><i className="fas fa-handshake me-2 text-warning"></i>Travel Partner Update</h4>
                                     <span className={`tfe-pill tfe-pill--${savedBudgets.find(b => b.is_active).partner_status === 'approved' ? 'approved' : 'info'}`}>
                                         {savedBudgets.find(b => b.is_active).partner_status.toUpperCase()}
                                     </span>
@@ -965,6 +885,19 @@ export default function BudgetCalculator({
                     cursor={wizardCursor}
                 />
 
+                {!showResults && wizardStep >= 2 && (
+                    <CalculatorRecap
+                        packageName={selectedPackage?.name}
+                        matchCount={quickEstimate ? quickEstimateMatches : selectedMatchIds.length}
+                        quickEstimate={quickEstimate}
+                        nights={nights}
+                        travellers={travelGroupSize}
+                        estimate={estimatedCost}
+                        currency={currency}
+                        onJump={(step) => setWizardStep(step === 2 && quickEstimate ? 3 : step)}
+                    />
+                )}
+
                 {/* Wizard Step 0: Package picker — fast-path prepacked options.
                     Only rendered when packages exist for this tournament and the
                     fan isn't editing an existing budget / arriving via ?match=. */}
@@ -994,20 +927,14 @@ export default function BudgetCalculator({
                 {/* Package origin banner — shows in later steps so the fan
                     knows they can revisit the picker. */}
                 {!showResults && selectedPackage && wizardStep > 0 && (
-                    <div
-                        className="mb-3 p-3 rounded d-flex align-items-center justify-content-between"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(220,20,60,0.10), rgba(59,130,246,0.10))',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                        }}
-                    >
+                    <div className="calc-package-banner">
                         <div>
                             <div className="text-white fw-semibold">
                                 <i className="fas fa-gift me-2 text-danger"></i>
                                 Based on package: {selectedPackage.name}
                             </div>
                             <div className="text-white-50 small">
-                                Fixed price {selectedPackage.currency} {Number(selectedPackage.base_price).toLocaleString()} — customize anything you like.
+                                Fixed price {formatMoney(selectedPackage.base_price, selectedPackage.currency || 'USD')} — customize anything you like.
                             </div>
                         </div>
                         <button
@@ -1088,8 +1015,7 @@ export default function BudgetCalculator({
 
                             <button
                                 type="button"
-                                className="tfe-btn tfe-btn--filled tfe-btn--lg"
-                                style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }}
+                                className="tfe-btn tfe-btn--lg"
                                 onClick={() => {
                                     setQuickEstimate(true);
                                     setWizardStep(3);
@@ -1148,7 +1074,7 @@ export default function BudgetCalculator({
                         </div>
 
                         {quickEstimate && (
-                            <div style={{ marginBottom: '16px' }}>
+                            <div className="mb-3">
                                 <div className="preference-group full-width">
                                     <label><i className="fas fa-futbol"></i> Expected Matches</label>
                                     <div className="range-slider-container">
@@ -1161,7 +1087,7 @@ export default function BudgetCalculator({
                                         />
                                         <span className="range-value">{quickEstimateMatches} Matches</span>
                                     </div>
-                                    <label className="mt-2" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                                    <label className="mt-2 calc-sublabel">
                                         <i className="fas fa-percentage me-1"></i>
                                         Knockout stage %: {quickEstimateKnockoutPct}%
                                     </label>
@@ -1308,425 +1234,68 @@ export default function BudgetCalculator({
                     </div>
                 )}
 
-                {/* Results Section */}
+                {/* Results — lazily loaded, so recharts, the route map and the
+                    seat-map wrapper stay out of the first download (Sprint 69). */}
                 {showResults && (
-                    <div className="section-card result-card">
-                        <div className="section-header">
-                            <div className="section-icon">
-                                <i className="fas fa-chart-pie"></i>
-                            </div>
-                            <div>
-                                <h3>Estimated Breakdown</h3>
-                                <p className="section-subtitle">Detailed cost analysis</p>
-                            </div>
-                        </div>
-                        
-                        <div className="result-total">
-                            {(selectedFlight || selectedHotel) && (
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '12px', flexWrap: 'wrap' }}>
-                                    {selectedFlight && (
-                                        <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '4px 10px', borderRadius: '12px' }}>
-                                            <i className="fas fa-plane me-1"></i>Real flight: ${realFlightPrice}/person
-                                        </span>
-                                    )}
-                                    {selectedHotel && (
-                                        <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '4px 10px', borderRadius: '12px' }}>
-                                            <i className="fas fa-hotel me-1"></i>Real hotel: ${realHotelPrice}/night
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                            {budgetToEdit?.partner_cost > 0 && budgetToEdit.partner_status === 'modified' ? (
-                                <div className="partner-revised-cost mb-3">
-                                    <div className="tfe-pill tfe-pill--pending mb-2">
-                                        <i className="fas fa-certificate me-2"></i>PARTNER REVISED PROPOSAL
-                                    </div>
-                                    <h2 className="text-yellow-500 mb-1" style={{ fontSize: '2.5rem', fontWeight: '800' }}>
-                                        {formatMoney(budgetToEdit.partner_cost, budgetToEdit.currency || currency)}
-                                    </h2>
-                                    <p className="text-white-50 small">
-                                        Your Estimate: <span className="text-decoration-line-through">{formatMoney(estimatedCost, currency)}</span>
-                                    </p>
-                                </div>
-                            ) : (
-                                <>
-                                    <h2>{formatMoney(estimatedCost, currency)}</h2>
-                                    <p>Estimated total for {selectedMatchIds.length} matches, {nights} days</p>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Chart */}
-                        <div className="result-chart-section">
-                            <DonutChart 
-                                data={[
-                                    { label: 'Tickets', value: breakdown.match_tickets || 0 },
-                                    { label: 'Flights', value: breakdown.flights || 0 },
-                                    { label: 'Accommodation', value: breakdown.accommodation || 0 },
-                                    { label: 'Food & Drink', value: breakdown.food_and_drink || 0 },
-                                    { label: 'Transport', value: breakdown.local_transport || 0 },
-                                    { label: 'Insurance', value: breakdown.insurance || 0 },
-                                    { label: 'Visa', value: breakdown.visa || 0 },
-                                    { label: 'Merchandise', value: breakdown.merchandise || 0 },
-                                    { label: 'Misc', value: breakdown.miscellaneous || 0 }
-                                ].filter(d => d.value > 0)} 
-                            />
-                        </div>
-
-                        {(() => {
-                            // Prefer a real selected image where the fan picked one; otherwise fall
-                            // back to the locally-hosted stadium image for the first selected
-                            // match's venue so the accommodation/flight cards still land with a
-                            // real photo.
-                            const firstSelectedMatch = allFixtures.find((m) => selectedMatchIds.includes(m.id));
-                            const stadiumBg = firstSelectedMatch ? venueImageFor(firstSelectedMatch.venue) : null;
-                            const hotelBg = selectedHotel?.images?.[0] || null;
-                            const flightBg = selectedFlight?.airline_logo || null;
-                            const basePath = window.location.pathname.includes('/TFE/') ? '/TFE/public' : '';
-                            const stadiumFallback = `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
-                            const flightFallback = `${basePath}/assets/img/backdrops/plane-square.jpg`;
-
-                            const CATEGORIES = [
-                                { key: 'match_tickets',  label: 'Match Tickets',   accent: '#ef4444', bgImage: stadiumBg || stadiumFallback, icon: null },
-                                { key: 'flights',        label: 'Flights',         accent: '#3b82f6', bgImage: flightBg || flightFallback,   icon: flightBg ? null : 'fas fa-plane' },
-                                { key: 'accommodation',  label: 'Accommodation',   accent: '#f59e0b', bgImage: hotelBg,                      icon: hotelBg ? null : 'fas fa-hotel' },
-                                { key: 'food_and_drink', label: 'Food & Drink',    accent: '#f97316', bgImage: null, icon: 'fas fa-utensils' },
-                                { key: 'local_transport',label: 'Local Transport', accent: '#22c55e', bgImage: null, icon: 'fas fa-bus' },
-                                { key: 'insurance',      label: 'Travel Insurance',accent: '#14b8a6', bgImage: null, icon: 'fas fa-shield-alt' },
-                                { key: 'visa',           label: 'Visa',            accent: '#8b5cf6', bgImage: null, icon: 'fas fa-passport' },
-                                { key: 'merchandise',    label: 'Merchandise',     accent: '#ec4899', bgImage: null, icon: 'fas fa-shopping-bag' },
-                                { key: 'miscellaneous',  label: 'Miscellaneous',   accent: '#64748b', bgImage: null, icon: 'fas fa-ellipsis-h' },
-                            ];
-
-                            return (
-                                <div className="breakdown-grid">
-                                    {CATEGORIES.map((cat) => (
-                                        <AccentCard
-                                            key={cat.key}
-                                            LinkComponent="div"
-                                            accent={cat.accent}
-                                            bgImage={cat.bgImage || undefined}
-                                            artwork={cat.icon ? { icon: cat.icon } : undefined}
-                                            eyebrow={cat.label}
-                                            title={formatMoney(breakdown[cat.key] || 0, currency)}
-                                            desc={getBreakdownDetails(cat.key)}
-                                        />
-                                    ))}
-                                </div>
-                            );
-                        })()}
-
-                        {/* Seat map — the fan has just seen what Match Tickets
-                            costs them; this is what they are buying. Venues are
-                            ordered by their own selected matches so the bowl
-                            opens on the ground they are actually going to, with
-                            the rest available in the map's own switcher. */}
-                        {orderedVenueBowls.length > 0 && (
-                            <section className="result-subsection result-subsection--seatmap">
-                                <div className="result-subsection__head">
-                                    <span className="result-subsection__icon"><i className="fas fa-chair" aria-hidden="true"></i></span>
-                                    <div>
-                                        <h4 className="result-subsection__title">Where you'll be sitting</h4>
-                                        <p className="result-subsection__subtitle">
-                                            Seating tiers at your venues, and how full each one is.
-                                        </p>
-                                    </div>
-                                </div>
-                                <StadiumBowl bowls={orderedVenueBowls} height={400} />
-                            </section>
-                        )}
-
-                        {/* Cost scenarios — Sprint 44 promoted to a first-class subsection
-                            so it reads as consistent with the breakdown grid above, and
-                            gained live tuners so the fan can explore the space, not just
-                            look at a fixed set of comparisons. */}
-                        <section className="result-subsection result-subsection--scenarios">
-                            <div className="result-subsection__head">
-                                <span className="result-subsection__icon"><i className="fas fa-chart-column" aria-hidden="true"></i></span>
-                                <div>
-                                    <h4 className="result-subsection__title">Cost scenarios</h4>
-                                    <p className="result-subsection__subtitle">
-                                        See how your total shifts if you tweak one variable. Baseline is your current plan.
-                                    </p>
-                                </div>
-                            </div>
-                            <CostScenarioChart
-                                currentTotal={estimatedCost}
-                                matchCount={selectedMatchIds.length || 1}
-                                nights={nights}
-                                accommodation={accommodation}
-                                pricing={tournamentPricing}
-                                currency={currency}
-                            />
-                        </section>
-
-                        {/* Not paying up-front — the CTA now opens the shared
-                            RequestFinancingWizard (Sprint 44). Amount + itinerary come
-                            from the calculator's current estimate so nothing is retyped. */}
-                        {financePartners.length > 0 && estimatedCost > 0 && (
-                            <section className="result-subsection result-subsection--finance">
-                                <div className="result-subsection__head">
-                                    <span className="result-subsection__icon"><i className="fas fa-hand-holding-usd" aria-hidden="true"></i></span>
-                                    <div>
-                                        <h4 className="result-subsection__title">Financing</h4>
-                                        <p className="result-subsection__subtitle">
-                                            Route this trip to a verified finance partner instead of paying up-front.
-                                        </p>
-                                    </div>
-                                </div>
-                                {/* Loans are stored in USD on the backend, so convert the
-                                    display total back to USD before the finance partner sees it. */}
-                                <FinanceThisTrip
-                                    financePartners={financePartners}
-                                    budgetTotal={estimatedCost / (rate || 1)}
-                                    budgetCurrency="USD"
-                                    savedBudgets={savedBudgets}
-                                    tournament={tournament}
-                                />
-                            </section>
-                        )}
-
-                        {/* Multi-city venue map — pins every tournament venue,
-                            highlights the fan's selected matches, and draws
-                            distance chips between consecutive stops. */}
-                        <section className="result-subsection result-subsection--map">
-                            <div className="result-subsection__head">
-                                <span className="result-subsection__icon"><i className="fas fa-map-location-dot" aria-hidden="true"></i></span>
-                                <div>
-                                    <h4 className="result-subsection__title">Your route across host cities</h4>
-                                    <p className="result-subsection__subtitle">
-                                        Selected venues, distances between them, and everywhere else the tournament plays.
-                                    </p>
-                                </div>
-                            </div>
-                            <ItineraryMap
-                                venues={(tournament && tournament.venues) || []}
-                                selectedMatches={allFixtures.filter((m) => selectedMatchIds.includes(m.id))}
-                            />
-                        </section>
-
-                        <div className="d-flex gap-3 mt-4">
-                            <button type="button" className="tfe-btn flex-fill" onClick={resetWizard}>
-                                <i className="fas fa-redo me-2"></i>Start Over
-                            </button>
-                            <button type="button" className="tfe-btn flex-fill" onClick={() => setShowItinerary(true)}
-                                style={{ borderColor: '#3b82f6', color: '#3b82f6' }}>
-                                <i className="fas fa-file-alt me-2"></i>View Itinerary
-                            </button>
-                             <button className="tfe-btn tfe-btn--filled flex-fill" onClick={saveBudget} disabled={saving}>
-                                {saving ? (
-                                    <><i className="fas fa-spinner fa-spin me-2"></i>Saving...</>
-                                ) : (
-                                    <><i className="fas fa-save me-2"></i>Save Itinerary</>
-                                )}
-                            </button>
-                        </div>
-                    </div>
+                    <Suspense fallback={<SkeletonSlab />}>
+                        <CalculatorResults
+                            estimatedCost={estimatedCost}
+                            currency={currency}
+                            rate={rate}
+                            breakdown={breakdown}
+                            budgetToEdit={budgetToEdit}
+                            selectedMatches={selectedMatches}
+                            matchCount={quickEstimate ? quickEstimateMatches : selectedMatchIds.length}
+                            nights={nights}
+                            accommodation={accommodation}
+                            flightOrigin={flightOrigin}
+                            flightClass={flightClass}
+                            travelGroupSize={travelGroupSize}
+                            selectedFlight={selectedFlight}
+                            selectedHotel={selectedHotel}
+                            realFlightPrice={realFlightPrice}
+                            realHotelPrice={realHotelPrice}
+                            pricing={tournamentPricing}
+                            tournament={tournament}
+                            venueImageFor={venueImageFor}
+                            venueBowls={orderedVenueBowls}
+                            financePartners={financePartners}
+                            savedBudgets={savedBudgets}
+                            saving={saving}
+                            onReset={resetWizard}
+                            onViewItinerary={() => setShowItinerary(true)}
+                            onSave={saveBudget}
+                        />
+                    </Suspense>
                 )}
 
             </div>
 
-            {/* Filter Modal */}
-            {showFilterModal && (
-                <div className="filter-modal-overlay" onClick={closeFilterModal}>
-                    <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <div className="filter-tabs">
-                                <button 
-                                    className={`filter-tab ${filterTab === 'country' ? 'active' : ''}`}
-                                    onClick={() => setFilterTab('country')}
-                                >
-                                    Countries {selectedCountries.length > 0 && <span className="badge">{selectedCountries.length}</span>}
-                                </button>
-                                <button 
-                                    className={`filter-tab ${filterTab === 'stadium' ? 'active' : ''}`}
-                                    onClick={() => setFilterTab('stadium')}
-                                >
-                                    Stadiums {selectedStadiums.length > 0 && <span className="badge">{selectedStadiums.length}</span>}
-                                </button>
-                                <button 
-                                    className={`filter-tab ${filterTab === 'stage' ? 'active' : ''}`}
-                                    onClick={() => setFilterTab('stage')}
-                                >
-                                    Stages {selectedStages.length > 0 && <span className="badge">{selectedStages.length}</span>}
-                                </button>
-                                <button 
-                                    className={`filter-tab ${filterTab === 'group' ? 'active' : ''}`}
-                                    onClick={() => setFilterTab('group')}
-                                >
-                                    Teams {selectedTeams.length > 0 && <span className="badge">{selectedTeams.length}</span>}
-                                </button>
-                                <button 
-                                    className={`filter-tab ${filterTab === 'favorites' ? 'active' : ''}`}
-                                    onClick={() => setFilterTab('favorites')}
-                                >
-                                    Favorites {favoriteMatches.length > 0 && <span className="badge">{favoriteMatches.length}</span>}
-                                </button>
-                            </div>
-                            <button className="close-modal" onClick={closeFilterModal}>×</button>
-                        </div>
-                        
-                        <div className="modal-body">
-                            {/* Country Grid */}
-                            {filterTab === 'country' && (
-                                <div className="selection-grid country-grid">
-                                    {(tournament?.hosts || ['USA', 'Mexico', 'Canada']).map(country => {
-                                        const flagImg = getCountryFlagImg(country);
-                                        return (
-                                            <div 
-                                                key={country}
-                                                className={`selection-card country-card ${selectedCountries.includes(country) ? 'selected' : ''}`}
-                                                onClick={() => toggleCountry(country)}
-                                                style={{ minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
-                                            >
-                                                {flagImg ? (
-                                                    <img src={flagImg} alt={country} style={{ width: '4rem', height: '3rem', objectFit: 'cover', borderRadius: '6px', marginBottom: '10px' }} />
-                                                ) : (
-                                                    <div style={{ fontSize: '3rem', marginBottom: '10px' }}>{country.charAt(0)}</div>
-                                                )}
-                                                <div className="card-label" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{country}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Stadium Grid */}
-                            {filterTab === 'stadium' && (
-                                <div className="selection-grid stadium-grid">
-                                    {allVenues.map(venue => {
-                                        // Dynamic base path for WAMP compatibility
-                                        const basePath = window.location.pathname.includes('/TFE/')
-                                            ? '/TFE/public'
-                                            : '';
-                                        // Prefer the locally-hosted stadium image for this venue;
-                                        // fall back to a generic backdrop.
-                                        const imgSrc = venueImageFor(venue)
-                                            || `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
-
-                                        return (
-                                            <div 
-                                                key={venue}
-                                                className={`selection-card stadium-card ${selectedStadiums.includes(venue) ? 'selected' : ''}`}
-                                                onClick={() => toggleStadium(venue)}
-                                            >
-                                                <img
-                                                    src={imgSrc}
-                                                    className="card-image"
-                                                    alt={venue}
-                                                    loading="lazy"
-                                                    decoding="async"
-                                                    onError={(e) => {
-                                                        // A missing stadium file must not leave a
-                                                        // torn-image icon in the picker grid.
-                                                        e.currentTarget.src = `${basePath}/assets/img/backdrops/stadium-sideview.jpg`;
-                                                    }}
-                                                />
-                                                <div className="card-label">{venue}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Stage Grid */}
-                            {filterTab === 'stage' && (
-                                <div className="selection-grid stage-grid">
-                                    {allStages.map(stage => {
-                                        let icon = 'fa-trophy';
-                                        if (stage.includes('Group')) icon = 'fa-users';
-                                        if (stage.includes('Final')) icon = 'fa-medal';
-                                        if (stage.includes('Round')) icon = 'fa-futbol';
-                                        
-                                        return (
-                                            <div 
-                                                key={stage}
-                                                className={`selection-card ${selectedStages.includes(stage) ? 'selected' : ''}`}
-                                                onClick={() => toggleStage(stage)}
-                                            >
-                                                <div className="card-icon"><i className={`fas ${icon}`}></i></div>
-                                                <div className="card-label">{stage}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Group/Team Grid */}
-                            {filterTab === 'group' && (
-                                <div className="selection-grid group-grid">
-                                    {/* Teams from props - flat list for selection */}
-                                    <div className="selection-card group-card">
-                                        <div className="group-card-header">
-                                            <span className="group-letter">All Teams</span>
-                                        </div>
-                                        <ul className="group-team-list">
-                                            {teams.map(team => (
-                                                <li 
-                                                    key={team}
-                                                    className={`team-item ${selectedTeams.includes(team) ? 'selected' : ''}`}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleTeam(team);
-                                                    }}
-                                                >
-                                                    {team}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Favorites Grid */}
-                            {filterTab === 'favorites' && (
-                                <div className="selection-grid favorites-grid px-3">
-                                    {favoriteMatches.length > 0 ? (
-                                        favoriteMatches.map(match => (
-                                            <MatchCard 
-                                                key={match.id}
-                                                match={match}
-                                                isSelected={selectedMatchIds.includes(match.id)}
-                                                onToggleSelect={() => toggleMatch(match.id)}
-                                                mode="calculator"
-                                            />
-                                        ))
-                                    ) : (
-                                        <div className="empty-state-inline">
-                                            <i className="fas fa-star"></i>
-                                            <p>You haven&apos;t added any favorite matches yet. Mark favorites on the Match Schedule page.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        
-                        <div className="modal-footer">
-                            <button
-                                className="btn-apply"
-                                onClick={() => {
-                                    if (filterTab === 'favorites') {
-                                        if (favoriteMatches.length === 0) {
-                                            alert('You have no favorite matches yet. Go to Match Schedule to add some.');
-                                            return;
-                                        }
-                                        const favIds = favoriteMatches.map(m => m.id);
-                                        setFilteredMatches(favoriteMatches);
-                                        setSelectedMatchIds(favIds);
-                                        closeFilterModal();
-                                        setWizardStep(2);
-                                    } else {
-                                        applyFilters();
-                                    }
-                                }}
-                            >
-                                <i className="fas fa-check me-2"></i>
-                                {filterTab === 'favorites' ? 'Use Favorite Matches' : 'Show Matches'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <MatchFilterDialog
+                open={showFilterModal}
+                onClose={closeFilterModal}
+                tab={filterTab}
+                onTabChange={setFilterTab}
+                hosts={tournament?.hosts || []}
+                flagFor={getCountryFlagImg}
+                venues={allVenues}
+                venueImageFor={venueImageFor}
+                stages={allStages}
+                teams={teams}
+                favoriteMatches={favoriteMatches}
+                selectedCountries={selectedCountries}
+                selectedStadiums={selectedStadiums}
+                selectedStages={selectedStages}
+                selectedTeams={selectedTeams}
+                selectedMatchIds={selectedMatchIds}
+                onToggleCountry={toggleCountry}
+                onToggleStadium={toggleStadium}
+                onToggleStage={toggleStage}
+                onToggleTeam={toggleTeam}
+                onToggleMatch={toggleMatch}
+                onApply={applyFilters}
+                onUseFavorites={() => { closeFilterModal(); startWithFavorites(); }}
+            />
 
             {/* Save-itinerary dialog — Sprint 44 rewrite. The old hand-rolled
                 overlay had an unstyled name input and inconsistent buttons; this
@@ -1779,11 +1348,11 @@ export default function BudgetCalculator({
                         proposals routed against this plan.
                     </p>
                 </div>
-                <div className="tfe-slab tfe-slab--flush mt-3" style={{ padding: '14px 16px' }}>
+                <div className="tfe-slab tfe-slab--flush mt-3 calc-save-summary">
                     <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <div className="d-flex flex-column">
-                            <span className="text-white-50 small" style={{ letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: '0.65rem' }}>Total</span>
-                            <span className="text-white fw-bold" style={{ fontSize: '1.2rem' }}>
+                            <span className="calc-save-summary__label">Total</span>
+                            <span className="calc-save-summary__value">
                                 {formatMoney(estimatedCost, currency)}
                             </span>
                         </div>
@@ -1797,39 +1366,23 @@ export default function BudgetCalculator({
                 </div>
             </TfeModal>
 
-            {/* Itinerary Print Modal */}
             {showItinerary && (
-                <div className="filter-modal-overlay" style={{ zIndex: 1200, overflow: 'auto' }}>
-                    <div style={{ position: 'absolute', top: '10px', right: '20px', zIndex: 1201, display: 'flex', gap: '8px' }}>
-                        <button
-                            onClick={() => window.print()}
-                            style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem' }}
-                        >
-                            <i className="fas fa-print me-1"></i>Print
-                        </button>
-                        <button
-                            onClick={() => setShowItinerary(false)}
-                            style={{ background: '#374151', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem' }}
-                        >
-                            <i className="fas fa-times me-1"></i>Close
-                        </button>
-                    </div>
-                    <div style={{ marginTop: '50px', paddingBottom: '40px' }}>
-                        <ItinerarySummary
-                            tournament={tournament}
-                            selectedMatches={allFixtures.filter(m => selectedMatchIds.includes(m.id))}
-                            selectedFlight={selectedFlight}
-                            selectedHotel={selectedHotel}
-                            breakdown={breakdown}
-                            estimatedCost={estimatedCost}
-                            nights={nights}
-                            travelGroupSize={travelGroupSize}
-                            spendingTier={spendingTier}
-                            flightOrigin={flightOrigin}
-                            tournamentPricing={tournamentPricing}
-                        />
-                    </div>
-                </div>
+                <Suspense fallback={null}>
+                <ItineraryPrintView
+                    onClose={() => setShowItinerary(false)}
+                    tournament={tournament}
+                    selectedMatches={selectedMatches}
+                    selectedFlight={selectedFlight}
+                    selectedHotel={selectedHotel}
+                    breakdown={breakdown}
+                    estimatedCost={estimatedCost}
+                    nights={nights}
+                    travelGroupSize={travelGroupSize}
+                    spendingTier={spendingTier}
+                    flightOrigin={flightOrigin}
+                    tournamentPricing={tournamentPricing}
+                />
+                </Suspense>
             )}
 
             {/* Mounted conditionally and keyed — useForm reads its initial

@@ -5,13 +5,11 @@ import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StadiumBowl from '@/Components/Common/StadiumBowl';
 import TfeModal from '@/Components/Common/TfeModal';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatNumber, formatKickoff } from '@/lib/utils';
 import '../../../../css/fan/fan-pages.css';
 import '../../../../css/tickets.css';
 
-const KICK = (s) => new Date(s).toLocaleString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-});
+const KICK = (s) => formatKickoff(s);
 
 /**
  * Cheapest seat a fan can actually still buy.
@@ -91,13 +89,13 @@ function TicketCard({ ticket, onBuy }) {
                 <div className="ticket-card__meta">
                     <div><i className="fas fa-clock"></i> {KICK(ticket.kickoff_at)}</div>
                     <div><i className="fas fa-map-marker-alt"></i> {ticket.venue_name}</div>
-                    <div className="ticket-card__meta-sub">{ticket.venue_city}, {ticket.venue_country} · Capacity {ticket.venue_capacity.toLocaleString()}</div>
+                    <div className="ticket-card__meta-sub">{ticket.venue_city}, {ticket.venue_country} · Capacity {formatNumber(ticket.venue_capacity)}</div>
                 </div>
 
                 <div className="ticket-card__stock">
                     <div className="ticket-card__bar"><span style={{ width: `${ticket.sold_pct}%` }} /></div>
                     <div className="ticket-card__stock-meta">
-                        <strong>{ticket.remaining.toLocaleString()}</strong> seats left
+                        <strong>{formatNumber(ticket.remaining)}</strong> seats left
                         <span>{ticket.sold_pct}% sold</span>
                     </div>
                 </div>
@@ -252,7 +250,7 @@ function PurchaseModal({ ticket, onClose }) {
                             {tiers.map((t) => (
                                 <option key={t.id} value={t.id} disabled={t.is_sold_out}>
                                     {t.name} — {formatMoney(t.price, ticket.currency)}
-                                    {t.is_sold_out ? ' · sold out' : ` · ${t.remaining.toLocaleString()} left`}
+                                    {t.is_sold_out ? ' · sold out' : ` · ${formatNumber(t.remaining)} left`}
                                 </option>
                             ))}
                         </select>

@@ -2,13 +2,11 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatKickoff } from '@/lib/utils';
 import '../../../../css/fan/fan-pages.css';
 import '../../../../css/tickets.css';
 
-const KICK = (s) => s ? new Date(s).toLocaleString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-}) : '';
+const KICK = (s) => formatKickoff(s);
 
 export default function TicketsPurchases({ auth, purchases = [] }) {
     return (

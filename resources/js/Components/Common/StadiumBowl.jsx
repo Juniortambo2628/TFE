@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 
 import Skeleton from '@/Components/Common/Skeleton';
 import { resolveTiers } from '@/lib/stadiumBowl';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatNumber } from '@/lib/utils';
 
 import '../../../css/stadium-bowl.css';
 
@@ -102,7 +102,7 @@ export default function StadiumBowl({
                         >
                             {list.map((v) => (
                                 <option key={v.slug} value={v.slug}>
-                                    {v.name} — {Number(v.capacity || 0).toLocaleString()} seats
+                                    {v.name} — {formatNumber(Number(v.capacity || 0))} seats
                                 </option>
                             ))}
                         </select>
@@ -114,14 +114,14 @@ export default function StadiumBowl({
                         <>
                             <div className="tfe-bowl__stat-value">{bowl.sold_pct}%</div>
                             <div className="tfe-bowl__stat-label">
-                                {Number(bowl.sold || 0).toLocaleString()} of{' '}
-                                {Number(bowl.seats || 0).toLocaleString()} seats booked
+                                {formatNumber(Number(bowl.sold || 0))} of{' '}
+                                {formatNumber(Number(bowl.seats || 0))} seats booked
                             </div>
                         </>
                     ) : (
                         <>
                             <div className="tfe-bowl__stat-value">
-                                {Number(bowl.capacity || 0).toLocaleString()}
+                                {formatNumber(Number(bowl.capacity || 0))}
                             </div>
                             <div className="tfe-bowl__stat-label">seats · no fixtures on sale yet</div>
                         </>
@@ -150,7 +150,7 @@ export default function StadiumBowl({
                         <span>
                             {live && tooltip.tier.booked !== null
                                 ? `${Math.round(tooltip.tier.booked * 100)}% booked`
-                                : `${Number(tooltip.tier.capacity || 0).toLocaleString()} seats`}
+                                : `${formatNumber(Number(tooltip.tier.capacity || 0))} seats`}
                         </span>
                     </div>
                 )}
@@ -197,7 +197,7 @@ export default function StadiumBowl({
                                 <span className="tfe-bowl__legend-figure">
                                     {soldOut && 'Sold out'}
                                     {!soldOut && tier.booked !== null && `${Math.round(tier.booked * 100)}%`}
-                                    {!soldOut && tier.booked === null && `${Number(tier.capacity || 0).toLocaleString()} seats`}
+                                    {!soldOut && tier.booked === null && `${formatNumber(Number(tier.capacity || 0))} seats`}
                                 </span>
                             </Row>
                         </li>

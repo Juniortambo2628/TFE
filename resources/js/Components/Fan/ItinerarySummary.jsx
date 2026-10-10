@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * ItinerarySummary — A professional, printable itinerary document
@@ -154,7 +155,7 @@ export default function ItinerarySummary({
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', background: '#fafafa' }}>
                         <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{selectedHotel.name}</div>
                         <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
-                            Rating: {selectedHotel.rating?.toFixed(1)} ★ · {selectedHotel.reviews?.toLocaleString()} reviews
+                            Rating: {selectedHotel.rating?.toFixed(1)} ★ · {formatNumber(selectedHotel.reviews)} reviews
                             {selectedHotel.check_in_time && ` · Check-in: ${selectedHotel.check_in_time}`}
                         </div>
                         {selectedHotel.amenities?.length > 0 && (
@@ -199,9 +200,9 @@ export default function ItinerarySummary({
                             return (
                                 <tr key={key} style={{ borderBottom: '1px solid #eee' }}>
                                     <td style={{ padding: '8px 0' }}>{label}</td>
-                                    <td style={{ textAlign: 'right', padding: '8px 0' }}>${usdVal.toLocaleString()}</td>
+                                    <td style={{ textAlign: 'right', padding: '8px 0' }}>${formatNumber(usdVal)}</td>
                                     <td style={{ textAlign: 'right', padding: '8px 0', fontWeight: kesVal > 0 ? '600' : '400' }}>
-                                        KES {kesVal.toLocaleString()}
+                                        KES {formatNumber(kesVal)}
                                     </td>
                                 </tr>
                             );
@@ -210,8 +211,8 @@ export default function ItinerarySummary({
                     <tfoot>
                         <tr style={{ borderTop: '2px solid #1a1a1a', fontWeight: '700' }}>
                             <td style={{ padding: '12px 0', fontSize: '1rem' }}>TOTAL</td>
-                            <td style={{ textAlign: 'right', padding: '12px 0', fontSize: '1rem' }}>${usdEquivalent.toLocaleString()}</td>
-                            <td style={{ textAlign: 'right', padding: '12px 0', fontSize: '1rem' }}>KES {estimatedCost.toLocaleString()}</td>
+                            <td style={{ textAlign: 'right', padding: '12px 0', fontSize: '1rem' }}>${formatNumber(usdEquivalent)}</td>
+                            <td style={{ textAlign: 'right', padding: '12px 0', fontSize: '1rem' }}>KES {formatNumber(estimatedCost)}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -221,7 +222,7 @@ export default function ItinerarySummary({
             {travelGroupSize > 1 && (
                 <div style={{ marginBottom: '24px', padding: '12px 16px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
                     <div style={{ fontSize: '0.85rem', color: '#166534' }}>
-                        <strong>Per Person Cost:</strong> KES {Math.round(estimatedCost / travelGroupSize).toLocaleString()} (${Math.round(usdEquivalent / travelGroupSize).toLocaleString()})
+                        <strong>Per Person Cost:</strong> KES {formatNumber(Math.round(estimatedCost / travelGroupSize))} (${formatNumber(Math.round(usdEquivalent / travelGroupSize))})
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#15803d', marginTop: '4px' }}>
                         Based on {travelGroupSize} travelers sharing accommodation

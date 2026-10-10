@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { AreaChart } from '@tremor/react';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * Reach analytics. TFE tracks connections, not transactions —
@@ -89,7 +90,7 @@ function ReferralCard({ title, icon, rows }) {
                                 {rows.map((r, i) => (
                                     <tr key={i}>
                                         <td className="text-white fw-semibold">{r.partner}</td>
-                                        <td className="text-end text-white">{Number(r.referrals).toLocaleString()}</td>
+                                        <td className="text-end text-white">{formatNumber(Number(r.referrals))}</td>
                                     </tr>
                                 ))}
                             </tbody>

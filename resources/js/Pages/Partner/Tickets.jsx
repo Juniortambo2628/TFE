@@ -4,12 +4,10 @@ import { Head } from '@inertiajs/react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ListingGrid from '@/Components/Common/ListingGrid';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatNumber, formatKickoff } from '@/lib/utils';
 import '../../../css/tickets.css';
 
-const KICK = (s) => new Date(s).toLocaleString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-});
+const KICK = (s) => formatKickoff(s);
 
 export default function PartnerTickets({ auth, tickets = [], stats = {} }) {
     const tiles = [
@@ -70,8 +68,8 @@ export default function PartnerTickets({ auth, tickets = [], stats = {} }) {
                                                 <td>{KICK(t.kickoff_at)}</td>
                                                 <td>{t.venue_name}<div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)' }}>{t.venue_city}</div></td>
                                                 <td>{formatMoney(t.price, t.currency)}</td>
-                                                <td>{t.capacity.toLocaleString()}</td>
-                                                <td>{t.sold.toLocaleString()}</td>
+                                                <td>{formatNumber(t.capacity)}</td>
+                                                <td>{formatNumber(t.sold)}</td>
                                                 <td>
                                                     <div className="ticket-card__bar" style={{ minWidth: 90 }}>
                                                         <span style={{ width: `${t.sold_pct}%` }} />
@@ -106,7 +104,7 @@ export default function PartnerTickets({ auth, tickets = [], stats = {} }) {
                             <div className="ticket-card__stock">
                                 <div className="ticket-card__bar"><span style={{ width: `${t.sold_pct}%` }} /></div>
                                 <div className="ticket-card__stock-meta">
-                                    <strong>{t.sold.toLocaleString()}/{t.capacity.toLocaleString()}</strong> sold
+                                    <strong>{formatNumber(t.sold)}/{formatNumber(t.capacity)}</strong> sold
                                     <span>{t.sold_pct}%</span>
                                 </div>
                             </div>

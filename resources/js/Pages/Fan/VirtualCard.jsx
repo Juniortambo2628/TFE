@@ -3,11 +3,11 @@ import { Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatDateTime } from '@/lib/utils';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/virtual-card.css';
 
-const AT = (s) => new Date(s).toLocaleString();
+const AT = (s) => formatDateTime(s);
 
 export default function VirtualCard({ auth, card, partner, currencies = [] }) {
     const accent = partner?.theme_accent || '#0072CE';

@@ -49,3 +49,22 @@ test('titleCase passes through anything that is not a filled string', () => {
     assert.equal(titleCase(null), null);
     assert.equal(titleCase(undefined), undefined);
 });
+
+import { formatNumber, formatDateTime } from '../../resources/js/lib/utils.js';
+
+test('formatNumber is pinned to en-US grouping', () => {
+    assert.equal(formatNumber(1234567), '1,234,567');
+    assert.equal(formatNumber('42000'), '42,000');
+    assert.equal(formatNumber(1234.567, 1), '1,234.6');
+});
+
+test('formatNumber renders junk as 0 rather than NaN', () => {
+    assert.equal(formatNumber(undefined), '0');
+    assert.equal(formatNumber('abc'), '0');
+});
+
+test('formatDateTime is blank for a missing or invalid date', () => {
+    assert.equal(formatDateTime(null), '');
+    assert.equal(formatDateTime('not a date'), '');
+    assert.match(formatDateTime('2027-06-14T19:00:00Z', { timeZone: 'UTC' }), /^Jun 14, 2027, 7:00\s?PM$/);
+});
