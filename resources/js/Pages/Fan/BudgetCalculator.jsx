@@ -1378,11 +1378,10 @@ export default function BudgetCalculator({
                     selectedHotel={selectedHotel}
                     breakdown={breakdown}
                     estimatedCost={estimatedCost}
+                    currency={currency}
                     nights={nights}
                     travelGroupSize={travelGroupSize}
                     spendingTier={spendingTier}
-                    flightOrigin={flightOrigin}
-                    tournamentPricing={tournamentPricing}
                 />
                 </Suspense>
             )}
