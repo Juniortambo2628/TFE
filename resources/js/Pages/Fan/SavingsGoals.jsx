@@ -9,8 +9,13 @@ import { SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
 import { useTournament } from '@/Context/TournamentContext';
 import BankConnectDialog from '@/Components/Fan/BankConnectDialog';
 import { Link } from '@inertiajs/react';
+import useUndoableRemoval from '@/hooks/useUndoableRemoval';
 
-export default function SavingsGoals({ auth, goals, bankLinks = {}, bank = null }) {
+export default function SavingsGoals({ auth, goals: allGoals, bankLinks = {}, bank = null }) {
+    // Undo instead of confirm() (Sprint 69): nothing is deleted until the
+    // toast's window closes.
+    const { isHidden, remove: removeLater } = useUndoableRemoval();
+    const goals = (allGoals || []).filter((g) => !isHidden(g.id));
     // Sprint 67 — the goal whose "Save with the bank" consent dialog is open.
     const [connectFor, setConnectFor] = useState(null);
     const { tournament } = useTournament();
@@ -32,11 +37,10 @@ export default function SavingsGoals({ auth, goals, bankLinks = {}, bank = null 
         });
     };
 
-    const remove = (id) => {
-        if (confirm('Delete this savings goal?')) {
-            router.delete(route('fan.savings-goals.destroy', id));
-        }
-    };
+    const remove = (goal) => removeLater(goal.id, {
+        message: `"${goal.name}" deleted`,
+        url: route('fan.savings-goals.destroy', goal.id),
+    });
 
     const totalSaved = goals.reduce((sum, g) => sum + parseFloat(g.current_amount || 0), 0);
     const totalTarget = goals.reduce((sum, g) => sum + parseFloat(g.target_amount || 0), 0);
@@ -157,8 +161,8 @@ export default function SavingsGoals({ auth, goals, bankLinks = {}, bank = null 
                                                     {goal.target_date ? `Target: ${new Date(goal.target_date).toLocaleDateString()}` : 'No deadline'}
                                                 </p>
                                             </div>
-                                            <button onClick={() => remove(goal.id)} className="text-red-400 hover:text-red-300 text-sm">
-                                                <i className="fas fa-trash"></i>
+                                            <button type="button" onClick={() => remove(goal)} className="tfe-btn tfe-btn--sm tfe-btn--icon" aria-label={`Delete ${goal.name}`}>
+                                                <i className="fas fa-trash" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                         <div className="flex justify-between items-end mb-2">

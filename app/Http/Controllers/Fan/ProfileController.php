@@ -120,9 +120,6 @@ class ProfileController extends Controller
                 'two_factor_enabled' => false,
                 'login_notifications' => true,
             ],
-            'auth' => [
-                'user' => $currentUser,
-            ],
         ]);
     }
 

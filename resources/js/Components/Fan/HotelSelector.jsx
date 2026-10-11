@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * HotelSelector — Search and select real hotels via SerpAPI (Google Hotels).
@@ -152,7 +153,7 @@ export default function HotelSelector({
                         </button>
                         {totalResults > 0 && (
                             <span className="travel-picker__hint travel-picker__hint--muted">
-                                {totalResults.toLocaleString()} properties found
+                                {formatNumber(totalResults)} properties found
                             </span>
                         )}
                         {source === 'unavailable' && (
@@ -197,7 +198,7 @@ export default function HotelSelector({
                                                 {renderStars(hotel.rating)}
                                                 <span className="travel-option__meta">{hotel.rating?.toFixed(1)}</span>
                                                 <span className="travel-option__meta">
-                                                    ({hotel.reviews?.toLocaleString()} reviews)
+                                                    ({formatNumber(hotel.reviews)} reviews)
                                                 </span>
                                             </div>
                                             {hotel.amenities?.length > 0 && (

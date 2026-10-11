@@ -42,6 +42,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // upstream quota and are worth defending from cross-origin fires.
         $middleware->validateCsrfTokens(except: [
             'analytics/track',
+            // sendBeacon cannot carry the CSRF header; the endpoint only
+            // writes a size-capped, throttled log line (Sprint 69).
+            'client-errors',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

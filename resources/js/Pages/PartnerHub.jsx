@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetPath } from '@/lib/assets';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
@@ -11,6 +12,7 @@ import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
 import '../../css/tickets.css';
 import '../../css/virtual-card.css';
+import { formatNumber, formatKickoff, formatMoney } from '@/lib/utils';
 
 /**
  * PartnerHub — public /partners/{slug} page.
@@ -222,26 +224,24 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
 // Strip the trailing "_partner" before title-casing so "Official {type}
 // Partner" doesn't read "Official Finance Partner Partner".
 function PartnerHubTicket({ ticket, accent }) {
-    const KICK = new Date(ticket.kickoff_at).toLocaleString(undefined, {
-        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
+    const KICK = formatKickoff(ticket.kickoff_at);
     return (
         <article className="ticket-card" style={{ '--partner-accent': accent }}>
             <div
                 className="ticket-card__cover"
-                style={ticket.hero_image ? { backgroundImage: `url(/${ticket.hero_image})` } : undefined}
+                style={ticket.hero_image ? { backgroundImage: `url(${assetPath(ticket.hero_image)})` } : undefined}
             >
                 <span className="tfe-pill tfe-pill--info ticket-card__stage">{ticket.stage}</span>
             </div>
             <div className="ticket-card__body">
                 <div className="ticket-card__matchup">
                     <div className="ticket-card__team">
-                        {ticket.home_team_code && <img src={`https://flagcdn.com/w80/${ticket.home_team_code}.png`} alt={ticket.home_team} onError={(e) => { e.target.style.display = 'none'; }} />}
+                        {ticket.home_team_code && <img src={`/assets/Flags/${String(ticket.home_team_code).toLowerCase()}.png`} alt={ticket.home_team} onError={(e) => { e.target.style.display = 'none'; }} />}
                         <span>{ticket.home_team}</span>
                     </div>
                     <span className="ticket-card__vs">vs</span>
                     <div className="ticket-card__team">
-                        {ticket.away_team_code && <img src={`https://flagcdn.com/w80/${ticket.away_team_code}.png`} alt={ticket.away_team} onError={(e) => { e.target.style.display = 'none'; }} />}
+                        {ticket.away_team_code && <img src={`/assets/Flags/${String(ticket.away_team_code).toLowerCase()}.png`} alt={ticket.away_team} onError={(e) => { e.target.style.display = 'none'; }} />}
                         <span>{ticket.away_team}</span>
                     </div>
                 </div>
@@ -252,14 +252,14 @@ function PartnerHubTicket({ ticket, accent }) {
                 <div className="ticket-card__stock">
                     <div className="ticket-card__bar"><span style={{ width: `${ticket.sold_pct}%` }} /></div>
                     <div className="ticket-card__stock-meta">
-                        <strong>{ticket.remaining.toLocaleString()}</strong> seats left
+                        <strong>{formatNumber(ticket.remaining)}</strong> seats left
                         <span>{ticket.sold_pct}% sold</span>
                     </div>
                 </div>
                 <div className="ticket-card__foot">
                     <div className="ticket-card__price">
                         <span className="ticket-card__price-label">from</span>
-                        <strong>{ticket.currency} {Number(ticket.price).toLocaleString()}</strong>
+                        <strong>{formatMoney(ticket.price, ticket.currency || 'USD')}</strong>
                     </div>
                     <Link href={route('fan.tickets.index')} className="tfe-btn tfe-btn--filled">
                         <i className="fas fa-ticket-alt"></i> Buy
@@ -300,7 +300,7 @@ function priceFact(listing) {
         return { label: 'Entry', value: 'Free' };
     }
 
-    return { label: 'From', value: `${listing.currency} ${price.toLocaleString()}` };
+    return { label: 'From', value: formatMoney(price, listing.currency || 'USD') };
 }
 
 /**

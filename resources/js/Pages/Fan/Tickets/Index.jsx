@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
+import { assetPath } from '@/lib/assets';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StadiumBowl from '@/Components/Common/StadiumBowl';
 import TfeModal from '@/Components/Common/TfeModal';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatNumber, formatKickoff } from '@/lib/utils';
 import '../../../../css/fan/fan-pages.css';
 import '../../../../css/tickets.css';
 
-const KICK = (s) => new Date(s).toLocaleString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-});
+const KICK = (s) => formatKickoff(s);
 
 /**
  * Cheapest seat a fan can actually still buy.
@@ -76,7 +75,7 @@ function TicketCard({ ticket, onBuy }) {
         <article className="ticket-card" style={{ '--partner-accent': accent }}>
             <div
                 className="ticket-card__cover"
-                style={ticket.hero_image ? { backgroundImage: `url(/${ticket.hero_image})` } : undefined}
+                style={ticket.hero_image ? { backgroundImage: `url(${assetPath(ticket.hero_image)})` } : undefined}
             >
                 <span className="tfe-pill tfe-pill--info ticket-card__stage">{ticket.stage}</span>
             </div>
@@ -91,13 +90,13 @@ function TicketCard({ ticket, onBuy }) {
                 <div className="ticket-card__meta">
                     <div><i className="fas fa-clock"></i> {KICK(ticket.kickoff_at)}</div>
                     <div><i className="fas fa-map-marker-alt"></i> {ticket.venue_name}</div>
-                    <div className="ticket-card__meta-sub">{ticket.venue_city}, {ticket.venue_country} · Capacity {ticket.venue_capacity.toLocaleString()}</div>
+                    <div className="ticket-card__meta-sub">{ticket.venue_city}, {ticket.venue_country} · Capacity {formatNumber(ticket.venue_capacity)}</div>
                 </div>
 
                 <div className="ticket-card__stock">
                     <div className="ticket-card__bar"><span style={{ width: `${ticket.sold_pct}%` }} /></div>
                     <div className="ticket-card__stock-meta">
-                        <strong>{ticket.remaining.toLocaleString()}</strong> seats left
+                        <strong>{formatNumber(ticket.remaining)}</strong> seats left
                         <span>{ticket.sold_pct}% sold</span>
                     </div>
                 </div>
@@ -131,7 +130,7 @@ function TicketCard({ ticket, onBuy }) {
 function TeamBlock({ name, code }) {
     return (
         <div className="ticket-card__team">
-            {code && <img src={`https://flagcdn.com/w80/${code}.png`} alt={name} onError={(e) => { e.target.style.display = 'none'; }} />}
+            {code && <img src={`/assets/Flags/${String(code).toLowerCase()}.png`} alt={name} onError={(e) => { e.target.style.display = 'none'; }} />}
             <span>{name}</span>
         </div>
     );
@@ -252,7 +251,7 @@ function PurchaseModal({ ticket, onClose }) {
                             {tiers.map((t) => (
                                 <option key={t.id} value={t.id} disabled={t.is_sold_out}>
                                     {t.name} — {formatMoney(t.price, ticket.currency)}
-                                    {t.is_sold_out ? ' · sold out' : ` · ${t.remaining.toLocaleString()} left`}
+                                    {t.is_sold_out ? ' · sold out' : ` · ${formatNumber(t.remaining)} left`}
                                 </option>
                             ))}
                         </select>

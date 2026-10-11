@@ -1,4 +1,5 @@
 import React from 'react';
+import ActivityBadge from '@/Components/Common/ActivityBadge';
 import { Link, usePage } from '@inertiajs/react';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
 import { useSidebar } from '@/Components/ui/sidebar';
@@ -74,7 +75,8 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
     // Fall back rather than throw — a role with no entry used to take the
     // whole header down on `config.roleBadge` (Sprint 62).
     const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.fan;
-    const { assetUrl: pageAssetUrl } = usePage().props;
+    const { assetUrl: pageAssetUrl, auth: pageAuth } = usePage().props;
+    const activityBadges = pageAuth?.activityBadges || {};
     const { toggleSidebar: toggleShadcnSidebar } = useSidebar();
     const baseUrl = assetUrl || pageAssetUrl || '';
     const doToggleSidebar = toggleSidebar || toggleShadcnSidebar;
@@ -111,6 +113,9 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                     >
                         <i className={link.icon}></i>
                         <span>{link.label}</span>
+                        {(activityBadges[link.route] || 0) > 0 && (
+                            <ActivityBadge count={activityBadges[link.route]} label={link.label} />
+                        )}
                     </Link>
                 ))}
             </div>

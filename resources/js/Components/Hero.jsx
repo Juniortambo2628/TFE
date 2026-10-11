@@ -11,6 +11,7 @@ import AccentCard from '@/Components/Common/AccentCard';
 import { resolveStadiumImage, preloadImage } from '@/Data/stadiumImages';
 import { assetPath } from '@/lib/assets';
 import { openTripPlanner } from '@/lib/tripPlanner';
+import { formatNumber } from '@/lib/utils';
 
 const calculateTimeLeft = (targetDate) => {
     const difference = +new Date(targetDate) - +new Date();
@@ -34,7 +35,7 @@ const calculateTimeLeft = (targetDate) => {
 // the grouped form here.
 function formatCapacity(raw) {
     if (raw === null || raw === undefined || raw === '') return 'TBD';
-    if (typeof raw === 'number' && Number.isFinite(raw)) return raw.toLocaleString('en-US');
+    if (typeof raw === 'number' && Number.isFinite(raw)) return formatNumber(raw);
     return String(raw);
 }
 

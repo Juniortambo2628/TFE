@@ -88,3 +88,9 @@ export function findFixtureByHint(fixtures = [], hint = {}) {
     };
     return fixtures.find((f) => teams.every((t) => has(f.homeTeam, t) || has(f.awayTeam, t))) || null;
 }
+
+/** The fixture with this id, compared as strings ("db_105" vs 105 vs "105"). */
+export function findFixtureById(fixtures = [], id) {
+    if (id === null || id === undefined || id === '') return null;
+    return fixtures.find((f) => String(f.id) === String(id)) || null;
+}

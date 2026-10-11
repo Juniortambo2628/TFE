@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import '../../css/hero-enhancements.css';
 
 // Components
@@ -9,6 +9,8 @@ import Hero from '@/Components/Hero';
 
 import Testimonials from '@/Components/Landing/Testimonials';
 import TournamentCompare from '@/Components/Landing/TournamentCompare';
+import FeaturedPackages from '@/Components/Landing/FeaturedPackages';
+import CommunityPreview from '@/Components/Landing/CommunityPreview';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
@@ -48,7 +50,8 @@ const EXPERIENCES = [
     },
 ];
 
-export default function Home({ appName, venueBowls = [] }) {
+export default function Home({ appName, venueBowls = [], featuredPackages, communityPreview }) {
+    const { tournament } = usePage().props;
     const [experienceModal, setExperienceModal] = useState(null);
 
     // Global Initializations
@@ -96,6 +99,10 @@ export default function Home({ appName, venueBowls = [] }) {
             <div className="page-wrapper overflow-hidden bg-black text-white">
                 <Hero venueBowls={venueBowls} />
 
+                {/* Bookable packages straight off the hero (Sprint 70) — the
+                    shortest path from arriving to paying. */}
+                <FeaturedPackages packages={featuredPackages} tournamentName={tournament?.short_name} />
+
                 {/* Top Ad Space */}
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
@@ -135,6 +142,9 @@ export default function Home({ appName, venueBowls = [] }) {
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
               </div>
+
+                {/* Public posts + tribes, refreshed once a minute (Sprint 70). */}
+                <CommunityPreview preview={communityPreview} />
 
                 <Testimonials />
                 <PartnerCarousel />

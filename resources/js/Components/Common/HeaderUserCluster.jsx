@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import HeaderDropdown from '@/Components/Common/HeaderDropdown';
 import useHeaderLogic from '@/Hooks/useHeaderLogic';
+import { formatDateTime } from '@/lib/utils';
 
 /**
  * HeaderUserCluster — the shared right-side chrome (notifications bell,
@@ -49,35 +50,45 @@ function resolveRole(explicitRole, user) {
     return 'fan';
 }
 
+// A row is a link when the notification says where to go (Sprint 70) —
+// opening it marks it read on the way.
 function NotificationItem({ notif }) {
-    return (
-        <div className="dash-activity-item">
+    const data = notif.data || notif;
+    const unread = !notif.read_at;
+    const inner = (
+        <>
             <div className="dash-activity-icon">
-                <i className={notif.data?.icon || notif.icon || 'fas fa-info-circle'}></i>
+                <i className={data.icon || 'fas fa-info-circle'}></i>
             </div>
             <div className="dash-activity-info">
-                <div className="dash-activity-title">{notif.data?.title || notif.title || 'Notification'}</div>
-                <div className="dash-activity-label">{notif.data?.body || notif.body || ''}</div>
+                <div className="dash-activity-title">{data.title || 'Notification'}</div>
+                <div className="dash-activity-label">{data.body || data.message || ''}</div>
                 <small className="dash-activity-timestamp">
-                    {notif.created_at ? new Date(notif.created_at).toLocaleString() : ''}
+                    {notif.created_at ? formatDateTime(notif.created_at) : ''}
                 </small>
             </div>
-        </div>
+        </>
     );
+    const cls = `dash-activity-item${unread ? ' is-unread' : ''}`;
+
+    return data.action_url && notif.id
+        ? <Link href={route('notifications.open', notif.id)} className={cls}>{inner}</Link>
+        : <div className={cls}>{inner}</div>;
 }
 
 function MessageItem({ msg, href }) {
     return (
         <Link href={href} className="dash-activity-item">
             <div className="dash-avatar dash-avatar-sm">
-                {msg.sender?.name?.charAt(0) || 'U'}
+                {msg.sender?.name?.charAt(0) || 'T'}
             </div>
             <div className="dash-activity-info">
-                <div className="dash-activity-title">{msg.sender?.name || 'User'}</div>
+                {/* No sender = a message from the platform itself. */}
+                <div className="dash-activity-title">{msg.sender?.name || 'The Football Experience'}</div>
                 <div className="dash-activity-label">{msg.body || msg.subject}</div>
             </div>
             <small className="dash-activity-timestamp">
-                {msg.created_at ? new Date(msg.created_at).toLocaleDateString() : ''}
+                {msg.created_at ? formatDateTime(msg.created_at, { hour: undefined, minute: undefined }) : ''}
             </small>
         </Link>
     );
@@ -141,7 +152,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
                     }
                 >
                     {liveNotifications.length > 0
-                        ? liveNotifications.map((n, i) => <NotificationItem key={i} notif={n} />)
+                        ? liveNotifications.map((n, i) => <NotificationItem key={n.id || i} notif={n} />)
                         : (
                             <div className="dash-empty">
                                 <i className="fas fa-bell-slash"></i>

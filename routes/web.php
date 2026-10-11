@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
+use App\Http\Controllers\ClientErrorController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BankSavingsController;
@@ -78,6 +80,12 @@ Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('
 
 // Public Partner directory + hub — no auth needed. Sprint 11 added
 // the index; the {slug} hub predates it.
+// Public community (Sprint 70): a tribe directory and a page per tribe —
+// description and counts only; posts and members stay behind sign-in.
+Route::get('/tribes', [CommunityController::class, 'index'])->name('community.tribes');
+Route::get('/tribes/{slug}', [CommunityController::class, 'show'])->name('community.tribes.show');
+Route::get('/tribes/{slug}/join', [CommunityController::class, 'join'])->name('community.tribes.join');
+
 Route::get('/partners', [PartnerHubController::class, 'index'])
     ->name('partners.index');
 Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])
@@ -107,6 +115,15 @@ Route::middleware('auth')->group(function () {
 Route::get('/testimonials', [TestimonialController::class, 'index']);
 Route::post('/testimonials', [TestimonialController::class, 'store']);
 Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('analytics.track');
+// Browser error reports (Sprint 69). Throttled per IP: one broken page in a
+// render loop must not fill the disk.
+// Open a bell notification — any signed-in role (Sprint 70).
+Route::middleware('auth')->get('/notifications/{id}/open', [NotificationController::class, 'open'])
+    ->name('notifications.open');
+
+Route::post('/client-errors', [ClientErrorController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('client-errors.store');
 
 // Public single-listing page (Sprint 63). Deliberately OUTSIDE the fan auth
 // group: every public surface linked to `fan.packages.show`, so a visitor

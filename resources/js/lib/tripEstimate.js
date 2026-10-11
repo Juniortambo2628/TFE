@@ -135,3 +135,18 @@ export function estimateTrip(pricing, input = {}) {
         },
     };
 }
+
+/**
+ * "From" price for one match, shown on the Match Schedule (Sprint 69): a
+ * 3-night trip around that single fixture at the planner's defaults. The
+ * card SAYS "3-night trip", so the number is a claim about exactly that,
+ * and it comes from this engine so it agrees with what the planner then
+ * shows (default rates when a tournament sets none, exactly as the planner).
+ */
+export const MATCH_TRIP_NIGHTS = 3;
+
+export function matchTripFrom(pricing, match, { hosts = [], currency = 'USD' } = {}) {
+    if (!match) return null;
+    const { total } = estimateTrip(pricing || {}, { matches: [match], nights: MATCH_TRIP_NIGHTS, hosts, currency });
+    return Number.isFinite(total) && total > 0 ? total : null;
+}

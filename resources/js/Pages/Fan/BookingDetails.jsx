@@ -2,7 +2,7 @@ import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatDateTime } from '@/lib/utils';
 import StepFlow from '@/Components/Common/StepFlow';
 import MobileActionBar from '@/Components/Common/MobileActionBar';
 import { bookingTimeline } from '@/lib/tripTimeline';
@@ -54,7 +54,7 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                 />
 
                 {booking.status === 'pending_payment' && checkout && (
-                    <MobileActionBar note={`Balance ${formatMoney(booking.total_amount - booking.amount_paid, currency)}${expiresAt ? ` · held until ${expiresAt.toLocaleString()}` : ''}`}>
+                    <MobileActionBar note={`Balance ${formatMoney(booking.total_amount - booking.amount_paid, currency)}${expiresAt ? ` · held until ${formatDateTime(expiresAt)}` : ''}`}>
                         {mpesa !== null && (
                             <button type="button" className="tfe-btn tfe-btn--filled" disabled={Boolean(paying)} onClick={() => payNow('mpesa')}>
                                 <i className="fas fa-mobile-alt" aria-hidden="true"></i> M-Pesa
@@ -154,7 +154,7 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                                     <div className="alert alert-warning border-warning bg-transparent text-warning-emphasis p-3 mb-4 rounded-3">
                                         <i className="fas fa-exclamation-triangle me-2"></i>
                                         Payment is required to secure this booking.
-                                        {expiresAt && ` It is held until ${expiresAt.toLocaleString()}.`}
+                                        {expiresAt && ` It is held until ${formatDateTime(expiresAt)}.`}
                                     </div>
                                     {savingsLinks.length > 0 && <PayFromSavings booking={booking} links={savingsLinks} currency={currency} />}
                                     {checkout ? (
@@ -169,7 +169,7 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                                                     className="tfe-btn tfe-btn--filled tfe-btn--lg w-100 justify-content-center mb-2"
                                                 >
                                                     <i className="fas fa-mobile-alt me-2" aria-hidden="true"></i>
-                                                    {paying === 'mpesa' ? 'Opening M-Pesa…' : `Pay KES ${Math.round(mpesa).toLocaleString('en-KE')} with M-Pesa`}
+                                                    {paying === 'mpesa' ? 'Opening M-Pesa…' : `Pay ${formatMoney(Math.round(mpesa), 'KES')} with M-Pesa`}
                                                     {checkout === 'demo' && ' (demo)'}
                                                 </button>
                                             )}

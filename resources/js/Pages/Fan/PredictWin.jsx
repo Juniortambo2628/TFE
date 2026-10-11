@@ -1,10 +1,11 @@
+import { assetPath } from '@/lib/assets';
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatNumber } from '@/lib/utils';
 import '../../../css/betting-strip.css';
 
 export default function PredictWin({ auth, upcomingMatches, userStats, leaderboard, prizes, bettingOffers = [] }) {
@@ -245,7 +246,7 @@ function BettingOffer({ offer }) {
     const remaining = Math.max(0, (offer.capacity || 0) - (offer.sold_count || 0));
     return (
         <article className="betting-card" style={{ '--betting-accent': accent }}>
-            {offer.hero_image && <div className="betting-card__cover" style={{ backgroundImage: `url(/${offer.hero_image})` }} />}
+            {offer.hero_image && <div className="betting-card__cover" style={{ backgroundImage: `url(${assetPath(offer.hero_image)})` }} />}
             <div className="betting-card__body">
                 <div className="betting-card__partner">
                     <span className="betting-card__dot" />
@@ -258,7 +259,7 @@ function BettingOffer({ offer }) {
                     <div className="betting-card__price">
                         <span>from</span><strong>{formatMoney(offer.base_price, offer.currency)}</strong>
                     </div>
-                    {remaining > 0 && <span className="betting-card__stock">{remaining.toLocaleString()} spots left</span>}
+                    {remaining > 0 && <span className="betting-card__stock">{formatNumber(remaining)} spots left</span>}
                 </div>
                 {offer.partner?.slug && (
                     <Link href={`/partners/${offer.partner.slug}`} className="tfe-btn tfe-btn--sm betting-card__cta">

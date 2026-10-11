@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { formatNumber } from '@/lib/utils';
 
 /**
  * ItineraryMap — SVG-projected venue map with route lines and distances.
@@ -77,7 +78,7 @@ export default function ItineraryMap({ venues = [], selectedMatches = [], height
                     </h5>
                     <p className="text-white-50 small mb-0">
                         {geoVenues.length} tournament venue{geoVenues.length === 1 ? '' : 's'}
-                        {routeVenues.length >= 2 && ` · your route: ${Math.round(totalKm).toLocaleString()} km across ${routeVenues.length} stops`}
+                        {routeVenues.length >= 2 && ` · your route: ${formatNumber(Math.round(totalKm))} km across ${routeVenues.length} stops`}
                     </p>
                 </div>
             </div>
@@ -212,7 +213,7 @@ export default function ItineraryMap({ venues = [], selectedMatches = [], height
                         {hovered.capacity && (
                             <div className="text-info small mt-1">
                                 {typeof hovered.capacity === 'number'
-                                    ? hovered.capacity.toLocaleString() + ' seats'
+                                    ? formatNumber(hovered.capacity) + ' seats'
                                     : hovered.capacity}
                             </div>
                         )}

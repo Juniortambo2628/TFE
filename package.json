@@ -5,11 +5,13 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test:js": "node --test tests/JS/*.test.mjs"
+        "test:js": "node --test tests/JS/*.test.mjs",
+        "test:e2e": "playwright test"
     },
     "devDependencies": {
         "@fullhuman/postcss-purgecss": "^8.0.0",
         "@headlessui/react": "^2.0.0",
+        "@playwright/test": "^1.56.1",
         "@tailwindcss/forms": "^0.5.3",
         "@vitejs/plugin-react": "^4.2.0",
         "autoprefixer": "^10.4.22",

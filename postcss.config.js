@@ -83,6 +83,9 @@ if (process.env.NODE_ENV === 'production') {
                     // safelist; both are needed (Tailwind must emit them,
                     // PurgeCSS must not strip them).
                     /^(fill|stroke)-(emerald|cyan)-(300|400|500|600)$/,
+                    /^community-/,     // landing community preview + /tribes (Sprint 70)
+                    /^calc-/,          // budget calculator recap/banner (Sprint 69)
+                    /^itin/,           // printable itinerary (Sprint 69)
                     /^tfe-/,           // primitives.css (.tfe-tile, .tfe-slab, .tfe-pill, .tfe-sidebar-nav-item, .tfe-quick-action*)
                     /^is-/,            // state modifiers (is-active, is-open)
                     /^dash-/,          // dashboard-header-extras.css (.dash-btn-icon, .dash-badge, .dash-avatar, .dash-activity-*, .dash-empty)

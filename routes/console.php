@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Booking;
+use App\Models\EventRsvp;
 use App\Notifications\BookingHoldExpiringNotification;
+use App\Support\ActivityNotifier;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -45,3 +47,29 @@ Artisan::command('bookings:remind-expiring', function () {
 })->purpose('Remind fans whose booking hold ends within 12 hours');
 
 Schedule::command('bookings:remind-expiring')->hourly()->withoutOverlapping()->onOneServer();
+
+// Sprint 70 — remind fans the day before an event they said they're
+// attending. Once per RSVP (event_rsvps.reminded_at).
+Artisan::command('events:remind', function () {
+    $sent = 0;
+    EventRsvp::with(['event', 'user'])
+        ->where('status', 'attending')
+        ->whereNull('reminded_at')
+        ->whereHas('event', fn ($q) => $q->whereDate('date', now()->addDay()->toDateString()))
+        ->chunkById(200, function ($rsvps) use (&$sent) {
+            foreach ($rsvps as $rsvp) {
+                ActivityNotifier::notify($rsvp->user, [
+                    'type' => 'event',
+                    'title' => "Tomorrow: {$rsvp->event->title}",
+                    'body' => $rsvp->event->location ?: 'You said you are going.',
+                    'icon' => 'fas fa-calendar-check',
+                    'action_url' => route('fan.events'),
+                ]);
+                $rsvp->update(['reminded_at' => now()]);
+                $sent++;
+            }
+        });
+    $this->info("Sent {$sent} event reminder(s).");
+})->purpose('Remind attending fans the day before an event');
+
+Schedule::command('events:remind')->dailyAt('08:05')->withoutOverlapping()->onOneServer();

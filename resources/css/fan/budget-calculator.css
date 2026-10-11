@@ -1013,6 +1013,7 @@
 }
 
 .legend-color {
+    background: var(--legend-color, #64748b);
     width: 12px;
     height: 12px;
     border-radius: 3px;
@@ -1457,3 +1458,153 @@
     }
     .hero-stats .currency-picker select { max-width: 100%; }
 }
+
+/* Results (Sprint 69 — were inline styles). */
+.result-real-prices {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.result-real-price {
+    font-size: 0.75rem;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+.partner-revised-cost__value {
+    margin: 0 0 4px;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #eab308;
+}
+
+/* Filter dialog cards are <button>s now (keyboard + aria-pressed), so reset
+   what the element adds; the .selection-card rules above still apply. */
+button.selection-card {
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    text-align: center;
+}
+.country-card {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.country-card__flag {
+    width: 4rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+.country-card__initial { font-size: 3rem; margin-bottom: 10px; }
+.selection-card .country-card__label { font-size: 1.2rem; font-weight: 700; }
+
+.tfe-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Printable itinerary (was inline styles). */
+.itinerary-print {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.92);
+}
+.itinerary-print__bar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 20px;
+    z-index: 1;
+}
+.itinerary-print__body { padding-bottom: 40px; }
+@media print {
+    .itinerary-print { position: static; background: none; overflow: visible; }
+    .itinerary-print__bar { display: none; }
+}
+
+/* Selection recap above the wizard (Sprint 69). */
+.calc-recap {
+    position: sticky;
+    top: 8px;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(20, 20, 26, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+}
+.calc-recap__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.calc-recap__fact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+.calc-recap__fact:hover { border-color: rgba(255, 255, 255, 0.3); }
+.calc-recap__total { display: flex; flex-direction: column; text-align: right; line-height: 1.2; }
+.calc-recap__total span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.5); }
+.calc-recap__total strong { color: #fff; font-size: 1.05rem; }
+
+/* Former inline styles on the calculator page (Sprint 69). */
+.calc-package-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(59, 130, 246, 0.1));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.calc-sublabel { font-size: 0.85rem; opacity: 0.7; }
+.dropdown-menu--end { right: 0; left: auto; }
+.partner-status-box {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+}
+.partner-status-box__title { margin: 0; color: #fff; font-size: 1rem; }
+.calc-save-summary { padding: 14px 16px; }
+.calc-save-summary__label {
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+.calc-save-summary__value { color: #fff; font-weight: 700; font-size: 1.2rem; }

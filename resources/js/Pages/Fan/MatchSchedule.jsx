@@ -7,8 +7,12 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import MatchCard from '@/Components/Fan/MatchCard';
 import { TEAM_FLAGS } from '@/Data/countryFlags';
+import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
+import { openTripPlanner } from '@/lib/tripPlanner';
+import { matchTripFrom, MATCH_TRIP_NIGHTS } from '@/lib/tripEstimate';
+import { formatMoney } from '@/lib/utils';
 
-export default function MatchSchedule({ auth, allFixtures = [], groups = [], stages = [], teams = [], stats = {}, userFavorites = [], isConcluded = false }) {
+export default function MatchSchedule({ auth, allFixtures = [], groups = [], stages = [], teams = [], stats = {}, userFavorites = [], isConcluded = false, pricing = {}, hosts = [] }) {
     const { tournament } = useTournament();
     const [activeTab, setActiveTab] = useState('groups');
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -54,6 +58,20 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
     };
 
     const isFavorite = (matchId) => favorites.includes(matchId);
+
+    // Price a match where the fan is looking at it (Sprint 69): a 3-night
+    // trip around this one fixture, from the same engine the planner uses,
+    // and one tap into the planner with the match already picked. Only for
+    // matches still to be played — nobody plans a trip to a result.
+    const planFor = (match) => {
+        if (isConcluded || match.status === 'completed') return null;
+        const from = matchTripFrom(pricing, match, { hosts });
+        if (!from) return null;
+        return {
+            label: `${MATCH_TRIP_NIGHTS}-night trip from ${formatMoney(from)}`,
+            onPlan: (m) => openTripPlanner({ tournamentId: tournament?.id, matchId: m.id }),
+        };
+    };
 
     // Get country flag
     const getCountryFlag = (venue) => {
@@ -180,6 +198,7 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
                                             isFavorite={isFavorite(match.id)}
                                             onToggleFavorite={toggleFavorite}
                                             mode="schedule"
+                                            plan={planFor(match)}
                                         />
                                     ))}
                                 </div>
@@ -209,6 +228,7 @@ export default function MatchSchedule({ auth, allFixtures = [], groups = [], sta
                     )}
                 </div>
             </div>
+            <TripPlannerDialog />
         </FanLayout>
     );
 }

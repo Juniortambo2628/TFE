@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StadiumImageService;
 use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
@@ -116,5 +117,36 @@ class Ticket extends Model
             'capacity' => (int) $tiers->sum('capacity'),
             'sold' => (int) $tiers->sum('sold'),
         ])->save();
+    }
+
+    /**
+     * The card's cover image (Sprint 70): the venue's catalogue photo,
+     * resolved by NAME, then the stored hero_image if that file exists.
+     *
+     * `hero_image` is partner-supplied and the seeded Kasarani fixture's
+     * named a file that never existed (Sprint 57) — fixed in the seeder, but
+     * not in databases seeded before it, which is the 404 on /fan/tickets.
+     * Root-relative, or null; never a broken path.
+     */
+    public function coverImage(): ?string
+    {
+        $fromCatalogue = app(StadiumImageService::class)
+            ->resolve($this->venue_name, (string) $this->tournament_id);
+
+        if ($fromCatalogue) {
+            return $fromCatalogue;
+        }
+
+        $stored = ltrim((string) $this->hero_image, '/');
+
+        if ($stored === '') {
+            return null;
+        }
+
+        if (str_starts_with($stored, 'http')) {
+            return $this->hero_image;
+        }
+
+        return is_file(public_path($stored)) ? '/'.$stored : null;
     }
 }

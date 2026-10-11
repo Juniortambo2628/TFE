@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import ActivityBadge from '@/Components/Common/ActivityBadge';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Sidebar,
@@ -92,8 +93,15 @@ export default function AppSidebar({
         });
     };
 
+    // New-activity counts by route name (Sprint 70, ActivityBadges).
+    const badges = usePage().props.auth?.activityBadges || {};
+    // mobileOnly items are hidden at md+ (the top bar carries them there),
+    // so a closed group's total must not count what opening it won't show.
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+
     const renderItem = (item) => {
         const active = isUrlActive(item.path);
+        const badge = badges[item.route] || 0;
         return (
             <SidebarMenuItem
                 key={item.route}
@@ -108,7 +116,8 @@ export default function AppSidebar({
                 >
                     <i className={item.icon} />
                     <span>{item.label}</span>
-                    {active && showActiveDot && (
+                    {badge > 0 && <ActivityBadge count={badge} label={item.label} />}
+                    {active && showActiveDot && !badge && (
                         <span
                             className="ml-auto"
                             style={{
@@ -188,6 +197,10 @@ export default function AppSidebar({
                                 }
                                 const isOpen = !!open[group.heading];
                                 const hasActive = group.items.some((it) => isUrlActive(it.path));
+                                // A closed group still says there is something inside it.
+                                const groupBadge = group.items
+                                    .filter((it) => !(isDesktop && it.mobileOnly))
+                                    .reduce((n, it) => n + (badges[it.route] || 0), 0);
                                 return (
                                     // An <li> holding its own <ul>, so the list stays valid
                                     // markup for screen readers (Sprint 66 a11y pass).
@@ -199,6 +212,7 @@ export default function AppSidebar({
                                             onClick={() => toggleGroup(group.heading)}
                                         >
                                             <span>{group.heading}</span>
+                                            {!isOpen && groupBadge > 0 && <ActivityBadge count={groupBadge} label={group.heading} />}
                                             <i
                                                 className={`fas fa-chevron-down tfe-sidebar-group__chevron${isOpen ? ' is-open' : ''}`}
                                                 aria-hidden="true"
@@ -218,4 +232,17 @@ export default function AppSidebar({
             </SidebarContent>
         </Sidebar>
     );
+}
+
+function useMediaQuery(query) {
+    const get = () => typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false;
+    const [matches, setMatches] = useState(get);
+    useEffect(() => {
+        if (!window.matchMedia) return undefined;
+        const mq = window.matchMedia(query);
+        const onChange = () => setMatches(mq.matches);
+        mq.addEventListener('change', onChange);
+        return () => mq.removeEventListener('change', onChange);
+    }, [query]);
+    return matches;
 }

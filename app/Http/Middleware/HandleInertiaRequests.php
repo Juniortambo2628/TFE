@@ -6,6 +6,7 @@ use App\Models\ContactMessage;
 use App\Models\SiteSetting;
 use App\Services\StadiumImageService;
 use App\Services\TournamentService;
+use App\Support\ActivityBadges;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -42,6 +43,12 @@ class HandleInertiaRequests extends Middleware
 
         $user = $request->user();
 
+        // Opening a section reads what its badge was counting — before the
+        // counts below are computed, so the badge is already gone on arrival.
+        if ($user && $request->isMethod('GET') && ! $request->header('X-Inertia-Partial-Data')) {
+            ActivityBadges::clearFor($user, $request->route()?->getName());
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -49,6 +56,8 @@ class HandleInertiaRequests extends Middleware
                 // Guest requests short-circuit every notification/message
                 // query — no DB round-trips on landing pages. Auth requests
                 // still send eagerly, driven by the header dropdown.
+                // Sidebar / top-nav badges (Sprint 70), keyed by route name.
+                'activityBadges' => fn () => $user ? ActivityBadges::for($user) : [],
                 'unreadNotificationsCount' => fn () => $user ? $user->unreadNotifications()->count() : 0,
                 'unreadMessagesCount' => fn () => $user
                     ? ($user->is_admin

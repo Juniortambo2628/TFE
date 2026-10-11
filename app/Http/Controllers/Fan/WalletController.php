@@ -35,9 +35,6 @@ class WalletController extends Controller
 
         return Inertia::render('Fan/Wallet', [
             'walletData' => $walletData,
-            'auth' => [
-                'user' => $user,
-            ],
         ]);
     }
 }

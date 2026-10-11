@@ -79,3 +79,33 @@ test('findFixtureByHint needs both teams and never guesses', () => {
     assert.equal(findFixtureByHint(fx, { teams: ['Kenya', 'Egypt'] }), null);
     assert.equal(findFixtureByHint(fx, { teams: ['Kenya', 'TBD'] }), null);
 });
+
+import { matchTripFrom, MATCH_TRIP_NIGHTS } from '../../resources/js/lib/tripEstimate.js';
+
+test('matchTripFrom is the engine total for a 3-night trip around that match', () => {
+    const match = { venue: 'Kasarani', stage: 'Group Stage' };
+    const expected = estimateTrip({}, { matches: [match], nights: MATCH_TRIP_NIGHTS }).total;
+    assert.equal(matchTripFrom({}, match), expected);
+    assert.ok(expected > 0);
+});
+
+test('a final costs more to attend than a group match', () => {
+    const group = matchTripFrom({}, { venue: 'X', stage: 'Group Stage' });
+    const final = matchTripFrom({}, { venue: 'X', stage: 'Final' });
+    assert.ok(final > group);
+});
+
+test('matchTripFrom without a match is null, not zero', () => {
+    assert.equal(matchTripFrom({}, null), null);
+});
+
+import { findFixtureById } from '../../resources/js/lib/tripPlanner.js';
+
+test('findFixtureById matches string ids the way the fixture service emits them', () => {
+    const list = [{ id: 'db_105' }, { id: 7 }];
+    assert.equal(findFixtureById(list, 'db_105'), list[0]);
+    assert.equal(findFixtureById(list, '7'), list[1]);
+    assert.equal(findFixtureById(list, 7), list[1]);
+    assert.equal(findFixtureById(list, 'db_999'), null);
+    assert.equal(findFixtureById(list, ''), null);
+});

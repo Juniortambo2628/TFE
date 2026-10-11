@@ -18,8 +18,11 @@ class CommunicationController extends Controller
     {
         $user = Auth::user();
 
-        // Get all budgets that have partner status (requests submitted to partners)
-        $budgets = Budget::whereNotNull('partner_status')
+        // Only this partner's own queue. This listed EVERY budget on the
+        // platform — every fan's thread, readable by any partner — until
+        // Sprint 70; same leak Sprint 56 closed on the dashboard.
+        $budgets = Budget::inPartnerQueue($user->id)
+            ->whereNotNull('partner_status')
             ->with(['user:id,name,email'])
             ->orderByDesc('updated_at')
             ->get();
@@ -79,7 +82,7 @@ class CommunicationController extends Controller
             'body' => 'required|string|max:2000',
         ]);
 
-        $budget = Budget::findOrFail($validated['budget_id']);
+        $budget = Budget::inPartnerQueue($request->user()->id)->findOrFail($validated['budget_id']);
 
         // Create the message
         $message = Message::create([
@@ -100,7 +103,9 @@ class CommunicationController extends Controller
      */
     public function markAsRead(Request $request, $budgetId)
     {
-        Message::where('budget_id', $budgetId)
+        $budget = Budget::inPartnerQueue($request->user()->id)->findOrFail($budgetId);
+
+        Message::where('budget_id', $budget->id)
             ->where('sender_type', 'fan')
             ->where('is_read', false)
             ->update(['is_read' => true]);

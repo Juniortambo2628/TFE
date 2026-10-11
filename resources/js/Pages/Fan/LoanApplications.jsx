@@ -164,7 +164,7 @@ function OfferingCard({ offering }) {
             desc={offering.description}
             eyebrow={offering.publisher?.display_name}
             meta={[
-                { label: 'From', value: `${offering.currency || 'USD'} ${Number(offering.base_price).toLocaleString()}` },
+                { label: 'From', value: formatMoney(offering.base_price, offering.currency || 'USD') },
             ]}
             cta={{ label: offering.is_sold_out ? 'Sold out' : 'View details', icon: offering.is_sold_out ? null : 'fas fa-arrow-right' }}
         />

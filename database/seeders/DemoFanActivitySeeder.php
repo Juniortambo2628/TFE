@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Budget;
 use App\Models\Listing;
 use App\Models\LoanApplication;
+use App\Models\Post;
 use App\Models\SavingsGoal;
 use App\Models\Ticket;
 use App\Models\TicketPurchase;
@@ -62,8 +63,48 @@ class DemoFanActivitySeeder extends Seeder
         $this->loanApplications($fans);
         $this->ticketPurchases($fans);
         $this->tribes($fans);
+        $this->feedPosts($fans);
 
         $this->command?->info('Demo fan activity seeded for '.count($fans).' fans.');
+    }
+
+    /**
+     * Public feed posts (Sprint 70) — what the landing page's community
+     * preview and /tribes show a visitor. Fixed text, keyed on author +
+     * content, so a re-seed neither duplicates nor reshuffles them.
+     */
+    private function feedPosts(array $fans): void
+    {
+        $posts = [
+            ['amina@tfe.com', 'Booked the Hotel + Tickets Bundle for the Kasarani group games. Anyone else flying in from Mombasa on the 14th? 🇰🇪', 12, 4],
+            ['tunde@tfe.com', 'Super Eagles fans — we are getting a group together for the Nairobi fixtures. Drop a comment if you want in on shared transport.', 9, 6],
+            ['fatima@tfe.com', 'Tip for first-timers: the M-Pesa checkout on the booking page took me under a minute. No card needed.', 21, 3],
+            ['grace@tfe.com', 'Dar es Salaam meetup before the Benjamin Mkapa opener is ON. Taifa Stars Supporters tribe has the details.', 7, 2],
+            ['samir@tfe.com', 'Planning Morocco away days across Kenya and Uganda — the Match Schedule price per match made it easy to budget.', 5, 1],
+            ['joseph@tfe.com', 'Three group games, seven nights, one plan. The calculator says I need to start saving now 😅', 14, 5],
+        ];
+
+        foreach ($posts as $i => [$email, $content, $likes, $comments]) {
+            $author = $fans[$email] ?? null;
+            if (! $author) {
+                continue;
+            }
+
+            $post = Post::firstOrCreate(
+                ['user_id' => $author->id, 'content' => $content],
+                ['visibility' => 'public'],
+            );
+
+            // Counts are display figures for the demo only, written once:
+            // there are no seeded like/comment rows behind them to sync from.
+            if ($post->wasRecentlyCreated) {
+                $post->forceFill([
+                    'likes_count' => $likes,
+                    'comment_count' => $comments,
+                    'created_at' => now()->subHours(($i + 1) * 5),
+                ])->save();
+            }
+        }
     }
 
     /** @return array<string, User> keyed by email */

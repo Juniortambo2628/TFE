@@ -6,6 +6,7 @@ import StadiumBowl from '@/Components/Common/StadiumBowl';
 import ItineraryMap from '@/Components/Fan/ItineraryMap';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
+import { formatMoney } from '@/lib/utils';
 
 /**
  * Fan-facing package detail page.
@@ -153,7 +154,7 @@ export default function PackageDetail({ auth, package: pkg, tournamentSummary, i
                         >
                             <div className="text-white-50 small">Fixed price</div>
                             <div className="text-white fw-bold" style={{ fontSize: '2rem' }}>
-                                {currency} {Number(pkg.base_price).toLocaleString()}
+                                {formatMoney(pkg.base_price, currency || 'USD')}
                             </div>
                             <div className="text-white-50 small mb-3">per person, all-in</div>
 

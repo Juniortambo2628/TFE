@@ -54,7 +54,62 @@ class HomeController extends Controller
             // reports `has_inventory: false` and the map shows its seating
             // layout with no percentage at all.
             'venueBowls' => Inertia::defer(fn () => $bowls->forTournament($this->activeTournament()['id'])),
+
+            // Bookable trips on the landing page (Sprint 70): a visitor
+            // reaches a package from the first screen instead of finding the
+            // planner, the tournament page or a partner hub first. Packages
+            // and tours only — the things "Book now" can actually book.
+            // Deferred so it never holds up first paint.
+            // Public posts + busiest tribes (Sprint 70). Deferred, and the
+            // section re-polls just this prop once a minute so it reads live.
+            'communityPreview' => Inertia::defer(fn () => CommunityController::preview(
+                $this->activeTournament()['id'],
+            )),
+
+            'featuredPackages' => Inertia::defer(fn () => $this->offeringCards(
+                $this->activeTournament()['id'], 6, ['package', 'tour'],
+            )),
         ]);
+    }
+
+    /**
+     * Approved + active listings for a tournament in the shared AccentCard
+     * shape — the ONE query behind the tournament page's offerings and the
+     * landing page's featured trips, so the two cannot disagree on what is
+     * public. Featured first.
+     *
+     * @param  array<int, string>|null  $types
+     */
+    private function offeringCards(string $tournamentId, int $limit, ?array $types = null): array
+    {
+        return Listing::query()
+            ->forTournament($tournamentId)
+            ->approved()
+            ->active()
+            ->when($types, fn ($q) => $q->whereIn('type', $types))
+            ->with('publisher.partnerProfile')
+            ->orderByDesc('is_featured')
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Listing $l) => [
+                'id' => $l->id,
+                'type' => $l->type,
+                'name' => $l->name,
+                'description' => $l->description,
+                'hero_image' => $l->hero_image,
+                'base_price' => $l->base_price,
+                'currency' => $l->currency,
+                'nights' => $l->nights,
+                'capacity' => $l->capacity,
+                'sold_count' => $l->sold_count,
+                'availability_pct' => $l->availability_pct,
+                'is_sold_out' => $l->is_sold_out,
+                // Partner attribution (null for admin-curated rows).
+                'publisher' => $l->publisherSummary(),
+            ])
+            ->all();
     }
 
     // Standalone public section pages. Each renders the shared PageHero (config
@@ -136,32 +191,7 @@ class HomeController extends Controller
         // the partner hub uses).
         $listings = [];
         if ($status !== 'concluded') {
-            $listings = Listing::query()
-                ->forTournament($id)
-                ->approved()
-                ->active()
-                ->with('publisher.partnerProfile')
-                ->orderByDesc('is_featured')
-                ->orderBy('display_order')
-                ->orderBy('name')
-                ->limit(9)
-                ->get()
-                ->map(fn (Listing $l) => [
-                    'id' => $l->id,
-                    'name' => $l->name,
-                    'description' => $l->description,
-                    'hero_image' => $l->hero_image,
-                    'base_price' => $l->base_price,
-                    'currency' => $l->currency,
-                    'capacity' => $l->capacity,
-                    'sold_count' => $l->sold_count,
-                    'availability_pct' => $l->availability_pct,
-                    'is_sold_out' => $l->is_sold_out,
-                    // Partner attribution so the tournament page can feature
-                    // WHO the offering is from (null for admin-curated rows).
-                    'publisher' => $l->publisherSummary(),
-                ])
-                ->all();
+            $listings = $this->offeringCards($id, 9);
         }
 
         // Where a past tournament's "plan the next one" CTA should point.

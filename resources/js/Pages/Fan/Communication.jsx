@@ -5,14 +5,17 @@ import { Head, router, usePage } from '@inertiajs/react';
 import '../../../css/fan/fan-pages.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import useUndoableRemoval from '@/hooks/useUndoableRemoval';
 
-export default function Communication({ auth, announcements, messages }) {
+export default function Communication({ auth, announcements, messages: allMessages }) {
     const { assetUrl } = usePage().props;
     const [activeTab, setActiveTab] = useState('announcements');
 
     const [selectedMessage, setSelectedMessage] = useState(null);
-    const [messageToDelete, setMessageToDelete] = useState(null);
+    // Undo instead of "are you sure?" (Sprint 69) — the message is only
+    // deleted once the toast's window closes.
+    const { isHidden, remove } = useUndoableRemoval();
+    const messages = (allMessages || []).filter((m) => !isHidden(m.id));
 
     const getAvatar = (user) => {
         if (!user) return `${assetUrl}assets/img/avatars/default-avatar.png`;
@@ -25,14 +28,10 @@ export default function Communication({ auth, announcements, messages }) {
         });
     };
 
-    const handleDelete = () => {
-        if (messageToDelete) {
-            router.delete(route('fan.communication.delete', messageToDelete), {
-                preserveScroll: true,
-                onSuccess: () => setMessageToDelete(null)
-            });
-        }
-    };
+    const handleDelete = (id) => remove(id, {
+        message: 'Message deleted',
+        url: route('fan.communication.delete', id),
+    });
 
     return (
         <FanLayout title="Messages">
@@ -148,7 +147,7 @@ export default function Communication({ auth, announcements, messages }) {
                                                     )}
                                                     <button 
                                                         className="tfe-btn tfe-btn--sm"
-                                                        onClick={(e) => { e.stopPropagation(); setMessageToDelete(message.id); }}
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(message.id); }}
                                                         title="Delete message"
                                                     >
                                                         <i className="fas fa-trash"></i>
@@ -170,15 +169,7 @@ export default function Communication({ auth, announcements, messages }) {
                 )}
             </div>
 
-            <ConfirmationDialog
-                open={!!messageToDelete}
-                onOpenChange={(open) => !open && setMessageToDelete(null)}
-                title="Delete Message?"
-                description="Are you sure you want to delete this message? This action cannot be undone."
-                onConfirm={handleDelete}
-                confirmText="Delete"
-                variant="destructive"
-            />
+            
 
             {/* Message detail — the shared tabbed dialog. */}
             {selectedMessage && (

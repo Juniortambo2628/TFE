@@ -43,6 +43,8 @@ php artisan migrate --force --seed  # demo data + credentials below
 ./vendor/bin/pint --dirty
 ./vendor/bin/phpunit    # PHP: 170+ tests
 npm run test:js         # JS unit tests (Node's built-in --test runner, no framework)
+npm run test:e2e        # Playwright smoke, against a seeded app on :8000
+                        # (here: PW_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome)
 ```
 
 Windows/WAMP first-run: `start-dev.bat` (or `.ps1`) handles composer install +
@@ -580,6 +582,80 @@ receives or moves savings, and stores no financial data.**
   link). The booking page's "Contact Travel Partner" was `href="#"` — it now
   opens Messages.
 
+
+### Tester feedback round (Sprint 69)
+
+- **Dialogs**: `TfeModal` portals to `<body>` (the public Header is a
+  containing block on mobile, so the planner rendered above the screen);
+  the grid row is `minmax(0,1fr)` so a long pane scrolls with head + footer
+  pinned; swipe the phone bottom sheet down to close (`lib/sheetDrag`), never
+  on a `closeOnBackdrop={false}` dialog. The cookie banner sits below dialogs.
+- **Budget Calculator split**: results (`Components/Fan/Calculator/
+  CalculatorResults`, recharts + maps) and the print view load LAZILY — the
+  page chunk is ~19KB gzip, from ~102KB. The filter overlay is a `TfeModal`
+  (`MatchFilterDialog`). `CalculatorRecap` pins the choices so far. A failed
+  save names the field and returns to its step (`lib/calculatorErrors`).
+  `tests/JS/bundleBoundaries.test.mjs` keeps Tremor admin-only, recharts
+  behind the lazy results, `three` inside the canvas.
+- **Fixture ids are strings** (`db_105`). Never `Number()`/`parseInt()` one —
+  the planner preselect and the calculator's `?match=` link both did, so
+  neither ever selected anything. `findFixtureById()` in `lib/tripPlanner`.
+- **One number format**: `formatNumber` / `formatDateTime` / `formatKickoff`
+  beside `formatMoney` in `lib/utils`, all pinned to en-US. Never a bare
+  `toLocaleString()` (there were 46).
+- **Undo, not "are you sure?"**, for reversible actions on the fan's own
+  things (`hooks/useUndoableRemoval` over `lib/undo`): the request is SENT
+  when the 5s window closes, so Undo never un-deletes server-side. Keep the
+  confirmation where taking it back is not safe (private tribes, loans,
+  school declarations, confirming an itinerary).
+- **Match Schedule** prices unplayed matches ("3-night trip from $X",
+  `matchTripFrom` — same engine) into the planner. `MatchCard` reads venue
+  city/country from the tournament catalogue (it defaulted AFCON grounds to a
+  US flag).
+- **ItinerarySummary prints in the plan's own currency** — it assumed KES.
+- **Images**: the heaviest served images were re-encoded in place (1920px,
+  q82) — same URLs, ~31MB → ~7MB. `tfe:fix-asset-paths` runs on every deploy.
+- **Client errors** go to `storage/logs/client-errors.log` (7 days) via
+  `lib/errorReporter` → `POST /client-errors`: paths only (no query
+  strings), user id only, nothing from the savings pages, extension noise
+  dropped, throttled. Read that file before asking a tester for their console.
+- **CI** now runs `npm run test:js` (it never did) and a Playwright smoke
+  (`tests/e2e`, desktop + phone) against a freshly seeded app.
+
+### Activity, badges and a public community (Sprint 70)
+
+- **Seeders run on every deploy, so a seeder must be idempotent.**
+  `WorldCupSeeder`'s bare `Message::create` put one more welcome message in
+  the same inbox per release (migration `dedupe_seeded_welcome_messages`
+  cleans up). `firstOrCreate` / `updateOrCreate`, always.
+- **`ActivityNotification` + `App\Support\ActivityNotifier`** are the one way
+  social/community activity reaches the bell: likes, comments, reposts,
+  follows, new announcements and upcoming events (fans only), and
+  `events:remind` (daily, once per RSVP via `event_rsvps.reminded_at`).
+  The notifier drops self-notifications and collapses repeats by `dedupe`.
+  Four classes nothing ever sent were deleted.
+- **Bell rows are links**: `notifications.open` marks read and follows
+  `action_url` (same host only — no open redirect).
+- **`ActivityBadges::SECTIONS`** maps a nav route to the notification types
+  that badge it; the same map clears them when the section is opened
+  (`HandleInertiaRequests`). Shared as `auth.activityBadges`;
+  `Components/Common/ActivityBadge`. Use the grammar's `data->type` path,
+  never a raw `json_extract` (it returns quoted strings on MySQL).
+- **Never pass an `auth` prop from a controller.** Inertia merges shallowly,
+  so it REPLACES the shared one — five fan pages had an empty bell.
+- **`Budget::inPartnerQueue($partnerId)`** is the one partner-queue scope.
+  Partner messaging listed every budget on the platform until this sprint.
+- **`Ticket::coverImage()`** resolves the cover from the stadium catalogue
+  by name; flags come from `/assets/Flags`, not flagcdn.
+- **Landing page**: `featuredPackages` (deferred; approved + active packages
+  and tours via `HomeController::offeringCards()`, the same query as the
+  tournament page) and `communityPreview` (deferred, re-polled every 60s
+  with `usePoll` — "live" without WebSockets on cPanel).
+- **Public community** (`CommunityController`): `/tribes`, `/tribes/{slug}`,
+  `/tribes/{slug}/join`. A visitor sees public top-level posts and a tribe's
+  description and counts — never its posts or members; invite-only tribes
+  are not listed at all. Join → register → the tribe's fan page, where the
+  existing privacy rules decide.
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

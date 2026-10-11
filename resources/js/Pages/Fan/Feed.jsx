@@ -7,7 +7,7 @@ import AdPostCard from '@/Components/AdPostCard';
 import '../../../css/fan/feed.css';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import ConfirmationDialog from '@/Components/ConfirmationDialog';
+import useUndoableRemoval from '@/hooks/useUndoableRemoval';
 import TfeModal from '@/Components/Common/TfeModal';
 import ImageUpload from '@/Components/Common/ImageUpload';
 import { useTournament } from '@/Context/TournamentContext';
@@ -27,7 +27,7 @@ const handleOf = (name) => `@${String(name || '').replace(/\s+/g, '').toLowerCas
 
 export default function Feed({
     auth,
-    posts,
+    posts: allPosts,
     stats,
     trendingHashtags,
     feedAds = [],
@@ -47,7 +47,10 @@ export default function Feed({
     const [showShareModal, setShowShareModal] = useState(false);
     const [shareItem, setShareItem] = useState(null);
     const emojiPickerRef = useRef(null);
-    const [postToDelete, setPostToDelete] = useState(null);
+    // Undo instead of "are you sure?" (Sprint 69): the post is only deleted
+    // once the toast's window closes.
+    const { isHidden, remove } = useUndoableRemoval();
+    const posts = (allPosts || []).filter((p) => !isHidden(p.id));
 
     // Post form
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -147,14 +150,10 @@ export default function Feed({
         setShowShareModal(true);
     };
 
-    const handleDelete = () => {
-        if (postToDelete) {
-            router.delete(route('fan.feed.destroy', postToDelete), {
-                preserveScroll: true,
-                onSuccess: () => setPostToDelete(null),
-            });
-        }
-    };
+    const handleDelete = (id) => remove(id, {
+        message: 'Post deleted',
+        url: route('fan.feed.destroy', id),
+    });
 
     // Helper for avatar logic
     const getAvatar = (u) => u?.avatar || `${assetUrl}assets/img/avatars/default-avatar.png`;
@@ -374,7 +373,7 @@ export default function Feed({
                                                                     aria-label="Delete post"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        setPostToDelete(pst.id);
+                                                                        handleDelete(pst.id);
                                                                     }}
                                                                 >
                                                                     <i className="fas fa-trash" />
@@ -712,15 +711,6 @@ export default function Feed({
                 />
             )}
 
-            <ConfirmationDialog
-                open={!!postToDelete}
-                onOpenChange={(open) => !open && setPostToDelete(null)}
-                title="Delete Post?"
-                description="Are you sure you want to delete this post? This action cannot be undone."
-                onConfirm={handleDelete}
-                confirmText="Delete"
-                variant="destructive"
-            />
         </FanLayout>
     );
 }

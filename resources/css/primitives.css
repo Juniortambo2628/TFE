@@ -1271,6 +1271,21 @@ button.tfe-menu-surface__badge:hover {
     margin: 0 0 2px;
 }
 
+.tfe-menu-surface a.dash-activity-item { color: inherit; text-decoration: none; }
+
+/* Unread notification (Sprint 70): a dot, not a colour wash. */
+.tfe-menu-surface .dash-activity-item.is-unread { position: relative; }
+.tfe-menu-surface .dash-activity-item.is-unread::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tfe-accent, #e0263f);
+}
+
 .tfe-menu-surface .dash-activity-item:hover {
     background: rgba(255, 255, 255, 0.06);
 }
@@ -1507,6 +1522,8 @@ button.tfe-menu-surface__badge:hover {
 
 /* ---- pane ---- */
 
+.tfe-modal__grabber { display: none; }
+
 .tfe-modal__pane {
     display: flex;
     flex-direction: column;
@@ -1722,6 +1739,8 @@ label.tfe-modal-row__title { cursor: pointer; }
     }
 
     .tfe-modal__rail {
+        /* vertical swipes drive the sheet; the chip strip still scrolls sideways */
+        touch-action: pan-x;
         gap: 12px;
         padding: 16px 14px 10px;
         border-right: 0;
@@ -1745,6 +1764,18 @@ label.tfe-modal-row__title { cursor: pointer; }
         padding: 8px 12px;
         background: rgb(255 255 255 / 4%);
     }
+
+    /* Swipe-down handle on the bottom sheet (Sprint 69). */
+    .tfe-modal__grabber {
+        display: block;
+        width: 40px;
+        height: 4px;
+        margin: -6px auto 2px;
+        border-radius: 2px;
+        background: rgb(255 255 255 / 28%);
+    }
+
+    .tfe-modal { transition: transform var(--dur-fast, 0.16s) ease; }
 
     /* One section means one chip repeating the title above it — noise. */
     .tfe-modal--single .tfe-modal__nav { display: none; }
@@ -3041,3 +3072,23 @@ label.tfe-modal-row__title { cursor: pointer; }
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* New-activity count on a nav item, a closed sidebar group, or a top-bar
+   link (Sprint 70). Pushed to the row's end; the accent, not a new colour. */
+.tfe-activity-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--tfe-accent, #e0263f);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.dashboard-header-nav__link .tfe-activity-badge { margin-left: 6px; }
+.tfe-sidebar-group__toggle .tfe-activity-badge { margin-right: 8px; }

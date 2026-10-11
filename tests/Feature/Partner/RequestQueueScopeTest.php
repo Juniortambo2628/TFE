@@ -4,6 +4,7 @@ namespace Tests\Feature\Partner;
 
 use App\Models\Budget;
 use App\Models\Listing;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -153,5 +154,28 @@ class RequestQueueScopeTest extends TestCase
 
         $this->assertEquals(2600, $brief->fresh()->partner_cost);
         $this->assertSame('approved', $brief->fresh()->partner_status);
+    }
+
+    /**
+     * Sprint 70: partner messaging listed every budget on the platform —
+     * any partner could read every fan's thread and message any fan.
+     */
+    public function test_partner_messaging_is_limited_to_their_own_queue(): void
+    {
+        [$partner, $listing] = $this->partnerWithListing();
+        [, $otherListing] = $this->partnerWithListing();
+        $mine = $this->brief($listing);
+        $theirs = $this->brief($otherListing);
+
+        $threads = $this->actingAs($partner)->get(route('partner.messages'))
+            ->viewData('page')['props']['threads'];
+        $this->assertSame([$mine->id], array_column($threads, 'budget_id'));
+
+        $this->actingAs($partner)
+            ->post(route('partner.messages.store'), ['budget_id' => $theirs->id, 'body' => 'hi'])
+            ->assertNotFound();
+        $this->assertSame(0, Message::where('budget_id', $theirs->id)->count());
+
+        $this->actingAs($partner)->post(route('partner.messages.read', $theirs->id))->assertNotFound();
     }
 }

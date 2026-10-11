@@ -2,10 +2,10 @@ import React from 'react';
 import { Head } from '@inertiajs/react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, formatDateTime } from '@/lib/utils';
 import '../../../css/tickets.css';
 
-const AT = (s) => new Date(s).toLocaleString();
+const AT = (s) => formatDateTime(s);
 
 export default function TicketSales({ auth, sales = [] }) {
     return (
