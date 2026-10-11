@@ -1,0 +1,38 @@
+/* Landing-page sections added in Sprint 70: featured trips, community
+   preview. Imported by the components themselves (the PoweredByBadge
+   lesson: a public component carries its own CSS). */
+.landing-featured,
+.landing-community {
+    padding: 56px 0;
+}
+.landing-featured__head,
+.landing-community__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.landing-featured__eyebrow,
+.landing-community__eyebrow {
+    margin: 0 0 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tfe-accent, #e0263f);
+}
+.landing-featured__title,
+.landing-community__title {
+    margin: 0;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    color: #fff;
+}
+.landing-featured__sub,
+.landing-community__sub {
+    margin: 8px 0 0;
+    max-width: 640px;
+    color: rgba(255, 255, 255, 0.7);
+}
