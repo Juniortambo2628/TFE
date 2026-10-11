@@ -42,13 +42,21 @@ for p in tfe-queue tfe-scheduler; do
   st="$(pm2 jlist 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const p=JSON.parse(d||"[]").find(x=>x.name===process.argv[1]);console.log(p?p.pm2_env.status:"missing")})' "$p")"
   if [[ "$st" == online ]]; then ok "$p online"; else bad "$p is $st (pm2 logs $p)"; fi
 done
+# "online" can hide a crash loop; give them a moment, then check restarts.
+sleep 10
+for p in tfe-queue tfe-scheduler; do
+  r="$(pm2 jlist 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const p=JSON.parse(d||"[]").find(x=>x.name===process.argv[1]);console.log(p?p.pm2_env.restart_time:-1)})' "$p")"
+  if [[ "$r" == 0 ]]; then ok "$p stable (no restarts)"; else bad "$p restarted $r times (pm2 logs $p --lines 50)"; fi
+done
 
 # Hestia's nginx listens on the server's public IP, not 127.0.0.1, so aim
 # the request there (still bypassing DNS, which may point elsewhere).
 IP="${VERIFY_IP:-$(hostname -I | awk '{print $1}')}"
 echo "HTTP (via $IP, bypassing DNS):"
 code() {
-  curl -s -o /dev/null -w '%{http_code}' -L --max-time 20 -k \
+  # Generous timeout: the first request after a deploy warms the caches
+  # (tournament data, config) and can take well over 20s.
+  curl -s -o /dev/null -w '%{http_code}' -L --max-time 90 -k \
     --resolve "$DOMAIN:80:$IP" --resolve "$DOMAIN:443:$IP" "$1"
 }
 c="$(code "http://$DOMAIN/")";            [[ "$c" == 200 ]] && ok "home page 200"            || bad "home page returned $c (see $SHARED/storage/logs/laravel.log)"

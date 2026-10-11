@@ -102,10 +102,14 @@ fi
 if command -v pm2 >/dev/null 2>&1; then
   log "PM2: queue worker + scheduler"
   pm2 delete tfe-queue tfe-scheduler >/dev/null 2>&1 || true
-  pm2 start "$REL/artisan" --name tfe-queue --interpreter "$PHP_BIN" --cwd "$REL" \
-    --kill-timeout 60000 -- queue:work --sleep=3 --tries=3 --max-time=3600
-  pm2 start "$REL/artisan" --name tfe-scheduler --interpreter "$PHP_BIN" --cwd "$REL" \
-    -- schedule:work
+  # Hestia's CLI php.ini disables pcntl_* (and proc_open), which queue:work
+  # needs for signals and schedule:work needs to spawn schedule:run. Clear
+  # disable_functions for these two trusted processes only; the web pool's
+  # settings are untouched.
+  pm2 start "$PHP_BIN" --name tfe-queue --interpreter none --cwd "$REL" \
+    --kill-timeout 60000 -- -d disable_functions= "$REL/artisan" queue:work --sleep=3 --tries=3 --max-time=3600
+  pm2 start "$PHP_BIN" --name tfe-scheduler --interpreter none --cwd "$REL" \
+    -- -d disable_functions= "$REL/artisan" schedule:work
   pm2 save
 else
   echo "!!! pm2 not on PATH — queue worker and scheduler NOT started."
