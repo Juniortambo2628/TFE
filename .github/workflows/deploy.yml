@@ -1,168 +1,138 @@
-name: Deploy to Production
+name: Deploy to VPS
 
+# Runs after "Test and Autofix" passes on a push to main, and deploys exactly
+# the commit that was tested. Can also be started by hand from the Actions tab.
 on:
   workflow_run:
     workflows: ["Test and Autofix"]
-    types:
-      - completed
-    branches:
-      - main
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time; a second push waits rather than racing the first.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 env:
   PHP_VERSION: '8.3'
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
+  APP_ROOT: /home/dev/web/tfe.okjtech.co.ke/private/tfe
 
 jobs:
-  build-and-package:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ env.PHP_VERSION }}
-        extensions: mbstring, bcmath, pdo_mysql, curl, zip, gd, fileinfo, dom, exif, iconv
-        coverage: none
-
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: npm
-
-    - name: Cache Composer packages
-      uses: actions/cache@v4
-      with:
-        path: vendor
-        key: composer-${{ hashFiles('composer.lock') }}
-        restore-keys: composer-
-
-    - name: Install Composer dependencies (production)
-      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
-
-    - name: Install Node dependencies
-      run: npm ci --legacy-peer-deps
-
-    - name: Build production assets
-      run: npm run build
-
-    - name: Assemble deployment package
-      run: |
-        set -euo pipefail
-        mkdir -p deploy-package/backend deploy-package/frontend
-
-        rsync -a \
-          --exclude='.env' \
-          --exclude='.env.example' \
-          --exclude='.git' \
-          --exclude='node_modules' \
-          --exclude='tests' \
-          --exclude='public' \
-          --exclude='storage/framework' \
-          --exclude='storage/logs' \
-          --exclude='storage/app/public' \
-          --exclude='deploy-package' \
-          --exclude='*.md' \
-          --exclude='.phpunit.result.cache' \
-          --exclude='production_env.txt' \
-          ./ deploy-package/backend/
-
-        # Frontend: start with all static assets from public/
-        rsync -a \
-          --exclude='build/' \
-          --exclude='uploads/' \
-          public/ deploy-package/frontend/
-
-        # Layer Vite build on top (overwrites any build/ from public)
-        rm -rf deploy-package/frontend/build
-        mkdir -p deploy-package/frontend/build
-        cp -r public/build/. deploy-package/frontend/build/
-
-        # Generate frontend index.php with paths pointing to backend
-        sed \
-          -e "s|__DIR__.'/../storage/|__DIR__.'/../tfe-core/storage/|g" \
-          -e "s|__DIR__.'/../vendor/|__DIR__.'/../tfe-core/vendor/|g" \
-          -e "s|__DIR__.'/../bootstrap/|__DIR__.'/../tfe-core/bootstrap/|g" \
-          public/index.php > deploy-package/frontend/index.php
-
-    - name: Package archives for transfer
-      # tar + scp instead of rsync — production server lacks rsync
-      run: |
-        set -euo pipefail
-        tar -czf backend.tar.gz -C deploy-package/backend .
-        # Include .htaccess and index.php in the frontend tar
-        tar -czf frontend-build.tar.gz -C deploy-package/frontend .
-
-    - name: Upload backend archive
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-archive
-        path: backend.tar.gz
-        retention-days: 1
-
-    - name: Upload frontend archive
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-archive
-        path: frontend-build.tar.gz
-        retention-days: 1
-
   deploy:
-    needs: build-and-package
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-    - name: Checkout (for post-deploy scripts)
-      uses: actions/checkout@v4
+      - name: Checkout the tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-    - name: Download backend archive
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-archive
-        path: archives
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, bcmath, pdo_mysql, curl, zip, gd, intl, fileinfo, dom, exif, iconv
+          coverage: none
 
-    - name: Download frontend archive
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-archive
-        path: archives
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-    - name: Configure SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
-        ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+      - name: Composer install (production)
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-progress
 
-    - name: Transfer backend archive
-      run: |
-        scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          archives/backend.tar.gz \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/backend-${{ github.sha }}.tar.gz"
+      - name: Build frontend
+        run: |
+          npm ci --legacy-peer-deps
+          npm run build
+          test -f public/build/manifest.json
 
-    - name: Transfer frontend build archive
-      run: |
-        scp -i ~/.ssh/deploy_key -P "${{ secrets.SSH_PORT }}" \
-          archives/frontend-build.tar.gz \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/frontend-build-${{ github.sha }}.tar.gz"
+      - name: Name the release
+        run: |
+          SHA="$(git rev-parse HEAD)"
+          echo "RELEASE=$(date -u +%Y%m%d%H%M%S)-${SHA::7}" >> "$GITHUB_ENV"
 
-    - name: Extract and post-deploy
-      run: |
-        ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-          "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' RELEASE_SHA='${{ github.sha }}' bash -s" \
-          < scripts/post-deploy.sh
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Pinned host keys only — never trust-on-first-use from a runner.
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<CFG
+          Host vps
+            HostName ${VPS_HOST}
+            Port ${VPS_PORT:-22}
+            User ${VPS_USER}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ServerAliveInterval 30
+          CFG
 
-    - name: Verify deployed file structure
-      run: |
-        ssh -i ~/.ssh/deploy_key -p "${{ secrets.SSH_PORT }}" \
-          "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-          "BACKEND_PATH='${{ secrets.BACKEND_PATH }}' FRONTEND_PATH='${{ secrets.FRONTEND_PATH }}' bash -s" \
-          < scripts/verify-deploy.sh
+      - name: Upload release
+        run: |
+          ssh vps "mkdir -p '$APP_ROOT/releases/$RELEASE' '$APP_ROOT/shared'"
+          # Hard-link unchanged files against the live release so only the
+          # diff crosses the wire (vendor/ and public/ images are large).
+          LINK_DEST=""
+          if ssh vps "test -d '$APP_ROOT/current/'"; then
+            LINK_DEST="--link-dest=$APP_ROOT/current/"
+          fi
+          rsync -az --delete $LINK_DEST \
+            --exclude='/.git' \
+            --exclude='/.github' \
+            --exclude='/node_modules' \
+            --exclude='/tests' \
+            --exclude='/storage' \
+            --exclude='/.env' \
+            --exclude='/.env.*' \
+            --exclude='/public/storage' \
+            --exclude='/public/hot' \
+            --exclude='/database/*.sqlite' \
+            --exclude='/bootstrap/cache/config.php' \
+            --exclude='/bootstrap/cache/routes-*.php' \
+            --exclude='/bootstrap/cache/events.php' \
+            --exclude='/playwright-report' \
+            --exclude='/test-results' \
+            ./ "vps:$APP_ROOT/releases/$RELEASE/"
 
-    - name: Clean up
-      if: always()
-      run: rm -rf ~/.ssh/deploy_key archives
+      - name: Write .env from the PROD_ENV secret (if set)
+        env:
+          PROD_ENV: ${{ secrets.PROD_ENV }}
+        run: |
+          if [ -n "$PROD_ENV" ]; then
+            printf '%s\n' "$PROD_ENV" | ssh vps "umask 077 && cat > '$APP_ROOT/shared/.env.new' && mv -f '$APP_ROOT/shared/.env.new' '$APP_ROOT/shared/.env'"
+            echo "shared/.env written from PROD_ENV"
+          else
+            echo "PROD_ENV not set — keeping the .env already on the server"
+          fi
+
+      - name: Activate release (migrate, cache, switch)
+        run: ssh vps "bash '$APP_ROOT/releases/$RELEASE/deploy/vps-deploy.sh' '$RELEASE'"
+
+      - name: Verify the deployed site
+        run: ssh vps "bash '$APP_ROOT/current/deploy/vps-verify.sh'"
+
+      - name: Remove a release that never went live
+        if: failure()
+        run: |
+          ssh vps "cd '$APP_ROOT' && [ \"\$(readlink -f current 2>/dev/null)\" != \"$APP_ROOT/releases/$RELEASE\" ] && rm -rf 'releases/$RELEASE' || true"
+
+      - name: Clean up
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

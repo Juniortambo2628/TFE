@@ -1222,7 +1222,20 @@ they pick up new code:
 php artisan queue:restart
 ```
 
-### cPanel shared hosting (cron worker)
+### VPS (current production, Sprint 71)
+
+Production moved off cPanel to a Hestia VPS. **Read `docs/deploy/vps.md`.**
+Push to `main` → "Test and Autofix" → "Deploy to VPS" rsyncs a release into
+`~/web/tfe.okjtech.co.ke/private/tfe/releases/`, `deploy/vps-deploy.sh`
+migrates/seeds/caches and swaps the `current` symlink, `deploy/vps-verify.sh`
+checks it. `.env` and `storage/` live in `private/tfe/shared/`; the web root
+`public_html` is a symlink to `current/public` (the app must sit under
+`private/` because of the pool's `open_basedir`). Queue worker + scheduler =
+PM2 (`tfe-queue`, `tfe-scheduler`), restarted by every deploy; `.env` can come
+from the `PROD_ENV` secret. Everything below about cPanel is
+history — the cPanel deploy scripts are deleted.
+
+### cPanel shared hosting (cron worker) — OBSOLETE
 
 Shared cPanel plans can't run supervisor, but they always run cron.
 Two entries in **cPanel → Cron Jobs** cover the scheduler and the
@@ -1240,7 +1253,7 @@ queue worker:
 - `cron` respawns it in the following minute, so it feels like a
   daemon without needing one.
 
-Deploy step is `bash deploy/cpanel-deploy.sh` in the cPanel Terminal —
+Deploy step WAS `bash deploy/cpanel-deploy.sh` (deleted) in the cPanel Terminal —
 it runs migrations, `config:cache`, `route:cache`, `view:cache`, and
 `queue:restart`. Idempotent, safe to re-run.
 
