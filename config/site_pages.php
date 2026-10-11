@@ -18,6 +18,16 @@
 
 return [
 
+    // Public tribe directory (Sprint 70).
+    'tribes' => [
+        'eyebrow' => 'Community',
+        'title' => 'Tribes',
+        'tagline' => 'Travel with your people. Supporter groups, watch-alongs and trip crews for every tournament — sign up to join one.',
+        'background' => '/assets/img/backdrops/argentina-fans.jpg',
+        'cta_label' => 'Join TFE',
+        'cta_href' => '/register',
+    ],
+
     'about' => [
         'eyebrow' => 'About TFE',
         'title' => 'About Us',

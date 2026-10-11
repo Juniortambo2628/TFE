@@ -60,6 +60,12 @@ class HomeController extends Controller
             // planner, the tournament page or a partner hub first. Packages
             // and tours only — the things "Book now" can actually book.
             // Deferred so it never holds up first paint.
+            // Public posts + busiest tribes (Sprint 70). Deferred, and the
+            // section re-polls just this prop once a minute so it reads live.
+            'communityPreview' => Inertia::defer(fn () => CommunityController::preview(
+                $this->activeTournament()['id'],
+            )),
+
             'featuredPackages' => Inertia::defer(fn () => $this->offeringCards(
                 $this->activeTournament()['id'], 6, ['package', 'tour'],
             )),

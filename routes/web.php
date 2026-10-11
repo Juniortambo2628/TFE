@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\ClientErrorController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BankSavingsController;
@@ -79,6 +80,12 @@ Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('
 
 // Public Partner directory + hub — no auth needed. Sprint 11 added
 // the index; the {slug} hub predates it.
+// Public community (Sprint 70): a tribe directory and a page per tribe —
+// description and counts only; posts and members stay behind sign-in.
+Route::get('/tribes', [CommunityController::class, 'index'])->name('community.tribes');
+Route::get('/tribes/{slug}', [CommunityController::class, 'show'])->name('community.tribes.show');
+Route::get('/tribes/{slug}/join', [CommunityController::class, 'join'])->name('community.tribes.join');
+
 Route::get('/partners', [PartnerHubController::class, 'index'])
     ->name('partners.index');
 Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])

@@ -621,6 +621,41 @@ receives or moves savings, and stores no financial data.**
   dropped, throttled. Read that file before asking a tester for their console.
 - **CI** now runs `npm run test:js` (it never did) and a Playwright smoke
   (`tests/e2e`, desktop + phone) against a freshly seeded app.
+
+### Activity, badges and a public community (Sprint 70)
+
+- **Seeders run on every deploy, so a seeder must be idempotent.**
+  `WorldCupSeeder`'s bare `Message::create` put one more welcome message in
+  the same inbox per release (migration `dedupe_seeded_welcome_messages`
+  cleans up). `firstOrCreate` / `updateOrCreate`, always.
+- **`ActivityNotification` + `App\Support\ActivityNotifier`** are the one way
+  social/community activity reaches the bell: likes, comments, reposts,
+  follows, new announcements and upcoming events (fans only), and
+  `events:remind` (daily, once per RSVP via `event_rsvps.reminded_at`).
+  The notifier drops self-notifications and collapses repeats by `dedupe`.
+  Four classes nothing ever sent were deleted.
+- **Bell rows are links**: `notifications.open` marks read and follows
+  `action_url` (same host only — no open redirect).
+- **`ActivityBadges::SECTIONS`** maps a nav route to the notification types
+  that badge it; the same map clears them when the section is opened
+  (`HandleInertiaRequests`). Shared as `auth.activityBadges`;
+  `Components/Common/ActivityBadge`. Use the grammar's `data->type` path,
+  never a raw `json_extract` (it returns quoted strings on MySQL).
+- **Never pass an `auth` prop from a controller.** Inertia merges shallowly,
+  so it REPLACES the shared one — five fan pages had an empty bell.
+- **`Budget::inPartnerQueue($partnerId)`** is the one partner-queue scope.
+  Partner messaging listed every budget on the platform until this sprint.
+- **`Ticket::coverImage()`** resolves the cover from the stadium catalogue
+  by name; flags come from `/assets/Flags`, not flagcdn.
+- **Landing page**: `featuredPackages` (deferred; approved + active packages
+  and tours via `HomeController::offeringCards()`, the same query as the
+  tournament page) and `communityPreview` (deferred, re-polled every 60s
+  with `usePoll` — "live" without WebSockets on cPanel).
+- **Public community** (`CommunityController`): `/tribes`, `/tribes/{slug}`,
+  `/tribes/{slug}/join`. A visitor sees public top-level posts and a tribe's
+  description and counts — never its posts or members; invite-only tribes
+  are not listed at all. Join → register → the tribe's fan page, where the
+  existing privacy rules decide.
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

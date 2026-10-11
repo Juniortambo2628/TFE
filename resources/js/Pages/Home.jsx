@@ -10,6 +10,7 @@ import Hero from '@/Components/Hero';
 import Testimonials from '@/Components/Landing/Testimonials';
 import TournamentCompare from '@/Components/Landing/TournamentCompare';
 import FeaturedPackages from '@/Components/Landing/FeaturedPackages';
+import CommunityPreview from '@/Components/Landing/CommunityPreview';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
@@ -49,7 +50,7 @@ const EXPERIENCES = [
     },
 ];
 
-export default function Home({ appName, venueBowls = [], featuredPackages }) {
+export default function Home({ appName, venueBowls = [], featuredPackages, communityPreview }) {
     const { tournament } = usePage().props;
     const [experienceModal, setExperienceModal] = useState(null);
 
@@ -141,6 +142,9 @@ export default function Home({ appName, venueBowls = [], featuredPackages }) {
                 <div className="container my-5">
                     <AdPlaceholder position="horizontal" />
               </div>
+
+                {/* Public posts + tribes, refreshed once a minute (Sprint 70). */}
+                <CommunityPreview preview={communityPreview} />
 
                 <Testimonials />
                 <PartnerCarousel />
