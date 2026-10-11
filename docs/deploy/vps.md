@@ -48,33 +48,38 @@ Migrations are not rolled back by this — only code.
 
 ### 1. One-time server setup — as **root** (`ssh vps1`)
 
+The deploy does everything else itself (folders, `.env`, storage links,
+queue worker, scheduler). Only these two need root:
+
 ```bash
 D=/home/dev/web/tfe.okjtech.co.ke
-# App directories
-install -d -o dev -g dev -m 755 $D/private/tfe $D/private/tfe/releases
-install -d -o dev -g dev -m 711 $D/private/tfe/shared
-# Replace Hestia's placeholder web root with the symlink (dev can't: the
-# domain dir is not writable by dev). It dangles until the first deploy.
+# Web root -> app (dev can't: the domain dir isn't writable by dev).
+# It dangles until the first deploy, which is fine.
 mv $D/public_html $D/public_html.hestia-default
 ln -s private/tfe/current/public $D/public_html
 chown -h dev:dev $D/public_html
-# Queue worker on boot (PM2 under dev)
-env PATH=$PATH:/usr/bin pm2 startup systemd -u dev --hp /home/dev
-# Laravel scheduler, as a Hestia cron job for dev
-/usr/local/hestia/bin/v-add-cron-job dev '*' '*' '*' '*' '*' "cd $D/private/tfe/current && php artisan schedule:run >> /dev/null 2>&1"
+# Bring dev's PM2 processes (queue worker + scheduler) back after a reboot
+pm2 startup systemd -u dev --hp /home/dev
 ```
-(Already done: `/etc/sudoers.d/tfe-deploy` lets `dev` run
-`systemctl reload php8.3-fpm`.)
+(Already done: `/etc/sudoers.d/tfe-deploy` lets `dev` reload PHP-FPM.)
+If you forget the symlink, or Hestia rebuilds the domain and undoes it, the
+deploy's verify step fails and prints this exact command.
 
-If Hestia ever rebuilds the domain (`v-rebuild-web-domains`) and
-`public_html` turns back into a directory, re-run the `mv`/`ln` lines.
+### 2. The `.env`
 
-### 2. The `.env` — as **dev** (`su - dev`)
+**Recommended: a GitHub secret.** Repo → Settings → Secrets → Actions →
+New secret `PROD_ENV`, paste the whole prepared `.env`. Every deploy writes
+it to `shared/.env` (chmod 600), so changing a setting = edit the secret +
+re-run the deploy. Don't also edit the file on the server: the next deploy
+overwrites it.
 
+**Or by hand** (leave `PROD_ENV` unset), as **dev** after the first deploy
+attempt has created the folder:
 ```bash
-nano ~/web/tfe.okjtech.co.ke/private/tfe/shared/.env    # paste your prepared .env
-chmod 600 ~/web/tfe.okjtech.co.ke/private/tfe/shared/.env
+mkdir -p ~/web/tfe.okjtech.co.ke/private/tfe/shared
+nano ~/web/tfe.okjtech.co.ke/private/tfe/shared/.env && chmod 600 $_
 ```
+
 Must have: `APP_KEY` = the **old production key** (otherwise passkeys and
 encrypted bank links can't be decrypted and everyone is logged out),
 `APP_DEBUG=false`, `APP_URL=https://tfe.okjtech.co.ke`, `DB_CONNECTION=mysql`,
@@ -120,15 +125,12 @@ The first deploy then runs only the migrations newer than the dump.
 Merge to `main` (or Actions → **Deploy to VPS** → Run workflow). Watch the
 "Verify the deployed site" step — it must end with `Verification passed`.
 
-### 5. Start the queue worker — as **dev**, once after the first deploy
+### 5. Background processes
 
-```bash
-pm2 start /home/dev/web/tfe.okjtech.co.ke/private/tfe/current/artisan \
-  --name tfe-queue --interpreter php -- queue:work --sleep=3 --tries=3 --max-time=3600
-pm2 save
-```
-Each deploy's `queue:restart` makes it exit; PM2 restarts it on the new
-release. Check with `pm2 status` / `pm2 logs tfe-queue`.
+Nothing to do: each deploy (re)starts `tfe-queue` (`queue:work`) and
+`tfe-scheduler` (`schedule:work`) under PM2 as dev, on the new release, and
+`pm2 save`s them. Check with `pm2 status` / `pm2 logs tfe-queue`. No Hestia
+cron job is needed.
 
 ---
 
@@ -151,7 +153,8 @@ release. Check with `pm2 status` / `pm2 logs tfe-queue`.
    Edit → tick **Enable SSL** + **Use Lets Encrypt** + **Enable automatic
    HTTPS redirection** (+ HSTS once you're happy) → Save.
 5. **Production mode.** In `shared/.env` set `APP_ENV=production`, then as dev:
-   `cd ~/web/tfe.okjtech.co.ke/private/tfe/current && php artisan config:cache && sudo -n systemctl reload php8.3-fpm`.
+   `cd ~/web/tfe.okjtech.co.ke/private/tfe/current && php artisan config:cache && sudo -n systemctl reload php8.3-fpm`
+   (or, with `PROD_ENV`: edit the secret and re-run the deploy).
 6. Old host: keep it for a week, then cancel. Delete the old GitHub secrets
    `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PRIVATE_KEY`, `BACKEND_PATH`,
    `FRONTEND_PATH` — nothing reads them now.

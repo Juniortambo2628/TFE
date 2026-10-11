@@ -1230,8 +1230,9 @@ Push to `main` → "Test and Autofix" → "Deploy to VPS" rsyncs a release into
 migrates/seeds/caches and swaps the `current` symlink, `deploy/vps-verify.sh`
 checks it. `.env` and `storage/` live in `private/tfe/shared/`; the web root
 `public_html` is a symlink to `current/public` (the app must sit under
-`private/` because of the pool's `open_basedir`). Queue worker = PM2
-(`tfe-queue`), scheduler = Hestia cron. Everything below about cPanel is
+`private/` because of the pool's `open_basedir`). Queue worker + scheduler =
+PM2 (`tfe-queue`, `tfe-scheduler`), restarted by every deploy; `.env` can come
+from the `PROD_ENV` secret. Everything below about cPanel is
 history — the cPanel deploy scripts are deleted.
 
 ### cPanel shared hosting (cron worker) — OBSOLETE

@@ -111,6 +111,17 @@ jobs:
             --exclude='/test-results' \
             ./ "vps:$APP_ROOT/releases/$RELEASE/"
 
+      - name: Write .env from the PROD_ENV secret (if set)
+        env:
+          PROD_ENV: ${{ secrets.PROD_ENV }}
+        run: |
+          if [ -n "$PROD_ENV" ]; then
+            printf '%s\n' "$PROD_ENV" | ssh vps "umask 077 && cat > '$APP_ROOT/shared/.env.new' && mv -f '$APP_ROOT/shared/.env.new' '$APP_ROOT/shared/.env'"
+            echo "shared/.env written from PROD_ENV"
+          else
+            echo "PROD_ENV not set — keeping the .env already on the server"
+          fi
+
       - name: Activate release (migrate, cache, switch)
         run: ssh vps "bash '$APP_ROOT/releases/$RELEASE/deploy/vps-deploy.sh' '$RELEASE'"
 

@@ -20,7 +20,12 @@ same() { [[ "$(readlink -f "$1" 2>/dev/null)" == "$(readlink -f "$2" 2>/dev/null
 
 echo "Structure:"
 check "current points at a release"            test -d "$CUR"
-check "web root public_html -> current/public" same "$DOMAIN_DIR/public_html" "$CUR/public"
+if ! same "$DOMAIN_DIR/public_html" "$CUR/public"; then
+  bad "web root public_html is not linked to current/public — run once as ROOT:"
+  echo "        mv $DOMAIN_DIR/public_html $DOMAIN_DIR/public_html.hestia-default && ln -s private/tfe/current/public $DOMAIN_DIR/public_html && chown -h dev:dev $DOMAIN_DIR/public_html"
+else
+  ok "web root public_html -> current/public"
+fi
 check ".env -> shared/.env"                    same "$CUR/.env" "$SHARED/.env"
 check "storage -> shared/storage"              same "$CUR/storage" "$SHARED/storage"
 check "public/storage -> shared uploads"       same "$CUR/public/storage" "$SHARED/storage/app/public"
@@ -31,6 +36,12 @@ check "config cache built"                     test -f "$CUR/bootstrap/cache/con
 check "storage/logs writable"                  test -w "$SHARED/storage/logs"
 check "framework/views writable"               test -w "$SHARED/storage/framework/views"
 check ".env not world-readable"                test "$(stat -c %a "$SHARED/.env")" = 600
+
+echo "Processes:"
+for p in tfe-queue tfe-scheduler; do
+  st="$(pm2 jlist 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const p=JSON.parse(d||"[]").find(x=>x.name===process.argv[1]);console.log(p?p.pm2_env.status:"missing")})' "$p")"
+  if [[ "$st" == online ]]; then ok "$p online"; else bad "$p is $st (pm2 logs $p)"; fi
+done
 
 echo "HTTP (local, bypassing DNS):"
 code() {

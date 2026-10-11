@@ -30,7 +30,8 @@ log() { printf '\n─── %s ───\n' "$*"; }
 die() { printf '!!! %s\n' "$*" >&2; exit 1; }
 
 [[ -d "$REL" ]] || die "release $REL not found"
-[[ -f "$SHARED/.env" ]] || die "$SHARED/.env is missing — create it first (docs/deploy/vps.md, step 2)"
+mkdir -p "$APP_ROOT/releases" "$SHARED"
+[[ -f "$SHARED/.env" ]] || die "$SHARED/.env is missing — add the PROD_ENV GitHub secret, or create it by hand (docs/deploy/vps.md, step 2)"
 
 log "Linking shared .env and storage"
 mkdir -p "$SHARED/storage/app/public" \
@@ -94,6 +95,21 @@ else
 fi
 
 "$PHP_BIN" "$APP_ROOT/current/artisan" queue:restart
+
+# Background processes under PM2 (as dev — no root, no Hestia cron). Both are
+# recreated pointing at THIS release's artisan, so neither keeps running old
+# code: schedule:work spawns schedule:run from its own base path.
+if command -v pm2 >/dev/null 2>&1; then
+  log "PM2: queue worker + scheduler"
+  pm2 delete tfe-queue tfe-scheduler >/dev/null 2>&1 || true
+  pm2 start "$REL/artisan" --name tfe-queue --interpreter "$PHP_BIN" --cwd "$REL" \
+    --kill-timeout 60000 -- queue:work --sleep=3 --tries=3 --max-time=3600
+  pm2 start "$REL/artisan" --name tfe-scheduler --interpreter "$PHP_BIN" --cwd "$REL" \
+    -- schedule:work
+  pm2 save
+else
+  echo "!!! pm2 not on PATH — queue worker and scheduler NOT started."
+fi
 
 log "Pruning old releases (keeping $KEEP_RELEASES)"
 LIVE="$(readlink -f "$APP_ROOT/current")"
