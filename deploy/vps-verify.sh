@@ -43,10 +43,13 @@ for p in tfe-queue tfe-scheduler; do
   if [[ "$st" == online ]]; then ok "$p online"; else bad "$p is $st (pm2 logs $p)"; fi
 done
 
-echo "HTTP (local, bypassing DNS):"
+# Hestia's nginx listens on the server's public IP, not 127.0.0.1, so aim
+# the request there (still bypassing DNS, which may point elsewhere).
+IP="${VERIFY_IP:-$(hostname -I | awk '{print $1}')}"
+echo "HTTP (via $IP, bypassing DNS):"
 code() {
   curl -s -o /dev/null -w '%{http_code}' -L --max-time 20 -k \
-    --resolve "$DOMAIN:80:127.0.0.1" --resolve "$DOMAIN:443:127.0.0.1" "$1"
+    --resolve "$DOMAIN:80:$IP" --resolve "$DOMAIN:443:$IP" "$1"
 }
 c="$(code "http://$DOMAIN/")";            [[ "$c" == 200 ]] && ok "home page 200"            || bad "home page returned $c (see $SHARED/storage/logs/laravel.log)"
 c="$(code "http://$DOMAIN/robots.txt")";  [[ "$c" == 200 ]] && ok "static file 200"          || bad "static file returned $c"
