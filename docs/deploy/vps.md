@@ -31,7 +31,7 @@ files against the live one. `deploy/vps-deploy.sh` then links `.env` +
 non-fatal) seeders + `tfe:fix-asset-paths`, builds the caches, and only then
 swaps `current` atomically, reloads PHP-FPM (clears OPcache) and signals the
 queue worker. A failure before the swap leaves the live site untouched.
-`deploy/vps-verify.sh` then checks the structure and requests the home page,
+`deploy/vps-verify.sh` then checks the structure and requests the home page (on the server's public IP),
 a static file and a built asset from the VPS itself.
 
 **Rollback** (as `dev`):
