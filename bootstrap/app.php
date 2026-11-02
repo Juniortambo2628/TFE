@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsInstitution;
+use App\Http\Middleware\ForgetShadowedCookies;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsPartner;
@@ -20,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            // Clears session/CSRF cookies left on the parent domain by the
+            // cPanel deploy, which otherwise shadow ours and 419 every login.
+            ForgetShadowedCookies::class,
             ResolveTournament::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

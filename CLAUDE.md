@@ -1235,6 +1235,15 @@ PM2 (`tfe-queue`, `tfe-scheduler`), restarted by every deploy; `.env` can come
 from the `PROD_ENV` secret. Everything below about cPanel is
 history — the cPanel deploy scripts are deleted.
 
+**Changing `SESSION_DOMAIN` strands old cookies.** cPanel ran with
+`SESSION_DOMAIN=".okjtech.co.ke"`; the VPS issues on `tfe.okjtech.co.ke`. A
+browser that used the old site then holds the session + `XSRF-TOKEN` cookies
+under BOTH domains, sends both, and PHP reads the stale one first — every
+login answered 419 "Page Expired" while a fresh browser worked.
+`ForgetShadowedCookies` (web group) spots a name that arrived twice and sends
+expired copies for every other domain, so the next request is clean. Guarded
+by `tests/Feature/Auth/ShadowedCookiesTest.php`.
+
 ### cPanel shared hosting (cron worker) — OBSOLETE
 
 Shared cPanel plans can't run supervisor, but they always run cron.
