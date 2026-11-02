@@ -1,285 +1,130 @@
-/* Share Modal */
-.share-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 10001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
+/* Share dialog body (Components/ShareModal). The dialog chrome — rail, header,
+   footer, buttons — is TfeModal's; this sheet only lays out the pane. */
 
-.share-modal {
-    background: #0a0a0a;
-    border: 1px solid #222;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
+.share-form {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 16px;
 }
 
-.share-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #222;
-}
-
-.share-modal-header h3 {
-    color: #fff;
-    margin: 0;
-    font-size: 1.2rem;
-}
-
-.share-modal-close {
-    background: transparent;
-    border: none;
-    color: #a0a0a0;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-.share-modal-close:hover {
-    background: rgba(220, 20, 60, 0.1);
-    color: #dc143c;
-}
-
-.share-modal-body {
-    padding: 20px;
-    overflow-y: auto;
-    flex: 1;
-}
-
+/* The post being shared, quoted. Same surface as .tfe-textarea beneath it so
+   the two read as one family, clamped so a long post cannot push the
+   recipients out of view. */
 .share-preview {
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
-}
-
-.share-preview-content {
-    color: #a0a0a0;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border-divider, rgb(255 255 255 / 10%));
+    border-radius: 12px;
+    background: rgb(255 255 255 / 4%);
+    color: rgb(255 255 255 / 72%);
     font-size: 0.9rem;
     line-height: 1.5;
-    max-height: 60px;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-.share-message-input {
-    margin-bottom: 20px;
-}
-
-.share-message-textarea {
-    width: 100%;
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 8px;
-    color: #fff;
-    padding: 12px;
-    font-size: 0.9rem;
-    resize: vertical;
-    font-family: inherit;
-}
-
-.share-message-textarea:focus {
-    outline: none;
-    border-color: #dc143c;
-    box-shadow: 0 0 0 2px rgba(220, 20, 60, 0.2);
-}
-
-.share-message-textarea::placeholder {
-    color: #666;
-}
-
-/* Tabs */
-.share-tabs {
+.share-recipients {
     display: flex;
+    flex-direction: column;
     gap: 8px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #222;
 }
 
-.share-tab {
-    background: transparent;
-    border: none;
-    color: #a0a0a0;
-    padding: 12px 16px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-}
-
-.share-tab:hover {
-    color: #fff;
-}
-
-.share-tab.active {
-    color: #dc143c;
-    border-bottom-color: #dc143c;
-}
-
-/* Recipients List */
-.share-recipients-list {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-bottom: 15px;
-}
-
-.share-recipient-item {
+.share-recipient {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    border: 1px solid #222;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 4%);
+    color: #fff;
+    font: inherit;
+    text-align: left;
     cursor: pointer;
-    transition: all 0.3s ease;
-    background: #111;
+    transition: border-color 0.18s ease, background 0.18s ease;
 }
 
-.share-recipient-item:hover {
-    border-color: #dc143c;
-    background: rgba(220, 20, 60, 0.05);
+.share-recipient:hover {
+    border-color: rgb(255 255 255 / 28%);
+    background: rgb(255 255 255 / 8%);
 }
 
-.share-recipient-item.selected {
-    border-color: #dc143c;
-    background: rgba(220, 20, 60, 0.1);
+.share-recipient.is-selected {
+    border-color: rgb(255 255 255 / 70%);
+    background: rgb(255 255 255 / 12%);
 }
 
-.share-recipient-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #222;
+.share-recipient:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 70%);
+    outline-offset: 2px;
 }
 
-.share-recipient-avatar.tribe-avatar {
-    background: #111;
+.share-recipient__avatar {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #dc143c;
-    font-size: 1.2rem;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 8%);
+    color: rgb(255 255 255 / 60%);
 }
 
-.share-recipient-avatar.tribe-avatar img {
+.share-recipient__avatar--tribe {
+    border-radius: 10px;
+}
+
+.share-recipient__avatar img {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
     object-fit: cover;
 }
 
-.share-recipient-name {
-    flex: 1;
-    color: #fff;
-    font-size: 0.9rem;
+.share-recipient__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 2px;
+}
+
+.share-recipient__name {
+    overflow: hidden;
     font-weight: 500;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.share-recipient-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+.share-recipient__tag {
+    font-size: 0.68rem;
     font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 50%);
 }
 
-.share-recipient-badge.public {
-    background: rgba(220, 20, 60, 0.2);
-    color: #dc143c;
+.share-recipient__check {
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+    color: rgb(255 255 255 / 18%);
 }
 
-.share-recipient-badge.member {
-    background: rgba(0, 123, 255, 0.2);
-    color: #007bff;
-}
-
-.share-recipient-check {
-    color: #dc143c;
-    font-size: 1.2rem;
-}
-
-.share-empty-state {
-    text-align: center;
-    color: #666;
-    padding: 40px 20px;
-    font-size: 0.9rem;
-}
-
-.share-selected-count {
-    background: rgba(220, 20, 60, 0.1);
-    border: 1px solid #dc143c;
-    border-radius: 8px;
-    padding: 10px 15px;
-    color: #dc143c;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-align: center;
-}
-
-.share-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 20px;
-    border-top: 1px solid #222;
-}
-
-.btn-share-cancel {
-    background: transparent;
-    border: 1px solid #222;
-    color: #a0a0a0;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.btn-share-cancel:hover {
-    border-color: #dc143c;
-    color: #dc143c;
-    background: rgba(220, 20, 60, 0.1);
-}
-
-.btn-share-submit {
-    background: #dc143c;
-    border: none;
+.share-recipient.is-selected .share-recipient__check {
     color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
 }
 
-.btn-share-submit:hover:not(:disabled) {
-    background: #b81235;
-    transform: translateY(-1px);
-}
-
-.btn-share-submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.share-recipients__empty {
+    margin: 0;
+    padding: 32px 0;
+    text-align: center;
+    color: rgb(255 255 255 / 50%);
 }

@@ -46,6 +46,11 @@
         @if ($isDashboard)
             <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/bootstrap-utilities.css') }}">
             <link rel="stylesheet" href="{{ asset('new-landing-template/assets/css/bootstrap-grid.css') }}">
+            {{-- Bootstrap's `.border` is `!important` and paints #dee2e6, so
+                 a Tailwind `border border-white/10` on a dashboard came out
+                 as a light-grey outline on the dark canvas. Point its colour
+                 at the theme hairline instead. --}}
+            <style>:root { --bs-border-color: var(--border-divider, rgba(255, 255, 255, 0.1)); --bs-border-color-translucent: var(--border-divider, rgba(255, 255, 255, 0.1)); }</style>
         @endif
 
         <!-- Scripts -->

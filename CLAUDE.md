@@ -1235,6 +1235,15 @@ PM2 (`tfe-queue`, `tfe-scheduler`), restarted by every deploy; `.env` can come
 from the `PROD_ENV` secret. Everything below about cPanel is
 history — the cPanel deploy scripts are deleted.
 
+**Changing `SESSION_DOMAIN` strands old cookies.** cPanel ran with
+`SESSION_DOMAIN=".okjtech.co.ke"`; the VPS issues on `tfe.okjtech.co.ke`. A
+browser that used the old site then holds the session + `XSRF-TOKEN` cookies
+under BOTH domains, sends both, and PHP reads the stale one first — every
+login answered 419 "Page Expired" while a fresh browser worked.
+`ForgetShadowedCookies` (web group) spots a name that arrived twice and sends
+expired copies for every other domain, so the next request is clean. Guarded
+by `tests/Feature/Auth/ShadowedCookiesTest.php`.
+
 ### cPanel shared hosting (cron worker) — OBSOLETE
 
 Shared cPanel plans can't run supervisor, but they always run cron.
@@ -2002,6 +2011,14 @@ tests/
   renders unstyled. That is the bare "#1" on the Predict leaderboard and the
   colour-bar tournament pill (Sprint 48), and the invisible passkey spinner on
   the security page (Sprint 56).
+- Never colour a border with a Tailwind utility on a dashboard
+  (`border border-white/10`, `border-transparent`, `border-red-500`).
+  `bootstrap-utilities.css` owns `.border` there and sets it `!important`,
+  so the Tailwind colour never applies. Until the blade gate pointed
+  `--bs-border-color` at `--border-divider`, every one rendered as a
+  light-grey #dee2e6 outline (the Share dialog, Wallet, Savings Goals).
+  The floor is a hairline now, but a selected or hover colour still loses —
+  give the element a class, as `ShareModal`'s `.share-recipient` does.
 - Never use an `admin-*` class in a shared component. `admin-theme.css` is
   loaded by AdminLayout alone, so the 2FA dialog's `admin-card-dark` panel was
   a no-op on the fan and partner security pages and the QR dialog came up in
