@@ -245,6 +245,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* The trigger's global wrapper sits above dialogs (it also carries the
+   toaster, which must), so the button covered TfeModal's footer actions on a
+   phone. Step it aside while any dialog is open. */
+body:has(.tfe-modal-overlay) .command-menu-trigger {
+  visibility: hidden;
+}
+
 .command-menu-trigger:hover {
   transform: scale(1.1);
   background: #dc143c;

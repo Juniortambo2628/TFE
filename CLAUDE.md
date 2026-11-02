@@ -2011,6 +2011,14 @@ tests/
   renders unstyled. That is the bare "#1" on the Predict leaderboard and the
   colour-bar tournament pill (Sprint 48), and the invisible passkey spinner on
   the security page (Sprint 56).
+- Never colour a border with a Tailwind utility on a dashboard
+  (`border border-white/10`, `border-transparent`, `border-red-500`).
+  `bootstrap-utilities.css` owns `.border` there and sets it `!important`,
+  so the Tailwind colour never applies. Until the blade gate pointed
+  `--bs-border-color` at `--border-divider`, every one rendered as a
+  light-grey #dee2e6 outline (the Share dialog, Wallet, Savings Goals).
+  The floor is a hairline now, but a selected or hover colour still loses —
+  give the element a class, as `ShareModal`'s `.share-recipient` does.
 - Never use an `admin-*` class in a shared component. `admin-theme.css` is
   loaded by AdminLayout alone, so the 2FA dialog's `admin-card-dark` panel was
   a no-op on the fan and partner security pages and the QR dialog came up in

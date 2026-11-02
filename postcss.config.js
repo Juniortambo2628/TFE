@@ -109,6 +109,7 @@ if (process.env.NODE_ENV === 'production') {
                     /^hero-/,          // hero-stat-*, hero-stat-box, hero-stat-item (dashboard heroes)
                     /^profile-/,       // profile-preview-*, profile-*
                     /^tribe-/,         // tribe cards, tribe detail, tribe-header
+                    /^share-/,         // ShareModal body (share-recipient + is-selected)
                     /^publisher/,      // publisherSummary rendered classes
                     /^avatar/,         // avatar classes
                     /^empty-/,         // empty-state variants
