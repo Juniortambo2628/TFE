@@ -4,7 +4,10 @@ import { watchErrors, expectFooterVisible } from './helpers';
 test('public planner reaches an estimate with its actions on screen', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto('/');
-    await page.getByRole('button', { name: /Plan my trip/i }).first().click();
+    // Whichever general "plan a trip" entry point is on screen: the header's
+    // on desktop, the tab bar's on phones. (The hero's now names its stadium,
+    // and the closed mobile menu holds a hidden copy.)
+    await page.getByRole('button', { name: /^Plan (my|a) trip$/i }).filter({ visible: true }).first().click();
 
     const dialog = page.getByRole('dialog').filter({ has: page.locator('.tfe-modal__foot') });
     await expect(dialog).toBeVisible();

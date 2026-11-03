@@ -3,6 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import AccentCard from '@/Components/Common/AccentCard';
+import BackNav from '@/Components/Common/BackNav';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partners-index.css';
 
@@ -56,6 +57,7 @@ export default function PartnersIndex({ profiles = [], partner_types = {}, tourn
                     style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
                 >
                     <div className="container">
+                        <BackNav crumbs={[{ label: 'Partners' }]} />
                         <div className="partners-index-hero__eyebrow">The Football Experience</div>
                         <h1 className="partners-index-hero__title">Every partner behind your trip</h1>
                         <p className="partners-index-hero__subtitle">

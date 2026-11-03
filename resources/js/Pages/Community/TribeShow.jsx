@@ -16,6 +16,7 @@ export default function TribeShow({ tribe }) {
             title={tribe.name}
             heroSlot={
                 <PageHero
+                    breadcrumbs={[{ label: 'Tribes', href: route('community.tribes') }, { label: tribe.name }]}
                     eyebrow={isPrivate ? 'Tribe · join by request' : 'Tribe · open to all'}
                     title={tribe.name}
                     tagline={tribe.excerpt}

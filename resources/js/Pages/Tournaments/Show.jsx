@@ -48,6 +48,7 @@ export default function TournamentShow({ tournament = {}, listings = [], upcomin
 
     const hero = (
         <PageHero
+            breadcrumbs={[{ label: t.name }]}
             accent={accent}
             background={t.organizer_card_bg}
             eyebrow={`${organizer} · ${statusLabel}`}

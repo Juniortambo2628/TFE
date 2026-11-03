@@ -6,6 +6,47 @@
    unstyled on /partners. Header layout: logo (left) · nav (centre) ·
    switcher + Sign In (right), with a glass dropdown on mobile.
    ========================================================================== */
+/* Logo — larger, without a taller header (UX review, 2 Nov 2026: "it
+ * carries the aspirations"). The template's .header padding (styles.css:
+ * 28px desktop, 20px below lg, 15px once scrolled into .fixed-header) is
+ * trimmed by exactly what the logo gained, so the header box keeps the
+ * height every public hero already clears: 126px desktop, 110px below lg.
+ * Change one and change the other.
+ *
+ * `.header.tfe-header` outranks the template's `.header`, which loads as a
+ * plain <link> and so cannot be ordered against this sheet. The size used
+ * to be an inline maxHeight on the <img>; colour and size live in CSS. */
+.header.tfe-header {
+    padding: 19px 0;
+}
+.header.tfe-header.fixed-header {
+    padding: 8px 0;
+}
+.tfe-header .tfe-logo-img {
+    display: block;
+    height: 88px;
+    width: auto;
+    transition: height 0.3s ease;
+}
+.tfe-header.fixed-header .tfe-logo-img {
+    height: 72px;
+}
+
+@media (max-width: 991.98px) {
+    .header.tfe-header {
+        padding: 15px 0;
+    }
+    .header.tfe-header.fixed-header {
+        padding: 10px 0;
+    }
+    .tfe-header .tfe-logo-img {
+        height: 80px;
+    }
+    .tfe-header.fixed-header .tfe-logo-img {
+        height: 64px;
+    }
+}
+
 .tfe-header .header-wrapper {
     gap: 1rem;
 }

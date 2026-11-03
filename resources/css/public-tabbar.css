@@ -1,0 +1,133 @@
+/* ==========================================================================
+   Public bottom tab bar (PublicTabBar.jsx) — phones and tablets, public pages.
+   UX review, 2 Nov 2026, plan item B4.
+
+   The bar's height is one variable, --tfe-tabbar-h, set on <body> only
+   while the bar is mounted (`body:has(.tfe-tabbar)`, the MobileActionBar
+   precedent). Everything that must clear the bar reads that variable with a
+   0px fallback, so a page without the bar is untouched.
+   ========================================================================== */
+
+.tfe-tabbar {
+    display: none;
+}
+
+@media (max-width: 991.98px) {
+    body:has(.tfe-tabbar) {
+        --tfe-tabbar-h: calc(64px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: var(--tfe-tabbar-h);
+    }
+
+    /* Whatever the browser scrolls into view (a tabbed-to link, an anchor)
+       stops above the bar, not under it. */
+    html:has(.tfe-tabbar) {
+        scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 12px);
+    }
+
+    .tfe-tabbar {
+        display: block;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* Above the header (1000) and docked StepFlow (1050); below the
+           cookie banner (1070) and every dialog (1080), so the trip planner
+           this bar opens covers it. */
+        z-index: 1060;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: rgba(10, 10, 12, 0.92);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .tfe-tabbar__list {
+        display: flex;
+        margin: 0 auto;
+        padding: 0 4px;
+        max-width: 640px;
+        list-style: none;
+    }
+
+    .tfe-tabbar__list > li {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .tfe-tabbar__item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 100%;
+        height: 64px;
+        padding: 0 2px;
+        border: 0;
+        background: none;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.1;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.2s ease;
+    }
+
+    .tfe-tabbar__item span {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tfe-tabbar__item i {
+        font-size: 1.15rem;
+        line-height: 1;
+    }
+
+    .tfe-tabbar__item:hover,
+    .tfe-tabbar__item:focus-visible,
+    .tfe-tabbar__item[aria-current='page'],
+    .tfe-tabbar__item[aria-expanded='true'] {
+        color: #fff;
+    }
+
+    .tfe-tabbar__item[aria-current='page'] i,
+    .tfe-tabbar__item[aria-expanded='true'] i {
+        color: var(--tfe-tabbar-accent, #dc143c);
+    }
+
+    .tfe-tabbar__item:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.6);
+        outline-offset: -4px;
+        border-radius: 12px;
+    }
+
+    /* The one action the whole platform is built around gets the accent. */
+    .tfe-tabbar__item--primary i {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 26px;
+        border-radius: 999px;
+        background: var(--tfe-tabbar-accent, #dc143c);
+        color: #fff;
+        font-size: 0.85rem;
+    }
+
+    .tfe-tabbar__item--primary {
+        color: #fff;
+    }
+
+    /* Everything else pinned to the bottom of a public page sits above the
+       bar rather than under it. */
+    body:has(.tfe-tabbar) .tfe-consent {
+        bottom: calc(var(--tfe-tabbar-h) + 12px);
+    }
+
+    body:has(.tfe-tabbar) .tfe-stepflow--docked {
+        bottom: calc(var(--tfe-tabbar-h) + 12px);
+    }
+}

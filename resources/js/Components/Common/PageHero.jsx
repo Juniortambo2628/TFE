@@ -1,6 +1,7 @@
 import React from 'react';
 import '../../../css/partner-hub.css';
 import { assetPath } from '@/lib/assets';
+import BackNav from '@/Components/Common/BackNav';
 
 /**
  * PageHero — the shared public-page hero, reusing the partner hub hero layout
@@ -15,8 +16,10 @@ import { assetPath } from '@/lib/assets';
  *  - ctas [{label, href | onClick, icon?, filled?}] — several (first is filled by default)
  *  - media {src, alt} — an image (e.g. a trophy) floating on the right
  *  - children — extra hero content under the tagline (host pills, meta, …)
+ *  - breadcrumbs [{label, href?}] — the trail after Home, current page last;
+ *    renders BackNav (Back + breadcrumb) above the eyebrow
  */
-export default function PageHero({ eyebrow, title, tagline, background, accent = '#dc143c', cta, ctas, media, children }) {
+export default function PageHero({ eyebrow, title, tagline, background, accent = '#dc143c', cta, ctas, media, breadcrumbs, children }) {
     const bg = assetPath(background) || '';
     const ctaList = (ctas && ctas.length) ? ctas : (cta ? [cta] : []);
 
@@ -38,6 +41,10 @@ export default function PageHero({ eyebrow, title, tagline, background, accent =
     return (
         <section className={'partner-hub-hero page-hero' + (media ? ' page-hero--split' : '')} style={style}>
             <div className="container">
+                {/* Above the grid, not in the copy column: a split hero stacks
+                    its media first on phones, which put the Back button
+                    halfway down the screen. */}
+                {breadcrumbs && <BackNav crumbs={breadcrumbs} />}
                 <div className="page-hero__grid">
                     <div className="page-hero__body">
                         {eyebrow && <div className="partner-hub-hero__eyebrow">{eyebrow}</div>}

@@ -4,6 +4,7 @@ import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import PageHero from '@/Components/Common/PageHero';
+import BackNav from '@/Components/Common/BackNav';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../../css/hero-enhancements.css';
 
@@ -16,7 +17,10 @@ import '../../../css/hero-enhancements.css';
  * a spacer so the section clears the fixed header, the section itself, the
  * footer, and the cookie consent.
  */
-export default function SectionPageShell({ title, hero, heroSlot, children }) {
+// `breadcrumbs` is the trail after Home ([{label, href?}], current page last).
+// It reaches the shell's own PageHero; a page passing `heroSlot` hands it to
+// its PageHero itself.
+export default function SectionPageShell({ title, hero, heroSlot, breadcrumbs, children }) {
     useEffect(() => {
         // Same rAF-throttled fixed-header toggle the landing page uses so the
         // header picks up its scrolled background on these pages too.
@@ -56,9 +60,15 @@ export default function SectionPageShell({ title, hero, heroSlot, children }) {
                         tagline={hero.tagline}
                         background={hero.background}
                         cta={hero.cta_label ? { label: hero.cta_label, href: hero.cta_href } : undefined}
+                        breadcrumbs={breadcrumbs ?? [{ label: title || hero.title }]}
                     />
                 ) : (
-                    <div className="section-page-spacer" aria-hidden="true" />
+                    <>
+                        <div className="section-page-spacer" aria-hidden="true" />
+                        <div className="container">
+                            <BackNav crumbs={breadcrumbs ?? [{ label: title }]} />
+                        </div>
+                    </>
                 )}
                 {children}
                 <Footer />

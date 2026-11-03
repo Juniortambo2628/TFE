@@ -29,6 +29,13 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
     return (
         <SectionPageShell
             title={listing.name}
+            breadcrumbs={listing.publisher?.slug
+                ? [
+                    { label: 'Partners', href: route('partners.index') },
+                    { label: listing.publisher.display_name, href: route('partners.hub', listing.publisher.slug) },
+                    { label: listing.name },
+                ]
+                : [{ label: listing.name }]}
             hero={{
                 eyebrow: [titleCase(listing.type), tournament?.short_name].filter(Boolean).join(' · '),
                 title: listing.name,

@@ -978,7 +978,9 @@
 @media (max-width: 575px) {
     .hero-stat-card-gradient { height: 100px; }
     .hero-stats-title { font-size: 1.1rem; }
-    .hero-top-bar { padding-top: 60px; }
+    /* Below the fixed header (110px tall here — see header.css), not
+       inside it: at 60px the stadium badge ran straight through the logo. */
+    .hero-top-bar { padding-top: 120px; }
     .hero-top-bar-inner { flex-wrap: wrap; gap: 0.5rem; }
     .flag-carousel-compact { max-width: 240px; }
 }
@@ -1305,4 +1307,75 @@
     /* Non-interactive decoration sitting under the hero content. */
     pointer-events: none;
     user-select: none;
+}
+
+/* Below xl (phones, tablets, small laptops) — the tournament card sits at the TOP of the
+ * hero, just under the stadium badge (UX review, 2 Nov 2026; the compact card
+ * itself is in accent-card.css). Every stadium photo puts the ground in its
+ * lower half with sky above, so a card pinned to the bottom — the first
+ * attempt — still covered the stadium. Up here it covers sky.
+ *
+ * padding-top clears the fixed header (110px) and the badge under it
+ * (.hero-top-bar, ~120–150px); padding-bottom the flag marquee. `!important`
+ * because the element carries Bootstrap's .justify-content-center and .pb-5,
+ * which are themselves !important. */
+@media (max-width: 1199.98px) {
+    /* Below xl the world map is hidden and the card stands alone. */
+    .hero-content-stack--roomy {
+        justify-content: flex-start !important;
+        padding-top: 156px;
+        padding-bottom: 124px !important;
+    }
+}
+@media (max-width: 575.98px) {
+    /* The badge sits lower on phones (.hero-top-bar 120px, below the header). */
+    .hero-content-stack--roomy {
+        padding-top: 166px;
+    }
+}
+
+/* The hero is a full screen tall, and the public tab bar (public-tabbar.css)
+ * covers the bottom 64px of the screen below lg — so the hero is the screen
+ * MINUS the bar, or its flag strip and the pinned tournament card land under
+ * the bar. --tfe-tabbar-h is only set while the bar is mounted; the 0px
+ * fallback leaves every other case as it was. `svh` so a phone's collapsing
+ * URL bar cannot push the card off-screen either. */
+@media (max-width: 991.98px) {
+    .tfe-hero-slider {
+        height: calc(100svh - var(--tfe-tabbar-h, 0px));
+        max-height: calc(100svh - var(--tfe-tabbar-h, 0px));
+    }
+}
+@media (max-width: 575.98px) {
+    .tfe-hero-slider {
+        height: auto;
+        max-height: none;
+        min-height: calc(100svh - var(--tfe-tabbar-h, 0px));
+    }
+}
+
+/* Wide screens — slider arrows bottom-LEFT, under the map. Bottom-right they
+ * sat on top of the tournament card's CTAs on every laptop (1200–1366px),
+ * since the card fills the right-hand column. The flag marquee keeps 160px
+ * clear on each side for exactly this kind of control (.hero-bottom-bar-inner).
+ * `!important` because the element carries Bootstrap's .end-0 / .me-5. */
+@media (min-width: 1200px) {
+    .hero-stadium-controls {
+        right: auto !important;
+        left: 0;
+        margin-right: 0 !important;
+        margin-left: 3rem !important;
+    }
+}
+
+/* Short wide screens (1366x768 is the commonest laptop) — the content stack
+ * reserves 148px on top for the centred stadium badge, but the tournament
+ * card sits in the right-hand column, clear of it. Trading some of that for
+ * bottom room keeps the card off the attribution pill in the bottom bar.
+ * `!important` on padding-bottom because the element carries Bootstrap's .pb-5. */
+@media (min-width: 1200px) and (max-height: 820px) {
+    .hero-content-stack--roomy {
+        padding-top: 104px;
+        padding-bottom: 72px !important;
+    }
 }

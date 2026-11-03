@@ -417,12 +417,17 @@ export default function Register() {
                                 ) : (
                                     <div></div>
                                 )}
+                                {/* Distinct keys, so React builds a NEW <button> for the
+                                    last step. With one shared node, clicking Next swapped its
+                                    type to "submit" while the click was still being handled,
+                                    the browser submitted the form, and the visitor landed on
+                                    step 3 to a "you must agree" warning they had not earned. */}
                                 {currentStep < totalSteps ? (
-                                    <button type="button" className="tfe-auth__submit" style={{ width: 'auto', minWidth: '180px' }} onClick={nextStep}>
+                                    <button key="next" type="button" className="tfe-auth__submit" style={{ width: 'auto', minWidth: '180px' }} onClick={nextStep}>
                                         Next <i className="fas fa-arrow-right ms-2"></i>
                                     </button>
                                 ) : (
-                                    <button type="submit" className="tfe-auth__submit" style={{ width: 'auto', minWidth: '180px' }} disabled={processing}>
+                                    <button key="submit" type="submit" className="tfe-auth__submit" style={{ width: 'auto', minWidth: '180px' }} disabled={processing}>
                                         {processing ? 'Creating Account...' : 'Complete Registration'}
                                     </button>
                                 )}

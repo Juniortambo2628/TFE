@@ -12,8 +12,11 @@
     min-height: 100vh;
 }
 
+/* Top padding clears the fixed public header (126px desktop, 110px below
+   lg — see header.css) with room to spare; 6rem/4rem left the eyebrow
+   running under the logo at every width. */
 .partners-index-hero {
-    padding: 6rem 0 4rem;
+    padding: 9.5rem 0 4rem;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -321,7 +324,7 @@
 
 @media (max-width: 640px) {
     .partners-index-hero {
-        padding: 4rem 0 3rem;
+        padding: 8.5rem 0 3rem;
     }
     .partners-index-hero__title {
         font-size: 2rem;
