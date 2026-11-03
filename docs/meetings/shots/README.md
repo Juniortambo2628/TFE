@@ -77,9 +77,7 @@ truncated to "H… › Par… › Serengeti Spo…").
 
 ## B2 — stadium buttons (3 Nov 2026)
 
-The hero card now says which stadium its buttons act on: **Now showing:
-Raila Odinga International Stadium · Nairobi**, following the carousel, with
-**Matches here** (that stadium's schedule) and **Trip to Nairobi**, which
+The hero card's buttons act on the stadium on screen: **Matches here** (that stadium's schedule) and **Trip to Nairobi**, which
 opens the planner on that stadium's matches (its name in the filter box, so
 the short list explains itself). A ground with no fixtures (Kipchoge Keino)
 opens the full list rather than an empty one. The details dialog repeats the
@@ -95,3 +93,9 @@ screen at 1200×800, 1280×800, 1366×768, 1440×900, 1536×864 and 1920×1080.
 
 Phone card: 263px (56–62% of the photo visible), up from 220px for the new
 line. Guarded by `tests/e2e/hero.spec.js` and `tests/JS/tripPlanner.test.mjs`.
+
+**3 Nov, later:** the card's "Now showing: {stadium} · {city}" line was removed.
+With the card moved under the stadium badge, the badge names the stadium
+directly above it; the line repeated it and was truncated on phones. The
+buttons keep "Matches here" / "Trip to {city}", and their accessible names
+still give the full stadium. Phone card: 220px.

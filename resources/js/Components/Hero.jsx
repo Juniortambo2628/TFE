@@ -421,7 +421,8 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
 
     // The two card CTAs follow the stadium on screen (UX review, 2 Nov 2026:
     // "View Matches / Plan My Trip" did not say they meant the stadium in the
-    // carousel). A slide that is not a real venue — the tournament fallback,
+    // carousel). The stadium itself is named by the badge above the card —
+    // a "Now showing" line in the card repeated it, truncated, and was cut. A slide that is not a real venue — the tournament fallback,
     // which has no city — keeps the generic labels.
     var venueCity = activeStadium.city || '';
     var isVenueSlide = !!venueCity;
@@ -643,20 +644,6 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                                     )}
 
                                     {renderHostPills()}
-
-                                    {/* Which stadium the two buttons below act on — it follows
-                                        the carousel. On phones the badge naming the stadium is a
-                                        screen away from the card, so the card says it itself. */}
-                                    {isVenueSlide && (
-                                        <p className="hero-card-venue">
-                                            <span className="hero-card-venue__label">Now showing</span>
-                                            <span className="hero-card-venue__name">
-                                                <i className="fas fa-location-dot" aria-hidden="true"></i>
-                                                <strong>{activeStadium.name}</strong>
-                                                <span className="hero-card-venue__city"> · {venueCity}</span>
-                                            </span>
-                                        </p>
-                                    )}
 
                                     {/* CTA Buttons */}
                                     <div className="hero-cta-buttons d-flex flex-row flex-wrap gap-2 mt-3">

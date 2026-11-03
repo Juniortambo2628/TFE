@@ -450,42 +450,6 @@
 
 .tfe-acard--hero .hero-countdown-row { flex-wrap: wrap; }
 
-/* "Now showing: {stadium} · {city}" — names the stadium the two CTAs under
- * it act on, and follows the carousel (UX review, 2 Nov 2026). */
-.hero-card-venue {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    margin: 1.1rem 0 0;
-    min-width: 0;
-}
-
-.hero-card-venue__label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.55);
-}
-
-.hero-card-venue__name {
-    display: block;
-    min-width: 0;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 0.95rem;
-    line-height: 1.3;
-}
-
-.hero-card-venue__name i {
-    color: var(--acard-accent, #dc143c);
-    margin-right: 0.4rem;
-}
-
-.hero-card-venue__name strong {
-    color: #fff;
-    font-weight: 600;
-}
-
 /* The details dialog repeats the card's two CTAs (Hero.jsx renderHeroCtas). */
 .hero-tournament-info__ctas {
     display: flex;
@@ -560,35 +524,6 @@
 
     .tfe-acard--hero .tfe-acard__slot {
         margin-top: 0.55rem;
-    }
-
-    .tfe-acard--hero .hero-card-venue {
-        margin-top: 0.6rem;
-        gap: 0.1rem;
-    }
-
-    .tfe-acard--hero .hero-card-venue__label {
-        font-size: 0.6rem;
-    }
-
-    .tfe-acard--hero .hero-card-venue__name {
-        display: flex;
-        align-items: baseline;
-        font-size: 0.85rem;
-    }
-
-    /* One line on a phone: a long ground ("Moi International Sports Centre,
-       Kasarani") truncates rather than growing the card over the photo. */
-    .tfe-acard--hero .hero-card-venue__name strong {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        min-width: 0;
-    }
-
-    .tfe-acard--hero .hero-card-venue__city {
-        flex-shrink: 0;
-        white-space: nowrap;
     }
 
     .tfe-acard--hero .hero-countdown-inline {

@@ -51,7 +51,8 @@ test('hero stadium CTAs follow the stadium on screen', async ({ page }) => {
     await page.addInitScript(() => { try { localStorage.removeItem('tfe.planner.v1'); } catch {} });
     await page.goto('/');
     const card = page.locator('.tfe-acard--hero');
-    const stadium = (await card.locator('.hero-card-venue strong').textContent()).trim();
+    // The stadium on screen is named by the badge above the card.
+    const stadium = (await page.locator('.hero-stadium-badge .fw-bold').textContent()).trim();
     const trip = card.locator('.hero-cta-buttons button').nth(1);
     await expect(card.locator('.hero-cta-buttons button').first()).toHaveText('Matches here');
     await expect(trip).toHaveText(/^Trip to \S/);
