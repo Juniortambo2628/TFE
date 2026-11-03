@@ -71,14 +71,14 @@ In parallel, Kevin writes the hotel partner proposal (week 1–2) and Steven and
   - Run each task on **v1** (`/`) and **v2** (`/v2`), alternating which version goes first.
   - Record device, OS and browser, time taken, where they got stuck, and a 1–5 rating.
 - [ ] **A4. Feedback sheet.** One Google Sheet (the connector is available) with a row per tester × task × version, so the round can be summarised in one place.
-- [ ] **A5. Baseline.** Before changing anything, take Playwright screenshots of the landing page, planner, partner hub, booking page and fan dashboard at 390px, 768px and 1280px. These are the "before" images for the review. `playwright.config.js` already has `desktop` and `phone` projects.
+- [x] **A5. Baseline.** *(Done 3 Nov: `docs/meetings/shots/before/`, via `scripts/ux-shots.mjs`.)* Before changing anything, take Playwright screenshots of the landing page, planner, partner hub, booking page and fan dashboard at 390px, 768px and 1280px. These are the "before" images for the review. `playwright.config.js` already has `desktop` and `phone` projects.
 - [ ] **A6. Ask Steven for the partner categories** (blocks B5 and C2). Until he replies, use the current `partner_type` set, grouped as Travel & stays (travel agent, hotel provider, airline), Money (finance partner), Tickets & events (ticketing, event organiser), and Football (club, federation, school/community, sponsor).
 
 ## Track B: v1 mobile fixes (Week 1, about 4 days)
 
 These go to the current site directly, so even v1 is fair to test on a phone.
 
-- [ ] **B1. Hero widget on mobile** (`Components/Hero.jsx` ~L439–581, hero CSS).
+- [x] **B1. Hero widget on mobile** *(Done 3 Nov: compact card, 71% of the photo visible at 390×760; see `docs/meetings/shots/README.md`.)* (`Components/Hero.jsx` ~L439–581, hero CSS).
   - Below 768px, the tournament `AccentCard` turns into a **compact bottom strip** over the carousel: tournament name, a single-line countdown (`12d 04h`) instead of four SVG dials, and the two CTAs as pills.
   - Details (hosts, dates) move behind an ⓘ that opens a `TfeModal`.
   - Done when the stadium photo is visible on at least 60% of a 390×760 viewport.

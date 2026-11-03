@@ -169,6 +169,10 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
     const [isPaused, setIsPaused] = useState(false);
     const [loaderReady, setLoaderReady] = useState(typeof window !== 'undefined' && window.tfeLoaderFinished === true);
     const [activeModalTab, setActiveModalTab] = useState('matches');
+    // Phones/tablets show a compact tournament card so the stadium carousel
+    // stays visible (UX review, 2 Nov 2026); the parts it drops — tagline,
+    // countdown dials, host pills — open in this dialog from the card's ⓘ.
+    const [showTournamentInfo, setShowTournamentInfo] = useState(false);
     
     const carouselRef = useRef(null);
     const controls = useAnimation();
@@ -302,6 +306,118 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
             ? matches.filter(function (m) { return m.home === selectedTeam || m.away === selectedTeam; })
             : matches;
     }, [selectedTeam, matches]);
+
+    // The countdown's four parts, shared by the dials (card on desktop, and
+    // the details dialog) and the one-line compact countdown (card on phones).
+    var countdownParts = [
+        { label: 'days', short: 'd', value: timeLeft.days || 0, max: 1000 },
+        { label: 'hrs', short: 'h', value: timeLeft.hours || 0, max: 24 },
+        { label: 'min', short: 'm', value: timeLeft.minutes || 0, max: 60 },
+        { label: 'sec', short: 's', value: timeLeft.seconds || 0, max: 60 },
+    ];
+
+    // Concluded recap or countdown dials. Rendered in the card and again in
+    // the details dialog, so the two cannot drift apart.
+    function renderTournamentStatus() {
+        if (isConcluded) {
+            return (
+                <div className="d-flex flex-column gap-3">
+                    {tournament.winner && (
+                        <div className="d-flex align-items-center gap-3">
+                            {teamNameToCode(tournament.winner) && (
+                                <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
+                            )}
+                            <span className="hero-pill-red">{tournament.winner}</span>
+                            <span className="text-white-50 hero-concluded-label">champion</span>
+                        </div>
+                    )}
+                    {tournament.runner_up && (
+                        <div className="d-flex align-items-center gap-3">
+                            {teamNameToCode(tournament.runner_up) && (
+                                <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
+                            )}
+                            <span className="hero-pill-red">{tournament.runner_up}</span>
+                            <span className="text-white-50 hero-concluded-runner-label">runner-up</span>
+                        </div>
+                    )}
+                    {tournament.final_score && (
+                        <div className="mt-1">
+                            <span className="hero-pill-red">{tournament.final_score}</span>
+                        </div>
+                    )}
+                    {tournament.top_scorer && tournament.top_scorer.name && (
+                        <div className="d-flex align-items-center gap-2">
+                            <i className="fas fa-shoe-prints text-danger hero-scorer-shoe-icon"></i>
+                            <span className="text-white hero-scorer-name-inline">{tournament.top_scorer.name}</span>
+                            {tournament.top_scorer.goals && <span className="hero-pill-red">{tournament.top_scorer.goals} goals</span>}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="hero-countdown-row">
+                {countdownParts.map((item) => {
+                    const size = 56;
+                    const radius = 24;
+                    const center = size / 2;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset = circumference - (item.value / item.max) * circumference;
+                    return (
+                        <div key={item.label} className="hero-countdown-item d-flex flex-column align-items-center gap-1">
+                            {/* Sized in CSS, not inline, so the dial can grow on
+                                narrow screens. The circle maths below stays in the
+                                56-unit space and viewBox scales it — no second set
+                                of radii to keep in sync. */}
+                            <div className="position-relative hero-countdown-dial">
+                                <svg viewBox={`0 0 ${size} ${size}`} className="hero-countdown-svg">
+                                    <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
+                                    <circle cx={center} cy={center} r={radius} fill="transparent" stroke={heroAccent} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+                                </svg>
+                                <div className="position-absolute top-50 start-50 translate-middle text-center">
+                                    <div className="text-white fw-bold font-monospace hero-countdown-value">{String(item.value).padStart(2, '0')}</div>
+                                </div>
+                            </div>
+                            <span className="hero-pill-red hero-countdown-label">{item.label}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    function renderHostPills() {
+        if (!tournament?.hosts || tournament.hosts.length === 0) return null;
+        return (
+            <div className="hero-card-hosts d-flex align-items-center gap-2 flex-wrap mt-3">
+                <i className="fas fa-map-marker-alt text-danger" aria-hidden="true"></i>
+                {tournament.hosts.map((host, idx) => {
+                    // Matched on the country name rather than on
+                    // array position: `hosts` and `host_flag_codes`
+                    // happen to be parallel today, but nothing
+                    // enforces that, and a silent mis-pairing here
+                    // would light up the wrong country.
+                    const isActive = !!activeStadium.country
+                        && host.trim().toLowerCase()
+                            === activeStadium.country.trim().toLowerCase();
+
+                    return (
+                        <GlassPill
+                            key={idx}
+                            size="sm"
+                            className={isActive ? 'is-active' : ''}
+                            aria-current={isActive ? 'true' : undefined}
+                        >
+                            {host}
+                        </GlassPill>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    var tournamentDesc = tournament?.tagline || (tournament?.wikipedia_extract ? tournament.wikipedia_extract.substring(0, 110) : '');
 
     return (
         <section className="banner-section position-relative d-flex flex-column justify-content-center min-vh-100 tfe-hero-slider" id="hero">
@@ -467,103 +583,29 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                                     artwork={heroTrophy}
                                     eyebrow={isConcluded ? 'Champions crowned' : 'Kicks off in'}
                                     title={tournament?.name || 'Tournament'}
-                                    desc={tournament?.tagline || (tournament?.wikipedia_extract ? tournament.wikipedia_extract.substring(0, 110) : '')}
+                                    desc={tournamentDesc}
+                                    cornerButton={{
+                                        icon: 'fas fa-info',
+                                        label: `About ${tournament?.name || 'the tournament'}`,
+                                        onClick: () => setShowTournamentInfo(true),
+                                    }}
                                 >
-                                    {isConcluded ? (
-                                        <div className="d-flex flex-column gap-3">
-                                            {tournament.winner && (
-                                                <div className="d-flex align-items-center gap-3">
-                                                    {teamNameToCode(tournament.winner) && (
-                                                        <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.winner)}.png`} alt="" className="hero-flag-sm" onError={function(e) { if (wikipediaFlags[tournament.winner]) { e.target.src = wikipediaFlags[tournament.winner]; } }} />
-                                                    )}
-                                                    <span className="hero-pill-red">{tournament.winner}</span>
-                                                    <span className="text-white-50 hero-concluded-label">champion</span>
-                                                </div>
-                                            )}
-                                            {tournament.runner_up && (
-                                                <div className="d-flex align-items-center gap-3">
-                                                    {teamNameToCode(tournament.runner_up) && (
-                                                        <img src={`${assetUrl}assets/Flags/${teamNameToCode(tournament.runner_up)}.png`} alt="" className="hero-flag-xs" onError={function(e) { if (wikipediaFlags[tournament.runner_up]) { e.target.src = wikipediaFlags[tournament.runner_up]; } }} />
-                                                    )}
-                                                    <span className="hero-pill-red">{tournament.runner_up}</span>
-                                                    <span className="text-white-50 hero-concluded-runner-label">runner-up</span>
-                                                </div>
-                                            )}
-                                            {tournament.final_score && (
-                                                <div className="mt-1">
-                                                    <span className="hero-pill-red">{tournament.final_score}</span>
-                                                </div>
-                                            )}
-                                            {tournament.top_scorer && tournament.top_scorer.name && (
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <i className="fas fa-shoe-prints text-danger hero-scorer-shoe-icon"></i>
-                                                    <span className="text-white hero-scorer-name-inline">{tournament.top_scorer.name}</span>
-                                                    {tournament.top_scorer.goals && <span className="hero-pill-red">{tournament.top_scorer.goals} goals</span>}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="hero-countdown-row d-flex gap-3 align-items-center">
-                                            {[
-                                                { label: 'days', value: timeLeft.days || 0, max: 1000 },
-                                                { label: 'hrs', value: timeLeft.hours || 0, max: 24 },
-                                                { label: 'min', value: timeLeft.minutes || 0, max: 60 },
-                                                { label: 'sec', value: timeLeft.seconds || 0, max: 60 }
-                                            ].map((item, idx) => {
-                                                const size = 56;
-                                                const radius = 24;
-                                                const center = size / 2;
-                                                const circumference = 2 * Math.PI * radius;
-                                                const strokeDashoffset = circumference - (item.value / item.max) * circumference;
-                                                return (
-                                                    <div key={idx} className="hero-countdown-item d-flex flex-column align-items-center gap-1">
-                                                        {/* Sized in CSS, not inline, so the dial can grow on
-                                                            narrow screens. The circle maths below stays in the
-                                                            56-unit space and viewBox scales it — no second set
-                                                            of radii to keep in sync. */}
-                                                        <div className="position-relative hero-countdown-dial">
-                                                            <svg viewBox={`0 0 ${size} ${size}`} className="hero-countdown-svg">
-                                                                <circle cx={center} cy={center} r={radius} fill="transparent" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
-                                                                <circle cx={center} cy={center} r={radius} fill="transparent" stroke={heroAccent} strokeWidth="2.5" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
-                                                            </svg>
-                                                            <div className="position-absolute top-50 start-50 translate-middle text-center">
-                                                                <div className="text-white fw-bold font-monospace hero-countdown-value">{String(item.value).padStart(2, '0')}</div>
-                                                            </div>
-                                                        </div>
-                                                        <span className="hero-pill-red hero-countdown-label">{item.label}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+                                    {renderTournamentStatus()}
+
+                                    {/* Phones/tablets: the four dials become one line, so the
+                                        card stops covering the stadium carousel. Hidden from
+                                        md up by CSS; the dials above are hidden below it. */}
+                                    {!isConcluded && (
+                                        <p className="hero-countdown-inline">
+                                            {countdownParts.slice(0, 3).map((item) => (
+                                                <span key={item.label} className="hero-countdown-inline__part">
+                                                    <strong>{String(item.value).padStart(2, '0')}</strong>{item.short}
+                                                </span>
+                                            ))}
+                                        </p>
                                     )}
 
-                                    {/* Host Countries */}
-                                    {tournament?.hosts && tournament.hosts.length > 0 && (
-                                        <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
-                                            <i className="fas fa-map-marker-alt text-danger"></i>
-                                            {tournament.hosts.map((host, idx) => {
-                                                // Matched on the country name rather than on
-                                                // array position: `hosts` and `host_flag_codes`
-                                                // happen to be parallel today, but nothing
-                                                // enforces that, and a silent mis-pairing here
-                                                // would light up the wrong country.
-                                                const isActive = !!activeStadium.country
-                                                    && host.trim().toLowerCase()
-                                                        === activeStadium.country.trim().toLowerCase();
-
-                                                return (
-                                                    <GlassPill
-                                                        key={idx}
-                                                        size="sm"
-                                                        className={isActive ? 'is-active' : ''}
-                                                        aria-current={isActive ? 'true' : undefined}
-                                                    >
-                                                        {host}
-                                                    </GlassPill>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                    {renderHostPills()}
 
                                     {/* CTA Buttons */}
                                     <div className="hero-cta-buttons d-flex flex-row flex-wrap gap-2 mt-4">
@@ -605,6 +647,36 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
 
 
             {/* Bottom section removed — flag carousel & stadium badge moved to top-center */}
+
+            {/* Tournament details — what the compact phone card leaves out
+                (tagline, countdown dials, host countries). Opened from the
+                card's ⓘ; on desktop the card already shows all of it. */}
+            <TfeModal
+                open={showTournamentInfo}
+                onClose={() => setShowTournamentInfo(false)}
+                label={isConcluded ? 'Champions crowned' : 'Kicks off in'}
+                title={tournament?.name || 'Tournament'}
+                footer={(
+                    <>
+                        <button type="button" className="tfe-btn" onClick={() => { setShowTournamentInfo(false); openModal(); }}>
+                            <i className="fas fa-calendar-alt me-2" aria-hidden="true"></i>View Matches
+                        </button>
+                        <button
+                            type="button"
+                            className="tfe-btn tfe-btn--filled"
+                            onClick={() => { setShowTournamentInfo(false); openTripPlanner({ tournamentId: tournament?.id }); }}
+                        >
+                            <i className="fas fa-plane me-2" aria-hidden="true"></i>Plan My Trip
+                        </button>
+                    </>
+                )}
+            >
+                <div className="hero-tournament-info">
+                    {tournamentDesc && <p className="hero-tournament-info__desc">{tournamentDesc}</p>}
+                    {renderTournamentStatus()}
+                    {renderHostPills()}
+                </div>
+            </TfeModal>
 
             {/* Venue / team detail dialog — the shared tabbed TfeModal. */}
             <TfeModal
