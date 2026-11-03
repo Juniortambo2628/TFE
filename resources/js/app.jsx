@@ -1,16 +1,22 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import React, { useState } from 'react';
 import IntroLoader from './Components/IntroLoader';
 import { installErrorReporter } from './lib/errorReporter';
+import { installNavHistory } from './lib/navHistory';
 
 // Uncaught errors and failed same-origin asset loads reach the server log
 // instead of only a tester's devtools (Sprint 69).
 installErrorReporter();
+
+// Records the visits made in this tab, so a public page's Back button
+// (Components/Common/BackNav) can go back one step without ever leaving the
+// site for wherever the visitor came from.
+installNavHistory(router);
 
 const appName = import.meta.env.VITE_APP_NAME || 'The Football Experience';
 

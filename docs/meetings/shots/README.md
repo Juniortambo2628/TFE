@@ -12,6 +12,7 @@ PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/ux-shots.mjs <label>
 | `before/` | The site as reviewed on 2 Nov 2026: home (full page, hero, mobile menu), trip planner, partners directory, a partner hub, tribes, and the fan dashboard / itineraries / budget calculator, at phone 390×760, tablet 768×1024 and desktop 1280×800. Full-page captures are 1×; viewport captures are 2×. |
 | `after-hero/` | Plan item B1, the compact tournament card on phones. |
 | `after-tabbar/` | Plan item B4, the bottom tab bar: home (guest with cookie banner, and after consent), menu open, planner open, end of page, partner hub — phone, iPhone SE, tablet; desktop shows no bar. |
+| `after-backnav/` | Plan item B5, Back + breadcrumb: about, partner hub, listing, tribes (phone + desktop), tournament (phone). |
 | `after-logo/` | Plan item B3, the larger logo (home, home scrolled, partners, a partner hub; phone + desktop). |
 
 ## B1 — hero tournament card (3 Nov 2026)
@@ -54,6 +55,20 @@ Partners · {tournament, e.g. AFCON 2027} · Menu**, always visible and labelled
   card end where the bar begins); the cookie banner and the partner hub's
   docked steps bar sit above it; page content is padded so the footer clears it.
 - Hidden from 992px up. Guarded by `tests/e2e/tabbar.spec.js`.
+
+## B5 — Back button + breadcrumb (3 Nov 2026)
+
+Every public page except Home: **← Back**, then the trail —
+Home › Partners › Serengeti Sports Travel › Matchday Transfers & Local Guide.
+On phones the trail is the Home icon and the parent only (all levels at 390px
+truncated to "H… › Par… › Serengeti Spo…").
+
+- **Back retraces the visit but never leaves the site.** Moving around TFE,
+  it is the browser's back. A page opened from outside (a shared link,
+  search) goes up to its parent instead, and keeps climbing: partner page →
+  Partners → Home. `lib/navHistory.js` keeps the record of this tab's visits.
+- The trip planner already had Back between its steps; unchanged.
+- Guarded by `tests/JS/navHistory.test.mjs` and `tests/e2e/backnav.spec.js`.
 
 **Seen in `before/`, still open:** at 1280×800 the desktop card runs under the slider arrows and
 past the bottom of the screen. That is unchanged by this work and is worth

@@ -7,6 +7,7 @@ import CapacityBar from '@/Components/Common/CapacityBar';
 import GlassPill from '@/Components/Common/GlassPill';
 import AccentCard from '@/Components/Common/AccentCard';
 import StepFlow from '@/Components/Common/StepFlow';
+import BackNav from '@/Components/Common/BackNav';
 import { formatSchedule } from '@/lib/schedule';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/partner-hub.css';
@@ -42,6 +43,12 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
                     style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
                 >
                     <div className="container">
+                        <BackNav
+                            crumbs={[
+                                { label: 'Partners', href: route('partners.index') },
+                                { label: profile?.display_name || 'Partner' },
+                            ]}
+                        />
                         <div className="partner-hub-hero__grid">
                             <div className="partner-hub-hero__identity">
                                 <div className="d-flex align-items-center gap-3 mb-3">

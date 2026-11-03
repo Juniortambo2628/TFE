@@ -91,7 +91,7 @@ These go to the current site directly, so even v1 is fair to test on a phone.
   - Portal it to `<body>`, like `MobileActionBar` and `StepFlow` docked (the `.tfe-page` containing-block trap).
   - "My trips" goes to `fan.itineraries`, which sends guests to sign-in.
   - Keep the hamburger for everything else, but label it "Menu".
-- [ ] **B5. Home/Back everywhere.**
+- [x] **B5. Home/Back everywhere.** *(Done 3 Nov: `Components/Common/BackNav` on all 13 public pages; the planner already had a Back step.)*
   - Add a back button and breadcrumb to `SectionPageShell` / `PageHero`, covering the partner hub, listing page, tournament page, tribes and learning hub.
   - Add a "← Back" step control in `TripPlannerDialog`.
   - Inside dashboards, the sidebar and header already provide this; check the booking page on a phone.

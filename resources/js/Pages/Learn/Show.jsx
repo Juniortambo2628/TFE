@@ -24,7 +24,11 @@ export default function LearnShow({ resource: r, related = [] }) {
     };
 
     return (
-        <SectionPageShell title={r.title} hero={hero}>
+        <SectionPageShell
+            title={r.title}
+            hero={hero}
+            breadcrumbs={[{ label: 'Learning Hub', href: route('learn.index') }, { label: r.title }]}
+        >
             <section className="py-5">
                 <div className="container">
                     <div className="d-flex align-items-center gap-2 flex-wrap mb-4">
