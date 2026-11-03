@@ -86,7 +86,7 @@ These go to the current site directly, so even v1 is fair to test on a phone.
 - [x] **B3. Bigger logo.** *(Done 3 Nov: 88px desktop / 80px phone, header height unchanged; badge and partners-hero overlaps fixed.)*
   - Move the inline `maxHeight: 70px` on `Header.jsx` L62 into CSS. The house rule is no inline styles on shared components.
   - Raise it: around 88px on desktop, and as large as the bar allows on mobile.
-- [ ] **B4. Labelled mobile navigation.**
+- [x] **B4. Labelled mobile navigation.** *(Done 3 Nov: `Components/PublicTabBar.jsx`; the tournament tab names the active tournament.)*
   - Add a **bottom tab bar** on public pages below 992px with labelled icons: **Plan a trip · My trips · Partners · Tournaments · Menu**.
   - Portal it to `<body>`, like `MobileActionBar` and `StepFlow` docked (the `.tfe-page` containing-block trap).
   - "My trips" goes to `fan.itineraries`, which sends guests to sign-in.

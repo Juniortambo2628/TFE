@@ -11,6 +11,7 @@ PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/ux-shots.mjs <label>
 |---|---|
 | `before/` | The site as reviewed on 2 Nov 2026: home (full page, hero, mobile menu), trip planner, partners directory, a partner hub, tribes, and the fan dashboard / itineraries / budget calculator, at phone 390×760, tablet 768×1024 and desktop 1280×800. Full-page captures are 1×; viewport captures are 2×. |
 | `after-hero/` | Plan item B1, the compact tournament card on phones. |
+| `after-tabbar/` | Plan item B4, the bottom tab bar: home (guest with cookie banner, and after consent), menu open, planner open, end of page, partner hub — phone, iPhone SE, tablet; desktop shows no bar. |
 | `after-logo/` | Plan item B3, the larger logo (home, home scrolled, partners, a partner hub; phone + desktop). |
 
 ## B1 — hero tournament card (3 Nov 2026)
@@ -39,6 +40,20 @@ still 126px / 110px tall and no page moved. Two overlaps under the logo,
 both visible in `before/`, are fixed: the phone hero's stadium badge (now
 below the header) and the partners directory's eyebrow, at every width.
 Guarded by `tests/e2e/hero.spec.js`.
+
+## B4 — bottom tab bar (3 Nov 2026)
+
+Phones and tablets (below 992px), every public page: **Plan a trip · My trips ·
+Partners · {tournament, e.g. AFCON 2027} · Menu**, always visible and labelled.
+
+- *Plan a trip* opens the trip planner. *My trips* goes to the fan's
+  itineraries; a guest is sent to sign in and lands there afterwards (checked).
+  Admins and partners get *Dashboard* instead. *Menu* opens the existing site
+  menu and turns into *Close*.
+- The hero is now the screen minus the bar (the flag strip and the tournament
+  card end where the bar begins); the cookie banner and the partner hub's
+  docked steps bar sit above it; page content is padded so the footer clears it.
+- Hidden from 992px up. Guarded by `tests/e2e/tabbar.spec.js`.
 
 **Seen in `before/`, still open:** at 1280×800 the desktop card runs under the slider arrows and
 past the bottom of the screen. That is unchanged by this work and is worth

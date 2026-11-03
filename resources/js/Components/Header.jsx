@@ -4,6 +4,7 @@ import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
 import assetPath from '@/lib/assets';
 import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
+import PublicTabBar from '@/Components/PublicTabBar';
 import { openTripPlanner } from '@/lib/tripPlanner';
 import '../../css/tournament-switcher.css';
 import '../../css/fan/dashboard-header-extras.css';
@@ -91,13 +92,14 @@ export default function Header() {
                             type="button"
                             onClick={() => setIsMenuOpen((v) => !v)}
                             aria-expanded={isMenuOpen}
-                            aria-label="Toggle navigation"
+                            aria-controls="tfe-mobile-nav"
+                            aria-label="Menu"
                         >
                             <i className={isMenuOpen ? 'fas fa-xmark' : 'fas fa-bars'} aria-hidden="true"></i>
                         </button>
                     </div>
 
-                    <div className={'tfe-mobile-nav d-lg-none' + (isMenuOpen ? ' show' : '')}>
+                    <div id="tfe-mobile-nav" className={'tfe-mobile-nav d-lg-none' + (isMenuOpen ? ' show' : '')}>
                         <ul className="navbar-nav">{renderLinks()}</ul>
                         <button
                             type="button"
@@ -136,6 +138,13 @@ export default function Header() {
             {/* Mounted once here so every public page shares one planner;
                 any CTA opens it with openTripPlanner() (Sprint 64). */}
             <TripPlannerDialog />
+            {/* Phones/tablets: labelled shortcuts at the bottom of every
+                public page (portalled to <body>; hidden from lg up). */}
+            <PublicTabBar
+                menuOpen={isMenuOpen}
+                onToggleMenu={() => setIsMenuOpen((v) => !v)}
+                menuId="tfe-mobile-nav"
+            />
         </header>
     );
 }

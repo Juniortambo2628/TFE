@@ -1324,7 +1324,24 @@
         padding-bottom: 124px !important;
     }
 
+}
+
+/* The hero is a full screen tall, and the public tab bar (public-tabbar.css)
+ * covers the bottom 64px of the screen below lg — so the hero is the screen
+ * MINUS the bar, or its flag strip and the pinned tournament card land under
+ * the bar. --tfe-tabbar-h is only set while the bar is mounted; the 0px
+ * fallback leaves every other case as it was. `svh` so a phone's collapsing
+ * URL bar cannot push the card off-screen either. */
+@media (max-width: 991.98px) {
     .tfe-hero-slider {
-        min-height: 100svh;
+        height: calc(100svh - var(--tfe-tabbar-h, 0px));
+        max-height: calc(100svh - var(--tfe-tabbar-h, 0px));
+    }
+}
+@media (max-width: 575.98px) {
+    .tfe-hero-slider {
+        height: auto;
+        max-height: none;
+        min-height: calc(100svh - var(--tfe-tabbar-h, 0px));
     }
 }

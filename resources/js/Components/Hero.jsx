@@ -420,7 +420,7 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
     var tournamentDesc = tournament?.tagline || (tournament?.wikipedia_extract ? tournament.wikipedia_extract.substring(0, 110) : '');
 
     return (
-        <section className="banner-section position-relative d-flex flex-column justify-content-center min-vh-100 tfe-hero-slider" id="hero">
+        <section className="banner-section position-relative d-flex flex-column justify-content-center tfe-hero-slider" id="hero">
             {/* Background Layer - Only this dissolves on slide change */}
             <div className="stadium-slider-wrapper position-absolute top-0 start-0 w-100 h-100 z-0">
                 <AnimatePresence mode='wait'>
