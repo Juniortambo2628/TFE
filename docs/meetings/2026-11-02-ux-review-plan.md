@@ -95,7 +95,7 @@ These go to the current site directly, so even v1 is fair to test on a phone.
   - Add a back button and breadcrumb to `SectionPageShell` / `PageHero`, covering the partner hub, listing page, tournament page, tribes and learning hub.
   - Add a "← Back" step control in `TripPlannerDialog`.
   - Inside dashboards, the sidebar and header already provide this; check the booking page on a phone.
-- [ ] **B6. Mobile pass on the booking path.** Planner → sign-up → booking → pay at 390px. Fix anything that overflows or hides the Pay button.
+- [x] **B6. Mobile pass on the booking path.** *(Done 3 Nov: 8 fixes, see `shots/README.md`. Open: without Paystack a booking cannot be paid at all — `partner_pay_url` is never set. Decide with D1.)* Planner → sign-up → booking → pay at 390px. Fix anything that overflows or hides the Pay button.
 - [ ] **B7.** Extend `tests/e2e` with a phone check that the hero CTAs and the tab bar are visible and tappable.
 
 ## Track C: v2 landing on the Najenga/Naoa structure (Week 2, about 6–7 days)
@@ -124,7 +124,7 @@ These go to the current site directly, so even v1 is fair to test on a phone.
 
 ## Track D: pitch readiness (Week 1, about 1 day, Kevin)
 
-- [ ] **D1. Paystack status.** Check whether `PAYSTACK_SECRET_KEY` is set on the VPS (`shared/.env`). If it isn't, the site runs the partner-checkout fallback. Decide whether to switch on Paystack test mode for the pitch.
+- [ ] **D1. Paystack status.** **Now blocking:** B6 found that without a key, bookings made through the planner cannot be paid on TFE at all (`partner_pay_url` exists in no backend code). Check whether `PAYSTACK_SECRET_KEY` is set on the VPS (`shared/.env`). If it isn't, the site runs the partner-checkout fallback. Decide whether to switch on Paystack test mode for the pitch.
 - [ ] **D2. Card story.** Write a short paragraph for the deck:
   - Paystack (card and M-Pesa) is how a fan *pays* TFE or a partner.
   - The Ecobank virtual card is what the *bank* issues. The demo shows it, but it is not issued through Paystack.

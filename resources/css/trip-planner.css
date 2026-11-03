@@ -11,6 +11,22 @@
 }
 .tfe-planner-footer__spacer { flex: 1 1 auto; }
 
+/* Phones — the step's main action gets its own full-width row, on top. The
+   last step has three buttons, which wrapped with "Finalize details & pay"
+   alone at the bottom-left, looking like the least important of the three. */
+@media (max-width: 575.98px) {
+    .tfe-planner-footer .tfe-btn--filled {
+        order: -1;
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+    .tfe-planner-footer__spacer { display: none; }
+    .tfe-planner-footer .tfe-btn:not(.tfe-btn--filled) {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+}
+
 .tfe-planner-toggle {
     display: inline-flex;
     flex-wrap: wrap;

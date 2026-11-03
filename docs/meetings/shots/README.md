@@ -14,6 +14,7 @@ PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/ux-shots.mjs <label>
 | `after-tabbar/` | Plan item B4, the bottom tab bar: home (guest with cookie banner, and after consent), menu open, planner open, end of page, partner hub — phone, iPhone SE, tablet; desktop shows no bar. |
 | `after-backnav/` | Plan item B5, Back + breadcrumb: about, partner hub, listing, tribes (phone + desktop), tournament (phone). |
 | `after-stadium/` | Plan item B2, stadium-aware hero CTAs: phone, iPhone SE, tablet, desktop, 1280×800, 1366×768; the planner opened from "Trip to Nairobi"; the phone details dialog. |
+| `booking-path/` | Plan item B6, the booking path on a phone, screen by screen: `before/`, `after/` (390×760), `after-se/` (375×667), `after-production-like/` (with email verification and no Paystack key, as production may run). Rerun with `scripts/booking-path-walk.mjs`. |
 | `after-logo/` | Plan item B3, the larger logo (home, home scrolled, partners, a partner hub; phone + desktop). |
 
 ## B1 — hero tournament card (3 Nov 2026)

@@ -551,3 +551,75 @@
     transition: none;
   }
 }
+
+/* Phones — the register card flows with the page (UX review, 2 Nov 2026,
+ * booking-path pass). The fitted card above caps itself at 92vh and scrolls
+ * only its middle, which on a 390x760 phone left the field area a few pixels
+ * tall: step 1 showed the Google button and a big Next, and none of the
+ * fields Next needed. The page scrolls instead, and the Back/Next row sticks
+ * to the bottom of the screen so it is never out of reach. */
+@media (max-width: 767.98px) {
+  /* The panel was a scroll container (overflow-y:auto, there to clip the
+     decorative ::before glow) that grows with its content and so never
+     scrolls — and a sticky child measures against its nearest scroll
+     container, not the screen, so the Back/Next row never stuck (the
+     shell <main> trap, Sprint 56). `clip` trims the glow without making a
+     scroll container; the page itself scrolls. */
+  .tfe-auth__panel {
+    overflow: visible;
+    overflow-x: clip;
+  }
+
+  /* Anything the browser scrolls to — a tabbed-to field, the terms checkbox,
+     a field with an error — stops above the pinned Back/Next row rather
+     than underneath it. */
+  html:has(.tfe-auth__card--fit) {
+    scroll-padding-bottom: 130px;
+  }
+
+  .tfe-auth__card--fit {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .tfe-auth__card--fit .tfe-auth__form-body {
+    overflow: visible;
+    margin-right: 0;
+    padding-right: 2px;
+  }
+
+  .tfe-auth__card--fit .tfe-auth__form-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 -20px;
+    padding: 0 20px calc(12px + env(safe-area-inset-bottom, 0px));
+    /* Opaque, not rgba: inside the card's backdrop-filter a 0.97 alpha
+       still let the consent text read through the buttons. */
+    background: #0e0e10;
+    box-shadow: 0 -12px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  /* One row, not register-dark.css's stacked column: stacked, Back and
+     "Complete Registration" pinned a quarter of the screen. Back keeps its
+     size, the step's main button takes the rest; on step 1 the empty
+     placeholder where Back would be takes no room. */
+  .tfe-auth__card--fit .registration-bottom-controls {
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 0 !important;
+    padding-top: 12px !important;
+  }
+
+  .tfe-auth__card--fit .registration-bottom-controls > div:empty {
+    display: none;
+  }
+
+  .tfe-auth__card--fit .registration-bottom-controls .tfe-auth__submit {
+    flex: 1 1 auto;
+    min-width: 0 !important; /* beats the inline minWidth: 180px */
+    padding: 13px 14px;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+}

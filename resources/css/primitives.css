@@ -1055,6 +1055,20 @@ textarea.tfe-textarea {
 .tfe-select--sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 10px; }
 .tfe-select--sm { padding-right: 32px; background-size: 14px 14px; }
 
+/* Phones — 16px text in every field. iOS Safari zooms the page in when a
+   field under 16px is focused, and leaves it zoomed: the planner's
+   "Travelling from" select did it mid-booking. Same specificity as the
+   rules above and later, so it wins without !important. */
+@media (max-width: 575.98px) {
+    input.tfe-input,
+    select.tfe-select,
+    textarea.tfe-textarea,
+    input.tfe-input--sm,
+    select.tfe-select--sm {
+        font-size: 16px;
+    }
+}
+
 /* Native <option> menus inherit the OS default (usually white bg + black
    ink, but on some Chromium builds text falls back to the parent color →
    white-on-white). Pin dark bg + white ink so the drop-down menu that

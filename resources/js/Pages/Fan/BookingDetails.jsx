@@ -53,6 +53,32 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
                     bgImage="/assets/img/fan/backgrounds/stadium_hero.png"
                 />
 
+                {/* Phones: the way to pay is pinned, whichever way it is. The
+                    bar used to render only with in-app checkout, so with no
+                    Paystack key (the default) a fan landed on "Payment due"
+                    with the partner's link two screens down (booking-path
+                    pass, UX review 2 Nov 2026). */}
+                {booking.status === 'pending_payment' && !checkout && (
+                    <MobileActionBar
+                        note={partnerPayUrl
+                            ? `Balance ${formatMoney(booking.total_amount - booking.amount_paid, currency)} · paid on the partner's checkout`
+                            // Honest, not "we'll let you know": nothing in the backend
+                            // sets partner_pay_url or notifies on it today, so without
+                            // Paystack the partner is the only route to paying.
+                            : 'Online payment is not switched on yet. Message your partner to arrange payment.'}
+                    >
+                        {partnerPayUrl ? (
+                            <a href={partnerPayUrl} target="_blank" rel="noreferrer" className="tfe-btn tfe-btn--filled">
+                                <i className="fas fa-external-link-alt" aria-hidden="true"></i> Complete on partner
+                            </a>
+                        ) : (
+                            <Link href={route('fan.communication')} className="tfe-btn">
+                                <i className="fas fa-headset" aria-hidden="true"></i> Contact partner
+                            </Link>
+                        )}
+                    </MobileActionBar>
+                )}
+
                 {booking.status === 'pending_payment' && checkout && (
                     <MobileActionBar note={`Balance ${formatMoney(booking.total_amount - booking.amount_paid, currency)}${expiresAt ? ` · held until ${formatDateTime(expiresAt)}` : ''}`}>
                         {mpesa !== null && (

@@ -22,9 +22,14 @@
     .tfe-mobile-actionbar { display: none; }
 }
 
-/* Keep the last of the page clear of the bar. */
+/* Keep the last of the page clear of the bar — and the round command-menu
+   button, which is fixed bottom-right on every dashboard page and sat on top
+   of the right end of "Pay now" and its hold time. */
 @media (max-width: 991.98px) {
     body:has(.tfe-mobile-actionbar) { padding-bottom: 96px; }
+    body:has(.tfe-mobile-actionbar) .command-menu-trigger {
+        bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 /* Booking page help link (Sprint 68) — the old text-danger red failed AA

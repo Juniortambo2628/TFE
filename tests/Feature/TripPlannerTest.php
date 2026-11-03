@@ -57,6 +57,24 @@ class TripPlannerTest extends TestCase
             ->assertSessionHas('url.intended', route('plan-trip.resume'));
     }
 
+    public function test_the_verify_email_page_says_the_planner_trip_is_waiting(): void
+    {
+        // The step in the booking path where visitors stop: a sign-up from the
+        // planner must be told the trip survives verification (UX review, 2 Nov 2026).
+        $user = User::factory()->unverified()->create();
+
+        $withTrip = $this->actingAs($user)
+            ->withSession([TripPlannerController::SESSION_KEY => $this->payload()])
+            ->get(route('verification.notice'))
+            ->assertOk();
+        $this->assertSame('Auth/VerifyEmail', $withTrip->viewData('page')['component']);
+        $this->assertTrue($withTrip->viewData('page')['props']['tripSaved']);
+
+        $this->flushSession();
+        $without = $this->actingAs($user)->get(route('verification.notice'))->assertOk();
+        $this->assertFalse($without->viewData('page')['props']['tripSaved']);
+    }
+
     public function test_booking_a_package_after_sign_in_creates_a_pending_payment_booking(): void
     {
         $fan = User::factory()->create();

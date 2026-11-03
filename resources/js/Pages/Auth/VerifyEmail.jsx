@@ -1,7 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import AuthLayout from '@/Layouts/AuthLayout';
 
-export default function VerifyEmail({ status }) {
+export default function VerifyEmail({ status, tripSaved = false }) {
     const { post, processing } = useForm({});
 
     const submit = (e) => {
@@ -23,6 +23,13 @@ export default function VerifyEmail({ status }) {
             {status === 'verification-link-sent' && (
                 <div className="tfe-auth__status">
                     A new verification link has been sent to the email address you provided during registration.
+                </div>
+            )}
+
+            {tripSaved && (
+                <div className="tfe-auth__alt mb-3">
+                    <i className="fas fa-receipt me-2" aria-hidden="true"></i>
+                    Your trip is saved. The link in the email brings you straight back to it.
                 </div>
             )}
 

@@ -18,6 +18,12 @@
         padding-bottom: var(--tfe-tabbar-h);
     }
 
+    /* Whatever the browser scrolls into view (a tabbed-to link, an anchor)
+       stops above the bar, not under it. */
+    html:has(.tfe-tabbar) {
+        scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 12px);
+    }
+
     .tfe-tabbar {
         display: block;
         position: fixed;
