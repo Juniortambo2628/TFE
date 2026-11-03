@@ -30,3 +30,17 @@ test('phone hero leaves the stadium photo visible, details one tap away', async 
 
     expect(errors).toEqual([]);
 });
+
+// The logo grew (UX review) without the header growing. Nothing a public page
+// draws at the top may sit under it — the phone hero's stadium badge and the
+// partners directory's eyebrow both did.
+for (const [path, selector] of [['/', '.hero-stadium-badge'], ['/partners', '.partners-index-hero__eyebrow']]) {
+    test(`logo clears the first content on ${path}`, async ({ page }) => {
+        await page.goto(path);
+        const logo = await page.locator('.tfe-header .tfe-logo-img').boundingBox();
+        const first = await page.locator(selector).first().boundingBox();
+        const overlapsX = first.x < logo.x + logo.width && logo.x < first.x + first.width;
+        if (overlapsX) expect(first.y).toBeGreaterThanOrEqual(logo.y + logo.height);
+        expect(logo.height).toBeGreaterThanOrEqual(80);
+    });
+}

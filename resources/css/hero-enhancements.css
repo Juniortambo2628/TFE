@@ -978,7 +978,9 @@
 @media (max-width: 575px) {
     .hero-stat-card-gradient { height: 100px; }
     .hero-stats-title { font-size: 1.1rem; }
-    .hero-top-bar { padding-top: 60px; }
+    /* Below the fixed header (110px tall here — see header.css), not
+       inside it: at 60px the stadium badge ran straight through the logo. */
+    .hero-top-bar { padding-top: 120px; }
     .hero-top-bar-inner { flex-wrap: wrap; gap: 0.5rem; }
     .flag-carousel-compact { max-width: 240px; }
 }

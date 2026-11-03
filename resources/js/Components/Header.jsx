@@ -59,7 +59,7 @@ export default function Header() {
                 <div className="header-wrapper d-flex align-items-center position-relative">
                     <div className="logo">
                         <Link href="/" className="tfe-logo-link">
-                            <img src={logo} alt="TFE Logo" className="img-fluid tfe-logo-img" style={{ maxHeight: '70px' }} />
+                            <img src={logo} alt="The Football Experience" className="tfe-logo-img" />
                         </Link>
                     </div>
 
