@@ -8,7 +8,7 @@ import ContentCard from '@/Components/Common/ContentCard';
 import ModalRow from '@/Components/Common/ModalRow';
 import { formatMoney, titleCase } from '@/lib/utils';
 import { estimateTrip } from '@/lib/tripEstimate';
-import { OPEN_EVENT, findFixtureByHint, findFixtureById, loadPlannerPrefs, monthlyFrom, packageTotal, rankPackages, savePlannerPrefs } from '@/lib/tripPlanner';
+import { OPEN_EVENT, findFixtureByHint, findFixtureById, loadPlannerPrefs, monthlyFrom, packageTotal, rankPackages, savePlannerPrefs, venueFilterFor } from '@/lib/tripPlanner';
 import {
     getAccommodationFactors,
     getFlightOrigins,
@@ -81,17 +81,21 @@ export default function TripPlannerDialog() {
             const detail = e.detail || {};
             setStep(1);
             setOpen(true);
-            track('planner_open', { tournament: detail.tournamentId || null, match: detail.matchId || null });
-            load(detail.tournamentId || '', detail.matchId, detail.matchHint);
+            // A filter left over from the last opening (say, one stadium's
+            // matches) must not greet a visitor who opened it from elsewhere.
+            setTeamFilter('');
+            track('planner_open', { tournament: detail.tournamentId || null, match: detail.matchId || null, venue: detail.venue || null });
+            load(detail.tournamentId || '', detail.matchId, detail.matchHint, detail.venue);
         };
         window.addEventListener(OPEN_EVENT, onOpen);
         return () => window.removeEventListener(OPEN_EVENT, onOpen);
     }, []);
 
-    function load(tournamentId, matchId, matchHint) {
+    function load(tournamentId, matchId, matchHint, venue) {
         if (loadedFor.current === tournamentId && dataRef.current) {
             if (matchId) preselectMatch(dataRef.current.fixtures, matchId);
             if (matchHint) applyHint(dataRef.current.fixtures, matchHint);
+            if (venue) applyVenue(dataRef.current.fixtures, venue);
             return;
         }
         setLoadError(false);
@@ -109,8 +113,20 @@ export default function TripPlannerDialog() {
                 if (!prefs.currency && res.data.suggested_currency) setCurrency(res.data.suggested_currency);
                 if (matchId) preselectMatch(res.data.fixtures, matchId);
                 if (matchHint) applyHint(res.data.fixtures, matchHint);
+                if (venue) applyVenue(res.data.fixtures, venue);
             })
             .catch(() => setLoadError(true));
+    }
+
+    // "Trip to {city}" from the landing hero: open the match picker showing
+    // the stadium on screen. Its filter box holds the stadium's name, so the
+    // visitor can see why the list is short and clear it. A ground with no
+    // fixtures opens the full list instead (venueFilterFor).
+    function applyVenue(list, venue) {
+        const filter = venueFilterFor(list || [], venue);
+        if (!filter) return;
+        setMode('pick');
+        setTeamFilter(filter);
     }
 
     // A hint from a surface without fixture ids: preselect the match if it

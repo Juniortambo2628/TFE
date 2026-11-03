@@ -133,6 +133,8 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                 return {
                     name: v.name || v.extract?.substring(0, 40) || 'Unknown Venue',
                     location: v.location || 'Tournament venue',
+                    // For the card's "Now showing" line and "Trip to {city}".
+                    city: v.city || (v.location ? String(v.location).split(',')[0].trim() : ''),
                     capacity: formatCapacity(v.capacity),
                     history: v.opened || '',
                     fun_fact: v.extract || '',
@@ -417,6 +419,41 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
         );
     }
 
+    // The two card CTAs follow the stadium on screen (UX review, 2 Nov 2026:
+    // "View Matches / Plan My Trip" did not say they meant the stadium in the
+    // carousel). A slide that is not a real venue — the tournament fallback,
+    // which has no city — keeps the generic labels.
+    var venueCity = activeStadium.city || '';
+    var isVenueSlide = !!venueCity;
+    function renderHeroCtas(onBeforeAction) {
+        var before = onBeforeAction || function () {};
+        return (
+            <>
+                <button
+                    type="button"
+                    onClick={() => { before(); openModal(); }}
+                    className="btn-glass-pill hero-view-matches-btn"
+                    aria-label={isVenueSlide ? `Matches at ${activeStadium.name}` : undefined}
+                >
+                    <i className="fas fa-calendar-alt me-2" aria-hidden="true"></i>{isVenueSlide ? 'Matches here' : 'View Matches'}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        before();
+                        openTripPlanner(isVenueSlide
+                            ? { tournamentId: tournament?.id, venue: activeStadium.name }
+                            : { tournamentId: tournament?.id });
+                    }}
+                    className="btn-glass-pill hero-view-matches-btn"
+                    aria-label={isVenueSlide ? `Plan a trip to ${venueCity} for a match at ${activeStadium.name}` : undefined}
+                >
+                    <i className="fas fa-plane me-2" aria-hidden="true"></i>{isVenueSlide ? `Trip to ${venueCity}` : 'Plan My Trip'}
+                </button>
+            </>
+        );
+    }
+
     var tournamentDesc = tournament?.tagline || (tournament?.wikipedia_extract ? tournament.wikipedia_extract.substring(0, 110) : '');
 
     return (
@@ -607,18 +644,23 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
 
                                     {renderHostPills()}
 
+                                    {/* Which stadium the two buttons below act on — it follows
+                                        the carousel. On phones the badge naming the stadium is a
+                                        screen away from the card, so the card says it itself. */}
+                                    {isVenueSlide && (
+                                        <p className="hero-card-venue">
+                                            <span className="hero-card-venue__label">Now showing</span>
+                                            <span className="hero-card-venue__name">
+                                                <i className="fas fa-location-dot" aria-hidden="true"></i>
+                                                <strong>{activeStadium.name}</strong>
+                                                <span className="hero-card-venue__city"> · {venueCity}</span>
+                                            </span>
+                                        </p>
+                                    )}
+
                                     {/* CTA Buttons */}
-                                    <div className="hero-cta-buttons d-flex flex-row flex-wrap gap-2 mt-4">
-                                        <button type="button" onClick={() => openModal()} className="btn-glass-pill hero-view-matches-btn">
-                                            <i className="fas fa-calendar-alt me-2"></i>View Matches
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => openTripPlanner({ tournamentId: tournament?.id })}
-                                            className="btn-glass-pill hero-view-matches-btn"
-                                        >
-                                            <i className="fas fa-plane me-2"></i>Plan My Trip
-                                        </button>
+                                    <div className="hero-cta-buttons d-flex flex-row flex-wrap gap-2 mt-3">
+                                        {renderHeroCtas()}
                                     </div>
                                 </AccentCard>
                             </motion.div>
@@ -657,18 +699,9 @@ export default function Hero({ stadiums: stadiumsProp, venueBowls = [] }) {
                 label={isConcluded ? 'Champions crowned' : 'Kicks off in'}
                 title={tournament?.name || 'Tournament'}
                 footer={(
-                    <>
-                        <button type="button" className="tfe-btn" onClick={() => { setShowTournamentInfo(false); openModal(); }}>
-                            <i className="fas fa-calendar-alt me-2" aria-hidden="true"></i>View Matches
-                        </button>
-                        <button
-                            type="button"
-                            className="tfe-btn tfe-btn--filled"
-                            onClick={() => { setShowTournamentInfo(false); openTripPlanner({ tournamentId: tournament?.id }); }}
-                        >
-                            <i className="fas fa-plane me-2" aria-hidden="true"></i>Plan My Trip
-                        </button>
-                    </>
+                    <div className="hero-cta-buttons hero-tournament-info__ctas">
+                        {renderHeroCtas(() => setShowTournamentInfo(false))}
+                    </div>
                 )}
             >
                 <div className="hero-tournament-info">

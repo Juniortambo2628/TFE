@@ -1345,3 +1345,29 @@
         min-height: calc(100svh - var(--tfe-tabbar-h, 0px));
     }
 }
+
+/* Wide screens — slider arrows bottom-LEFT, under the map. Bottom-right they
+ * sat on top of the tournament card's CTAs on every laptop (1200–1366px),
+ * since the card fills the right-hand column. The flag marquee keeps 160px
+ * clear on each side for exactly this kind of control (.hero-bottom-bar-inner).
+ * `!important` because the element carries Bootstrap's .end-0 / .me-5. */
+@media (min-width: 1200px) {
+    .hero-stadium-controls {
+        right: auto !important;
+        left: 0;
+        margin-right: 0 !important;
+        margin-left: 3rem !important;
+    }
+}
+
+/* Short wide screens (1366x768 is the commonest laptop) — the content stack
+ * reserves 148px on top for the centred stadium badge, but the tournament
+ * card sits in the right-hand column, clear of it. Trading some of that for
+ * bottom room keeps the card off the attribution pill in the bottom bar.
+ * `!important` on padding-bottom because the element carries Bootstrap's .pb-5. */
+@media (min-width: 1200px) and (max-height: 820px) {
+    .hero-content-stack--roomy {
+        padding-top: 104px;
+        padding-bottom: 72px !important;
+    }
+}

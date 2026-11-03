@@ -13,6 +13,7 @@ PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/ux-shots.mjs <label>
 | `after-hero/` | Plan item B1, the compact tournament card on phones. |
 | `after-tabbar/` | Plan item B4, the bottom tab bar: home (guest with cookie banner, and after consent), menu open, planner open, end of page, partner hub — phone, iPhone SE, tablet; desktop shows no bar. |
 | `after-backnav/` | Plan item B5, Back + breadcrumb: about, partner hub, listing, tribes (phone + desktop), tournament (phone). |
+| `after-stadium/` | Plan item B2, stadium-aware hero CTAs: phone, iPhone SE, tablet, desktop, 1280×800, 1366×768; the planner opened from "Trip to Nairobi"; the phone details dialog. |
 | `after-logo/` | Plan item B3, the larger logo (home, home scrolled, partners, a partner hub; phone + desktop). |
 
 ## B1 — hero tournament card (3 Nov 2026)
@@ -70,6 +71,23 @@ truncated to "H… › Par… › Serengeti Spo…").
 - The trip planner already had Back between its steps; unchanged.
 - Guarded by `tests/JS/navHistory.test.mjs` and `tests/e2e/backnav.spec.js`.
 
-**Seen in `before/`, still open:** at 1280×800 the desktop card runs under the slider arrows and
-past the bottom of the screen. That is unchanged by this work and is worth
-fixing alongside B3.
+## B2 — stadium buttons (3 Nov 2026)
+
+The hero card now says which stadium its buttons act on: **Now showing:
+Raila Odinga International Stadium · Nairobi**, following the carousel, with
+**Matches here** (that stadium's schedule) and **Trip to Nairobi**, which
+opens the planner on that stadium's matches (its name in the filter box, so
+the short list explains itself). A ground with no fixtures (Kipchoge Keino)
+opens the full list rather than an empty one. The details dialog repeats the
+same two buttons.
+
+**Laptop overflow fixed with it.** At 1280×800 the desktop card ran past the
+bottom of the screen and under the slider arrows (seen in `before/`), and the
+new line made it worse. On wide screens the four countdown dials now fit one
+row, the title takes the card's width, the tagline is capped at three lines,
+the slider arrows sit bottom-left under the map, and short screens (≤820px
+tall) trade top padding for bottom. Measured with no overlap and the CTAs on
+screen at 1200×800, 1280×800, 1366×768, 1440×900, 1536×864 and 1920×1080.
+
+Phone card: 263px (56–62% of the photo visible), up from 220px for the new
+line. Guarded by `tests/e2e/hero.spec.js` and `tests/JS/tripPlanner.test.mjs`.

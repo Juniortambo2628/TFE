@@ -89,6 +89,20 @@ export function findFixtureByHint(fixtures = [], hint = {}) {
     return fixtures.find((f) => teams.every((t) => has(f.homeTeam, t) || has(f.awayTeam, t))) || null;
 }
 
+/**
+ * The planner's match filter for "plan a trip to this stadium" (the landing
+ * hero's stadium buttons, UX review 2 Nov 2026). Returns the venue to filter
+ * by when at least one fixture is played there, and '' otherwise: a stadium
+ * with no fixtures (Kipchoge Keino is an alternate ground) must open the full
+ * list, not an empty one that reads as "there are no matches".
+ */
+export function venueFilterFor(fixtures = [], venue = '') {
+    const v = String(venue || '').trim().toLowerCase();
+    if (!v) return '';
+    const playedThere = fixtures.some((f) => String(f.venue || '').trim().toLowerCase().includes(v));
+    return playedThere ? String(venue).trim() : '';
+}
+
 /** The fixture with this id, compared as strings ("db_105" vs 105 vs "105"). */
 export function findFixtureById(fixtures = [], id) {
     if (id === null || id === undefined || id === '') return null;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { estimateTrip } from '../../resources/js/lib/tripEstimate.js';
-import { packageTotal, rankPackages } from '../../resources/js/lib/tripPlanner.js';
+import { packageTotal, rankPackages, venueFilterFor } from '../../resources/js/lib/tripPlanner.js';
 
 test('estimateTrip prices selected matches and sums the breakdown to the total', () => {
     const r = estimateTrip({}, {
@@ -108,4 +108,20 @@ test('findFixtureById matches string ids the way the fixture service emits them'
     assert.equal(findFixtureById(list, 7), list[1]);
     assert.equal(findFixtureById(list, 'db_999'), null);
     assert.equal(findFixtureById(list, ''), null);
+});
+
+test('a stadium with fixtures filters the planner to it', () => {
+    const fixtures = [
+        { id: 'db_1', venue: 'Raila Odinga International Stadium' },
+        { id: 'db_2', venue: 'Moi International Sports Centre, Kasarani' },
+    ];
+    assert.equal(venueFilterFor(fixtures, 'Raila Odinga International Stadium'), 'Raila Odinga International Stadium');
+    assert.equal(venueFilterFor(fixtures, '  moi international sports centre, kasarani '), 'moi international sports centre, kasarani');
+});
+
+test('a stadium with no fixtures opens the full list, not an empty one', () => {
+    const fixtures = [{ id: 'db_1', venue: 'Raila Odinga International Stadium' }];
+    assert.equal(venueFilterFor(fixtures, 'Kipchoge Keino Stadium'), '');
+    assert.equal(venueFilterFor(fixtures, ''), '');
+    assert.equal(venueFilterFor([], 'Raila Odinga International Stadium'), '');
 });

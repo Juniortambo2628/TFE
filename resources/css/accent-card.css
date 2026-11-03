@@ -404,7 +404,42 @@
         min-height: 460px;
     }
     .tfe-acard--hero .tfe-acard__title {
-        font-size: 1.9rem;
+        font-size: 1.75rem;
+        /* The trophy sits mid-card, not beside the title, so the title can
+           take the full width: at 74% "Africa Cup of Nations 2027" ran to
+           three lines. */
+        max-width: 100%;
+    }
+
+    /* Laptop fit (1280x800 and up). The card lives in a 4-of-12 column,
+       about 237px of content, so the four 56px dials (272px with gaps)
+       wrapped 3 + 1 and the tagline ran five lines — the card grew past
+       the bottom of an 800px screen, its CTAs under the slider arrows.
+       Smaller dials on one row and a three-line tagline keep it on screen.
+       The full tagline is the tournament page's lead. */
+    .tfe-acard--hero .hero-countdown-row {
+        flex-wrap: nowrap;
+        gap: 0.55rem;
+    }
+
+    .tfe-acard--hero .hero-countdown-dial {
+        width: 50px;
+        height: 50px;
+    }
+
+    .tfe-acard--hero .hero-countdown-label {
+        padding: 2px 8px;
+    }
+
+    .tfe-acard--hero .tfe-acard__desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .tfe-acard--hero .hero-card-hosts {
+        margin-top: 0.9rem !important;
     }
 }
 
@@ -414,6 +449,54 @@
 }
 
 .tfe-acard--hero .hero-countdown-row { flex-wrap: wrap; }
+
+/* "Now showing: {stadium} · {city}" — names the stadium the two CTAs under
+ * it act on, and follows the carousel (UX review, 2 Nov 2026). */
+.hero-card-venue {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 1.1rem 0 0;
+    min-width: 0;
+}
+
+.hero-card-venue__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.hero-card-venue__name {
+    display: block;
+    min-width: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.95rem;
+    line-height: 1.3;
+}
+
+.hero-card-venue__name i {
+    color: var(--acard-accent, #dc143c);
+    margin-right: 0.4rem;
+}
+
+.hero-card-venue__name strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* The details dialog repeats the card's two CTAs (Hero.jsx renderHeroCtas). */
+.hero-tournament-info__ctas {
+    display: flex;
+    gap: 0.6rem;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+.hero-tournament-info__ctas .btn-glass-pill {
+    flex: 0 1 auto;
+}
 
 /* Countdown dials — base layout, shared by the hero card and the tournament
  * details dialog (which is not inside .tfe-acard--hero). Display lives here
@@ -477,6 +560,35 @@
 
     .tfe-acard--hero .tfe-acard__slot {
         margin-top: 0.55rem;
+    }
+
+    .tfe-acard--hero .hero-card-venue {
+        margin-top: 0.6rem;
+        gap: 0.1rem;
+    }
+
+    .tfe-acard--hero .hero-card-venue__label {
+        font-size: 0.6rem;
+    }
+
+    .tfe-acard--hero .hero-card-venue__name {
+        display: flex;
+        align-items: baseline;
+        font-size: 0.85rem;
+    }
+
+    /* One line on a phone: a long ground ("Moi International Sports Centre,
+       Kasarani") truncates rather than growing the card over the photo. */
+    .tfe-acard--hero .hero-card-venue__name strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    .tfe-acard--hero .hero-card-venue__city {
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .tfe-acard--hero .hero-countdown-inline {

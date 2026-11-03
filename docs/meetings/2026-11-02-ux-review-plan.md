@@ -82,7 +82,7 @@ These go to the current site directly, so even v1 is fair to test on a phone.
   - Below 768px, the tournament `AccentCard` turns into a **compact bottom strip** over the carousel: tournament name, a single-line countdown (`12d 04h`) instead of four SVG dials, and the two CTAs as pills.
   - Details (hosts, dates) move behind an ⓘ that opens a `TfeModal`.
   - Done when the stadium photo is visible on at least 60% of a 390×760 viewport.
-- [ ] **B2. Clearer stadium CTAs.** Change the labels to "Matches at {stadium}" / "Plan a trip to {city}", and put a small "Now showing: {stadium}" chip on the slide. `openTripPlanner` already accepts a match hint; pass the venue too.
+- [x] **B2. Clearer stadium CTAs.** *(Done 3 Nov: "Now showing" line + "Matches here" / "Trip to {city}"; the planner opens on that stadium. Also fixed the desktop card overflowing laptop screens.)* Change the labels to "Matches at {stadium}" / "Plan a trip to {city}", and put a small "Now showing: {stadium}" chip on the slide. `openTripPlanner` already accepts a match hint; pass the venue too.
 - [x] **B3. Bigger logo.** *(Done 3 Nov: 88px desktop / 80px phone, header height unchanged; badge and partners-hero overlaps fixed.)*
   - Move the inline `maxHeight: 70px` on `Header.jsx` L62 into CSS. The house rule is no inline styles on shared components.
   - Raise it: around 88px on desktop, and as large as the bar allows on mobile.

@@ -44,3 +44,22 @@ for (const [path, selector] of [['/', '.hero-stadium-badge'], ['/partners', '.pa
         expect(logo.height).toBeGreaterThanOrEqual(80);
     });
 }
+
+// Plan item B2: the hero's two CTAs name the stadium on screen, and "Trip to
+// {city}" opens the planner on that stadium's matches.
+test('hero stadium CTAs follow the stadium on screen', async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.removeItem('tfe.planner.v1'); } catch {} });
+    await page.goto('/');
+    const card = page.locator('.tfe-acard--hero');
+    const stadium = (await card.locator('.hero-card-venue strong').textContent()).trim();
+    const trip = card.locator('.hero-cta-buttons button').nth(1);
+    await expect(card.locator('.hero-cta-buttons button').first()).toHaveText('Matches here');
+    await expect(trip).toHaveText(/^Trip to \S/);
+
+    await trip.click();
+    const filter = page.locator('.tfe-modal input[type=search]');
+    await expect(filter).toHaveValue(stadium);
+    const rows = page.locator('.tfe-modal label small');
+    await expect(rows.first()).toContainText(stadium);
+    for (const text of await rows.allTextContents()) expect(text).toContain(stadium);
+});
