@@ -1309,21 +1309,29 @@
     user-select: none;
 }
 
-/* Phones + tablets — pin the (compact) tournament card to the bottom of the
- * hero so the stadium photo fills the space above it, instead of a card
- * centred over the middle of the picture (UX review, 2 Nov 2026; the compact
- * card itself is in accent-card.css).
+/* Below xl (phones, tablets, small laptops) — the tournament card sits at the TOP of the
+ * hero, just under the stadium badge (UX review, 2 Nov 2026; the compact card
+ * itself is in accent-card.css). Every stadium photo puts the ground in its
+ * lower half with sky above, so a card pinned to the bottom — the first
+ * attempt — still covered the stadium. Up here it covers sky.
  *
- * The bottom padding clears .hero-bottom-bar (flag marquee + attribution
- * pill). `!important` because the element carries Bootstrap's
- * .justify-content-center and .pb-5, which are themselves !important.
- * `svh` so a phone's collapsing URL bar cannot push the card off-screen. */
-@media (max-width: 767.98px) {
+ * padding-top clears the fixed header (110px) and the badge under it
+ * (.hero-top-bar, ~120–150px); padding-bottom the flag marquee. `!important`
+ * because the element carries Bootstrap's .justify-content-center and .pb-5,
+ * which are themselves !important. */
+@media (max-width: 1199.98px) {
+    /* Below xl the world map is hidden and the card stands alone. */
     .hero-content-stack--roomy {
-        justify-content: flex-end !important;
+        justify-content: flex-start !important;
+        padding-top: 156px;
         padding-bottom: 124px !important;
     }
-
+}
+@media (max-width: 575.98px) {
+    /* The badge sits lower on phones (.hero-top-bar 120px, below the header). */
+    .hero-content-stack--roomy {
+        padding-top: 166px;
+    }
 }
 
 /* The hero is a full screen tall, and the public tab bar (public-tabbar.css)

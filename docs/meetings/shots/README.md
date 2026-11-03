@@ -27,7 +27,10 @@ PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/ux-shots.mjs <label>
 | Desktop 1280×800 | unchanged | unchanged | — |
 
 On phones the card keeps the tournament, a one-line countdown and the two CTAs
-side by side, pinned above the flag strip. The tagline, countdown dials and
+side by side. It sits at the TOP of the hero, under the stadium badge (moved there
+from the bottom on 3 Nov: every stadium photo has the ground in its lower half,
+so a bottom card still covered it; up top it covers sky). Same placement below
+1200px, where the map is hidden. See `after-stadium/home-hero-top--*.jpg`. The tagline, countdown dials and
 host countries are one tap away behind the card's ⓘ. Guarded by
 `tests/e2e/hero.spec.js`.
 
