@@ -656,6 +656,43 @@ receives or moves savings, and stores no financial data.**
   description and counts — never its posts or members; invite-only tribes
   are not listed at all. Join → register → the tribe's fan page, where the
   existing privacy rules decide.
+### Landing page v2 + walkthroughs (UX round, Nov 2026)
+
+From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,
+`Pages/HomeV2.jsx`) is the landing page rebuilt on the Najenga/Naoa
+structure — show who TFE is for, how a trip works and what each screen
+looks like *before* asking anyone to sign in — live beside `/` while the
+tester group compares them. `/for-{fans,partners,schools}`
+(`@walkthrough`, `Pages/Walkthrough.jsx`) walk one audience through it.
+All four answer `X-Robots-Tag: noindex` until a direction is chosen.
+
+- **Copy is `config/landing_v2.php` + overrides** via
+  `App\Support\LandingContent`: a SiteSetting keyed
+  `landing_v2_{dot.path}` (the `{group}_{key}` shape `SettingField`
+  writes) replaces a TEXT leaf. Keys ending in `LandingContent::STRUCTURAL`
+  (id, icon, action, types, image paths…) are ignored, so the CMS can
+  change wording but never wiring. Edited at Admin → Content → Landing v2.
+- **Facts are counted, never typed** (`landingFacts()`); a zero is dropped.
+  Labels may be `singular|plural`.
+- **CTA actions** are `planner | section:{id} | link:{/path} | route:{name}`
+  (`lib/landingV2.parseAction`); anything else, including an absolute URL,
+  falls back to the planner.
+- **Feature screenshots are real screens** from the seeded demo:
+  `node scripts/landing-v2-screens.mjs [names…]` → WebP in
+  `public/assets/img/landing-v2/`, encoded by Chromium (no image library).
+  Retake them when a screen changes.
+- **Sticky + `.overflow-hidden` again.** The section bar did not stick:
+  Bootstrap's `.overflow-hidden` on `.page-wrapper` makes it a scroll
+  container. v2 uses `overflow-x: clip`; walkthroughs override
+  SectionPageShell's wrapper only where it holds `.v2-page`.
+- `FeaturedPackages variant="carousel"` on v2, the grid on `/` — the
+  scroll-vs-static question is answered by the same test.
+- Fixed on the way: `Partner/Requests.jsx` read props (`budgets`, `stats`)
+  and fields the controller never sent, so the **Convert queue was empty
+  for every partner**; and the demo seeder gave every plan no matches, a
+  breakdown in keys the calculator does not read, and approved quotes no
+  price (`DemoFanActivityTest`).
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

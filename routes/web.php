@@ -60,6 +60,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 
+// Landing page v2 and its audience walkthroughs (UX review, 2 Nov 2026,
+// Track C): live beside the current landing page for the tester group to
+// compare, unlinked from the main nav and noindex until a direction is chosen.
+Route::get('/v2', [HomeController::class, 'homeV2'])->name('home.v2');
+Route::get('/for-{audience}', [HomeController::class, 'walkthrough'])
+    ->where('audience', 'fans|partners|schools')
+    ->name('walkthrough');
+
 // News JSON API — consumed by the News section via the Ziggy route name
 // (name kept as news.index so `route('news.index')` still resolves). Path
 // moved under /api so the public /news page below can own the /news URL.

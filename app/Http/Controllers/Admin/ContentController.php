@@ -8,6 +8,7 @@ use App\Models\SiteSetting;
 use App\Services\MediaLibraryService;
 use App\Services\StadiumImageService;
 use App\Services\TournamentService;
+use App\Support\LandingContent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -45,6 +46,9 @@ class ContentController extends Controller
             'settings' => $settings,
             'heroDefaults' => config('site_pages', []),
             'sectionCards' => $this->sectionCardsForEditor($settings),
+            // Landing page v2 + walkthrough copy (UX review, plan item C4):
+            // every text field in config/landing_v2.php, overridable here.
+            'landingFields' => LandingContent::editable(),
         ]);
     }
 

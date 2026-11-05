@@ -142,3 +142,39 @@
 
 .community-grid--tribes-only { grid-template-columns: minmax(0, 1fr); }
 .community-grid--tribes-only .community-grid__tribes { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+/* ---- Featured trips as a carousel (landing page v2, UX review 2 Nov 2026) ----
+   The same cards as the grid, in one sideways row that snaps card by card.
+   v1 keeps the grid, so the tester group compares "scrolling vs static". */
+.landing-featured--carousel {
+    padding: 88px 0;
+}
+.landing-featured__track {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 12px;
+    padding: 4px 12px 18px;
+    margin: 0 -12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+.landing-featured__slide {
+    flex: 0 0 min(360px, 82vw);
+    scroll-snap-align: start;
+}
+.landing-featured__slide > * { height: 100%; }
+.landing-featured__nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+}
+@media (max-width: 575.98px) {
+    .landing-featured--carousel { padding: 64px 0; }
+    /* Narrow enough that the next card peeks in: the cue that you can swipe. */
+    .landing-featured__slide { flex-basis: 78vw; }
+    .landing-featured__track { gap: 14px; }
+    .landing-featured__nav { display: none; } /* swipe on a phone */
+}
