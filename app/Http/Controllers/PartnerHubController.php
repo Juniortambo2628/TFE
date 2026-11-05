@@ -8,6 +8,7 @@ use App\Models\PartnerProfile;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\TournamentService;
+use App\Support\PageVersion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -82,7 +83,7 @@ class PartnerHubController extends Controller
             // AFCON packages shouldn't show up in a WC 2026 filter.
             ->filter(fn ($p) => $tournamentId === null || $p['has_tournament_match']);
 
-        return Inertia::render('PartnersIndex', [
+        return Inertia::render(PageVersion::component('PartnersIndex'), [
             'profiles' => $profiles->values(),
             'partner_types' => AdminPartnerController::partnerTypes(),
             'tournaments' => app(TournamentService::class)->all(),
@@ -169,7 +170,7 @@ class PartnerHubController extends Controller
                 ->all();
         }
 
-        return Inertia::render('PartnerHub', [
+        return Inertia::render(PageVersion::component('PartnerHub'), [
             'profile' => [
                 'id' => $profile->id,
                 'slug' => $profile->slug,

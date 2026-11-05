@@ -16,6 +16,7 @@ import Faq from '@/Components/Landing/V2/Faq';
 import ClosingCta from '@/Components/Landing/V2/ClosingCta';
 import { scrollToSection } from '@/Components/Landing/V2/LandingAction';
 import useFixedHeaderOnScroll from '@/hooks/useFixedHeaderOnScroll';
+import useStayInV2 from '@/hooks/useStayInV2';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../css/landing-v2.css';
 
@@ -35,6 +36,7 @@ export default function HomeV2({ content, facts = {}, partnerCounts = {}, partne
     const { tournament } = usePage().props;
     const [area, setArea] = useState(content.explorer?.areas?.[0]?.id);
 
+    useStayInV2();
     useFixedHeaderOnScroll();
 
     // A journey step opens its area in the explorer and scrolls to it.

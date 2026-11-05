@@ -49,6 +49,12 @@ import {
  *   railFooter               node pinned to the bottom of the rail
  *   footer                   action row; omit for a dialog with no actions
  *   size                     'sm' | 'md' (default) | 'lg' | 'xl'
+ *   fit                      size to the content instead of a fixed height —
+ *                            for a few lines with no steps or tabs (a
+ *                            confirmation, a status message). Everything
+ *                            else keeps one height as its steps and tabs
+ *                            change, with the header and actions pinned and
+ *                            only the content scrolling.
  *   closeOnBackdrop          default true; pass false for destructive forms
  */
 export default function TfeModal({
@@ -66,6 +72,7 @@ export default function TfeModal({
     railFooter,
     footer,
     size = 'md',
+    fit = false,
     closeOnBackdrop = true,
     className = '',
     children,
@@ -220,7 +227,7 @@ export default function TfeModal({
         >
             <div
                 ref={panelRef}
-                className={`tfe-modal tfe-modal--${size} ${single ? 'tfe-modal--single' : ''} ${className}`.trim()}
+                className={`tfe-modal tfe-modal--${size} ${single ? 'tfe-modal--single' : ''} ${fit ? 'tfe-modal--fit' : ''} ${className}`.trim()}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={`${baseId}-title`}

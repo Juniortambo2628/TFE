@@ -293,4 +293,198 @@ return [
             'cta' => ['title' => 'Register your school or academy', 'text' => 'Three short steps, and a named official to act for the institution.', 'label' => 'Create an institution account', 'action' => 'route:register.institution', 'secondary' => 'See the whole platform'],
         ],
     ],
+    /*
+    | The v2 twins of the public pages (/v2/about, /v2/partners, …). Same
+    | rules as above: wording here, wiring (icons, actions, ids) ignored by
+    | the CMS. `{name}` in a hub or tournament line is that page's name.
+    */
+    'pages' => [
+        'about' => [
+            'sections' => [
+                ['id' => 'what', 'label' => 'What TFE is'],
+                ['id' => 'principles', 'label' => 'How we work'],
+                ['id' => 'behind', 'label' => 'Who is behind it'],
+            ],
+            'principles' => [
+                'eyebrow' => 'How we work',
+                'title' => 'Four things we hold to',
+                'text' => 'They decide what we build, and what we leave to the people better placed to do it.',
+                'items' => [
+                    ['icon' => 'fas fa-calculator', 'title' => 'An estimate before an account', 'text' => 'Anyone can price a trip in three steps. We only ask you to sign in when you want to save or book it.'],
+                    ['icon' => 'fas fa-circle-check', 'title' => 'Partners we have checked', 'text' => 'Trips, flights, tickets and financing come from partners on TFE. A verified badge means we have checked who they are.'],
+                    ['icon' => 'fas fa-building-columns', 'title' => 'Your savings stay with your bank', 'text' => 'Saving and financing run through bank and finance partners. TFE never holds, receives or moves your savings.'],
+                    ['icon' => 'fas fa-school', 'title' => 'Schools stay in charge of their pupils', 'text' => 'A school declares its own group through a named official. It runs consent and supervision; TFE holds no pupil data.'],
+                ],
+            ],
+            'behind' => [
+                'eyebrow' => 'Who is behind it',
+                'title' => 'Built by OKJ Technologies with Terik Tours',
+                'text' => 'A technology team and a travel company, building the trip we wanted to take ourselves: one plan, one price and the people who make it happen, all in one place.',
+            ],
+            'closing' => ['title' => 'See what your trip would cost', 'text' => 'Three steps, no account.', 'primary' => 'Plan my trip', 'secondary' => 'How it works'],
+        ],
+        'features' => [
+            'sections' => [
+                ['id' => 'inside', 'label' => 'The main screens'],
+                ['id' => 'more', 'label' => 'Also built in'],
+            ],
+            'more' => [
+                'eyebrow' => 'Also built in',
+                'title' => 'The smaller things that add up',
+                'text' => 'Some depend on a partner switching them on, and we say where they do.',
+                'items' => [
+                    ['icon' => 'fas fa-coins', 'title' => 'Seven currencies', 'text' => 'Plan in US dollars, euros, pounds, shillings, rand, naira or CFA francs. A saved plan keeps the currency you chose.'],
+                    ['icon' => 'fas fa-cube', 'title' => '3D seat map', 'text' => 'See each ground tier by tier, and how full it is where tickets are on sale through TFE.'],
+                    ['icon' => 'fas fa-mobile-screen', 'title' => 'M-Pesa', 'text' => 'Pay a booking from your phone, where in-app payment is switched on.'],
+                    ['icon' => 'fas fa-comment-sms', 'title' => 'Text alerts', 'text' => 'Quotes, payments and holds about to expire, by SMS or WhatsApp. Only if you ask, and one reply stops them.'],
+                    ['icon' => 'fas fa-fingerprint', 'title' => 'Passkeys', 'text' => 'Sign in with your fingerprint or face instead of a password, and add two-step sign-in.'],
+                    ['icon' => 'fas fa-users', 'title' => 'Tribes', 'text' => 'Supporter groups for each tournament, public, by request or by invitation.'],
+                ],
+            ],
+            'closing' => ['title' => 'Try it with your own trip', 'text' => 'Pick a match and see the price, before you sign up.', 'primary' => 'Plan my trip', 'secondary' => 'See the services'],
+        ],
+        'services' => [
+            'sections' => [
+                ['id' => 'for-fans', 'label' => 'For fans'],
+                ['id' => 'for-partners', 'label' => 'For partners'],
+                ['id' => 'for-schools', 'label' => 'For schools'],
+                ['id' => 'partners', 'label' => 'Partner types'],
+            ],
+            'groups' => [
+                [
+                    'id' => 'for-fans',
+                    'eyebrow' => 'For fans',
+                    'title' => 'Everything between you and the stadium',
+                    'text' => 'One plan from the match you pick to the trip home.',
+                    'items' => ['A trip estimate in three steps, no account needed', 'Packages from verified partners, with the price up front', 'Match tickets by tier, through ticketing partners', 'Financing requests to a finance partner, or saving with your bank', 'Your whole trip, and what happens next, on one booking page'],
+                    'link_label' => 'How it works for fans',
+                    'action' => 'link:/for-fans',
+                ],
+                [
+                    'id' => 'for-partners',
+                    'eyebrow' => 'For partners',
+                    'title' => 'A shop window and a request queue',
+                    'text' => 'Travel agents, airlines, hotels, ticketing and finance partners, clubs and sponsors.',
+                    'items' => ['A branded hub page fans can find in the directory', 'Listings that go live the moment you save them', 'Trip requests from fans who picked your listing', 'Your own numbers: requests, sales and revenue'],
+                    'link_label' => 'How it works for partners',
+                    'action' => 'link:/for-partners',
+                ],
+                [
+                    'id' => 'for-schools',
+                    'eyebrow' => 'For schools and academies',
+                    'title' => 'Group trips, declared once',
+                    'text' => 'An institution account, with a named official who acts for it.',
+                    'items' => ['Plan group trips on the same tools fans use', 'Declare the travelling party: adults, under-18s, youngest age', 'Partners see that minors travel on every request', 'Free coaching and safeguarding guides in the Learning Hub'],
+                    'link_label' => 'How it works for schools',
+                    'action' => 'link:/for-schools',
+                ],
+            ],
+            'closing' => ['title' => 'Start with an estimate', 'text' => 'It takes three steps, and you can save it later.', 'primary' => 'Plan my trip', 'secondary' => 'Contact us'],
+        ],
+        'news' => [
+            'intro' => 'Headlines from around football, from public news sources. Each one opens on the publisher\'s site.',
+            'empty' => 'The news feed is not switched on yet.',
+            'closing' => ['title' => 'Going to the tournament?', 'text' => 'Price your trip before the crowds do.', 'primary' => 'Plan my trip', 'secondary' => 'Our partners'],
+        ],
+        'contact' => [
+            'sections' => [
+                ['id' => 'message', 'label' => 'Send a message'],
+                ['id' => 'routes', 'label' => 'Quicker routes'],
+                ['id' => 'faq', 'label' => 'Questions'],
+            ],
+            'form' => [
+                'eyebrow' => 'Send a message',
+                'title' => 'Tell us what you need',
+                'text' => 'Messages reach the TFE team. We reply by email.',
+                'subjects' => ['Planning a trip', 'Becoming a partner', 'A school or group trip', 'My booking', 'Something else'],
+                'submit' => 'Send message',
+            ],
+            'routes' => [
+                'eyebrow' => 'Quicker routes',
+                'title' => 'You may not need to wait for us',
+                'items' => [
+                    ['icon' => 'fas fa-plane', 'title' => 'Pricing a trip', 'text' => 'The planner gives you an estimate straight away.', 'label' => 'Plan my trip', 'action' => 'planner'],
+                    ['icon' => 'fas fa-handshake', 'title' => 'Finding a partner', 'text' => 'Every partner on TFE, by type and tournament.', 'label' => 'Browse partners', 'action' => 'link:/partners'],
+                    ['icon' => 'fas fa-school', 'title' => 'A school trip', 'text' => 'Register your institution in three steps.', 'label' => 'Register a school', 'action' => 'route:register.institution'],
+                ],
+            ],
+            'closing' => ['title' => 'Ready when you are', 'text' => 'Price a trip now, and talk to us about the rest.', 'primary' => 'Plan my trip', 'secondary' => 'Back to the top'],
+        ],
+        'partners' => [
+            'eyebrow' => 'Partners',
+            'title' => 'Every partner behind your trip',
+            'tagline' => 'Travel agents, airlines, hotels, ticketing and finance partners, clubs and schools programmes: the organisations whose offers you book on TFE.',
+            'search' => 'Search partners by name, service or place',
+            'type_label' => 'Type',
+            'tournament_label' => 'Tournament',
+            'all' => 'All',
+            'count' => 'partner|partners',
+            'empty_title' => 'No partners match those filters',
+            'empty_text' => 'Try another type, or clear the tournament.',
+            'clear' => 'Clear filters',
+            'closing' => ['title' => 'Want your business here?', 'text' => 'Publish your packages, flights, tickets or programmes to fans planning their trip.', 'primary' => 'Become a partner', 'secondary' => 'How it works for partners'],
+        ],
+        'hub' => [
+            'sections' => [
+                ['id' => 'about', 'label' => 'About'],
+                ['id' => 'support', 'label' => 'What they do'],
+                ['id' => 'steps', 'label' => 'How it works'],
+                ['id' => 'tickets', 'label' => 'Tickets'],
+                ['id' => 'listings', 'label' => 'On offer'],
+            ],
+            'verified' => 'Verified partner',
+            'contact' => 'Contact',
+            'website' => 'Website',
+            'offer_title' => 'What they offer',
+            'support_eyebrow' => 'What they do',
+            'support_title' => 'How {name} supports your trip',
+            'steps_eyebrow' => 'How it works',
+            'steps_title' => 'From first look to the day itself',
+            'tickets_eyebrow' => 'Tickets',
+            'tickets_title' => 'On-sale fixtures',
+            'listings_eyebrow' => 'On offer',
+            'listings_title' => 'Available from {name}',
+            'listings_empty' => 'Nothing published yet. Check back soon.',
+            'closing' => ['title' => 'Plan a trip around what {name} offers', 'text' => 'Get an estimate first, then book the package that fits.', 'primary' => 'Plan my trip', 'secondary' => 'All partners'],
+        ],
+        'tournament' => [
+            'sections' => [
+                ['id' => 'glance', 'label' => 'At a glance'],
+                ['id' => 'highlights', 'label' => 'Highlights'],
+                ['id' => 'offers', 'label' => 'Plan your trip'],
+                ['id' => 'teams', 'label' => 'Teams'],
+            ],
+            'glance_eyebrow' => 'At a glance',
+            'offers_eyebrow' => 'Plan your trip',
+            'offers_title' => 'Trips to {name}',
+            'offers_text' => 'Packages from verified partners. Open one to see what it includes.',
+            'teams_eyebrow' => 'Teams',
+            'closing' => ['title' => 'Going to {name}?', 'text' => 'See what your trip would cost, in three steps.', 'primary' => 'Plan my trip', 'secondary' => 'Our partners'],
+            'closing_past' => ['title' => 'The next tournament is already in motion', 'text' => 'Lock in your plans early.', 'primary' => 'Plan the next one', 'secondary' => 'Our partners'],
+        ],
+        'listing' => [
+            'sections' => [
+                ['id' => 'details', 'label' => 'Details'],
+                ['id' => 'how', 'label' => 'How booking works'],
+                ['id' => 'more', 'label' => 'More like this'],
+            ],
+            'how' => [
+                'eyebrow' => 'How booking works',
+                'title' => 'Three steps from here',
+                'steps' => [
+                    ['title' => 'Book now', 'text' => 'Choose this listing. Your place is held for 48 hours.'],
+                    ['title' => 'Sign in or sign up', 'text' => 'One account for your plan, your booking and your messages.'],
+                    ['title' => 'Pay', 'text' => 'Pay in the app where that is switched on, or through the partner\'s own checkout.'],
+                ],
+            ],
+            'more_eyebrow' => 'More like this',
+            'closing' => ['title' => 'Not sure yet?', 'text' => 'Price the whole trip first: flights, stay and tickets together.', 'primary' => 'Plan my trip', 'secondary' => 'All partners'],
+        ],
+        'learn' => [
+            'closing' => ['title' => 'Running a programme?', 'text' => 'Schools and academies publish leagues, courses and guides on TFE.', 'primary' => 'Register a school', 'secondary' => 'How it works for schools'],
+        ],
+        'tribes' => [
+            'closing' => ['title' => 'Travel with your people', 'text' => 'Join a tribe for your tournament, or start one.', 'primary' => 'Join TFE', 'secondary' => 'Plan my trip'],
+        ],
+    ],
 ];

@@ -693,6 +693,62 @@ All four answer `X-Robots-Tag: noindex` until a direction is chosen.
   breakdown in keys the calculator does not read, and approved quotes no
   price (`DemoFanActivityTest`).
 
+### Public v2 pages, dashboard v2, fixed-size dialogs (UX round, Nov 2026)
+
+**Every public page has a `/v2/...` twin** (`/v2/about`, `/v2/partners/{slug}`,
+`/v2/listings/{id}`, …) served by the SAME controller action, so the two show
+the same data. The `v2.` route group runs `V2PublicPages` (marks the request,
+shares `v2Pages` copy, sends noindex); controllers name pages through
+`PageVersion::component('X')`, which returns `V2/X` there. Pages live in
+`Pages/V2/` on `V2PageShell` + `V2PageHero` + `V2Blocks`. Copy is
+`config/landing_v2.php` `pages.*`, editable per page in the CMS.
+- `lib/v2Paths.js` is the ONE list of twinned paths (mirrors the route
+  group); `useStayInV2` rewrites links on v2 pages so a tester never drops
+  back into v1. Add a twin to both.
+- Reused v1 pieces are exported, not copied: `ListingDetails`,
+  `LearnResourceBody`, `Highlights`, `TeamsGrid`, the hub helpers.
+
+**Dashboard v2** is the Naoa layout, a per-person switch (`users.dashboard_v2`,
+"Try the new dashboard" in the account menu, `account.dashboard-version`),
+NOT a second set of URLs. `BaseLayout`, `AppSidebar`, `DashboardHeader` and
+`DashboardHero` each branch into a V1 and a V2 component on
+`useDashboardV2()` (separate components so flipping never changes hook
+order). Page content is restyled by its shared classes in
+`css/dashboard-v2.css` under `.tfe-dv2` — so a new page gets it free; use
+the primitives (`.tfe-tile`, `.tfe-slab`, `DashboardHero action=`) and it
+will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
+`dashboard_v2` is deliberately NOT fillable.
+- **Naoa's page toolbar and side panel** are in the shell, not per page.
+  `DashboardV2/PageToolbar` (bottom, every page): search, list/grid views,
+  the page's heading actions (`#TOOLBAR_ID`), "go to any page" (⌘K) and a
+  collapse. A component offers its search or view switch through
+  `useToolbarSlot('search' | 'views', value)` and hides its inline control
+  when that returns true — `AdminToolbar`, `ListingGrid` and
+  `Partner/Requests` do. With no registered search the toolbar offers
+  "find on this page", filtering table rows and the shared cards
+  (`lib/pageFind.js`). `DashboardV2/SidePanel` (≥1280px, folded to a rail
+  below 1536 unless the person opened it): the other pages in the current
+  sidebar group and the latest notifications.
+- **`form-baseline.css`'s text-field rule wraps its type filters in
+  `:where()`.** Ten `:not([type=…])` filters weighed 0,10,1 and beat every
+  field class, contradicting the "element-level floor" the file promises.
+- **Phones navigate like an app**: below 768px the dashboard has the bottom
+  tab bar (`Components/Common/TabBar`, the ONE tab bar — `PublicTabBar` renders
+  through it too). Each role sidebar passes `tabs` (route names, optional
+  `{ route, label, primary }`), picked from its own menu by
+  `lib/dashboardTabs.js` so a tab can never drift from its sidebar item; Menu
+  opens the sidebar sheet. The v2 header carries no hamburger or quick links
+  — navigation is the sidebar's and the bar's.
+- Never pass a layout an inline component (`header={(p) => …}`): it is a new
+  type per render and remounts — that closed the account menu a second after
+  it opened. `RoleLayout` memoises it now.
+
+**Dialogs have a fixed height** (`TfeModal`): the panel no longer grows and
+shrinks with its step or tab; header and footer stay put and only the pane
+body scrolls (`dvh`, so phone browser bars do not count). Pass `fit` for a
+few lines with no steps — `ConfirmationDialog` and `StatusDialog` do. Guarded
+by the height check in `tests/e2e/planner.spec.js`.
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

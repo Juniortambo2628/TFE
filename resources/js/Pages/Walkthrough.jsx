@@ -4,6 +4,7 @@ import SectionPageShell from '@/Components/Landing/SectionPageShell';
 import SectionNav from '@/Components/Landing/V2/SectionNav';
 import ClosingCta from '@/Components/Landing/V2/ClosingCta';
 import { assetPath } from '@/lib/assets';
+import useStayInV2 from '@/hooks/useStayInV2';
 import '../../css/landing-v2.css';
 
 /**
@@ -16,6 +17,7 @@ import '../../css/landing-v2.css';
  * -> Content -> Landing v2.
  */
 export default function Walkthrough({ page }) {
+    useStayInV2();
     const sections = useMemo(
         () => page.chapters.map((c, i) => ({ id: `step-${i + 1}`, label: c.title })),
         [page],

@@ -15,6 +15,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\DashboardVersionController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BankSavingsController;
@@ -56,6 +57,7 @@ use App\Http\Controllers\SandboxBankController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TripPlannerController;
+use App\Http\Middleware\V2PublicPages;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
@@ -67,6 +69,25 @@ Route::get('/v2', [HomeController::class, 'homeV2'])->name('home.v2');
 Route::get('/for-{audience}', [HomeController::class, 'walkthrough'])
     ->where('audience', 'fans|partners|schools')
     ->name('walkthrough');
+
+// The v2 twins of the public pages (UX review, Nov 2026): the same
+// controller actions under /v2, rendering the V2/ pages, noindex. See
+// App\Http\Middleware\V2PublicPages.
+Route::prefix('v2')->name('v2.')->middleware(V2PublicPages::class)->group(function () {
+    Route::get('/about', [HomeController::class, 'about'])->name('about');
+    Route::get('/features', [HomeController::class, 'features'])->name('features');
+    Route::get('/services', [HomeController::class, 'services'])->name('services');
+    Route::get('/news', [HomeController::class, 'news'])->name('news');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('tournaments.show');
+    Route::get('/tribes', [CommunityController::class, 'index'])->name('community.tribes');
+    Route::get('/tribes/{slug}', [CommunityController::class, 'show'])->name('community.tribes.show');
+    Route::get('/partners', [PartnerHubController::class, 'index'])->name('partners.index');
+    Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])->name('partners.hub');
+    Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index');
+    Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
+    Route::get('/listings/{listing}', [ListingShowController::class, 'show'])->name('listings.show');
+});
 
 // News JSON API — consumed by the News section via the Ziggy route name
 // (name kept as news.index so `route('news.index')` still resolves). Path
@@ -105,6 +126,11 @@ Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index
 Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
+
+// "Try the new dashboard" (UX review, Nov 2026): every role, one switch.
+Route::post('/account/dashboard-version', [DashboardVersionController::class, 'update'])
+    ->middleware('auth')
+    ->name('account.dashboard-version');
 
 Route::get('/dashboard', function () {
     return DashboardHelper::redirectByRole();

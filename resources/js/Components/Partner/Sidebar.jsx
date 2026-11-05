@@ -40,6 +40,7 @@ export default function PartnerSidebar({ user }) {
             roleLabel={ROLE_LABEL[user?.partner_type] || 'Partner'}
             accentColor="#d97706" // amber-600
             menuItems={menuItems}
+            tabs={['partner.dashboard', 'partner.listings.index', 'partner.tickets.index', 'partner.requests', 'partner.tickets.sales', 'partner.messages']}
         />
     );
 }

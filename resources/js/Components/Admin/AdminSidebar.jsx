@@ -48,6 +48,7 @@ export default function AdminSidebar({ user }) {
             roleLabel="System Admin"
             accentColor="#3b82f6"
             menuItems={menuItems}
+            tabs={['admin.dashboard', 'admin.partners.index', { route: 'admin.listing-approvals.index', label: 'Safety' }, 'admin.messages']}
             showActiveDot={true}
         />
     );

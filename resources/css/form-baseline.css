@@ -47,7 +47,10 @@ textarea {
     color: var(--text-primary, #fff);
 }
 
-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="hidden"]),
+/* The type filter sits inside :where(), which adds no specificity: ten
+   :not([type]) filters otherwise weigh 0,10,1 and out-rank every field class
+   — the opposite of the floor this file promises (Nov 2026). */
+input:where(:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="hidden"])),
 select,
 textarea {
     width: 100%;

@@ -5,6 +5,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import MinorsBadge from '@/Components/Common/MinorsBadge';
 import { formatMoney } from '@/lib/utils';
+import { useToolbarSlot } from '@/Layouts/DashboardV2';
 
 /**
  * Convert tab — travel requests routed to the partner. Rebuilt on the shared
@@ -34,6 +35,9 @@ export default function Requests({ requests = [], variant = 'travel', hasListing
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const isFinance = variant === 'finance';
+    const searchPlaceholder = isFinance ? 'Search by reference or applicant…' : 'Search by reference, plan or fan…';
+    // In the v2 dashboard the search lives in the page toolbar.
+    const searchInToolbar = useToolbarSlot('search', { value: searchQuery, placeholder: searchPlaceholder, onChange: setSearchQuery });
 
     const count = (status) => requests.filter((r) => r.status === status).length;
     const filtered = requests.filter((r) => {
@@ -101,14 +105,16 @@ export default function Requests({ requests = [], variant = 'travel', hasListing
                         </button>
                     ))}
                 </div>
-                <input
-                    type="text"
-                    placeholder={isFinance ? 'Search by reference or applicant…' : 'Search by reference, plan or fan…'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="tfe-input tfe-input--sm"
-                    style={{ maxWidth: 260 }}
-                />
+                {!searchInToolbar && (
+                    <input
+                        type="text"
+                        placeholder={searchPlaceholder}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="tfe-input tfe-input--sm"
+                        style={{ maxWidth: 260 }}
+                    />
+                )}
             </div>
 
             <div className="tfe-slab">

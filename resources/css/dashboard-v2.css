@@ -1,0 +1,524 @@
+/* ==========================================================================
+   The Naoa-style dashboard (UX review, Nov 2026) — switched on per person
+   from the account menu. Layouts/DashboardV2.jsx explains the shape.
+
+   Naoa's layout, TFE's look: the near-black canvas, the role accents
+   (fan crimson, partner amber, admin blue, institution teal) and the shared
+   primitives. Everything is scoped to `.tfe-dv2`, the SidebarProvider root
+   BaseLayoutV2 renders, so the current dashboard is untouched. Page content
+   is restyled here by its shared classes (.tfe-tile, .tfe-slab, …) rather
+   than page by page, which is how every page — and any added later — gets
+   the same shape.
+   ========================================================================== */
+
+.tfe-dv2 {
+    --dv2-accent: #e31b23;
+    --dv2-accent-soft: rgba(227, 27, 35, 0.14);
+    --dv2-bg: #08080a;
+    --dv2-sidebar: #0f0f12;
+    --dv2-card: #131316;
+    --dv2-card-2: #18181c;
+    --dv2-border: rgba(255, 255, 255, 0.07);
+    --dv2-border-strong: rgba(255, 255, 255, 0.14);
+    --dv2-muted: rgba(255, 255, 255, 0.58);
+    --dv2-faint: rgba(255, 255, 255, 0.38);
+    --dv2-radius: 20px;
+    --dv2-header-h: 68px;
+    background: var(--dv2-bg);
+    color: #fff;
+}
+.tfe-dv2[data-role='partner'] { --dv2-accent: #d97706; --dv2-accent-soft: rgba(217, 119, 6, 0.16); }
+.tfe-dv2[data-role='admin'] { --dv2-accent: #3b82f6; --dv2-accent-soft: rgba(59, 130, 246, 0.16); }
+.tfe-dv2[data-role='institution'] { --dv2-accent: #0d9488; --dv2-accent-soft: rgba(13, 148, 136, 0.18); }
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.tfe-dv2 .bg-sidebar { background: var(--dv2-sidebar); color: #fff; }
+.tfe-dv2 .tfe-dv2-sidebar { border-right: 1px solid var(--dv2-border); }
+.tfe-dv2-sidebar__head { align-items: center; gap: 10px; padding: 22px 16px 14px; }
+.tfe-dv2-sidebar__logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, var(--dv2-accent-soft), rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--dv2-border-strong);
+    box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.8);
+}
+.tfe-dv2-sidebar__logo img { width: 46px; height: auto; }
+.tfe-dv2-sidebar__role {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dv2-accent);
+}
+.tfe-dv2-sidebar__body { padding: 6px 12px 24px; }
+.tfe-dv2-sidebar__group + .tfe-dv2-sidebar__group { margin-top: 18px; }
+.tfe-dv2-sidebar__title {
+    margin: 0 0 6px;
+    padding: 0 12px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dv2-faint);
+}
+.tfe-dv2-sidebar__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.tfe-dv2-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tfe-dv2-nav i { width: 18px; text-align: center; font-size: 0.92rem; color: rgba(255, 255, 255, 0.5); }
+.tfe-dv2-nav span:not(.tfe-dv2-nav__dot) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tfe-dv2-nav:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+.tfe-dv2-nav:focus-visible { outline: 2px solid var(--dv2-accent); outline-offset: 1px; }
+.tfe-dv2-nav.is-active { background: #f4f4f5; color: #0a0a0b; font-weight: 600; }
+.tfe-dv2-nav.is-active i { color: #0a0a0b; }
+.tfe-dv2-nav__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dv2-accent); }
+
+/* ── Main column + header ────────────────────────────────────── */
+/* overflow-x: clip, never auto/hidden: a scroll container that never
+   scrolls stops every sticky descendant (Sprint 56). min-width: 0 so a wide
+   child cannot stretch the column past the viewport. */
+.tfe-dv2__main { flex: 1; display: flex; flex-direction: column; min-height: 100svh; min-width: 0; overflow-x: clip; }
+.tfe-dv2__content { flex: 1; padding: 28px 32px 132px; }
+@media (max-width: 767.98px) {
+    .tfe-dv2__content { padding: 20px 16px 132px; }
+}
+
+.tfe-dv2-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: var(--dv2-header-h);
+    padding: 0 28px;
+    background: rgba(8, 8, 10, 0.82);
+    border-bottom: 1px solid var(--dv2-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+@media (max-width: 767.98px) {
+    .tfe-dv2-header { padding: 0 12px; gap: 8px; }
+    .tfe-dv2-header .tfe-dv2-header__badge { display: none; }
+}
+.tfe-dv2-header__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--dv2-accent-soft);
+    color: #fff;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+.tfe-dv2-header__badge i { color: var(--dv2-accent); }
+.tfe-dv2-header__actions { margin-left: auto; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tfe-dv2-iconbtn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tfe-dv2-iconbtn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.tfe-dv2-iconbtn .tfe-activity-badge,
+.tfe-dv2-iconbtn [class*='activity-badge'] { position: absolute; top: 4px; right: 2px; }
+
+/* The shared notifications / messages / account cluster, brought in from
+   the current header. Its wrapper there is the fixed full-width bar; here
+   it is just a row in the header. */
+.tfe-dv2 .tfe-dv2-header__cluster.dashboard-header {
+    position: static;
+    height: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+}
+
+/* ── Page heading ────────────────────────────────────────────── */
+.tfe-dv2-hero { margin-bottom: 24px; }
+.tfe-dv2-hero__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 0.86rem;
+    color: var(--dv2-muted);
+}
+.tfe-dv2-hero__crumbs a { color: var(--dv2-muted); text-decoration: none; }
+.tfe-dv2-hero__crumbs a:hover { color: #fff; }
+.tfe-dv2-hero__crumbs i { font-size: 0.6rem; color: var(--dv2-faint); }
+.tfe-dv2-hero__crumbs [aria-current='page'] { color: #fff; }
+.tfe-dv2-hero__row { display: flex; align-items: center; gap: 16px; }
+.tfe-dv2-hero__icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--dv2-accent-soft);
+    color: var(--dv2-accent);
+    font-size: 1.1rem;
+}
+.tfe-dv2-hero__copy { min-width: 0; }
+.tfe-dv2-hero__title { margin: 0; font-size: clamp(1.5rem, 2.6vw, 2.1rem); font-weight: 600; line-height: 1.15; color: #fff; letter-spacing: -0.01em; }
+.tfe-dv2-hero__subtitle { margin: 4px 0 0; font-size: 0.92rem; color: var(--dv2-muted); }
+
+/* ── Page toolbar (Naoa's floating toolbar: DashboardV2/PageToolbar) ── */
+.tfe-dv2-toolbar {
+    position: fixed;
+    bottom: 22px;
+    /* Centred on the content column, not the window. */
+    left: calc(var(--sidebar-width) + (100vw - var(--sidebar-width)) / 2);
+    transform: translateX(-50%);
+    z-index: 950;
+    max-width: calc(100vw - var(--sidebar-width) - 48px);
+}
+@media (max-width: 767.98px) {
+    .tfe-dv2-toolbar { left: 50%; width: calc(100vw - 24px); max-width: none; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+    .tfe-dv2-toolbar.is-collapsed { left: auto; right: 12px; width: auto; transform: none; }
+}
+.tfe-dv2-toolbar__bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 18px;
+    background: rgba(22, 22, 26, 0.92);
+    border: 1px solid var(--dv2-border-strong);
+    box-shadow: 0 24px 50px -16px rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.tfe-dv2-toolbar__bar > * { flex: none; }
+.tfe-dv2-toolbar__bar .tfe-btn { min-height: 40px; border-radius: 12px; white-space: nowrap; }
+.tfe-dv2-toolbar__bar .tfe-btn--filled,
+.tfe-dv2-toolbar__bar .btn-admin { background: var(--dv2-accent); border-color: var(--dv2-accent); color: #fff; }
+
+.tfe-dv2-toolbar__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 300px;
+    height: 40px;
+    margin: 0;
+    padding: 0 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dv2-border);
+    color: var(--dv2-muted);
+}
+.tfe-dv2-toolbar__search:focus-within { border-color: var(--dv2-border-strong); }
+.tfe-dv2-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tfe-dv2 .tfe-dv2-toolbar__search input {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    box-shadow: none;
+}
+.tfe-dv2-toolbar__note { flex: none; font-size: 0.72rem; color: var(--dv2-muted); white-space: nowrap; }
+@media (max-width: 767.98px) {
+    .tfe-dv2-toolbar__search { flex: 1 1 auto; width: auto; min-width: 120px; }
+    /* The filtered list is the count on a phone; the input needs the room. */
+    .tfe-dv2-toolbar__note { display: none; }
+}
+.tfe-dv2 .tfe-dv2-toolbar__search input { min-width: 64px; }
+.tfe-dv2-toolbar__views { display: flex; gap: 2px; padding: 2px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); }
+.tfe-dv2-toolbar__actions { display: flex; align-items: center; gap: 6px; }
+.tfe-dv2-toolbar__actions:empty,
+.tfe-dv2-toolbar__actions[hidden] { display: none; }
+.tfe-dv2-toolbar__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tfe-dv2-toolbar__icon:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.tfe-dv2-toolbar__icon[aria-pressed='true'] { background: var(--dv2-accent); color: #fff; }
+
+/* What "find on this page" hides. */
+.tfe-dv2 .tfe-dv2-findhidden { display: none !important; }
+
+/* The toolbar carries "go to any page" (⌘K), so the corner button goes. */
+body:has(.tfe-dv2) .command-menu-trigger { display: none; }
+
+/* ── Side panel (Naoa's: DashboardV2/SidePanel) ──────────────── */
+.tfe-dv2__content { display: flex; align-items: flex-start; gap: 20px; }
+.tfe-dv2__page { flex: 1; min-width: 0; }
+.tfe-dv2-panel { display: none; }
+@media (min-width: 1280px) {
+    .tfe-dv2-panel {
+        position: sticky;
+        top: calc(var(--dv2-header-h) + 20px);
+        display: flex;
+        flex-direction: column;
+        flex: none;
+        width: 320px;
+        max-height: calc(100dvh - var(--dv2-header-h) - 120px);
+        overflow: hidden;
+        border-radius: 22px;
+        background: var(--dv2-card);
+        border: 1px solid var(--dv2-border);
+    }
+    .tfe-dv2-panel.is-rail {
+        width: 56px;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 0;
+    }
+}
+@media (min-width: 1600px) { .tfe-dv2-panel:not(.is-rail) { width: 352px; } }
+.tfe-dv2-panel__head { display: flex; align-items: center; gap: 12px; padding: 16px 16px 14px; border-bottom: 1px solid var(--dv2-border); }
+.tfe-dv2-panel__icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: var(--dv2-accent-soft);
+    color: var(--dv2-accent);
+}
+.tfe-dv2-panel__heading { flex: 1; min-width: 0; }
+.tfe-dv2-panel__title { margin: 0; font-weight: 600; color: #fff; }
+.tfe-dv2-panel__sub { margin: 0; font-size: 0.78rem; color: var(--dv2-muted); }
+.tfe-dv2-panel__btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--dv2-muted);
+}
+.tfe-dv2-panel__btn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.tfe-dv2-panel__count {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--dv2-accent);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 18px;
+}
+.tfe-dv2-panel__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px; display: flex; flex-direction: column; gap: 18px; }
+.tfe-dv2-panel__label {
+    margin: 0 0 6px;
+    padding: 0 8px;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dv2-faint);
+}
+.tfe-dv2-panel__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.tfe-dv2-panel__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    color: #fff;
+    text-decoration: none;
+}
+a.tfe-dv2-panel__row:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
+.tfe-dv2-panel__row[aria-current='true'] { background: var(--dv2-accent-soft); border-color: rgba(255, 255, 255, 0.06); }
+.tfe-dv2-panel__rowicon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.82rem;
+}
+.tfe-dv2-panel__row[aria-current='true'] .tfe-dv2-panel__rowicon { color: var(--dv2-accent); }
+.tfe-dv2-panel__rowtext { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-top: 1px; font-size: 0.86rem; font-weight: 500; }
+.tfe-dv2-panel__rowtext small { font-size: 0.76rem; font-weight: 400; color: var(--dv2-muted); line-height: 1.4; }
+.tfe-dv2-panel__rowtext small:not(.tfe-dv2-panel__time) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tfe-dv2-panel__rowtext .tfe-dv2-panel__time { color: var(--dv2-faint); }
+.tfe-dv2-panel__dot { flex: none; width: 7px; height: 7px; margin-top: 6px; border-radius: 50%; background: var(--dv2-accent); }
+.tfe-dv2-panel__empty { margin: 0; padding: 4px 8px; font-size: 0.84rem; color: var(--dv2-muted); }
+
+/* ── Content: the shared primitives in the Naoa shape ────────── */
+
+/* Stat tiles become Naoa's summary cards: icon tile on the left, the number,
+   its label and a line under it. No colour wash; the role accent is on the
+   icon. */
+.tfe-dv2 .tfe-stat-grid,
+.tfe-dv2 .summary-cards-grid { gap: 14px; }
+.tfe-dv2 .tfe-tile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: 14px;
+    min-height: 0;
+    padding: 18px 18px 18px 16px;
+    border-radius: var(--dv2-radius);
+    background: var(--dv2-card);
+    border: 1px solid var(--dv2-border);
+    box-shadow: none;
+}
+.tfe-dv2 .tfe-tile::before,
+.tfe-dv2 .tfe-tile::after { display: none; }
+.tfe-dv2 .tfe-tile__head { grid-row: span 3; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin: 0; }
+.tfe-dv2 .tfe-tile__head:empty { display: none; }
+.tfe-dv2 .tfe-tile__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dv2-accent);
+    box-shadow: none;
+}
+.tfe-dv2 .tfe-tile__value { font-size: 1.65rem; font-weight: 600; line-height: 1.1; color: #fff; }
+.tfe-dv2 .tfe-tile__label { margin-top: 2px; font-size: 0.9rem; font-weight: 500; color: rgba(255, 255, 255, 0.82); text-transform: none; letter-spacing: 0; }
+.tfe-dv2 .tfe-tile__subtext { margin-top: 2px; font-size: 0.76rem; color: var(--dv2-muted); }
+
+/* Content cards. */
+.tfe-dv2 .tfe-slab {
+    border-radius: 24px;
+    background: var(--dv2-card);
+    border: 1px solid var(--dv2-border);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+.tfe-dv2 .tfe-slab__header { border-bottom-color: var(--dv2-border); }
+.tfe-dv2 .tfe-slab__title { font-weight: 600; color: var(--dv2-accent); letter-spacing: 0; text-transform: none; }
+
+.tfe-dv2 .tfe-table { background: transparent; }
+.tfe-dv2 .tfe-table thead th { color: var(--dv2-muted); border-bottom-color: var(--dv2-border); }
+.tfe-dv2 .tfe-table td { border-color: var(--dv2-border); }
+
+.tfe-dv2 .tfe-empty__icon { background: rgba(255, 255, 255, 0.04); color: var(--dv2-faint); }
+
+/* The current header's fixed-height offset does not apply here. */
+.tfe-dv2 .tfe-page { margin-top: 0; }
+
+/* The account menu's avatar, drawn without the current header's styles. */
+.tfe-dv2 .tfe-dv2-header__cluster .user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--dv2-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+@media (max-width: 767.98px) {
+    .tfe-dv2 .tfe-dv2-header__cluster .user-name,
+    .tfe-dv2 .tfe-dv2-header__cluster .chevron { display: none; }
+}
+
+/* Phones: summary cards two to a row with the icon above, as Naoa does,
+   rather than a column of full-width cards to scroll past. */
+@media (max-width: 767.98px) {
+    .tfe-dv2 .tfe-stat-grid,
+    .tfe-dv2 .summary-cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .tfe-dv2 .summary-cards-grid > * { min-width: 0; }
+    .tfe-dv2 .tfe-tile { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+    .tfe-dv2 .tfe-tile__head { flex-direction: row; justify-content: space-between; width: 100%; }
+    .tfe-dv2 .tfe-tile__icon { width: 36px; height: 36px; border-radius: 10px; }
+    .tfe-dv2 .tfe-tile__value { font-size: 1.3rem; }
+    .tfe-dv2 .tfe-tile__label { font-size: 0.82rem; }
+    .tfe-dv2-hero__icon { width: 40px; height: 40px; border-radius: 12px; font-size: 0.95rem; }
+    .tfe-dv2-hero__row { align-items: flex-start; gap: 12px; }
+}
+
+/* ── Phones: the bottom tab bar (TabBar via AppSidebar) ─────────────
+   Navigation moved out of the header into the sidebar and, on phones,
+   this bar. It shows only where the sidebar is a slide-over (< 768px);
+   from 768px the sidebar is on screen and the bar would repeat it. */
+.tfe-dv2-header__logo { display: none; height: 34px; width: auto; }
+@media (max-width: 767.98px) {
+    .tfe-dv2-header__logo { display: block; }
+}
+@media (min-width: 768px) {
+    .tfe-tabbar.tfe-tabbar--dashboard { display: none; }
+    body:has(.tfe-tabbar--dashboard) { --tfe-tabbar-h: 0px; padding-bottom: 0; }
+    html:has(.tfe-tabbar--dashboard) { scroll-padding-bottom: 0; }
+}
+.tfe-tabbar--dashboard { --tfe-tabbar-accent: var(--dv2-tab-accent, #e31b23); }
+body:has(.tfe-dv2[data-role='partner']) .tfe-tabbar--dashboard { --tfe-tabbar-accent: #d97706; }
+body:has(.tfe-dv2[data-role='admin']) .tfe-tabbar--dashboard { --tfe-tabbar-accent: #3b82f6; }
+body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabbar-accent: #0d9488; }
+.tfe-tabbar__item { position: relative; }
+.tfe-tabbar__item .tfe-activity-badge,
+.tfe-tabbar__item [class*='activity-badge'] { position: absolute; top: 6px; left: calc(50% + 6px); }
+
+/* The page's floating toolbar sits above the bar, not under it. */
+@media (max-width: 767.98px) {
+    .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 12px); }
+    .tfe-dv2__content { padding-bottom: 104px; }
+}
+
+
+/* With the menu sheet open the tab bar stays on top and usable — its Menu
+   tab reads Close, and any tab closes the sheet as it navigates — so the
+   sheet and its overlay stop where the bar begins. */
+@media (max-width: 767.98px) {
+    .tfe-tabbar.tfe-tabbar--dashboard { z-index: 1110; }
+    body:has(.tfe-tabbar--dashboard) .tfe-dv2 .fixed.bg-sidebar,
+    body:has(.tfe-tabbar--dashboard) .tfe-dv2 .fixed.inset-0 { bottom: var(--tfe-tabbar-h, 0px); }
+}

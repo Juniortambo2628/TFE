@@ -110,7 +110,7 @@ function FilterRow({ label, options, active, onPick }) {
     );
 }
 
-function ResourceCard({ resource: r }) {
+export function ResourceCard({ resource: r, href }) {
     // Only state what is true of this resource — a card that always showed
     // every chip would say "video" of a text guide.
     const meta = [
@@ -121,7 +121,7 @@ function ResourceCard({ resource: r }) {
     return (
         <AccentCard
             LinkComponent={Link}
-            href={route('learn.show', r.slug)}
+            href={href || route('learn.show', r.slug)}
             accent={r.publisher?.theme_accent || '#15803d'}
             artwork={r.hero_image ? { src: r.hero_image, alt: r.title, variant: 'thumb' } : { icon: 'fas fa-book-open' }}
             status={r.category_label}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LearningResource;
+use App\Support\PageVersion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -38,7 +39,7 @@ class LearningHubController extends Controller
             ->get()
             ->map(fn (LearningResource $r) => $this->card($r));
 
-        return Inertia::render('Learn/Index', [
+        return Inertia::render(PageVersion::component('Learn/Index'), [
             'resources' => $resources,
             'categories' => LearningResource::CATEGORIES,
             'audiences' => LearningResource::AUDIENCES,
@@ -75,7 +76,7 @@ class LearningHubController extends Controller
             ->get()
             ->map(fn (LearningResource $r) => $this->card($r));
 
-        return Inertia::render('Learn/Show', [
+        return Inertia::render(PageVersion::component('Learn/Show'), [
             'resource' => $this->card($resource) + [
                 'body' => $resource->body,
                 'external_url' => $resource->external_url,

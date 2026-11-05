@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Tribe;
+use App\Support\PageVersion;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class CommunityController extends Controller
     {
         $tournamentId = $this->activeTournament()['id'];
 
-        return Inertia::render('Community/Tribes', [
+        return Inertia::render(PageVersion::component('Community/Tribes'), [
             'hero' => HomeController::pageHero('tribes'),
             'tribes' => self::directoryQuery($tournamentId)->limit(48)->get()->map(fn ($t) => self::tribeCard($t))->all(),
             'posts' => self::publicPosts(8),
@@ -62,7 +63,7 @@ class CommunityController extends Controller
             return redirect()->route('fan.tribes.show', $tribe);
         }
 
-        return Inertia::render('Community/TribeShow', [
+        return Inertia::render(PageVersion::component('Community/TribeShow'), [
             'tribe' => self::tribeCard($tribe) + [
                 'description' => (string) $tribe->description,
                 'created_at' => $tribe->created_at?->toDateString(),

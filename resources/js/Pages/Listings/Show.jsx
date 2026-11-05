@@ -21,11 +21,6 @@ import { assetPath } from '@/lib/assets';
  * asked yet. `fan.packages.show` still does all of it for a signed-in fan.
  */
 export default function ListingShow({ listing, tournament, more = [], onlinePayment = false }) {
-    const schedule = formatSchedule(listing.starts_at, listing.ends_at, listing.location);
-    const ended = hasEnded(listing.ends_at);
-    const isFree = Number(listing.base_price) === 0;
-    const isTrip = listing.type === 'package' || listing.type === 'tour';
-
     return (
         <SectionPageShell
             title={listing.name}
@@ -47,111 +42,7 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
         >
             <section className="listing-page">
                 <div className="container">
-                    <div className="tfe-card-grid tfe-card-grid--2 listing-page__top">
-                        <div>
-                            <div className="listing-page__chips">
-                                <span className="tfe-pill tfe-pill--info">{titleCase(listing.type)}</span>
-                                {tournament && (
-                                    <Link
-                                        href={route('tournaments.show', tournament.slug)}
-                                        className="tfe-pill tfe-pill--upcoming"
-                                    >
-                                        {tournament.short_name || tournament.name}
-                                    </Link>
-                                )}
-                                {listing.is_featured && <span className="tfe-pill tfe-pill--approved">Featured</span>}
-                                {/* Both are claims about availability, and both
-                                    are only made when they are true. */}
-                                {listing.is_sold_out && <span className="tfe-pill tfe-pill--rejected">Sold out</span>}
-                                {ended && <span className="tfe-pill tfe-pill--concluded">Finished</span>}
-                            </div>
-
-                            {/* Partner-authored prose, rendered as TEXT. Same
-                                stored-XSS reasoning that keeps SVG out of every
-                                uploader (Sprint 60). */}
-                            {listing.description && (
-                                <p className="listing-page__body">{listing.description}</p>
-                            )}
-
-                            {isTrip && (listing.nights || listing.flight_class || listing.accommodation_level) && (
-                                <div className="listing-page__facts">
-                                    {listing.nights && <Fact label="Nights" value={listing.nights} />}
-                                    {listing.flight_class && <Fact label="Flights" value={titleCase(listing.flight_class)} />}
-                                    {listing.accommodation_level && (
-                                        <Fact label="Stay" value={titleCase(listing.accommodation_level.replace(/_/g, ' '))} />
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        <aside className="listing-page__aside">
-                            <div className="listing-page__price">
-                                {/* A zero price means Free, not "USD 0" — most
-                                    of the schools catalogue is free to enter and
-                                    that is a claim worth making (Sprint 59). */}
-                                {isFree ? 'Free' : formatMoney(listing.base_price, listing.currency || 'USD')}
-                                {!isFree && <span className="listing-page__price-sub">per person</span>}
-                            </div>
-
-                            {schedule && (
-                                <div className="listing-page__row">
-                                    <i className="fas fa-calendar-alt" aria-hidden="true"></i>
-                                    <span>{schedule}</span>
-                                </div>
-                            )}
-
-                            {listing.capacity > 0 && (
-                                <div className="listing-page__row listing-page__row--block">
-                                    <CapacityBar
-                                        sold={listing.sold_count}
-                                        capacity={listing.capacity}
-                                        pct={listing.availability_pct}
-                                        seatsLeftLabel
-                                    />
-                                </div>
-                            )}
-
-                            <div className="listing-page__cta">
-                                {listing.is_sold_out || ended ? (
-                                    <Link
-                                        href={listing.publisher
-                                            ? route('partners.hub', listing.publisher.slug)
-                                            : route('partners.index')}
-                                        className="tfe-btn tfe-btn--filled tfe-btn--lg"
-                                    >
-                                        See what else is on
-                                    </Link>
-                                ) : isTrip ? (
-                                    <BookNow listing={listing} onlinePayment={onlinePayment} />
-                                ) : (
-                                    <Link
-                                        href={route('fan.budget-calculator', { package: listing.id })}
-                                        className="tfe-btn tfe-btn--filled tfe-btn--lg"
-                                    >
-                                        Get started
-                                    </Link>
-                                )}
-                                {/* Said plainly rather than discovered at the
-                                    login wall — the whole reason this page
-                                    exists is that the wall came first. */}
-                                <p className="listing-page__cta-note">
-                                    You'll be asked to sign in or create an account to continue.
-                                </p>
-                            </div>
-
-                            {listing.publisher && (
-                                <div className="listing-page__publisher">
-                                    <PoweredByBadge publisher={listing.publisher} variant="chip" />
-                                    <Link
-                                        href={route('partners.hub', listing.publisher.slug)}
-                                        className="tfe-btn tfe-btn--sm"
-                                    >
-                                        View partner
-                                    </Link>
-                                </div>
-                            )}
-                        </aside>
-                    </div>
+                    <ListingDetails listing={listing} tournament={tournament} onlinePayment={onlinePayment} />
 
                     {more.length > 0 && (
                         <div className="listing-page__more">
@@ -184,6 +75,129 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
                     )}
                 </div>
             </section>
+
+        </SectionPageShell>
+    );
+}
+
+/**
+ * What the listing is and how to act on it: the description and trip facts
+ * beside the price, schedule, availability and booking panel. Shared by this
+ * page and its v2 twin (Pages/V2/Listings/Show) so the two cannot drift.
+ */
+export function ListingDetails({ listing, tournament, onlinePayment = false }) {
+    const schedule = formatSchedule(listing.starts_at, listing.ends_at, listing.location);
+    const ended = hasEnded(listing.ends_at);
+    const isFree = Number(listing.base_price) === 0;
+    const isTrip = listing.type === 'package' || listing.type === 'tour';
+
+    return (
+        <>
+            <div className="tfe-card-grid tfe-card-grid--2 listing-page__top">
+                <div>
+                    <div className="listing-page__chips">
+                        <span className="tfe-pill tfe-pill--info">{titleCase(listing.type)}</span>
+                        {tournament && (
+                            <Link
+                                href={route('tournaments.show', tournament.slug)}
+                                className="tfe-pill tfe-pill--upcoming"
+                            >
+                                {tournament.short_name || tournament.name}
+                            </Link>
+                        )}
+                        {listing.is_featured && <span className="tfe-pill tfe-pill--approved">Featured</span>}
+                        {/* Both are claims about availability, and both
+                            are only made when they are true. */}
+                        {listing.is_sold_out && <span className="tfe-pill tfe-pill--rejected">Sold out</span>}
+                        {ended && <span className="tfe-pill tfe-pill--concluded">Finished</span>}
+                    </div>
+
+                    {/* Partner-authored prose, rendered as TEXT. Same
+                        stored-XSS reasoning that keeps SVG out of every
+                        uploader (Sprint 60). */}
+                    {listing.description && (
+                        <p className="listing-page__body">{listing.description}</p>
+                    )}
+
+                    {isTrip && (listing.nights || listing.flight_class || listing.accommodation_level) && (
+                        <div className="listing-page__facts">
+                            {listing.nights && <Fact label="Nights" value={listing.nights} />}
+                            {listing.flight_class && <Fact label="Flights" value={titleCase(listing.flight_class)} />}
+                            {listing.accommodation_level && (
+                                <Fact label="Stay" value={titleCase(listing.accommodation_level.replace(/_/g, ' '))} />
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <aside className="listing-page__aside">
+                    <div className="listing-page__price">
+                        {/* A zero price means Free, not "USD 0" — most
+                            of the schools catalogue is free to enter and
+                            that is a claim worth making (Sprint 59). */}
+                        {isFree ? 'Free' : formatMoney(listing.base_price, listing.currency || 'USD')}
+                        {!isFree && <span className="listing-page__price-sub">per person</span>}
+                    </div>
+
+                    {schedule && (
+                        <div className="listing-page__row">
+                            <i className="fas fa-calendar-alt" aria-hidden="true"></i>
+                            <span>{schedule}</span>
+                        </div>
+                    )}
+
+                    {listing.capacity > 0 && (
+                        <div className="listing-page__row listing-page__row--block">
+                            <CapacityBar
+                                sold={listing.sold_count}
+                                capacity={listing.capacity}
+                                pct={listing.availability_pct}
+                                seatsLeftLabel
+                            />
+                        </div>
+                    )}
+
+                    <div className="listing-page__cta">
+                        {listing.is_sold_out || ended ? (
+                            <Link
+                                href={listing.publisher
+                                    ? route('partners.hub', listing.publisher.slug)
+                                    : route('partners.index')}
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg"
+                            >
+                                See what else is on
+                            </Link>
+                        ) : isTrip ? (
+                            <BookNow listing={listing} onlinePayment={onlinePayment} />
+                        ) : (
+                            <Link
+                                href={route('fan.budget-calculator', { package: listing.id })}
+                                className="tfe-btn tfe-btn--filled tfe-btn--lg"
+                            >
+                                Get started
+                            </Link>
+                        )}
+                        {/* Said plainly rather than discovered at the
+                            login wall — the whole reason this page
+                            exists is that the wall came first. */}
+                        <p className="listing-page__cta-note">
+                            You'll be asked to sign in or create an account to continue.
+                        </p>
+                    </div>
+
+                    {listing.publisher && (
+                        <div className="listing-page__publisher">
+                            <PoweredByBadge publisher={listing.publisher} variant="chip" />
+                            <Link
+                                href={route('partners.hub', listing.publisher.slug)}
+                                className="tfe-btn tfe-btn--sm"
+                            >
+                                View partner
+                            </Link>
+                        </div>
+                    )}
+                </aside>
+            </div>
 
             <style>{`
                 .listing-page { padding: 56px 0 80px; }
@@ -282,7 +296,7 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
                     .listing-page__aside { position: static; }
                 }
             `}</style>
-        </SectionPageShell>
+        </>
     );
 }
 

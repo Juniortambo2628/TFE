@@ -1,6 +1,6 @@
 import React from 'react';
 import AppSidebar from '@/Components/Common/AppSidebar';
-import { INSTITUTION_MENU } from '@/Components/Institution/Sidebar';
+import { INSTITUTION_MENU, INSTITUTION_TABS } from '@/Components/Institution/Sidebar';
 
 export default function FanSidebar({ user }) {
     // An institution meets the shared planning surfaces (the Budget
@@ -49,6 +49,9 @@ export default function FanSidebar({ user }) {
             roleLabel={isInstitution ? 'Institution' : 'Fan Member'}
             accentColor={isInstitution ? '#0d9488' : '#e31b23'}
             menuItems={menuItems}
+            tabs={isInstitution
+                ? INSTITUTION_TABS
+                : ['fan.dashboard', { route: 'fan.budget-calculator', primary: true, label: 'Plan' }, { route: 'fan.itineraries', label: 'Trips' }, 'fan.tickets.index']}
         />
     );
 }

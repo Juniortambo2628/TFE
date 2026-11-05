@@ -1401,7 +1401,13 @@ button.tfe-menu-surface__badge:hover {
        minmax(0,1fr) caps the row at max-height; the pane body scrolls. */
     grid-template-rows: minmax(0, 1fr);
     width: min(880px, 100%);
-    max-height: min(88vh, 760px);
+    /* A fixed HEIGHT, not a max (Nov 2026 tester feedback): sized to its
+       content, a dialog grew and shrank under the reader's eyes as they
+       moved between steps and tabs, and its buttons moved with it. The
+       header and footer stay put; only the pane body scrolls. dvh so a
+       phone browser's own toolbars are not counted as space we have. */
+    height: min(86vh, 760px);
+    height: min(86dvh, 760px);
     overflow: hidden;
     background: #14141a;
     border: 1px solid rgb(255 255 255 / 10%);
@@ -1410,7 +1416,10 @@ button.tfe-menu-surface__badge:hover {
     animation: tfe-modal-rise var(--dur-fast, 0.16s) var(--ease-out, ease);
 }
 
-.tfe-modal--sm { width: min(620px, 100%); }
+.tfe-modal--sm { width: min(620px, 100%); height: min(78vh, 600px); height: min(78dvh, 600px); }
+
+/* A confirmation or status message: a few lines, no steps, sized to fit. */
+.tfe-modal--fit { height: auto; max-height: min(88vh, 760px); max-height: min(88dvh, 760px); }
 .tfe-modal--lg { width: min(1040px, 100%); }
 .tfe-modal--xl { width: min(1240px, 100%); }
 
@@ -1748,9 +1757,13 @@ label.tfe-modal-row__title { cursor: pointer; }
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto minmax(0, 1fr);
         width: 100%;
-        max-height: 94vh;
+        height: 92vh;
+        height: 92dvh;
+        max-height: none;
         border-radius: 20px 20px 0 0;
     }
+
+    .tfe-modal--fit { height: auto; max-height: 92vh; max-height: 92dvh; }
 
     .tfe-modal__rail {
         /* vertical swipes drive the sheet; the chip strip still scrolls sideways */
@@ -1796,7 +1809,16 @@ label.tfe-modal-row__title { cursor: pointer; }
 
     .tfe-modal__rail-foot { margin-top: 0; }
 
-    .tfe-modal__pane-head { padding: 16px 16px 12px; }
+    /* Two headers stack on a phone — the dialog's name in the rail, the
+       section's in the pane — so both are kept short: the name on one
+       line, less padding, and the space goes to the content. */
+    .tfe-modal__rail { padding: 12px 14px 8px; gap: 8px; }
+    .tfe-modal__ident { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 8px; row-gap: 2px; }
+    .tfe-modal__ident .tfe-modal__label { margin: 0; }
+    .tfe-modal__ident .tfe-modal__title { font-size: 0.98rem; }
+
+    .tfe-modal__pane-head { padding: 12px 16px 10px; }
+    .tfe-modal__pane-sub { font-size: 0.78rem; }
     .tfe-modal__pane-title { font-size: 1.12rem; }
     .tfe-modal__pane-body { padding: 16px; }
 
