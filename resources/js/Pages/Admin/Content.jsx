@@ -74,6 +74,18 @@ const LANDING_GROUPS = [
     { key: 'walkthroughs.fans', label: 'Walkthrough: fans' },
     { key: 'walkthroughs.partners', label: 'Walkthrough: partners' },
     { key: 'walkthroughs.schools', label: 'Walkthrough: schools' },
+    // The v2 twins of the public pages (/v2/about, /v2/partners, …).
+    { key: 'pages.about', label: 'v2 page: About' },
+    { key: 'pages.features', label: 'v2 page: Features' },
+    { key: 'pages.services', label: 'v2 page: Services' },
+    { key: 'pages.news', label: 'v2 page: News' },
+    { key: 'pages.contact', label: 'v2 page: Contact' },
+    { key: 'pages.partners', label: 'v2 page: Partners' },
+    { key: 'pages.hub', label: 'v2 page: Partner hub' },
+    { key: 'pages.tournament', label: 'v2 page: Tournament' },
+    { key: 'pages.listing', label: 'v2 page: Listing' },
+    { key: 'pages.learn', label: 'v2 page: Learning Hub' },
+    { key: 'pages.tribes', label: 'v2 page: Tribes' },
 ];
 
 export default function Content({

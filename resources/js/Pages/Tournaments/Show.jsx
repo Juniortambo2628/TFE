@@ -109,7 +109,7 @@ export default function TournamentShow({ tournament = {}, listings = [], upcomin
 }
 
 // ── Past-tournament highlights: champion, runner-up, top scorer, POTT ──
-function Highlights({ t }) {
+export function Highlights({ t }) {
     const cards = [
         t.winner && { icon: 'fas fa-trophy', label: 'Champions', value: t.winner, tone: 'gold' },
         t.runner_up && { icon: 'fas fa-medal', label: 'Runners-up', value: t.runner_up, tone: 'silver' },
@@ -141,7 +141,7 @@ function Highlights({ t }) {
 }
 
 // ── Participating / qualified teams (flags) ──
-function TeamsGrid({ title, codes = [], baseUrl, wikiFlags }) {
+export function TeamsGrid({ title, codes = [], baseUrl, wikiFlags }) {
     if (!codes.length) return null;
     return (
         <section className="tourpage-block">

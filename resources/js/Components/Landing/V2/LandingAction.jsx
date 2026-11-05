@@ -31,7 +31,7 @@ export function runAction(action, { tournamentId } = {}) {
  * (so it can be opened in a new tab and reads as a link), a button otherwise.
  */
 export default function LandingAction({ action, label, icon, filled = false, size = 'lg', className = '', tournamentId }) {
-    const cls = ['tfe-btn', size === 'lg' ? 'tfe-btn--lg' : '', filled ? 'tfe-btn--filled' : '', className].filter(Boolean).join(' ');
+    const cls = ['tfe-btn', size === 'lg' ? 'tfe-btn--lg' : size === 'sm' ? 'tfe-btn--sm' : '', filled ? 'tfe-btn--filled' : '', className].filter(Boolean).join(' ');
     const a = parseAction(action);
     const content = (
         <>

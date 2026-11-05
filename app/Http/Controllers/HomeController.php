@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\StadiumBowlService;
 use App\Services\TournamentService;
 use App\Support\LandingContent;
+use App\Support\PageVersion;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -166,6 +167,19 @@ class HomeController extends Controller
      * Keep an experiment out of search results until it replaces the page it
      * is tested against. The page also sets the robots meta tag.
      */
+    /**
+     * Pieces of the /v2 landing copy a v2 section page reuses (its audiences,
+     * explorer, partner categories, FAQ), so one edit in Admin -> Content ->
+     * Landing v2 reads the same on every page that shows it.
+     *
+     * @param  list<string>  $keys
+     * @return array{landing: array<string, mixed>}
+     */
+    private function v2Landing(array $keys): array
+    {
+        return ['landing' => Arr::only(LandingContent::all(), $keys)];
+    }
+
     private function noindex($response, Request $request)
     {
         return $response->toResponse($request)->header('X-Robots-Tag', 'noindex, nofollow');
@@ -215,39 +229,44 @@ class HomeController extends Controller
     // defaults + admin CMS overrides) plus the section component.
     public function about()
     {
-        return Inertia::render('Sections/About', [
+        return Inertia::render(PageVersion::component('Sections/About'), [
             'hero' => self::pageHero('about'),
             'cards' => $this->sectionCards('about'),
-        ]);
+        ] + (PageVersion::isV2() ? $this->v2Landing(['about', 'audiences', 'facts']) + [
+            'facts' => $this->landingFacts($this->activeTournament()),
+        ] : []));
     }
 
     public function features()
     {
-        return Inertia::render('Sections/Features', [
+        return Inertia::render(PageVersion::component('Sections/Features'), [
             'hero' => self::pageHero('features'),
             'cards' => $this->sectionCards('features'),
-        ]);
+        ] + (PageVersion::isV2() ? $this->v2Landing(['explorer']) : []));
     }
 
     public function services()
     {
-        return Inertia::render('Sections/Services', [
+        return Inertia::render(PageVersion::component('Sections/Services'), [
             'hero' => self::pageHero('services'),
             'cards' => $this->sectionCards('services'),
-        ]);
+        ] + (PageVersion::isV2() ? $this->v2Landing(['audiences', 'partners']) + [
+            'partnerCounts' => $this->partnerCountsByType(),
+            'partnerTypeLabels' => AdminPartnerController::partnerTypes(),
+        ] : []));
     }
 
     public function news()
     {
-        return Inertia::render('Sections/News', ['hero' => self::pageHero('news')]);
+        return Inertia::render(PageVersion::component('Sections/News'), ['hero' => self::pageHero('news')]);
     }
 
     public function contact()
     {
-        return Inertia::render('Sections/Contact', [
+        return Inertia::render(PageVersion::component('Sections/Contact'), [
             'hero' => self::pageHero('contact'),
             'cards' => $this->sectionCards('contact'),
-        ]);
+        ] + (PageVersion::isV2() ? $this->v2Landing(['faq']) : []));
     }
 
     /**
@@ -296,7 +315,7 @@ class HomeController extends Controller
         // Where a past tournament's "plan the next one" CTA should point.
         $upcoming = collect($all)->firstWhere('status', 'upcoming');
 
-        return Inertia::render('Tournaments/Show', [
+        return Inertia::render(PageVersion::component('Tournaments/Show'), [
             // Only the keys Tournaments/Show.jsx actually renders (Sprint 53).
             // The assembled payload also carries the raw Wikipedia response,
             // every venue row with its extract and imagery, and the full

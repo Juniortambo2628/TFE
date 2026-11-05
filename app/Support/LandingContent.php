@@ -57,7 +57,7 @@ class LandingContent
 
         foreach (self::textLeaves(config('landing_v2', [])) as $path => $default) {
             $segments = explode('.', $path);
-            $group = $segments[0] === 'walkthroughs' ? 'walkthroughs.'.($segments[1] ?? '') : $segments[0];
+            $group = in_array($segments[0], ['walkthroughs', 'pages'], true) ? $segments[0].'.'.($segments[1] ?? '') : $segments[0];
 
             $fields[] = [
                 'key' => self::PREFIX.$path,

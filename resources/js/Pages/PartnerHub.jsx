@@ -230,7 +230,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], featu
 
 // Strip the trailing "_partner" before title-casing so "Official {type}
 // Partner" doesn't read "Official Finance Partner Partner".
-function PartnerHubTicket({ ticket, accent }) {
+export function PartnerHubTicket({ ticket, accent }) {
     const KICK = formatKickoff(ticket.kickoff_at);
     return (
         <article className="ticket-card" style={{ '--partner-accent': accent }}>
@@ -283,7 +283,7 @@ function PartnerHubTicket({ ticket, accent }) {
  * listing with no schedule is a legitimate state — so the fact is dropped
  * rather than rendered as an empty row.
  */
-function scheduleFacts(listing) {
+export function scheduleFacts(listing) {
     const when = formatSchedule(listing.starts_at, listing.ends_at, listing.location);
 
     return [
@@ -318,7 +318,7 @@ function priceFact(listing) {
  * to title-case the raw key instead, which rendered `school_community` as
  * "School Community" while the directory showed "Schools & Communities".
  */
-function partnerEyebrow(label) {
+export function partnerEyebrow(label) {
     if (!label) return '';
 
     return label.replace(/\s+Partner$/i, '').trim();
