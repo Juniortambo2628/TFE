@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Booking;
 use App\Models\Budget;
+use App\Models\Fixture;
 use App\Models\Listing;
 use App\Models\LoanApplication;
 use App\Models\Post;
@@ -146,18 +147,23 @@ class DemoFanActivitySeeder extends Seeder
             $this->command?->warn('No partner listings for '.self::TOURNAMENT.' — budgets will not reach any Convert queue.');
         }
 
+        // The last column picks the plan's matches, so a plan opens on the
+        // matches its name promises. They were all seeded with no matches, so
+        // "Nairobi group stage — 3 matches" opened as "Estimated total for 0
+        // matches" with $0 of match tickets.
+        $nairobi = ['Raila Odinga International Stadium', 'Moi International Sports Centre, Kasarani', 'Nyayo National Stadium'];
         $specs = [
-            ['fan@tfe.com', 'Nairobi group stage — 3 matches', 4250, 'USD', 7, 'pending', 'standard', 'economy'],
-            ['amina@tfe.com', 'Kenya every home game', 6900, 'KES', 12, 'approved', 'luxury', 'business'],
-            ['joseph@tfe.com', 'Kasarani double-header', 1850, 'USD', 4, 'pending', 'budget', 'economy'],
-            ['fatima@tfe.com', 'Senegal — follow the Lions', 8400, 'EUR', 16, 'modified', 'luxury', 'business'],
-            ['tunde@tfe.com', 'Nigeria to the final', 11200, 'USD', 21, 'approved', 'luxury', 'business'],
-            ['grace@tfe.com', 'Dar es Salaam weekender', 1400, 'USD', 3, 'pending', 'budget', 'economy'],
-            ['samir@tfe.com', 'Morocco group stage', 5100, 'USD', 9, 'pending', 'standard', 'economy'],
-            ['fan@tfe.com', 'Semi-final + final package', 7300, 'USD', 8, 'approved', 'luxury', 'business'],
+            ['fan@tfe.com', 'Nairobi group stage — 3 matches', 4250, 'USD', 7, 'pending', 'standard', 'economy', ['venues' => $nairobi, 'stage' => 'Group Stage', 'limit' => 3]],
+            ['amina@tfe.com', 'Kenya every home game', 6900, 'KES', 12, 'approved', 'luxury', 'business', ['team' => 'Kenya', 'venues' => $nairobi]],
+            ['joseph@tfe.com', 'Kasarani double-header', 1850, 'USD', 4, 'pending', 'budget', 'economy', ['venues' => ['Moi International Sports Centre, Kasarani'], 'limit' => 2]],
+            ['fatima@tfe.com', 'Senegal — follow the Lions', 8400, 'EUR', 16, 'modified', 'luxury', 'business', ['team' => 'Senegal']],
+            ['tunde@tfe.com', 'Nigeria to the final', 11200, 'USD', 21, 'approved', 'luxury', 'business', ['team' => 'Nigeria']],
+            ['grace@tfe.com', 'Dar es Salaam weekender', 1400, 'USD', 3, 'pending', 'budget', 'economy', ['venues' => ['Benjamin Mkapa Stadium'], 'limit' => 2]],
+            ['samir@tfe.com', 'Morocco group stage', 5100, 'USD', 9, 'pending', 'standard', 'economy', ['team' => 'Morocco', 'stage' => 'Group Stage']],
+            ['fan@tfe.com', 'Semi-final + final package', 7300, 'USD', 8, 'approved', 'luxury', 'business', ['stages' => ['Semi-finals', 'Final']]],
         ];
 
-        foreach ($specs as $i => [$email, $name, $cost, $currency, $nights, $status, $accom, $flight]) {
+        foreach ($specs as $i => [$email, $name, $cost, $currency, $nights, $status, $accom, $flight, $matches]) {
             if (! isset($fans[$email])) {
                 continue;
             }
@@ -169,26 +175,59 @@ class DemoFanActivitySeeder extends Seeder
                     'listing_id' => $listings ? $listings[$i % count($listings)] : null,
                     'total_cost' => $cost,
                     'currency' => $currency,
-                    'match_ids' => [],
+                    'match_ids' => $this->matchIds($matches),
                     'accommodation_level' => $accom,
                     'flight_class' => $flight,
                     'nights' => $nights,
                     'is_active' => true,
                     'partner_status' => $status,
-                    'partner_cost' => $status === 'modified' ? $cost * 0.92 : null,
+                    // An approved quote has a price — it is what the partner's
+                    // revenue tile sums. Approved plans used to carry none, so
+                    // a partner with two approvals read "$0.00 Total Revenue".
+                    'partner_cost' => match ($status) {
+                        'approved' => $cost,
+                        'modified' => $cost * 0.92,
+                        default => null,
+                    },
                     'partner_notes' => $status === 'modified'
                         ? 'Swapped to a closer hotel and re-quoted the internal flights.'
                         : null,
+                    // The keys lib/tripEstimate.js writes and the calculator
+                    // reads. Seeded as tickets/transport/food, a third of every
+                    // demo plan's cost was missing from its breakdown and chart.
                     'breakdown' => [
-                        'tickets' => round($cost * 0.28),
+                        'match_tickets' => round($cost * 0.28),
                         'flights' => round($cost * 0.34),
                         'accommodation' => round($cost * 0.26),
-                        'transport' => round($cost * 0.07),
-                        'food' => round($cost * 0.05),
+                        'local_transport' => round($cost * 0.07),
+                        'food_and_drink' => round($cost * 0.05),
                     ],
                 ],
             );
         }
+    }
+
+    /**
+     * Fixture ids for a demo plan, in the `db_{id}` form the planner and the
+     * Budget Calculator store. Deterministic: ordered by date, then id.
+     *
+     * @param  array{venues?: array<int, string>, team?: string, stage?: string, stages?: array<int, string>, limit?: int}  $c
+     * @return array<int, string>
+     */
+    private function matchIds(array $c): array
+    {
+        return Fixture::query()
+            ->where('tournament_id', self::TOURNAMENT)
+            ->when($c['venues'] ?? null, fn ($q, $v) => $q->whereIn('venue', $v))
+            ->when($c['team'] ?? null, fn ($q, $t) => $q->where(fn ($w) => $w->where('home_team', $t)->orWhere('away_team', $t)))
+            ->when($c['stage'] ?? null, fn ($q, $st) => $q->where('stage', $st))
+            ->when($c['stages'] ?? null, fn ($q, $st) => $q->whereIn('stage', $st))
+            ->orderBy('date')
+            ->orderBy('id')
+            ->when($c['limit'] ?? null, fn ($q, $n) => $q->limit($n))
+            ->pluck('id')
+            ->map(fn ($id) => 'db_'.$id)
+            ->all();
     }
 
     /** Confirmed trips, so Fan/Journey renders rows instead of an empty state. */

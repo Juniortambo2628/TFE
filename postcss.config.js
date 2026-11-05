@@ -84,6 +84,8 @@ if (process.env.NODE_ENV === 'production') {
                     // PurgeCSS must not strip them).
                     /^(fill|stroke)-(emerald|cyan)-(300|400|500|600)$/,
                     /^community-/,     // landing community preview + /tribes (Sprint 70)
+                    /^v2-/,            // landing page v2 + walkthroughs (landing-v2.css; v2-facts__grid--${n} is built in JSX)
+                    /^landing-featured/, // featured trips, incl. the v2 carousel variant
                     /^calc-/,          // budget calculator recap/banner (Sprint 69)
                     /^itin/,           // printable itinerary (Sprint 69)
                     /^tfe-/,           // primitives.css (.tfe-tile, .tfe-slab, .tfe-pill, .tfe-sidebar-nav-item, .tfe-quick-action*)

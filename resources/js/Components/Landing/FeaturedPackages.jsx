@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from '@inertiajs/react';
 import AccentCard from '@/Components/Common/AccentCard';
 import CapacityBar from '@/Components/Common/CapacityBar';
@@ -18,22 +18,43 @@ import '../../../css/landing-sections.css';
  * `packages` is a deferred prop: undefined while loading (skeleton), [] when
  * the tournament has none (the section steps aside — the planner below the
  * hero still covers that case).
+ *
+ * `variant="carousel"` (landing page v2) lays the same cards out in one
+ * sideways-scrolling row with previous/next buttons instead of the grid —
+ * the two versions answer the UX review's "scrolling or static?" question in
+ * the same test. `eyebrow`/`title`/`sub` let v2 use its CMS-editable copy.
  */
-export default function FeaturedPackages({ packages, tournamentName }) {
+export default function FeaturedPackages({
+    packages,
+    tournamentName,
+    variant = 'grid',
+    id,
+    eyebrow = 'Book in a few taps',
+    title = 'Trips you can book now',
+    sub = 'Fixed-price packages from verified partners. Pick one, sign in, and pay — no quote to wait for.',
+}) {
+    const trackRef = useRef(null);
     if (Array.isArray(packages) && packages.length === 0) return null;
+    const carousel = variant === 'carousel';
+
+    const page = (dir) => {
+        const track = trackRef.current;
+        if (!track) return;
+        const card = track.querySelector('.landing-featured__slide');
+        const step = card ? card.getBoundingClientRect().width + 24 : track.clientWidth * 0.8;
+        track.scrollBy({ left: dir * step, behavior: 'smooth' });
+    };
 
     return (
-        <section className="landing-featured" aria-labelledby="featured-trips-title">
+        <section id={id} className={'landing-featured' + (carousel ? ' landing-featured--carousel' : '')} aria-labelledby="featured-trips-title">
             <div className="container">
                 <div className="landing-featured__head">
                     <div>
-                        <p className="landing-featured__eyebrow">Book in a few taps</p>
+                        <p className="landing-featured__eyebrow">{eyebrow}</p>
                         <h2 id="featured-trips-title" className="landing-featured__title">
-                            Trips you can book now{tournamentName ? ` for ${tournamentName}` : ''}
+                            {title}{tournamentName ? ` for ${tournamentName}` : ''}
                         </h2>
-                        <p className="landing-featured__sub">
-                            Fixed-price packages from verified partners. Pick one, sign in, and pay — no quote to wait for.
-                        </p>
+                        <p className="landing-featured__sub">{sub}</p>
                     </div>
                     <button type="button" className="tfe-btn" onClick={() => openTripPlanner()}>
                         <i className="fas fa-sliders-h" aria-hidden="true"></i> Build my own trip
@@ -43,9 +64,17 @@ export default function FeaturedPackages({ packages, tournamentName }) {
                 {packages === undefined ? (
                     <SkeletonCards count={3} />
                 ) : (
-                    <div className="row g-4">
+                    <div
+                        ref={trackRef}
+                        className={carousel ? 'landing-featured__track' : 'row g-4'}
+                        {...(carousel ? { role: 'list', 'aria-label': title } : {})}
+                    >
                         {packages.map((l) => (
-                            <div key={l.id} className="col-md-6 col-lg-4">
+                            <div
+                                key={l.id}
+                                className={carousel ? 'landing-featured__slide' : 'col-md-6 col-lg-4'}
+                                {...(carousel ? { role: 'listitem' } : {})}
+                            >
                                 <AccentCard
                                     LinkComponent={Link}
                                     href={route('listings.show', l.id)}
@@ -64,6 +93,17 @@ export default function FeaturedPackages({ packages, tournamentName }) {
                                 </AccentCard>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {carousel && Array.isArray(packages) && packages.length > 1 && (
+                    <div className="landing-featured__nav">
+                        <button type="button" className="tfe-btn tfe-btn--icon" aria-label="Previous trips" onClick={() => page(-1)}>
+                            <i className="fas fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" className="tfe-btn tfe-btn--icon" aria-label="More trips" onClick={() => page(1)}>
+                            <i className="fas fa-chevron-right" aria-hidden="true"></i>
+                        </button>
                     </div>
                 )}
             </div>

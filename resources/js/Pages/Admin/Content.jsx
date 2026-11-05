@@ -54,6 +54,26 @@ const TABS = [
     { key: 'heroes', label: 'Page Heroes', icon: 'fas fa-image' },
     { key: 'cards', label: 'Section Cards', icon: 'fas fa-th-large' },
     { key: 'posts', label: 'Posts', icon: 'fas fa-newspaper' },
+    { key: 'landing', label: 'Landing v2', icon: 'fas fa-flask' },
+];
+
+// Landing v2 editor sections, in page order (config/landing_v2.php). Each
+// field is an override saved as `landing_v2_{dot.path}`; blank = default.
+const LANDING_GROUPS = [
+    { key: 'hero', label: 'Hero' },
+    { key: 'about', label: 'About panel' },
+    { key: 'audiences', label: 'Audience cards' },
+    { key: 'facts', label: 'Facts strip' },
+    { key: 'sections', label: 'Section nav' },
+    { key: 'journey', label: 'How it works' },
+    { key: 'explorer', label: 'Inside TFE' },
+    { key: 'trips', label: 'Trips' },
+    { key: 'partners', label: 'Partners' },
+    { key: 'faq', label: 'FAQ' },
+    { key: 'closing', label: 'Closing CTA' },
+    { key: 'walkthroughs.fans', label: 'Walkthrough: fans' },
+    { key: 'walkthroughs.partners', label: 'Walkthrough: partners' },
+    { key: 'walkthroughs.schools', label: 'Walkthrough: schools' },
 ];
 
 export default function Content({
@@ -61,12 +81,14 @@ export default function Content({
     settings = {},
     heroDefaults = {},
     sectionCards = [],
+    landingFields = [],
 }) {
     const [mainTab, setMainTab] = useState('heroes');
     const [search, setSearch] = useState('');
     const [postToDelete, setPostToDelete] = useState(null);
     const [openHero, setOpenHero] = useState(HERO_PAGES[0].slug);
     const [openSection, setOpenSection] = useState(sectionCards[0]?.slug || null);
+    const [openLanding, setOpenLanding] = useState(LANDING_GROUPS[0].key);
 
     // Live-edit drafts, keyed by the SiteSetting key. A field reports its
     // in-progress value here so the split preview updates as the admin types;
@@ -172,6 +194,50 @@ export default function Content({
                             </SplitEditorLayout>
                         );
                     })}
+                </>
+            )}
+
+            {/* ── Landing v2 copy ─────────────────────────────────────── */}
+            {mainTab === 'landing' && (
+                <>
+                    <div className="feed-tabs mb-4">
+                        {LANDING_GROUPS.map((g) => (
+                            <button
+                                key={g.key}
+                                type="button"
+                                className={`tfe-btn tfe-btn--sm${openLanding === g.key ? ' is-active' : ''}`}
+                                onClick={() => setOpenLanding(g.key)}
+                            >
+                                {g.label}
+                            </button>
+                        ))}
+                    </div>
+                    <section className="tfe-slab">
+                        <div className="tfe-slab__header">
+                            <div>
+                                <h2 className="tfe-slab__title">
+                                    <i className="fas fa-flask"></i> {LANDING_GROUPS.find((g) => g.key === openLanding)?.label}
+                                </h2>
+                                <p className="tfe-slab__title-sub">
+                                    The wording on <a href="/v2" target="_blank" rel="noreferrer">/v2</a> and the walkthrough pages. Leave a field blank to use the built-in default.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="tfe-slab__body">
+                            {landingFields.filter((f) => f.group === openLanding).map((f) => (
+                                <SettingField
+                                    key={f.key}
+                                    group="landing_v2"
+                                    settingKey={f.key.replace(/^landing_v2_/, '')}
+                                    label={f.label}
+                                    type={f.multiline ? 'textarea' : 'text'}
+                                    value={f.value || ''}
+                                    defaultValue={f.default}
+                                    placeholder={f.default}
+                                />
+                            ))}
+                        </div>
+                    </section>
                 </>
             )}
 

@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
 use App\Models\ContactMessage;
+use App\Models\Fixture;
 use App\Models\Listing;
 use App\Models\SiteSetting;
+use App\Models\User;
 use App\Services\StadiumBowlService;
 use App\Services\TournamentService;
+use App\Support\LandingContent;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -70,6 +74,101 @@ class HomeController extends Controller
                 $this->activeTournament()['id'], 6, ['package', 'tour'],
             )),
         ]);
+    }
+
+    /**
+     * Landing page v2 (UX review, 2 Nov 2026, Track C): the platform shown
+     * section by section — who it is for, how a trip works, what each screen
+     * does — before anyone is asked to sign in. Lives at /v2 beside the
+     * current landing page while the tester group compares them.
+     *
+     * Copy comes from config/landing_v2.php with admin overrides on top
+     * (LandingContent); the facts strip is counted here, never typed in.
+     */
+    public function homeV2(Request $request)
+    {
+        $tournament = $this->activeTournament();
+        $content = LandingContent::all();
+        unset($content['walkthroughs']); // their own pages
+
+        return $this->noindex(Inertia::render('HomeV2', [
+            'content' => $content,
+            'facts' => $this->landingFacts($tournament),
+            'partnerCounts' => $this->partnerCountsByType(),
+            // The directory's own labels, so a chip reads as the directory does.
+            'partnerTypeLabels' => AdminPartnerController::partnerTypes(),
+            // Same queries, and the same deferral, as the current landing
+            // page, so the two versions show the same trips and posts.
+            'featuredPackages' => Inertia::defer(fn () => $this->offeringCards(
+                $tournament['id'], 8, ['package', 'tour'],
+            )),
+            'communityPreview' => Inertia::defer(fn () => CommunityController::preview($tournament['id'])),
+        ]), $request);
+    }
+
+    /** /for-fans, /for-partners, /for-schools — how each audience uses TFE. */
+    public function walkthrough(Request $request, string $audience)
+    {
+        $page = LandingContent::all()['walkthroughs'][$audience] ?? null;
+        abort_unless($page, 404);
+
+        return $this->noindex(Inertia::render('Walkthrough', [
+            'audience' => $audience,
+            'page' => $page,
+        ]), $request);
+    }
+
+    /**
+     * Real numbers for the v2 facts strip. A fact that counts to zero is
+     * dropped rather than shown as "0", which reads as a claim of its own.
+     *
+     * @return array<string, int>
+     */
+    private function landingFacts(array $tournament): array
+    {
+        $cities = collect($tournament['venues'] ?? [])
+            ->reject(fn ($v) => ! empty($v['is_alternate']))
+            ->pluck('city')
+            ->filter()
+            ->unique()
+            ->count();
+
+        $facts = [
+            'tournaments' => count(app(TournamentService::class)->switchable()),
+            'cities' => $cities,
+            'matches' => Fixture::where('tournament_id', $tournament['id'] ?? null)->count(),
+            'partners' => $this->publicPartners()->where('verification_status', 'verified')->count(),
+        ];
+
+        return array_filter($facts, fn ($n) => $n > 0);
+    }
+
+    /** @return array<string, int> partner_type => number of public partners */
+    private function partnerCountsByType(): array
+    {
+        return $this->publicPartners()
+            ->selectRaw('partner_type, count(*) as n')
+            ->groupBy('partner_type')
+            ->pluck('n', 'partner_type')
+            ->map(fn ($n) => (int) $n)
+            ->all();
+    }
+
+    /** Partners a visitor can see in the directory. */
+    private function publicPartners()
+    {
+        return User::query()
+            ->where('is_partner', true)
+            ->whereHas('partnerProfile', fn ($q) => $q->public()); // the directory's own rule
+    }
+
+    /**
+     * Keep an experiment out of search results until it replaces the page it
+     * is tested against. The page also sets the robots meta tag.
+     */
+    private function noindex($response, Request $request)
+    {
+        return $response->toResponse($request)->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     /**

@@ -292,8 +292,11 @@ class DashboardController extends Controller
                 return [
                     'id' => $budget->id,
                     'reference_id' => $budget->reference_id,
+                    'name' => $budget->name,
+                    'fan' => ['name' => $budget->user?->name],
                     'created_at' => $budget->created_at->format('Y-m-d H:i'),
                     'total_cost' => $budget->total_cost,
+                    'currency' => $budget->currency ?: 'USD',
                     'status' => $budget->partner_status,
                     'accommodation_level' => $budget->accommodation_level,
                     'flight_class' => $budget->flight_class,

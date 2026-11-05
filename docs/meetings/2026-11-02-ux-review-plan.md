@@ -100,8 +100,8 @@ These go to the current site directly, so even v1 is fair to test on a phone.
 
 ## Track C: v2 landing on the Najenga/Naoa structure (Week 2, about 6–7 days)
 
-- [ ] **C1. Routing.** Add `/v2` (`HomeController@homeV2` → `Pages/HomeV2.jsx`) with `noindex`, reachable but unlinked. Both versions stay live for the test. The shared header gets no switcher, so testers compare clean pages.
-- [ ] **C2. Page structure** (each section is its own component in `Components/Landing/V2/`):
+- [x] **C1. Routing.** *(Done 5 Nov: `/v2` + `/for-fans|partners|schools`, noindex.)* Add `/v2` (`HomeController@homeV2` → `Pages/HomeV2.jsx`) with `noindex`, reachable but unlinked. Both versions stay live for the test. The shared header gets no switcher, so testers compare clean pages.
+- [x] **C2. Page structure** *(Done 5 Nov: all ten sections, `Components/Landing/V2/`.)* (each section is its own component in `Components/Landing/V2/`):
   1. **Hero:** the stadium carousel stays full-bleed, with only a headline and two CTAs (Plan my trip / See how it works). Below it, a **hero panel** in the shape of Najenga's `HeroPanel`: "About TFE" plus audience cards for **Fans, Partners, Schools & Academies**.
   2. **Facts strip:** tournaments, host cities, matches, verified partners. These are real counts from the server, never typed in.
   3. **`SectionNav`** (new): sticky, scroll-spy, chips on mobile.
@@ -115,12 +115,12 @@ These go to the current site directly, so even v1 is fair to test on a phone.
   8. **Community preview:** reuse `CommunityPreview`.
   9. **FAQ** (new `Faq.jsx`): include "Do I need an account?", "Can I pay with M-Pesa?", "Does it work on my phone?" and "How do partners join?".
   10. **Closing CTA.**
-- [ ] **C3. Walkthrough pages:** `/for-fans`, `/for-partners`, `/for-schools`, on `SectionPageShell`. Each is a step-by-step chapter page in the shape of Najenga's `Journey.jsx`, ending in the right CTA:
+- [x] **C3. Walkthrough pages:** *(Done 5 Nov. Partners' CTA goes to Contact until partner self-sign-up exists.)* `/for-fans`, `/for-partners`, `/for-schools`, on `SectionPageShell`. Each is a step-by-step chapter page in the shape of Najenga's `Journey.jsx`, ending in the right CTA:
   - Fans: Plan my trip.
   - Partners: become a partner (contact form → admin).
   - Schools: `/register/institution`.
-- [ ] **C4. Copy in config, not JSX:** add `config/landing_v2.php` with CMS overrides through the existing `SiteSetting` pattern, so the team can edit the wording without a deploy.
-- [ ] **C5.** Run the quality gate (`pint`, `phpunit`, `test:js`, e2e), and add `/v2` and the walkthrough pages to the phone smoke test.
+- [x] **C4. Copy in config, not JSX:** *(Done 5 Nov: `config/landing_v2.php`, editable at Admin → Content → Landing v2.)* add `config/landing_v2.php` with CMS overrides through the existing `SiteSetting` pattern, so the team can edit the wording without a deploy.
+- [x] **C5.** *(Done 5 Nov: `LandingV2Test`, `landingV2.test.mjs`, `landing-v2.spec.js`.)* Run the quality gate (`pint`, `phpunit`, `test:js`, e2e), and add `/v2` and the walkthrough pages to the phone smoke test.
 
 ## Track D: pitch readiness (Week 1, about 1 day, Kevin)
 
