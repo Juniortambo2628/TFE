@@ -53,6 +53,7 @@ class LandingV2Test extends TestCase
             Fixture::create([
                 'tournament_id' => $tournament,
                 'date' => '2027-01-1'.($i + 5),
+                'time' => '19:00',
                 'home_team' => $home,
                 'away_team' => 'Tanzania',
                 'venue' => 'Raila Odinga International Stadium',
@@ -64,6 +65,7 @@ class LandingV2Test extends TestCase
         Fixture::create([
             'tournament_id' => 'some_other_cup',
             'date' => '2027-02-01',
+            'time' => '19:00',
             'home_team' => 'A',
             'away_team' => 'B',
             'venue' => 'X',
