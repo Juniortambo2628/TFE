@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/react';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
 import { useSidebar } from '@/Components/ui/sidebar';
 import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
+import { useDashboardV2 } from '@/Layouts/DashboardV2';
 
 /**
  * DashboardHeader — one header for every dashboard role.
@@ -71,7 +72,11 @@ const ROLE_CONFIG = {
     },
 };
 
-export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSidebar }) {
+export default function DashboardHeader(props) {
+    return useDashboardV2() ? <DashboardHeaderV2 {...props} /> : <DashboardHeaderV1 {...props} />;
+}
+
+function DashboardHeaderV1({ role = 'fan', user, assetUrl, toggleSidebar }) {
     // Fall back rather than throw — a role with no entry used to take the
     // whole header down on `config.roleBadge` (Sprint 62).
     const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.fan;
@@ -126,5 +131,66 @@ export default function DashboardHeader({ role = 'fan', user, assetUrl, toggleSi
                 <HeaderUserCluster user={user} role={role} />
             </div>
         </div>
+    );
+}
+
+/**
+ * The Naoa-style header (Layouts/DashboardV2): in the content column, not
+ * over the sidebar. The role badge on the left; on the right the role's
+ * quick links as icon buttons, the tournament switcher for fans, then the
+ * same notifications, messages and account menu as the current header.
+ * Admins and partners get the operational pages Naoa keeps up here.
+ */
+const V2_QUICK_LINKS = {
+    admin: [
+        { label: 'Analytics', icon: 'fas fa-chart-line', route: 'admin.analytics' },
+        { label: 'Listing safety', icon: 'fas fa-shield-alt', route: 'admin.listing-approvals.index' },
+        { label: 'Messages', icon: 'fas fa-envelope', route: 'admin.messages' },
+    ],
+    partner: [
+        { label: 'Measure', icon: 'fas fa-chart-line', route: 'partner.analytics' },
+        { label: 'Messages', icon: 'fas fa-envelope', route: 'partner.messages' },
+    ],
+};
+
+function DashboardHeaderV2({ role = 'fan', user }) {
+    const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.fan;
+    const links = V2_QUICK_LINKS[role] || config.navLinks;
+    const activityBadges = usePage().props.auth?.activityBadges || {};
+    const { toggleSidebar } = useSidebar();
+
+    return (
+        <header className="tfe-dv2-header" data-role={role}>
+            <button type="button" className="tfe-dv2-iconbtn tfe-dv2-header__menu" onClick={toggleSidebar} aria-label="Open the menu">
+                <i className="fas fa-bars" aria-hidden="true"></i>
+            </button>
+
+            {config.roleBadge && (
+                <span className="tfe-dv2-header__badge">
+                    <i className={config.roleBadge.icon} aria-hidden="true"></i>
+                    {resolveRoleLabel(role, config.roleBadge.label, user)}
+                </span>
+            )}
+
+            <div className="tfe-dv2-header__actions">
+                {links.length > 0 && (
+                    <nav className="tfe-dv2-header__quick" aria-label="Quick links">
+                        {links.map((link) => (
+                            <Link key={link.route} href={route(link.route)} className="tfe-dv2-iconbtn" title={link.label} aria-label={link.label}>
+                                <i className={link.icon} aria-hidden="true"></i>
+                                {(activityBadges[link.route] || 0) > 0 && <ActivityBadge count={activityBadges[link.route]} label={link.label} />}
+                            </Link>
+                        ))}
+                    </nav>
+                )}
+                {role === 'fan' && <FanTournamentSwitcher variant="dashboard" />}
+                <span className="tfe-dv2-header__rule" aria-hidden="true" />
+                <div className="dashboard-header tfe-dv2-header__cluster" data-role={role}>
+                    <div className="dashboard-header-actions">
+                        <HeaderUserCluster user={user} role={role} />
+                    </div>
+                </div>
+            </div>
+        </header>
     );
 }

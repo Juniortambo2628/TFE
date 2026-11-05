@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import DashboardHeader from '@/Components/Common/DashboardHeader';
 import BaseLayout from './BaseLayout';
@@ -26,6 +26,15 @@ export default function RoleLayout({ children, title, sidebar: SidebarComponent,
     const user = auth.user;
     const inShell = useInShell();
 
+    // One header component per role, kept across renders. An inline
+    // `(props) => <DashboardHeader …/>` is a new component TYPE every time
+    // this layout re-renders — any prop refresh (a deferred prop arriving, a
+    // poll) — so React threw the header away and built a new one, closing
+    // whatever menu was open in it a second after it opened.
+    const Header = useMemo(() => function RoleHeader(props) {
+        return <DashboardHeader role={role} {...props} />;
+    }, [role]);
+
     if (inShell) {
         return (
             <>
@@ -41,7 +50,7 @@ export default function RoleLayout({ children, title, sidebar: SidebarComponent,
             user={user}
             assetUrl={assetUrl}
             sidebar={SidebarComponent}
-            header={(props) => <DashboardHeader role={role} {...props} />}
+            header={Header}
             showPrivacyConsent={!!PrivacyConsent}
             privacyConsentComponent={PrivacyConsent}
             role={role}

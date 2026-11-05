@@ -5,6 +5,8 @@ import CommandMenu from '@/Components/CommandMenu';
 import { SidebarProvider } from '@/Components/ui/sidebar';
 import PageTransition from '@/Components/Common/PageTransition';
 import { ShellProvider } from './ShellContext';
+import { ActiveNavProvider, TOOLBAR_ID, useDashboardV2 } from './DashboardV2';
+import '../../css/dashboard-v2.css';
 
 /**
  * BaseLayout - Shared layout logic for all user roles (Fan, Admin, Partner)
@@ -15,7 +17,11 @@ import { ShellProvider } from './ShellContext';
  * `{children}` swaps. `ShellProvider` tells the layout each page still renders
  * inside itself to stand down to a passthrough — see ShellContext.
  */
-export default function BaseLayout({
+export default function BaseLayout(props) {
+    return useDashboardV2() ? <BaseLayoutV2 {...props} /> : <BaseLayoutV1 {...props} />;
+}
+
+function BaseLayoutV1({
     children,
     title,
     sidebar: SidebarComponent,
@@ -82,5 +88,56 @@ export default function BaseLayout({
                 </div>
             </div>
         </SidebarProvider>
+    );
+}
+
+/**
+ * The Naoa-style shell (Layouts/DashboardV2): the sidebar runs the full
+ * height, the header sits in the content column and sticks, and the page's
+ * actions land in the floating toolbar host at the bottom.
+ */
+function BaseLayoutV2({
+    children,
+    title,
+    sidebar: SidebarComponent,
+    header: HeaderComponent,
+    user,
+    assetUrl,
+    role = 'fan',
+    showPrivacyConsent = false,
+    privacyConsentComponent: PrivacyConsent,
+}) {
+    return (
+        <ActiveNavProvider>
+            <SidebarProvider
+                defaultOpen={true}
+                className="tfe-dv2"
+                data-dashboard="v2"
+                data-role={role}
+                style={{ '--sidebar-width': '272px', '--sidebar-width-mobile': '284px' }}
+            >
+                {title && <Head title={title} />}
+                {SidebarComponent && <SidebarComponent user={user} />}
+
+                {/* overflow-x: clip, never auto/hidden — see BaseLayoutV1. */}
+                <main className="tfe-dv2__main">
+                    {HeaderComponent && <HeaderComponent user={user} assetUrl={assetUrl} />}
+                    <div className="tfe-dv2__content">
+                        <ShellProvider>
+                            <PageTransition role={role}>{children}</PageTransition>
+                        </ShellProvider>
+                    </div>
+                    <div id={TOOLBAR_ID} className="tfe-dv2-toolbar" />
+                </main>
+
+                <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'visible', zIndex: 9999, pointerEvents: 'none' }}>
+                    <div style={{ pointerEvents: 'auto' }}>
+                        {showPrivacyConsent && PrivacyConsent && <PrivacyConsent />}
+                        <Toaster />
+                        <CommandMenu />
+                    </div>
+                </div>
+            </SidebarProvider>
+        </ActiveNavProvider>
     );
 }

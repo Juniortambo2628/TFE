@@ -67,6 +67,7 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'password' => 'hashed',
         'marketing_consent' => 'boolean',
         'is_partner' => 'boolean',
+        'dashboard_v2' => 'boolean',
         'is_admin' => 'boolean',
         'services_offered' => 'array',
         'privacy_consent' => 'boolean',

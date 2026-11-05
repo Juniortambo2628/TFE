@@ -12,12 +12,18 @@ import {
     SidebarMenuButton,
     useSidebar,
 } from '@/Components/ui/sidebar';
+import { useActiveNav, useDashboardV2 } from '@/Layouts/DashboardV2';
+import { assetPath } from '@/lib/assets';
 
 /**
  * AppSidebar - Generic sidebar engine for the TFE platform.
  * Configured via props to support Fan, Admin, and Partner roles.
  */
-export default function AppSidebar({ 
+export default function AppSidebar(props) {
+    return useDashboardV2() ? <AppSidebarV2 {...props} /> : <AppSidebarV1 {...props} />;
+}
+
+function AppSidebarV1({ 
     user, 
     roleLabel = 'Member',
     accentColor = '#e31b23', // Default red
@@ -229,6 +235,84 @@ export default function AppSidebar({
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
+            </SidebarContent>
+        </Sidebar>
+    );
+}
+
+/**
+ * The Naoa-style sidebar (Layouts/DashboardV2): the logo at the top, the
+ * role's own menu under plain section titles — every link in view rather
+ * than folded into groups — and the current page as a light pill with a dot
+ * in the role's colour. Who is signed in moves to the header's account menu.
+ * The active item is published so the page heading can open with its icon.
+ */
+function AppSidebarV2({ user, roleLabel = 'Member', menuItems = [] }) {
+    const { url } = usePage();
+    const { isMobile, setOpenMobile } = useSidebar();
+    const { setItem } = useActiveNav();
+    const badges = usePage().props.auth?.activityBadges || {};
+
+    const groups = useMemo(() => {
+        const out = [{ heading: null, items: [] }];
+        for (const item of menuItems) {
+            if (item.heading) out.push({ heading: item.heading, items: [] });
+            else out[out.length - 1].items.push(item);
+        }
+        return out.filter((g) => g.items.length > 0);
+    }, [menuItems]);
+
+    // The longest matching path wins, so /fan/tickets/purchases lights
+    // "Tickets" and /partner/tickets/sales lights "Sales", not both.
+    const active = useMemo(() => {
+        const path = url.split('?')[0];
+        return menuItems
+            .filter((it) => !it.heading && (path === it.path || path.startsWith(`${it.path}/`)))
+            .sort((a, b) => b.path.length - a.path.length)[0] || null;
+    }, [url, menuItems]);
+
+    useEffect(() => { setItem(active); }, [active, setItem]);
+
+    return (
+        <Sidebar className="tfe-dv2-sidebar">
+            <SidebarHeader className="tfe-dv2-sidebar__head">
+                <Link href={route(menuItems.find((it) => !it.heading)?.route || 'fan.dashboard')} className="tfe-dv2-sidebar__logo" aria-label="Dashboard home">
+                    <img src={assetPath('/assets/img/logo/TFE-logo.png')} alt="The Football Experience" />
+                </Link>
+                <span className="tfe-dv2-sidebar__role">{roleLabel}</span>
+            </SidebarHeader>
+
+            <SidebarContent className="no-scrollbar tfe-dv2-sidebar__body">
+                <nav aria-label={`${roleLabel} navigation`}>
+                    {groups.map((group, gi) => (
+                        <div key={group.heading || `g-${gi}`} className="tfe-dv2-sidebar__group">
+                            {group.heading && <p className="tfe-dv2-sidebar__title">{group.heading}</p>}
+                            <ul className="tfe-dv2-sidebar__list">
+                                {group.items.map((item) => {
+                                    const isActive = active?.route === item.route;
+                                    const badge = badges[item.route] || 0;
+                                    return (
+                                        <li key={item.route} className={item.mobileOnly ? 'md:hidden' : ''}>
+                                            <Link
+                                                id={`sidebar-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                                href={route(item.route)}
+                                                onClick={() => { if (isMobile) setOpenMobile(false); }}
+                                                className={'tfe-dv2-nav' + (isActive ? ' is-active' : '')}
+                                                aria-current={isActive ? 'page' : undefined}
+                                            >
+                                                <i className={item.icon} aria-hidden="true" />
+                                                <span>{item.label}</span>
+                                                {badge > 0
+                                                    ? <ActivityBadge count={badge} label={item.label} />
+                                                    : isActive && <span className="tfe-dv2-nav__dot" aria-hidden="true" />}
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    ))}
+                </nav>
             </SidebarContent>
         </Sidebar>
     );

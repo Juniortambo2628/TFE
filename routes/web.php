@@ -15,6 +15,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\DashboardVersionController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BankSavingsController;
@@ -125,6 +126,11 @@ Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index
 Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
+
+// "Try the new dashboard" (UX review, Nov 2026): every role, one switch.
+Route::post('/account/dashboard-version', [DashboardVersionController::class, 'update'])
+    ->middleware('auth')
+    ->name('account.dashboard-version');
 
 Route::get('/dashboard', function () {
     return DashboardHelper::redirectByRole();
