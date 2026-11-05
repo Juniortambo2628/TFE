@@ -718,6 +718,13 @@ order). Page content is restyled by its shared classes in
 the primitives (`.tfe-tile`, `.tfe-slab`, `DashboardHero action=`) and it
 will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
 `dashboard_v2` is deliberately NOT fillable.
+- **Phones navigate like an app**: below 768px the dashboard has the bottom
+  tab bar (`Components/Common/TabBar`, the ONE tab bar — `PublicTabBar` renders
+  through it too). Each role sidebar passes `tabs` (route names, optional
+  `{ route, label, primary }`), picked from its own menu by
+  `lib/dashboardTabs.js` so a tab can never drift from its sidebar item; Menu
+  opens the sidebar sheet. The v2 header carries no hamburger or quick links
+  — navigation is the sidebar's and the bar's.
 - Never pass a layout an inline component (`header={(p) => …}`): it is a new
   type per render and remounts — that closed the account menu a second after
   it opened. `RoleLayout` memoises it now.

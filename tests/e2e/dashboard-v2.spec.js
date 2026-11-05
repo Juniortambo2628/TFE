@@ -44,12 +44,33 @@ test('the account menu switches a fan to the new dashboard and back', async ({ p
     await page.goto('/fan/itineraries');
     await expect(page.locator('.tfe-dv2-hero__crumbs')).toContainText('Itineraries');
 
+    const tabs = page.locator('.tfe-tabbar--dashboard');
     if (testInfo.project.name === 'phone') {
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-        await page.locator('.tfe-dv2-header__menu').click();
+
+        // Phones navigate like an app: the role's main places in a bottom
+        // tab bar (picked from the sidebar menu), Menu for everything else.
+        // The header carries no hamburger or quick links any more.
+        await expect(tabs).toBeVisible();
+        for (const label of ['Home', 'Plan', 'Trips', 'Tickets', 'Menu']) {
+            await expect(tabs.getByText(label, { exact: true })).toBeVisible();
+        }
+        await expect(tabs.locator('[aria-current="page"]')).toHaveText('Trips');
+        await expect(page.locator('.tfe-dv2-header .tfe-dv2-iconbtn')).toHaveCount(0);
+
+        // The page's own toolbar sits above the bar, not under it.
+        await page.goto('/fan/tickets');
+        const bar = await tabs.boundingBox();
+        const tools = await page.locator('.tfe-dv2-toolbar__bar').boundingBox();
+        expect(tools.y + tools.height).toBeLessThanOrEqual(bar.y);
+
+        await tabs.getByRole('button', { name: 'Menu' }).click();
         await expect(page.locator('.tfe-dv2-nav.is-active')).toBeVisible();
-        await page.keyboard.press('Escape');
-        await page.mouse.click(350, 400);
+        await expect(page.locator('.tfe-dv2-nav', { hasText: 'Predict' })).toBeVisible();
+        await tabs.getByRole('link', { name: 'Trips' }).click();
+        await expect(page).toHaveURL(/\/fan\/itineraries/);
+    } else {
+        await expect(tabs).toBeHidden();
     }
 
     await flip(page);

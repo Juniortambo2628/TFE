@@ -23,6 +23,9 @@ export const INSTITUTION_MENU = [
     { label: 'Security', icon: 'fas fa-shield-alt', route: 'fan.security', path: '/fan/security' },
 ];
 
+/** The institution's bottom tabs on phones (dashboard v2), picked from the menu above. */
+export const INSTITUTION_TABS = [{ route: 'institution.dashboard', label: 'Home' }, { route: 'fan.budget-calculator', primary: true, label: 'Plan' }, 'fan.itineraries', 'fan.communication'];
+
 export default function InstitutionSidebar({ user }) {
     return (
         <AppSidebar
@@ -30,6 +33,7 @@ export default function InstitutionSidebar({ user }) {
             roleLabel="Institution"
             accentColor="#0d9488"
             menuItems={INSTITUTION_MENU}
+            tabs={INSTITUTION_TABS}
         />
     );
 }

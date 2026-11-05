@@ -111,12 +111,9 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
 }
-.tfe-dv2-header .tfe-dv2-header__menu { display: none; }
 @media (max-width: 767.98px) {
     .tfe-dv2-header { padding: 0 12px; gap: 8px; }
-    .tfe-dv2-header .tfe-dv2-header__menu { display: inline-flex; }
-    .tfe-dv2-header .tfe-dv2-header__badge,
-    .tfe-dv2-header .tfe-dv2-header__quick { display: none; }
+    .tfe-dv2-header .tfe-dv2-header__badge { display: none; }
 }
 .tfe-dv2-header__badge {
     display: inline-flex;
@@ -131,9 +128,6 @@
 }
 .tfe-dv2-header__badge i { color: var(--dv2-accent); }
 .tfe-dv2-header__actions { margin-left: auto; display: flex; align-items: center; gap: 6px; min-width: 0; }
-.tfe-dv2-header__quick { display: flex; align-items: center; gap: 2px; }
-.tfe-dv2-header__rule { width: 1px; height: 28px; margin: 0 8px; background: var(--dv2-border-strong); }
-@media (max-width: 767.98px) { .tfe-dv2-header__rule { display: none; } }
 .tfe-dv2-iconbtn {
     position: relative;
     display: inline-flex;
@@ -318,4 +312,46 @@
     .tfe-dv2 .tfe-tile__label { font-size: 0.82rem; }
     .tfe-dv2-hero__icon { width: 40px; height: 40px; border-radius: 12px; font-size: 0.95rem; }
     .tfe-dv2-hero__row { align-items: flex-start; gap: 12px; }
+}
+
+/* ── Phones: the bottom tab bar (TabBar via AppSidebar) ─────────────
+   Navigation moved out of the header into the sidebar and, on phones,
+   this bar. It shows only where the sidebar is a slide-over (< 768px);
+   from 768px the sidebar is on screen and the bar would repeat it. */
+.tfe-dv2-header__logo { display: none; height: 34px; width: auto; }
+@media (max-width: 767.98px) {
+    .tfe-dv2-header__logo { display: block; }
+}
+@media (min-width: 768px) {
+    .tfe-tabbar.tfe-tabbar--dashboard { display: none; }
+    body:has(.tfe-tabbar--dashboard) { --tfe-tabbar-h: 0px; padding-bottom: 0; }
+    html:has(.tfe-tabbar--dashboard) { scroll-padding-bottom: 0; }
+}
+.tfe-tabbar--dashboard { --tfe-tabbar-accent: var(--dv2-tab-accent, #e31b23); }
+body:has(.tfe-dv2[data-role='partner']) .tfe-tabbar--dashboard { --tfe-tabbar-accent: #d97706; }
+body:has(.tfe-dv2[data-role='admin']) .tfe-tabbar--dashboard { --tfe-tabbar-accent: #3b82f6; }
+body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabbar-accent: #0d9488; }
+.tfe-tabbar__item { position: relative; }
+.tfe-tabbar__item .tfe-activity-badge,
+.tfe-tabbar__item [class*='activity-badge'] { position: absolute; top: 6px; left: calc(50% + 6px); }
+
+/* The page's floating toolbar sits above the bar, not under it. */
+@media (max-width: 767.98px) {
+    .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 12px); }
+    .tfe-dv2__content { padding-bottom: 104px; }
+}
+
+/* The search button floats bottom-right; on phones it sits above the tab
+   bar rather than over its Menu tab. */
+@media (max-width: 767.98px) {
+    body:has(.tfe-tabbar--dashboard) .command-menu-trigger { bottom: calc(var(--tfe-tabbar-h, 0px) + 14px); right: 14px; }
+}
+
+/* With the menu sheet open the tab bar stays on top and usable — its Menu
+   tab reads Close, and any tab closes the sheet as it navigates — so the
+   sheet and its overlay stop where the bar begins. */
+@media (max-width: 767.98px) {
+    .tfe-tabbar.tfe-tabbar--dashboard { z-index: 1110; }
+    body:has(.tfe-tabbar--dashboard) .tfe-dv2 .fixed.bg-sidebar,
+    body:has(.tfe-tabbar--dashboard) .tfe-dv2 .fixed.inset-0 { bottom: var(--tfe-tabbar-h, 0px); }
 }
