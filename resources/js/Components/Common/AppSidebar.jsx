@@ -267,7 +267,12 @@ function AppSidebarV2({ roleLabel = 'Member', menuItems = [], tabs = [] }) {
     // The longest matching path wins, so /fan/tickets/purchases lights
     // "Tickets" and /partner/tickets/sales lights "Sales", not both.
     const active = useMemo(() => activeMenuItem(menuItems, url), [url, menuItems]);
-    useEffect(() => { setItem(active); }, [active, setItem]);
+    // Published with its sidebar group, so the side panel can offer the
+    // pages next to this one (DashboardV2/SidePanel).
+    useEffect(() => {
+        const group = active && groups.find((g) => g.items.includes(active));
+        setItem(active ? { ...active, group: group ? { heading: group.heading, items: group.items } : null } : null);
+    }, [active, groups, setItem]);
 
     // Phones: the role's main destinations as a bottom tab bar, picked from
     // this same menu (lib/dashboardTabs), plus Menu for the rest — the

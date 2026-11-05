@@ -1,4 +1,5 @@
 import React from 'react';
+import { useToolbarSlot } from '@/Layouts/DashboardV2';
 
 /**
  * Admin Toolbar Component
@@ -17,11 +18,29 @@ export default function AdminToolbar({
     showSort = true,
     children // For additional toolbar items
 }) {
+    // In the v2 dashboard, search and the grid/list switch move into the
+    // page toolbar (Naoa's floating toolbar); sort and any extras stay here.
+    const searchInToolbar = useToolbarSlot('search', onSearchChange ? {
+        value: search,
+        placeholder: searchPlaceholder,
+        onChange: (v) => onSearchChange(v),
+    } : null);
+    const viewInToolbar = useToolbarSlot('views', showViewToggle && onViewChange ? {
+        value: viewMode,
+        options: [
+            { value: 'grid', label: 'Grid', icon: 'fas fa-table-cells-large' },
+            { value: 'list', label: 'List', icon: 'fas fa-list' },
+        ],
+        onChange: (v) => onViewChange(v),
+    } : null);
+    const hasSort = showSort && sortOptions.length > 0;
+    if (searchInToolbar && (viewInToolbar || !showViewToggle) && !hasSort && !children) return null;
+
     return (
         <div className="admin-toolbar">
             <div className="admin-toolbar-left">
                 {/* Search */}
-                <div className="admin-search">
+                {!searchInToolbar && <div className="admin-search">
                     <i className="fas fa-search"></i>
                     <input
                         type="text"
@@ -29,7 +48,7 @@ export default function AdminToolbar({
                         value={search}
                         onChange={(e) => onSearchChange?.(e.target.value)}
                     />
-                </div>
+                </div>}
 
                 {/* Sort Dropdown */}
                 {showSort && sortOptions.length > 0 && (
@@ -51,7 +70,7 @@ export default function AdminToolbar({
             </div>
 
             {/* View Toggle */}
-            {showViewToggle && (
+            {showViewToggle && !viewInToolbar && (
                 <div className="admin-toolbar-right">
                     <div className="admin-view-toggle">
                         <button

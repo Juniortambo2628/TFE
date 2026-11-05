@@ -5,7 +5,9 @@ import CommandMenu from '@/Components/CommandMenu';
 import { SidebarProvider } from '@/Components/ui/sidebar';
 import PageTransition from '@/Components/Common/PageTransition';
 import { ShellProvider } from './ShellContext';
-import { ActiveNavProvider, TOOLBAR_ID, useDashboardV2 } from './DashboardV2';
+import { ActiveNavProvider, ToolbarProvider, useDashboardV2 } from './DashboardV2';
+import PageToolbar from '@/Components/Common/DashboardV2/PageToolbar';
+import SidePanel from '@/Components/Common/DashboardV2/SidePanel';
 import '../../css/dashboard-v2.css';
 
 /**
@@ -109,6 +111,7 @@ function BaseLayoutV2({
 }) {
     return (
         <ActiveNavProvider>
+            <ToolbarProvider>
             <SidebarProvider
                 defaultOpen={true}
                 className="tfe-dv2"
@@ -122,12 +125,17 @@ function BaseLayoutV2({
                 {/* overflow-x: clip, never auto/hidden — see BaseLayoutV1. */}
                 <main className="tfe-dv2__main">
                     {HeaderComponent && <HeaderComponent user={user} assetUrl={assetUrl} />}
+                    {/* The page, with Naoa's side panel beside it on wide
+                        screens, and the one page toolbar at the bottom. */}
                     <div className="tfe-dv2__content">
-                        <ShellProvider>
-                            <PageTransition role={role}>{children}</PageTransition>
-                        </ShellProvider>
+                        <div className="tfe-dv2__page">
+                            <ShellProvider>
+                                <PageTransition role={role}>{children}</PageTransition>
+                            </ShellProvider>
+                        </div>
+                        <SidePanel />
                     </div>
-                    <div id={TOOLBAR_ID} className="tfe-dv2-toolbar" />
+                    <PageToolbar />
                 </main>
 
                 <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'visible', zIndex: 9999, pointerEvents: 'none' }}>
@@ -138,6 +146,7 @@ function BaseLayoutV2({
                     </div>
                 </div>
             </SidebarProvider>
+            </ToolbarProvider>
         </ActiveNavProvider>
     );
 }

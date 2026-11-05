@@ -718,6 +718,20 @@ order). Page content is restyled by its shared classes in
 the primitives (`.tfe-tile`, `.tfe-slab`, `DashboardHero action=`) and it
 will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
 `dashboard_v2` is deliberately NOT fillable.
+- **Naoa's page toolbar and side panel** are in the shell, not per page.
+  `DashboardV2/PageToolbar` (bottom, every page): search, list/grid views,
+  the page's heading actions (`#TOOLBAR_ID`), "go to any page" (⌘K) and a
+  collapse. A component offers its search or view switch through
+  `useToolbarSlot('search' | 'views', value)` and hides its inline control
+  when that returns true — `AdminToolbar`, `ListingGrid` and
+  `Partner/Requests` do. With no registered search the toolbar offers
+  "find on this page", filtering table rows and the shared cards
+  (`lib/pageFind.js`). `DashboardV2/SidePanel` (≥1280px, folded to a rail
+  below 1536 unless the person opened it): the other pages in the current
+  sidebar group and the latest notifications.
+- **`form-baseline.css`'s text-field rule wraps its type filters in
+  `:where()`.** Ten `:not([type=…])` filters weighed 0,10,1 and beat every
+  field class, contradicting the "element-level floor" the file promises.
 - **Phones navigate like an app**: below 768px the dashboard has the bottom
   tab bar (`Components/Common/TabBar`, the ONE tab bar — `PublicTabBar` renders
   through it too). Each role sidebar passes `tabs` (route names, optional

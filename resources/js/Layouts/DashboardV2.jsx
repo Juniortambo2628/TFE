@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 
 /**
@@ -41,4 +41,61 @@ export function ActiveNavProvider({ children }) {
 
 export function useActiveNav() {
     return useContext(ActiveNavContext);
+}
+
+/**
+ * The page toolbar's slots (Naoa's floating toolbar: search, views, actions).
+ * A page — or a shared component on it, like ListingGrid — registers what it
+ * has; the toolbar (Components/Common/DashboardV2/PageToolbar) draws it. A
+ * page that registers no search gets the toolbar's own "find on this page".
+ *
+ * Outside the v2 shell there is no provider and registering is a no-op, so
+ * the same component works on the current dashboard unchanged.
+ */
+const ToolbarContext = createContext(null);
+
+export function ToolbarProvider({ children }) {
+    const [slots, setSlots] = useState({});
+    const value = useMemo(() => ({ slots, setSlots }), [slots]);
+    return <ToolbarContext.Provider value={value}>{children}</ToolbarContext.Provider>;
+}
+
+export function useToolbarSlots() {
+    return useContext(ToolbarContext)?.slots || {};
+}
+
+/**
+ * Put `value` in toolbar slot `name` while the caller is mounted. Returns
+ * whether the caller holds the slot (the first to claim it does), so a
+ * component can hide its own inline control only when the toolbar shows it.
+ */
+export function useToolbarSlot(name, value) {
+    const ctx = useContext(ToolbarContext);
+    const [token] = useState(() => Symbol(name));
+    const setSlots = ctx?.setSlots;
+
+    // Callers pass a fresh object every render. Re-registering on identity
+    // would loop (registering re-renders the caller), so the slot is
+    // re-registered only when its DATA changes, and its callbacks always call
+    // the caller's latest ones through a ref.
+    const latest = useRef(value);
+    latest.current = value;
+    const dataKey = value ? JSON.stringify(value, (k, v) => (typeof v === 'function' ? undefined : v)) : null;
+
+    useEffect(() => {
+        if (!setSlots || dataKey === null) return undefined;
+        const data = JSON.parse(dataKey);
+        const entry = { ...data, token };
+        for (const [k, v] of Object.entries(latest.current)) {
+            if (typeof v === 'function') entry[k] = (...args) => latest.current?.[k]?.(...args);
+        }
+        setSlots((s) => (s[name] && s[name].token !== token ? s : { ...s, [name]: entry }));
+        return () => setSlots((s) => {
+            if (s[name]?.token !== token) return s;
+            const { [name]: _gone, ...rest } = s;
+            return rest;
+        });
+    }, [setSlots, name, token, dataKey]);
+
+    return Boolean(ctx && ctx.slots[name]?.token === token);
 }

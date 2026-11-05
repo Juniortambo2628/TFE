@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AccentCard from '@/Components/Common/AccentCard';
 import { Link } from '@inertiajs/react';
+import { useToolbarSlot } from '@/Layouts/DashboardV2';
 
 /**
  * ListingGrid — the ONE grid treatment for every dashboard collection.
@@ -46,6 +47,18 @@ export default function ListingGrid({
     const [mode, setMode] = useState('grid');
     const hasTable = !!tableView;
 
+    // In the v2 dashboard the grid/table switch lives in the page toolbar
+    // (Naoa's list/grid views); the inline one shows only when the toolbar
+    // is not showing this grid's — the current dashboard, or a second grid.
+    const inToolbar = useToolbarSlot('views', hasTable && items.length > 0 ? {
+        value: mode,
+        options: [
+            { value: 'grid', label: 'Grid', icon: 'fas fa-table-cells-large' },
+            { value: 'table', label: 'Table', icon: 'fas fa-list' },
+        ],
+        onChange: setMode,
+    } : null);
+
     if (items.length === 0) {
         return (
             <div className="tfe-empty">
@@ -58,7 +71,7 @@ export default function ListingGrid({
 
     return (
         <div className="tfe-listing-grid">
-            {hasTable && (
+            {hasTable && !inToolbar && (
                 <div className="tfe-listing-grid__toolbar">
                     <div className="tfe-listing-grid__viewtoggle" role="tablist" aria-label="View mode">
                         <button

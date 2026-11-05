@@ -40,6 +40,32 @@ test('the account menu switches a fan to the new dashboard and back', async ({ p
         await expect(page.locator('.tfe-dv2-nav.is-active')).toContainText('Tickets');
     }
 
+    // Naoa's page toolbar: "find on this page" filters the page's cards.
+    const find = page.locator('.tfe-dv2-toolbar__search input');
+    await expect(find).toBeVisible();
+    const cards = page.locator('.ticket-card');
+    const total = await cards.count();
+    await find.fill('zzzz-no-such-match');
+    await expect(page.locator('.ticket-card:visible')).toHaveCount(0);
+    if (testInfo.project.name !== 'phone') {
+        await expect(page.locator('.tfe-dv2-toolbar__note')).toHaveText(`0 of ${total} shown`);
+    }
+    await find.fill('');
+    await expect(page.locator('.ticket-card:visible')).toHaveCount(total);
+
+    // Naoa's side panel, beside the content on wide screens: folded to a
+    // rail under 1536px, and it opens.
+    if (testInfo.project.name !== 'phone' && page.viewportSize().width >= 1280) {
+        const panel = page.locator('.tfe-dv2-panel');
+        await expect(panel).toBeVisible();
+        if (await panel.evaluate((el) => el.classList.contains('is-rail'))) {
+            await panel.getByRole('button', { name: 'Show activity' }).click();
+        }
+        await expect(page.locator('.tfe-dv2-panel__label', { hasText: 'In Plan & book' })).toBeVisible();
+        await expect(page.locator('.tfe-dv2-panel__row[aria-current="true"]')).toContainText('Tickets');
+        await page.getByRole('button', { name: 'Hide activity' }).click();
+    }
+
     // It stays on as the fan moves around.
     await page.goto('/fan/itineraries');
     await expect(page.locator('.tfe-dv2-hero__crumbs')).toContainText('Itineraries');

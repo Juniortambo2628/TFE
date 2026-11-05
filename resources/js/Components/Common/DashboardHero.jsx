@@ -146,15 +146,15 @@ function DashboardHeroV2({ title, subtitle = '', breadcrumbs = [], actions = nul
 }
 
 /**
- * The page's actions in the floating toolbar host BaseLayout renders. Until
- * the host is found (first paint) nothing renders, rather than the actions
- * appearing in the heading and jumping.
+ * The page's actions, in the actions slot of the page toolbar
+ * (DashboardV2/PageToolbar). Until the slot is found (first paint) nothing
+ * renders, rather than the actions appearing in the heading and jumping.
  */
 function FloatingToolbar({ children }) {
     const [host, setHost] = useState(null);
     useEffect(() => { setHost(document.getElementById(TOOLBAR_ID)); }, []);
     if (!host) return null;
-    return createPortal(<div className="tfe-dv2-toolbar__bar" role="toolbar" aria-label="Page actions">{children}</div>, host);
+    return createPortal(children, host);
 }
 
 function stripOrigin(href) {
