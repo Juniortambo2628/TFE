@@ -34,6 +34,7 @@ export default function ConfirmationDialog({
             open={open}
             onClose={close}
             size="sm"
+            fit
             label={destructive ? 'Confirm' : 'Confirm action'}
             title={title}
             tabs={[{

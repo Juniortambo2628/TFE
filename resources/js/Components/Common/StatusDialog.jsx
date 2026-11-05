@@ -34,6 +34,7 @@ export default function StatusDialog({
             open={open}
             onClose={() => onOpenChange(false)}
             size="sm"
+            fit
             label={isSuccess ? 'Success' : 'Error'}
             title={resolvedTitle}
             tabs={[{
