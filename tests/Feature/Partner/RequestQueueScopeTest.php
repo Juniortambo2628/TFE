@@ -72,6 +72,26 @@ class RequestQueueScopeTest extends TestCase
         $this->assertSame(1, $props['stats']['pending']);
     }
 
+    public function test_the_requests_page_gets_the_rows_it_renders(): void
+    {
+        // Partner/Requests.jsx read `budgets` and fields the controller never
+        // sent, so the Convert queue was empty for every partner while their
+        // dashboard counted the same briefs (UX review, 2 Nov 2026).
+        [$mine, $myListing] = $this->partnerWithListing();
+        $brief = $this->brief($myListing);
+        $brief->update(['name' => 'Nairobi group stage', 'currency' => 'KES']);
+
+        $props = $this->actingAs($mine)->get(route('partner.requests'))->viewData('page')['props'];
+
+        $this->assertCount(1, $props['requests']);
+        $row = $props['requests'][0];
+        $this->assertSame('Nairobi group stage', $row['name']);
+        $this->assertSame($brief->user->name, $row['fan']['name']);
+        $this->assertSame('KES', $row['currency']);
+        $this->assertSame('pending', $row['status']);
+        $this->assertTrue($props['hasListings']);
+    }
+
     public function test_a_partner_with_no_listings_sees_an_empty_queue_not_everyone_elses(): void
     {
         [, $someoneElsesListing] = $this->partnerWithListing();
