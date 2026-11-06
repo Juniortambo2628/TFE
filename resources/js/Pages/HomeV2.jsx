@@ -54,7 +54,7 @@ export default function HomeV2({ content, facts = {}, partnerCounts = {}, partne
     return (
         <TournamentProvider>
             <Head title="The Football Experience">
-                <meta name="robots" content="noindex, nofollow" head-key="robots" />
+                {usePage().props.design !== 'v2' && <meta name="robots" content="noindex, nofollow" head-key="robots" />}
             </Head>
             <Header />
 

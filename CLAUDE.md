@@ -656,6 +656,19 @@ receives or moves savings, and stores no financial data.**
   description and counts — never its posts or members; invite-only tribes
   are not listed at all. Join → register → the tribe's fan page, where the
   existing privacy rules decide.
+### V2 is the site (Nov 2026)
+
+The tester group chose v2. **`config('app.design')`** (`TFE_DESIGN`, default
+`v2`) is the one switch: the plain public addresses render their V2 pages
+(`PublicDesign` middleware → `PageVersion::isDefault()`), `/` serves
+`HomeV2`, `/v2/...` and `/v2` 301 to the plain address (query kept), nothing
+sends `noindex`, and the shared `design` prop makes `useDashboardV2()` true
+for every account (the account-menu switch is hidden). `TFE_DESIGN=v1` is the
+fallback: everything below about "v2 beside v1" applies again. The v1 code
+is deleted one release after the switch (PR B); until then do not build on
+it. Guarded by `tests/Feature/DesignSwitchTest.php`; the comparison-era
+tests pin `app.design = v1`.
+
 ### Landing page v2 + walkthroughs (UX round, Nov 2026)
 
 From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,

@@ -20,7 +20,7 @@ export default function TribeShow({ tribe }) {
             title={tribe.name}
             hero={(
                 <V2PageHero
-                    crumbs={[{ label: 'Tribes', href: route('v2.community.tribes') }, { label: tribe.name }]}
+                    crumbs={[{ label: 'Tribes', href: route('community.tribes') }, { label: tribe.name }]}
                     eyebrow={isPrivate ? 'Tribe · join by request' : 'Tribe · open to all'}
                     title={tribe.name}
                     tagline={tribe.excerpt}

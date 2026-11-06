@@ -27,8 +27,8 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
                 <V2PageHero
                     crumbs={listing.publisher?.slug
                         ? [
-                            { label: 'Partners', href: route('v2.partners.index') },
-                            { label: listing.publisher.display_name, href: route('v2.partners.hub', listing.publisher.slug) },
+                            { label: 'Partners', href: route('partners.index') },
+                            { label: listing.publisher.display_name, href: route('partners.hub', listing.publisher.slug) },
                             { label: listing.name },
                         ]
                         : [{ label: listing.name }]}
@@ -63,7 +63,7 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
                                 <AccentCard
                                     key={m.id}
                                     LinkComponent={Link}
-                                    href={route('v2.listings.show', m.id)}
+                                    href={route('listings.show', m.id)}
                                     eyebrow={titleCase(m.type)}
                                     title={m.name}
                                     desc={m.description || undefined}

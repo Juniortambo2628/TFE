@@ -16,7 +16,7 @@ export default function LearnIndex({ resources = [], categories = {}, audiences 
 
     const apply = (key, value) => {
         const next = { ...filters, [key]: filters[key] === value ? null : value };
-        router.get(route('v2.learn.index'), Object.fromEntries(Object.entries(next).filter(([, v]) => v)), {
+        router.get(route('learn.index'), Object.fromEntries(Object.entries(next).filter(([, v]) => v)), {
             preserveScroll: true, preserveState: true, replace: true,
         });
     };
@@ -35,7 +35,7 @@ export default function LearnIndex({ resources = [], categories = {}, audiences 
                 </div>
                 <div className="v2-results-head">
                     <p className="v2-results-head__count"><strong>{resources.length}</strong> {resources.length === 1 ? 'resource' : 'resources'}</p>
-                    {hasFilter && <Link href={route('v2.learn.index')} className="tfe-btn tfe-btn--sm" preserveScroll>Clear filters</Link>}
+                    {hasFilter && <Link href={route('learn.index')} className="tfe-btn tfe-btn--sm" preserveScroll>Clear filters</Link>}
                 </div>
                 {resources.length === 0 ? (
                     <div className="tfe-empty">
@@ -45,7 +45,7 @@ export default function LearnIndex({ resources = [], categories = {}, audiences 
                     </div>
                 ) : (
                     <div className="v2-cardgrid v2-cardgrid--3">
-                        {resources.map((r) => <ResourceCard key={r.id} resource={r} href={route('v2.learn.show', r.slug)} />)}
+                        {resources.map((r) => <ResourceCard key={r.id} resource={r} href={route('learn.show', r.slug)} />)}
                     </div>
                 )}
             </V2Section>

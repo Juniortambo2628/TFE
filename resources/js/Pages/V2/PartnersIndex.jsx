@@ -23,7 +23,7 @@ export default function PartnersIndex({ profiles = [], partner_types = {}, tourn
         if (first.current) { first.current = false; return undefined; }
         const t = setTimeout(() => {
             const params = Object.fromEntries(Object.entries({ q, type, tournament_id: tournamentId }).filter(([, v]) => v));
-            router.get(route('v2.partners.index'), params, { preserveState: true, preserveScroll: true, replace: true });
+            router.get(route('partners.index'), params, { preserveState: true, preserveScroll: true, replace: true });
         }, 350);
         return () => clearTimeout(t);
     }, [q, type, tournamentId]);
@@ -109,7 +109,7 @@ function PartnerCard({ profile }) {
     return (
         <AccentCard
             LinkComponent={Link}
-            href={route('v2.partners.hub', profile.slug)}
+            href={route('partners.hub', profile.slug)}
             accent={profile.theme_accent || '#dc143c'}
             artwork={profile.logo_url ? { src: profile.logo_url, alt: profile.display_name } : undefined}
             status={profile.verification_status === 'verified' ? 'Verified' : undefined}

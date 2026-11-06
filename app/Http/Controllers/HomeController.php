@@ -44,8 +44,14 @@ class HomeController extends Controller
 
     use ResolvesTournament;
 
-    public function index(StadiumBowlService $bowls)
+    public function index(Request $request, StadiumBowlService $bowls)
     {
+        // v2 is the site's landing page (config app.design); this one is the
+        // v1 fallback until it is deleted.
+        if (PageVersion::isDefault()) {
+            return $this->landingV2($request);
+        }
+
         return Inertia::render('Home', [
             'appName' => config('app.name'),
 
@@ -88,11 +94,23 @@ class HomeController extends Controller
      */
     public function homeV2(Request $request)
     {
+        // The preview address, now that v2 is the landing page itself.
+        if (PageVersion::isDefault()) {
+            $query = $request->getQueryString();
+
+            return redirect('/'.($query ? "?{$query}" : ''), 301);
+        }
+
+        return $this->noindex($this->landingV2($request), $request);
+    }
+
+    private function landingV2(Request $request)
+    {
         $tournament = $this->activeTournament();
         $content = LandingContent::all();
         unset($content['walkthroughs']); // their own pages
 
-        return $this->noindex(Inertia::render('HomeV2', [
+        return Inertia::render('HomeV2', [
             'content' => $content,
             'facts' => $this->landingFacts($tournament),
             'partnerCounts' => $this->partnerCountsByType(),
@@ -104,7 +122,7 @@ class HomeController extends Controller
                 $tournament['id'], 8, ['package', 'tour'],
             )),
             'communityPreview' => Inertia::defer(fn () => CommunityController::preview($tournament['id'])),
-        ]), $request);
+        ]);
     }
 
     /** /for-fans, /for-partners, /for-schools — how each audience uses TFE. */
@@ -113,10 +131,12 @@ class HomeController extends Controller
         $page = LandingContent::all()['walkthroughs'][$audience] ?? null;
         abort_unless($page, 404);
 
-        return $this->noindex(Inertia::render('Walkthrough', [
+        $response = Inertia::render('Walkthrough', [
             'audience' => $audience,
             'page' => $page,
-        ]), $request);
+        ]);
+
+        return PageVersion::isDefault() ? $response : $this->noindex($response, $request);
     }
 
     /**

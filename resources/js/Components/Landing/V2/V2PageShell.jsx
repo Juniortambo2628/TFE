@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
@@ -27,7 +27,7 @@ export default function V2PageShell({ title, hero, sections = [], closing, child
     return (
         <TournamentProvider>
             <Head title={title}>
-                <meta name="robots" content="noindex, nofollow" head-key="robots" />
+                {usePage().props.design !== 'v2' && <meta name="robots" content="noindex, nofollow" head-key="robots" />}
             </Head>
             <Header />
 

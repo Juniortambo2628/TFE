@@ -231,7 +231,7 @@ export default function Content({
                                     <i className="fas fa-flask"></i> {LANDING_GROUPS.find((g) => g.key === openLanding)?.label}
                                 </h2>
                                 <p className="tfe-slab__title-sub">
-                                    The wording on <a href="/v2" target="_blank" rel="noreferrer">/v2</a> and the walkthrough pages. Leave a field blank to use the built-in default.
+                                    The wording on the <a href="/" target="_blank" rel="noreferrer">landing page</a>, the public pages and the walkthroughs. Leave a field blank to use the built-in default.
                                 </p>
                             </div>
                         </div>
