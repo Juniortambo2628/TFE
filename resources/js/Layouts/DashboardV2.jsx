@@ -20,7 +20,10 @@ import { usePage } from '@inertiajs/react';
  * switch mid-session must not change a component's hook order.
  */
 export function useDashboardV2() {
-    return Boolean(usePage().props.auth?.user?.dashboard_v2);
+    const { design, auth } = usePage().props;
+    // v2 is the dashboard for everyone since the switch; the per-person
+    // flag only matters under the v1 fallback (config app.design).
+    return design === 'v2' || Boolean(auth?.user?.dashboard_v2);
 }
 
 /** Where a page's hero actions are portalled to (BaseLayout renders it). */

@@ -18,6 +18,13 @@ class LandingV2Test extends TestCase
 {
     use RefreshDatabase;
 
+    /** The /v2 preview, as it was during the comparison: the v1 fallback now. DesignSwitchTest covers v2 at /. */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['app.design' => 'v1']);
+    }
+
     private function publicPartner(string $type, string $verification = 'verified'): User
     {
         $user = User::factory()->partner()->create([

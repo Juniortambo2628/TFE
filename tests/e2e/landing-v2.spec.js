@@ -3,11 +3,15 @@ import { watchErrors } from './helpers';
 
 // Landing page v2 + audience walkthroughs (UX review, 2 Nov 2026, Track C).
 
-test('v2 renders, stays out of search, and its parts work', async ({ page }, testInfo) => {
+test('the v2 landing page is the home page, indexable, and its parts work', async ({ page }, testInfo) => {
     const errors = watchErrors(page);
+    // The comparison-period address still lands here.
     await page.goto('/v2');
+    await expect(page).toHaveURL(/\/$/);
+    // The first-visit intro splash holds the page still; scrolling waits for it.
+    await page.waitForFunction(() => window.tfeLoaderFinished === true, null, { timeout: 15000 });
 
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
     await expect(page.locator('.v2-hero__title')).toBeVisible();
     await expect(page.locator('.v2-audience')).toHaveCount(3);
     await expect(page.locator('.v2-facts__item').first()).toBeVisible();

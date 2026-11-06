@@ -37,7 +37,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], steps
             title={name}
             hero={(
                 <V2PageHero
-                    crumbs={[{ label: 'Partners', href: route('v2.partners.index') }, { label: name }]}
+                    crumbs={[{ label: 'Partners', href: route('partners.index') }, { label: name }]}
                     accent={accent}
                     eyebrow={`Official ${partnerEyebrow(profile.partner_type_label)} Partner`}
                     title={name}
@@ -137,7 +137,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], steps
                                 <AccentCard
                                     key={l.id}
                                     LinkComponent={Link}
-                                    href={route('v2.listings.show', l.id)}
+                                    href={route('listings.show', l.id)}
                                     accent={accent}
                                     artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
                                     status={l.tournament_short || undefined}

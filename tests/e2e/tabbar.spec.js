@@ -22,10 +22,10 @@ test('public tab bar: labelled, working, and nothing hides under it', async ({ p
     await expect(bar.locator('a[aria-current="page"]')).toHaveText('Home');
     await expect(bar.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', /\/login$/);
 
-    // The hero (and its pinned tournament card) ends where the bar begins.
+    // The hero's actions sit above the bar, never under it.
     const barBox = await bar.boundingBox();
-    const hero = await page.locator('#hero').boundingBox();
-    expect(hero.y + hero.height).toBeLessThanOrEqual(barBox.y + 2);
+    const ctas = await page.locator('.v2-hero__ctas').first().boundingBox();
+    expect(ctas.y + ctas.height).toBeLessThanOrEqual(barBox.y + 2);
 
     // Plan a trip opens the planner over the bar.
     await bar.getByRole('button', { name: 'Plan a trip' }).click();

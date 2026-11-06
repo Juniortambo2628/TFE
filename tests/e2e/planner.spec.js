@@ -16,7 +16,12 @@ test('public planner reaches an estimate with its actions on screen', async ({ p
     // One size from the first step to the last: the dialog does not grow and
     // shrink with its content, so its buttons never move (Nov 2026).
     const panel = page.locator('.tfe-modal');
-    const height = async () => Math.round((await panel.boundingBox()).height);
+    // Measured once the entrance animation (a slight scale) has finished:
+    // mid-animation the box reads a pixel short.
+    const height = async () => {
+        await panel.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+        return Math.round((await panel.boundingBox()).height);
+    };
     const first = await height();
 
     await page.getByRole('button', { name: /^Next$/ }).click();

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import SectionPageShell from '@/Components/Landing/SectionPageShell';
 import SectionNav from '@/Components/Landing/V2/SectionNav';
 import ClosingCta from '@/Components/Landing/V2/ClosingCta';
@@ -35,7 +35,7 @@ export default function Walkthrough({ page }) {
             breadcrumbs={[{ label: page.title }]}
         >
             <Head>
-                <meta name="robots" content="noindex, nofollow" head-key="robots" />
+                {usePage().props.design !== 'v2' && <meta name="robots" content="noindex, nofollow" head-key="robots" />}
             </Head>
 
             <div className="v2-page">

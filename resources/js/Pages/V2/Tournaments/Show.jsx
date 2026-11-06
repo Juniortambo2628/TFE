@@ -98,7 +98,7 @@ export default function TournamentShow({ tournament: t = {}, listings = [], upco
                                     <AccentCard
                                         key={l.id}
                                         LinkComponent={Link}
-                                        href={route('v2.listings.show', l.id)}
+                                        href={route('listings.show', l.id)}
                                         accent={l.publisher?.theme_accent || accent}
                                         artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
                                         eyebrow={l.publisher ? `By ${l.publisher.display_name}` : undefined}

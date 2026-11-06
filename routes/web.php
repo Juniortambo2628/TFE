@@ -58,14 +58,15 @@ use App\Http\Controllers\SandboxBankController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TripPlannerController;
+use App\Http\Middleware\PublicDesign;
 use App\Http\Middleware\V2PublicPages;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
-
 // Landing page v2 and its audience walkthroughs (UX review, 2 Nov 2026,
-// Track C): live beside the current landing page for the tester group to
-// compare, unlinked from the main nav and noindex until a direction is chosen.
+// Track C). Since the switch to v2 (config app.design) `/` serves it and
+// /v2 redirects there.
+
 Route::get('/v2', [HomeController::class, 'homeV2'])->name('home.v2');
 Route::get('/for-{audience}', [HomeController::class, 'walkthrough'])
     ->where('audience', 'fans|partners|schools')
@@ -87,7 +88,9 @@ Route::prefix('v2')->name('v2.')->middleware(V2PublicPages::class)->group(functi
     Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])->name('partners.hub');
     Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index');
     Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
-    Route::get('/listings/{listing}', [ListingShowController::class, 'show'])->name('listings.show');
+    Route::middleware(PublicDesign::class)->group(function () {
+        Route::get('/listings/{listing}', [ListingShowController::class, 'show'])->name('listings.show');
+    });
 });
 
 // News JSON API — consumed by the News section via the Ziggy route name
@@ -95,36 +98,39 @@ Route::prefix('v2')->name('v2.')->middleware(V2PublicPages::class)->group(functi
 // moved under /api so the public /news page below can own the /news URL.
 Route::get('/api/news', [NewsController::class, 'index'])->name('news.index');
 
-// Public section pages — each mirrors the landing structure (header + the
-// section + footer) so the landing page stays light. Nav links point here.
-Route::get('/about', [HomeController::class, 'about'])->name('about');
-Route::get('/features', [HomeController::class, 'features'])->name('features');
-Route::get('/services', [HomeController::class, 'services'])->name('services');
-Route::get('/news', [HomeController::class, 'news'])->name('news');
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-Route::post('/contact', [HomeController::class, 'contactStore'])->name('contact.store');
+Route::middleware(PublicDesign::class)->group(function () {
+    // Public section pages — each mirrors the landing structure (header + the
+    // section + footer) so the landing page stays light. Nav links point here.
+    Route::get('/about', [HomeController::class, 'about'])->name('about');
+    Route::get('/features', [HomeController::class, 'features'])->name('features');
+    Route::get('/services', [HomeController::class, 'services'])->name('services');
+    Route::get('/news', [HomeController::class, 'news'])->name('news');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::post('/contact', [HomeController::class, 'contactStore'])->name('contact.store');
 
-// Public single-view tournament pages (recap for past, plan-your-trip for
-// upcoming). Reached by slug, e.g. /tournaments/afcon-2027.
-Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('tournaments.show');
+    // Public single-view tournament pages (recap for past, plan-your-trip for
+    // upcoming). Reached by slug, e.g. /tournaments/afcon-2027.
+    Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('tournaments.show');
 
-// Public Partner directory + hub — no auth needed. Sprint 11 added
-// the index; the {slug} hub predates it.
-// Public community (Sprint 70): a tribe directory and a page per tribe —
-// description and counts only; posts and members stay behind sign-in.
-Route::get('/tribes', [CommunityController::class, 'index'])->name('community.tribes');
-Route::get('/tribes/{slug}', [CommunityController::class, 'show'])->name('community.tribes.show');
-Route::get('/tribes/{slug}/join', [CommunityController::class, 'join'])->name('community.tribes.join');
+    // Public Partner directory + hub — no auth needed. Sprint 11 added
+    // the index; the {slug} hub predates it.
+    // Public community (Sprint 70): a tribe directory and a page per tribe —
+    // description and counts only; posts and members stay behind sign-in.
+    Route::get('/tribes', [CommunityController::class, 'index'])->name('community.tribes');
+    Route::get('/tribes/{slug}', [CommunityController::class, 'show'])->name('community.tribes.show');
+    Route::get('/tribes/{slug}/join', [CommunityController::class, 'join'])->name('community.tribes.join');
 
-Route::get('/partners', [PartnerHubController::class, 'index'])
-    ->name('partners.index');
-Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])
-    ->name('partners.hub');
+    Route::get('/partners', [PartnerHubController::class, 'index'])
+        ->name('partners.index');
+    Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])
+        ->name('partners.hub');
 
-// Learning Hub — open to everyone. See LearningHubController for why it is
-// not gated to registered schools.
-Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index');
-Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
+    // Learning Hub — open to everyone. See LearningHubController for why it is
+    // not gated to registered schools.
+    Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index');
+    Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
+});
+
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
 

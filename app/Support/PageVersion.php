@@ -14,6 +14,12 @@ class PageVersion
 {
     public const ATTRIBUTE = 'tfe.v2_page';
 
+    /** True when v2 is the site's design, not only a /v2 preview. */
+    public static function isDefault(): bool
+    {
+        return config('app.design', 'v2') === 'v2';
+    }
+
     public static function isV2(): bool
     {
         return (bool) request()->attributes->get(self::ATTRIBUTE, false);

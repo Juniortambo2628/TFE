@@ -14,7 +14,7 @@ export default function LearnShow({ resource: r, related = [] }) {
             title={r.title}
             hero={(
                 <V2PageHero
-                    crumbs={[{ label: 'Learning Hub', href: route('v2.learn.index') }, { label: r.title }]}
+                    crumbs={[{ label: 'Learning Hub', href: route('learn.index') }, { label: r.title }]}
                     eyebrow={r.category_label}
                     title={r.title}
                     tagline={r.summary}

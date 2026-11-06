@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -11,6 +12,9 @@ use Tests\TestCase;
  */
 class InstallableSiteTest extends TestCase
 {
+    // The landing page counts real data as it renders (its facts strip).
+    use RefreshDatabase;
+
     public function test_every_page_links_the_manifest_and_icons(): void
     {
         $html = $this->get('/')->assertOk()->getContent();

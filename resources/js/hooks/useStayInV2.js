@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { toV2 } from '@/lib/v2Paths';
 
 /**
@@ -20,7 +20,11 @@ import { toV2 } from '@/lib/v2Paths';
  * Modified clicks, target="_blank" and downloads are left to the browser.
  */
 export default function useStayInV2() {
+    // Since the switch every public page IS v2 at its plain address, and
+    // /v2/... only redirects: nothing to rewrite.
+    const off = usePage().props.design === 'v2';
     useEffect(() => {
+        if (off) return undefined;
         // An <Link> visits its `href` PROP, not the DOM attribute, so a link
         // whose attribute was already rewritten on hover still has to be
         // intercepted on click: the twin is remembered on the element.
@@ -59,5 +63,5 @@ export default function useStayInV2() {
             document.removeEventListener('pointerover', rewrite, true);
             document.removeEventListener('focusin', rewrite, true);
         };
-    }, []);
+    }, [off]);
 }

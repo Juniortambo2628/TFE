@@ -15,6 +15,13 @@ class V2PublicPagesTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** Written for the comparison period: v1 at the plain addresses, v2 under /v2. That is the v1 fallback now (config app.design); DesignSwitchTest covers v2 as the default. */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['app.design' => 'v1']);
+    }
+
     private const SECTIONS = [
         'about' => 'Sections/About',
         'features' => 'Sections/Features',

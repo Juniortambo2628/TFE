@@ -95,7 +95,7 @@ function MessageItem({ msg, href }) {
 }
 
 export default function HeaderUserCluster({ user, role = 'auto' }) {
-    const { auth } = usePage().props;
+    const { auth, design } = usePage().props;
     const resolvedRole = resolveRole(role, user);
     const { dropdowns, toggleDropdown } = useHeaderLogic();
 
@@ -213,7 +213,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
                             ))}
                             {/* The Naoa-style dashboard is a per-person choice on
                                 the same pages (UX review, Nov 2026). */}
-                            <Link
+                            {design !== 'v2' && <Link
                                 href={route('account.dashboard-version')}
                                 method="post"
                                 as="button"
@@ -223,7 +223,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
                                 className="tfe-menu-surface__item"
                             >
                                 <i className="fas fa-exchange-alt"></i> {user?.dashboard_v2 ? 'Back to the current dashboard' : 'Try the new dashboard'}
-                            </Link>
+                            </Link>}
                         </div>
                         <div className="tfe-menu-surface__foot">
                             <Link href={route('logout')} method="post" as="button" className="tfe-menu-surface__item tfe-menu-surface__item--danger">
