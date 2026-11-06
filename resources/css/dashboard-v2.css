@@ -80,11 +80,13 @@
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 .tfe-dv2-nav i { width: 18px; text-align: center; font-size: 0.92rem; color: rgba(255, 255, 255, 0.5); }
-.tfe-dv2-nav span:not(.tfe-dv2-nav__dot) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tfe-dv2-nav span:not(.tfe-dv2-nav__dot):not(.tfe-activity-badge) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tfe-dv2-nav:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
 .tfe-dv2-nav:focus-visible { outline: 2px solid var(--dv2-accent); outline-offset: 1px; }
 .tfe-dv2-nav.is-active { background: #f4f4f5; color: #0a0a0b; font-weight: 600; }
 .tfe-dv2-nav.is-active i { color: #0a0a0b; }
+/* A count stays a circle (a pill from two digits), never the row's filler. */
+.tfe-dv2-nav .tfe-activity-badge { flex: none; width: auto; margin-left: auto; }
 .tfe-dv2-nav__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dv2-accent); }
 
 /* ── Main column + header ────────────────────────────────────── */
@@ -203,9 +205,20 @@
     max-width: calc(100vw - var(--sidebar-width) - 48px);
 }
 @media (max-width: 767.98px) {
-    .tfe-dv2-toolbar { left: 50%; width: calc(100vw - 24px); max-width: none; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
-    .tfe-dv2-toolbar.is-collapsed { left: auto; right: 12px; width: auto; transform: none; }
+    /* A small pill of icons at the right; it widens only while searching. */
+    .tfe-dv2-toolbar { left: auto; right: 12px; width: auto; max-width: calc(100vw - 24px); transform: none; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+    .tfe-dv2-toolbar.is-searching { left: 12px; }
+    .tfe-dv2-toolbar .tfe-dv2-toolbar__bar { gap: 2px; padding: 4px; border-radius: 999px; }
+    .tfe-dv2-toolbar .tfe-dv2-toolbar__icon { width: 40px; height: 40px; border-radius: 999px; }
+    .tfe-dv2-toolbar .tfe-dv2-toolbar__views { border-radius: 999px; }
+    .tfe-dv2-toolbar.is-searching .tfe-dv2-toolbar__search { border-radius: 999px; }
 }
+/* What a page shows in its heading besides buttons (DashboardHero). */
+.tfe-dv2-hero__extra { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; min-width: 0; }
+.tfe-dv2-hero__extra > * { min-width: 0; max-width: 100%; }
+/* Below the heading on a phone (DashboardHero keeps them there). */
+.tfe-dv2-hero__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.tfe-dv2-hero__actions > * { max-width: 100%; }
 .tfe-dv2-toolbar__bar {
     display: flex;
     align-items: center;
@@ -510,7 +523,7 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
 /* The page's floating toolbar sits above the bar, not under it. */
 @media (max-width: 767.98px) {
     .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 12px); }
-    .tfe-dv2__content { padding-bottom: 104px; }
+    .tfe-dv2__content { padding-bottom: 72px; }
 }
 
 

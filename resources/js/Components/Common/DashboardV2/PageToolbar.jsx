@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { TOOLBAR_ID, useToolbarSlots } from '@/Layouts/DashboardV2';
 import { matchesQuery, shownLabel } from '@/lib/pageFind';
+import useIsPhone from '@/hooks/useIsPhone';
 
 /**
  * Naoa's floating toolbar, on every page of the v2 dashboard: one bar at the
@@ -18,6 +19,12 @@ import { matchesQuery, shownLabel } from '@/lib/pageFind';
  *  - Search everything: the command menu (⌘K), which used to float on its
  *    own in the corner.
  *  - Collapse: the bar folds to a single button, remembered per browser.
+ *
+ * On a phone it is a small pill of icons at the right, above the tab bar:
+ * the page's actions stay in its heading (DashboardHero), search is an icon
+ * that opens the field across the bar, and there is nothing to collapse.
+ * "Go to any page" is the tab bar's Menu there, so a page with no search
+ * and no views shows no toolbar at all.
  */
 
 // What "find on this page" filters: table rows and the platform's cards.
@@ -44,13 +51,17 @@ export default function PageToolbar() {
     const [collapsed, setCollapsed] = useState(() => {
         try { return localStorage.getItem('tfe-dv2-toolbar') === 'collapsed'; } catch { return false; }
     });
+    const phone = useIsPhone();
+    const [searchOpen, setSearchOpen] = useState(false);
+    const inputRef = useRef(null);
     const queryRef = useRef('');
     queryRef.current = query;
 
     const ownSearch = slots.search;
 
     // A new page starts unfiltered.
-    useEffect(() => { setQuery(''); }, [url]);
+    useEffect(() => { setQuery(''); setSearchOpen(false); }, [url]);
+    useEffect(() => { if (searchOpen) inputRef.current?.focus(); }, [searchOpen]);
 
     // Find-on-page: re-applied as the page's content changes (deferred props,
     // a filter chip, a grid/table switch), not just as you type.
@@ -101,25 +112,49 @@ export default function PageToolbar() {
         note: query ? shownLabel(counts.shown, counts.total) : null,
     } : null);
 
+    const isCollapsed = collapsed && !phone;
+    // On a phone the field only shows once asked for (or while it filters).
+    const showField = search && (!phone || searchOpen || Boolean(search.value));
+    const closeSearch = () => { search?.onChange(''); setSearchOpen(false); };
+
+    // On a phone "go to any page" is the tab bar's Menu, so a bar with no
+    // search and no views would be a lone button over the page: none at all.
+    if (phone && !search && !slots.views) {
+        return <div id={TOOLBAR_ID} hidden />;
+    }
+
     return (
-        <div className={'tfe-dv2-toolbar' + (collapsed ? ' is-collapsed' : '')}>
+        <div className={'tfe-dv2-toolbar' + (isCollapsed ? ' is-collapsed' : '') + (phone && showField ? ' is-searching' : '')}>
             <div className="tfe-dv2-toolbar__bar" role="toolbar" aria-label="Page tools">
-                {!collapsed && search && (
+                {!isCollapsed && showField && (
                     <label className="tfe-dv2-toolbar__search">
                         <i className="fas fa-search" aria-hidden="true"></i>
                         <span className="tfe-dv2-sr-only">{search.placeholder}</span>
                         <input
+                            ref={inputRef}
                             type="search"
                             value={search.value}
                             placeholder={search.placeholder}
                             onChange={(e) => search.onChange(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Escape') search.onChange(''); }}
+                            onKeyDown={(e) => { if (e.key === 'Escape') closeSearch(); }}
                         />
                         {search.note && <span className="tfe-dv2-toolbar__note" aria-live="polite">{search.note}</span>}
                     </label>
                 )}
 
-                {!collapsed && slots.views && (
+                {phone && search && (
+                    showField ? (
+                        <button type="button" className="tfe-dv2-toolbar__icon" onClick={closeSearch} aria-label="Close search" title="Close search">
+                            <i className="fas fa-times" aria-hidden="true"></i>
+                        </button>
+                    ) : (
+                        <button type="button" className="tfe-dv2-toolbar__icon" onClick={() => setSearchOpen(true)} aria-label={search.placeholder} title={search.placeholder}>
+                            <i className="fas fa-search" aria-hidden="true"></i>
+                        </button>
+                    )
+                )}
+
+                {!isCollapsed && !(phone && showField) && slots.views && (
                     <div className="tfe-dv2-toolbar__views" role="group" aria-label="View">
                         {slots.views.options.map((o) => (
                             <button
@@ -137,25 +172,28 @@ export default function PageToolbar() {
                     </div>
                 )}
 
-                {/* The page's heading actions land here (DashboardHero). */}
-                <div id={TOOLBAR_ID} className="tfe-dv2-toolbar__actions" hidden={collapsed} />
+                {/* The page's heading actions land here (DashboardHero); on a
+                    phone they stay in the heading. */}
+                <div id={TOOLBAR_ID} className="tfe-dv2-toolbar__actions" hidden={isCollapsed || phone} />
 
-                {!collapsed && (
+                {!isCollapsed && !phone && (
                     <button type="button" className="tfe-dv2-toolbar__icon" onClick={searchEverything} title="Go to any page (Ctrl K)" aria-label="Go to any page">
                         <i className="fas fa-compass" aria-hidden="true"></i>
                     </button>
                 )}
 
-                <button
-                    type="button"
-                    className="tfe-dv2-toolbar__icon"
-                    onClick={() => toggle(!collapsed)}
-                    aria-expanded={!collapsed}
-                    aria-label={collapsed ? 'Show page tools' : 'Hide page tools'}
-                    title={collapsed ? 'Show page tools' : 'Hide page tools'}
-                >
-                    <i className={collapsed ? 'fas fa-sliders' : 'fas fa-chevron-down'} aria-hidden="true"></i>
-                </button>
+                {!phone && (
+                    <button
+                        type="button"
+                        className="tfe-dv2-toolbar__icon"
+                        onClick={() => toggle(!collapsed)}
+                        aria-expanded={!collapsed}
+                        aria-label={collapsed ? 'Show page tools' : 'Hide page tools'}
+                        title={collapsed ? 'Show page tools' : 'Hide page tools'}
+                    >
+                        <i className={collapsed ? 'fas fa-sliders' : 'fas fa-chevron-down'} aria-hidden="true"></i>
+                    </button>
+                )}
             </div>
         </div>
     );

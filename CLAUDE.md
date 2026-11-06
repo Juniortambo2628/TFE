@@ -729,6 +729,19 @@ will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
   (`lib/pageFind.js`). `DashboardV2/SidePanel` (≥1280px, folded to a rail
   below 1536 unless the person opened it): the other pages in the current
   sidebar group and the latest notifications.
+- **What goes in the toolbar** (`splitHeroChildren` in `DashboardHero`):
+  `action` / `actions` and any hero CHILD that is a button (`<button>`,
+  `Link`, or `.tfe-btn` / `.btn-admin`). Other children — status pills, a
+  partner strip, the calculator's running totals — are content and stay in
+  the heading (`.tfe-dv2-hero__extra`). Sending everything to the bar is
+  what overflowed it on the Budget Calculator.
+- **On a phone** (`hooks/useIsPhone`, <768px) the toolbar is a small icon
+  pill at the right above the tab bar: search is an icon that opens the
+  field across the bar, the page's actions stay in its heading
+  (`.tfe-dv2-hero__actions`), and "go to any page" is left to the tab
+  bar's Menu — so a page with no search and no views shows no toolbar.
+- An `ActivityBadge` inside `.tfe-dv2-nav` must stay `flex: none`; the
+  nav's label rule (`span { flex: 1 }`) stretched it into a bar.
 - **`form-baseline.css`'s text-field rule wraps its type filters in
   `:where()`.** Ten `:not([type=…])` filters weighed 0,10,1 and beat every
   field class, contradicting the "element-level floor" the file promises.

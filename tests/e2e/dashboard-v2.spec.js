@@ -40,7 +40,15 @@ test('the account menu switches a fan to the new dashboard and back', async ({ p
         await expect(page.locator('.tfe-dv2-nav.is-active')).toContainText('Tickets');
     }
 
-    // Naoa's page toolbar: "find on this page" filters the page's cards.
+    // Naoa's page toolbar: "find on this page" filters the page's cards. On
+    // a phone it is an icon in a small pill that opens the field.
+    if (testInfo.project.name === 'phone') {
+        const pill = await page.locator('.tfe-dv2-toolbar').boundingBox();
+        expect(pill.width).toBeLessThan(page.viewportSize().width / 2);
+        // The page's own actions stay in its heading, not the bar.
+        await expect(page.locator('.tfe-dv2-hero__actions')).toContainText('My tickets');
+        await page.locator('.tfe-dv2-toolbar').getByRole('button', { name: 'Find on this page' }).click();
+    }
     const find = page.locator('.tfe-dv2-toolbar__search input');
     await expect(find).toBeVisible();
     const cards = page.locator('.ticket-card');
@@ -86,12 +94,19 @@ test('the account menu switches a fan to the new dashboard and back', async ({ p
 
         // The page's own toolbar sits above the bar, not under it.
         await page.goto('/fan/tickets');
+        await expect(page.locator('.tfe-dv2-toolbar__bar')).toBeVisible();
         const bar = await tabs.boundingBox();
         const tools = await page.locator('.tfe-dv2-toolbar__bar').boundingBox();
         expect(tools.y + tools.height).toBeLessThanOrEqual(bar.y);
 
         await tabs.getByRole('button', { name: 'Menu' }).click();
         await expect(page.locator('.tfe-dv2-nav.is-active')).toBeVisible();
+        // An activity count is a circle beside the label, not a bar across it.
+        const badge = page.locator('.tfe-dv2-nav .tfe-activity-badge').first();
+        if (await badge.count()) {
+            const b = await badge.boundingBox();
+            expect(b.width).toBeLessThanOrEqual(b.height * 2);
+        }
         await expect(page.locator('.tfe-dv2-nav', { hasText: 'Predict' })).toBeVisible();
         await tabs.getByRole('link', { name: 'Trips' }).click();
         await expect(page).toHaveURL(/\/fan\/itineraries/);
