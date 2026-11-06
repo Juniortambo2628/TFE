@@ -4,7 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import MinorsBadge from '@/Components/Common/MinorsBadge';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, statusLabel } from '@/lib/utils';
 import { useToolbarSlot } from '@/Layouts/DashboardV2';
 
 /**
@@ -167,7 +167,7 @@ export default function Requests({ requests = [], variant = 'travel', hasListing
                                             <td><strong>{formatMoney(r.total_cost, r.currency || 'USD')}</strong></td>
                                             <td>
                                                 <span className={`tfe-pill ${STATUS_PILL[r.status] || 'tfe-pill--info'}`}>
-                                                    {r.status}
+                                                    {statusLabel(r.status)}
                                                 </span>
                                             </td>
                                             <td>

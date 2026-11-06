@@ -59,3 +59,15 @@ export function titleCase(value) {
 
     return words.charAt(0).toUpperCase() + words.slice(1);
 }
+
+/**
+ * A status as a pill shows it: sentence case, underscores as spaces
+ * ("pending_payment" -> "Pending payment", "APPROVED" -> "Approved"). One
+ * casing for every pill (UX plan, Nov 2026); the pills themselves never
+ * text-transform.
+ */
+export function statusLabel(value) {
+    if (value === null || value === undefined || value === '') return '';
+    const s = String(value).replace(/_/g, ' ').trim().toLowerCase();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useActiveNav } from '@/Layouts/DashboardV2';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, formatMoney } from '@/lib/utils';
 
 /**
  * Naoa's side panel, beside the content on every v2 dashboard page (wide
  * screens): what changed and where to go next, without leaving the page.
  *
+ *  - "Next step" (fans): the one thing to do next, from the same NextStep
+ *    the fan dashboard leads with (shared as `nextStep`).
  *  - "In {section}": the other pages in the current sidebar group — the
  *    Naoa panel's section list, taken from the menu so it cannot drift.
  *  - "Recent activity": the latest notifications, the same rows as the bell
@@ -17,16 +19,16 @@ import { formatDateTime } from '@/lib/utils';
  */
 export default function SidePanel() {
     const { item } = useActiveNav();
-    const { auth } = usePage().props;
+    const { auth, nextStep } = usePage().props;
     const notifications = auth?.notifications || [];
     const unread = auth?.unreadNotificationsCount || 0;
-    // Folded by default below 1536px, where a wide table needs the width
-    // more than the panel does; a choice the person made is kept either way.
+    // Open by default from 1440px (UX plan, Nov 2026); folded below that,
+    // where a wide table needs the width more. A person's choice is kept.
     const [collapsed, setCollapsed] = useState(() => {
         let saved = null;
         try { saved = localStorage.getItem('tfe-dv2-panel'); } catch { /* private mode */ }
         if (saved) return saved === 'collapsed';
-        return typeof window !== 'undefined' && window.innerWidth < 1536;
+        return typeof window !== 'undefined' && window.innerWidth < 1440;
     });
 
     const toggle = (next) => {
@@ -64,6 +66,19 @@ export default function SidePanel() {
             </div>
 
             <div className="tfe-dv2-panel__body">
+                {nextStep && (
+                    <section>
+                        <p className="tfe-dv2-panel__label">Next step</p>
+                        <div className="tfe-dv2-panel__next">
+                            <p className="tfe-dv2-panel__next-title">{nextStep.title}</p>
+                            {nextStep.amount > 0 && (
+                                <p className="tfe-dv2-panel__next-amount">{formatMoney(nextStep.amount, nextStep.currency || 'USD')}</p>
+                            )}
+                            <Link href={nextStep.href} className="tfe-btn tfe-btn--sm tfe-btn--filled">{nextStep.cta}</Link>
+                        </div>
+                    </section>
+                )}
+
                 {siblings.length > 0 && (
                     <section>
                         <p className="tfe-dv2-panel__label">In {item.group.heading}</p>

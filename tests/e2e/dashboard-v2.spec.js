@@ -142,3 +142,39 @@ test('ticket price and Buy are on the first screen on a phone', async ({ page },
     const planIcon = page.locator('.tfe-tabbar--dashboard .tfe-tabbar__item--primary i');
     expect(await planIcon.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
 });
+
+// UX plan (Nov 2026): one bottom clearance for every dashboard page, so the
+// end of a page is never under the page toolbar or the tab bar.
+test('the end of each page sits above the floating bars', async ({ page }, testInfo) => {
+    await signIn(page, FAN[testInfo.project.name] || FAN.desktop);
+    for (const path of ['/fan/dashboard', '/fan/tickets', '/fan/itineraries', '/fan/budget-calculator', '/fan/tribes']) {
+        await page.goto(path);
+        // The first-visit intro splash holds the page still until it ends.
+        await page.waitForFunction(() => window.tfeLoaderFinished === true, null, { timeout: 15000 });
+        await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+        await page.waitForTimeout(400);
+        const last = await page.evaluate(() => {
+            const kids = [...document.querySelectorAll('.tfe-dv2__page > *')].filter((el) => el.offsetHeight > 0);
+            const el = kids[kids.length - 1];
+            return el ? el.getBoundingClientRect().bottom : 0;
+        });
+        const bars = await page.evaluate(() => [...document.querySelectorAll('.tfe-dv2-toolbar, .tfe-tabbar--dashboard')]
+            .filter((el) => el.offsetHeight > 0)
+            .map((el) => el.getBoundingClientRect().top));
+        for (const top of bars) expect(last, path).toBeLessThanOrEqual(top + 1);
+    }
+});
+
+// UX plan (Nov 2026): the side panel opens by default from 1440px and leads
+// with the fan's next step, the same one the dashboard shows.
+test('the side panel shows the next step on a wide screen', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'phone', 'wide screens only');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.addInitScript(() => { try { localStorage.removeItem('tfe-dv2-panel'); } catch {} });
+    await signIn(page, FAN.desktop);
+    await page.goto('/fan/tickets');
+    const panel = page.locator('.tfe-dv2-panel');
+    await expect(panel).not.toHaveClass(/is-rail/);
+    await expect(panel.locator('.tfe-dv2-panel__label', { hasText: 'Next step' })).toBeVisible();
+    await expect(panel.locator('.tfe-dv2-panel__next a')).toHaveAttribute('href', /\/fan\//);
+});

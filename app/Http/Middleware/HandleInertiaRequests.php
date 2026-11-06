@@ -8,6 +8,7 @@ use App\Services\StadiumImageService;
 use App\Services\TournamentService;
 use App\Services\WebPushService;
 use App\Support\ActivityBadges;
+use App\Support\NextStep;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -119,6 +120,16 @@ class HandleInertiaRequests extends Middleware
                 ->lookup($tournamentId ?: $tournamentService->resolveFromRequest($request)),
             // Web push (Nov 2026): the VAPID public key a browser subscribes
             // with. Null when push is not configured, so the toggle hides.
+            // The fan's next step for the dashboard side panel (UX plan, Nov
+            // 2026), on fan pages only: the same NextStep the dashboard leads
+            // with, so the two cannot disagree.
+            'nextStep' => fn () => ($request->user() && $request->routeIs('fan.*') && ! $request->user()->is_admin && ! $request->user()->is_partner)
+                ? (function () use ($request, $tournamentService, $tournamentId) {
+                    $t = $tournamentId ? $tournamentService->get($tournamentId) : $tournamentService->current();
+
+                    return NextStep::forFan($request->user()->id, $t['id'], ($t['status'] ?? '') === 'concluded');
+                })()
+                : null,
             'webPushKey' => fn () => $request->user() && app(WebPushService::class)->enabled()
                 ? config('webpush.public_key') : null,
             'flash' => [

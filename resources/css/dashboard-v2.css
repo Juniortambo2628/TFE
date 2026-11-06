@@ -523,7 +523,7 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
 /* The page's floating toolbar sits above the bar, not under it. */
 @media (max-width: 767.98px) {
     .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 12px); }
-    .tfe-dv2__content { padding-bottom: 72px; }
+
 }
 
 
@@ -560,3 +560,26 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
 @media (max-width: 479.98px) {
     .tfe-dv2-hero__subtitle { display: none; }
 }
+
+/* Side panel: the fan's next step (UX plan, Nov 2026). */
+.tfe-dv2-panel__next {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--dv2-accent-soft);
+    border: 1px solid var(--dv2-border);
+}
+.tfe-dv2-panel__next-title { margin: 0; color: #fff; font-weight: 600; font-size: 0.9rem; line-height: 1.35; }
+.tfe-dv2-panel__next-amount { margin: 0; color: var(--dv2-muted); font-size: 0.85rem; }
+
+/* Bottom clearance (UX plan, Nov 2026): the room the floating bars take
+   (the page toolbar, and on phones the tab bar under it), given to every
+   dashboard page in one place so the end of a page never sits under them. */
+.tfe-dv2 { --tfe-bottom-clearance: 104px; }
+@media (max-width: 767.98px) {
+    .tfe-dv2 { --tfe-bottom-clearance: calc(var(--tfe-tabbar-h, 84px) + 72px); }
+}
+.tfe-dv2 .tfe-dv2__page { padding-bottom: var(--tfe-bottom-clearance); }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { getFlightOrigins, getRateForCurrency, SUPPORTED_CURRENCIES } from '@/Data/BudgetPricingData';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, statusLabel } from '@/lib/utils';
 import { estimateTrip } from '@/lib/tripEstimate';
 import MatchCard from '@/Components/Fan/MatchCard';
 import FlightSelector from '@/Components/Fan/FlightSelector';
@@ -756,7 +756,7 @@ export default function BudgetCalculator({
                                                     budget.partner_status === 'modified' ? 'pending' :
                                                     'info'
                                                 }`}>
-                                                    {budget.partner_status || 'Pending'}
+                                                    {statusLabel(budget.partner_status || 'pending')}
                                                 </span>
                                             </div>
                                         ))}
@@ -773,7 +773,7 @@ export default function BudgetCalculator({
                                 <div className="d-flex justify-content-between align-items-center mb-1">
                                     <h4 className="partner-status-box__title"><i className="fas fa-handshake me-2 text-warning"></i>Travel Partner Update</h4>
                                     <span className={`tfe-pill tfe-pill--${savedBudgets.find(b => b.is_active).partner_status === 'approved' ? 'approved' : 'info'}`}>
-                                        {savedBudgets.find(b => b.is_active).partner_status.toUpperCase()}
+                                        {statusLabel(savedBudgets.find(b => b.is_active).partner_status)}
                                     </span>
                                 </div>
                                 <p className="mb-0 text-gray-300 text-sm">

@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney, formatDateTime } from '@/lib/utils';
+import { formatMoney, formatDateTime, statusLabel } from '@/lib/utils';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/virtual-card.css';
 
@@ -104,7 +104,7 @@ function ActiveCard({ card, partner, accent }) {
 
                 <div className="vcard-actions">
                     <span className={`tfe-pill ${card.status === 'active' ? 'tfe-pill--approved' : 'tfe-pill--pending'}`}>
-                        {card.status}
+                        {statusLabel(card.status)}
                     </span>
                     <div className="vcard-actions__hint">Total available (primary wallet)</div>
                     <div className="vcard-actions__amount">{formatMoney(card.balances[primary], primary)}</div>

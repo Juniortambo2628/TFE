@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { MESSAGES_ROUTE, messagesCount } from '@/lib/activityCounts';
 import { toast } from 'sonner';
 import HeaderDropdown from '@/Components/Common/HeaderDropdown';
 import useHeaderLogic from '@/Hooks/useHeaderLogic';
@@ -37,11 +38,6 @@ const PROFILE_LINKS = {
     ],
 };
 
-const MESSAGES_ROUTE = {
-    fan: 'fan.communication',
-    admin: 'admin.messages',
-    partner: 'partner.messages',
-};
 
 function resolveRole(explicitRole, user) {
     if (explicitRole && explicitRole !== 'auto') return explicitRole;
@@ -126,7 +122,9 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
     }, [user?.id]);
 
     const messages = auth?.messages || [];
-    const unreadMessages = auth?.unreadMessagesCount || 0;
+    // Everything waiting on the Messages page, the same number its sidebar
+    // row shows (lib/activityCounts).
+    const unreadMessages = messagesCount(auth?.activityBadges || {}, auth?.unreadMessagesCount || 0, resolvedRole);
     const messagesRoute = MESSAGES_ROUTE[resolvedRole] || MESSAGES_ROUTE.fan;
     const profileLinks = PROFILE_LINKS[resolvedRole] || PROFILE_LINKS.fan;
 

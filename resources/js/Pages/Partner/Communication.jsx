@@ -3,7 +3,7 @@ import PartnerLayout from '@/Layouts/PartnerLayout';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, statusLabel } from '@/lib/utils';
 
 /**
  * Messages / Communication centre. The two-pane layout (`partner-comm-*`)
@@ -94,7 +94,7 @@ export default function Communication({ threads = [], stats = {} }) {
                                                 </span>
                                                 <div className="dash-flex dash-gap-sm dash-mb-xs">
                                                     <span className={`tfe-pill ${STATUS_PILL[thread.status] || 'tfe-pill--info'}`}>
-                                                        {thread.status}
+                                                        {statusLabel(thread.status)}
                                                     </span>
                                                     <span className="dash-text-dim dash-text-sm">
                                                         {formatMoney(thread.total_cost)}
