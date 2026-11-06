@@ -669,6 +669,20 @@ is deleted one release after the switch (PR B); until then do not build on
 it. Guarded by `tests/Feature/DesignSwitchTest.php`; the comparison-era
 tests pin `app.design = v1`.
 
+### UX plan, PR C (Nov 2026)
+
+- **v2 page headings on phones**: `is-top` crumbs (only "Dashboard ›
+  page") are hidden, title 1.4rem, subtitle clamped then hidden <480px.
+- **Budget Calculator**: totals read "—" until something is priced
+  (`hasPick`), with a hint; the subtitle says "instant", not "AI-powered".
+  A FIRST plan (no saved plans, no `?match`, no planner carry-over) opens
+  on `.calc-start` — Quick plan, or "Build it step by step"; the wizard is
+  `hidden`, not unmounted, so choosing it loses nothing.
+- **"Trip to {city}" is on the v2 hero** (carried over from v1): it opens
+  the planner filtered to the stadium on screen, and the carousel pauses
+  while it is hovered or focused. On phones the stadium strip replaces
+  "See how it works" on the first screen.
+
 ### Landing page v2 + walkthroughs (UX round, Nov 2026)
 
 From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,
