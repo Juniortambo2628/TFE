@@ -1,40 +1,35 @@
 import { test, expect } from '@playwright/test';
 import { watchErrors } from './helpers';
 
-// UX review, 2 Nov 2026: on a phone the tournament card covered the stadium
-// carousel. Below md it is now a compact card pinned to the bottom of the
-// hero, with the dropped details (tagline, dials, hosts) behind its ⓘ.
-test('phone hero leaves the stadium photo visible, details one tap away', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'phone', 'compact card is phone/tablet only');
-    const errors = watchErrors(page);
+// The v2 landing hero (the home page since the switch to v2, Nov 2026).
 
+test('the home hero puts its message and both actions on the first screen', async ({ page }) => {
+    const errors = watchErrors(page);
     await page.goto('/');
-    const card = page.locator('.tfe-acard--hero');
-    await expect(card).toBeVisible();
+    await page.waitForFunction(() => window.tfeLoaderFinished === true, null, { timeout: 15000 }).catch(() => {});
 
     const vh = page.viewportSize().height;
-    const box = await card.boundingBox();
-    // At least half the first screen is the photo, not the card.
-    expect(box.height).toBeLessThan(vh * 0.5);
+    await expect(page.locator('.v2-hero__title')).toBeVisible();
+    const ctas = page.locator('.v2-hero__ctas').first();
+    const box = await ctas.boundingBox();
+    expect(box.y + box.height).toBeLessThanOrEqual(vh);
 
-    // Both CTAs on screen, side by side.
-    const [matches, plan] = await card.locator('.hero-cta-buttons .btn-glass-pill').all();
-    const a = await matches.boundingBox();
-    const b = await plan.boundingBox();
-    expect(Math.abs(a.y - b.y)).toBeLessThan(2);
-    expect(b.y + b.height).toBeLessThanOrEqual(vh);
+    // The tab bar (phones) never covers them.
+    const bar = page.locator('.tfe-tabbar');
+    if (await bar.isVisible()) {
+        expect(box.y + box.height).toBeLessThanOrEqual((await bar.boundingBox()).y);
+    }
 
-    // The ⓘ opens the tournament details with the full countdown.
-    await card.locator('.tfe-acard__corner-btn').click();
-    await expect(page.locator('.tfe-modal .hero-countdown-row')).toBeVisible();
-
+    // The stadium on screen is named, and Plan my trip opens the planner.
+    await expect(page.locator('.v2-hero__venue')).toContainText(/\S/);
+    await ctas.getByRole('button').first().click();
+    await expect(page.locator('.tfe-modal')).toBeVisible();
     expect(errors).toEqual([]);
 });
 
 // The logo grew (UX review) without the header growing. Nothing a public page
-// draws at the top may sit under it — the phone hero's stadium badge and the
-// partners directory's eyebrow both did.
-for (const [path, selector] of [['/', '.hero-stadium-badge'], ['/partners', '.partners-index-hero__eyebrow']]) {
+// draws at the top may sit under it.
+for (const [path, selector] of [['/', '.v2-hero__inner .v2-eyebrow'], ['/partners', '.v2-pagehero__copy > :first-child']]) {
     test(`logo clears the first content on ${path}`, async ({ page }) => {
         await page.goto(path);
         const logo = await page.locator('.tfe-header .tfe-logo-img').boundingBox();
@@ -44,23 +39,3 @@ for (const [path, selector] of [['/', '.hero-stadium-badge'], ['/partners', '.pa
         expect(logo.height).toBeGreaterThanOrEqual(80);
     });
 }
-
-// Plan item B2: the hero's two CTAs name the stadium on screen, and "Trip to
-// {city}" opens the planner on that stadium's matches.
-test('hero stadium CTAs follow the stadium on screen', async ({ page }) => {
-    await page.addInitScript(() => { try { localStorage.removeItem('tfe.planner.v1'); } catch {} });
-    await page.goto('/');
-    const card = page.locator('.tfe-acard--hero');
-    // The stadium on screen is named by the badge above the card.
-    const stadium = (await page.locator('.hero-stadium-badge .fw-bold').textContent()).trim();
-    const trip = card.locator('.hero-cta-buttons button').nth(1);
-    await expect(card.locator('.hero-cta-buttons button').first()).toHaveText('Matches here');
-    await expect(trip).toHaveText(/^Trip to \S/);
-
-    await trip.click();
-    const filter = page.locator('.tfe-modal input[type=search]');
-    await expect(filter).toHaveValue(stadium);
-    const rows = page.locator('.tfe-modal label small');
-    await expect(rows.first()).toContainText(stadium);
-    for (const text of await rows.allTextContents()) expect(text).toContain(stadium);
-});

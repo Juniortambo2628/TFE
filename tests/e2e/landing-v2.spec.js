@@ -8,6 +8,8 @@ test('the v2 landing page is the home page, indexable, and its parts work', asyn
     // The comparison-period address still lands here.
     await page.goto('/v2');
     await expect(page).toHaveURL(/\/$/);
+    // The first-visit intro splash holds the page still; scrolling waits for it.
+    await page.waitForFunction(() => window.tfeLoaderFinished === true, null, { timeout: 15000 });
 
     await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
     await expect(page.locator('.v2-hero__title')).toBeVisible();

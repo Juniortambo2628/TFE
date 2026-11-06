@@ -535,3 +535,14 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
     body:has(.tfe-tabbar--dashboard) .tfe-dv2 .fixed.bg-sidebar,
     body:has(.tfe-tabbar--dashboard) .tfe-dv2 .fixed.inset-0 { bottom: var(--tfe-tabbar-h, 0px); }
 }
+
+/* A page's own pinned action bar (the booking page's Pay, MobileActionBar)
+   sits above the tab bar, not under it. */
+@media (max-width: 767.98px) {
+    body:has(.tfe-tabbar--dashboard) .tfe-mobile-actionbar {
+        bottom: var(--tfe-tabbar-h, 0px);
+        padding-bottom: 10px;
+    }
+    /* With an action bar showing, the page toolbar moves up above both. */
+    body:has(.tfe-mobile-actionbar) .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 84px); }
+}

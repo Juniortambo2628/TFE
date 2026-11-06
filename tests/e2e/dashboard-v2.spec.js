@@ -11,9 +11,11 @@ test('every fan gets the new dashboard, with no switch back', async ({ page }, t
     await page.goto('/fan/tickets');
 
     await expect(page.locator('.tfe-dv2')).toBeVisible();
-    await page.locator('.dashboard-user-profile:visible').first().click();
+    const profile = page.locator('.dashboard-user-profile:visible').first();
+    await profile.click();
+    await expect(page.locator('.tfe-menu-surface').first()).toBeVisible();
     await expect(page.locator('#dashboard-version-switch')).toHaveCount(0);
-    await page.keyboard.press('Escape');
+    await profile.click();
 
     // Same page, Naoa's shape: breadcrumbs + the clicked item's icon + title,
     // the current item as the light pill, and the page's actions in the
