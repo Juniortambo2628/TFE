@@ -724,6 +724,21 @@ links to them were shared with testers.
   pads for the bars itself. Guarded in `dashboard-v2.spec.js` (tests that
   scroll wait for `tfeLoaderFinished` first).
 
+### UX plan, PRs H + I (Nov 2026)
+
+- **Intro splash**: 400ms in all (was 1.8s), once per DEVICE
+  (`localStorage.tfeIntroShown`, not sessionStorage). Tests that scroll
+  still wait for `window.tfeLoaderFinished`.
+- **Cookie notice on phones**: a slim bar above the tab bar
+  (`.tfe-consent__short` + Accept; "Details" opens the policy dialog),
+  instead of the card. Desktop keeps the card.
+- **Phone dashboard header (<480px)**: the tournament collapses to its
+  trophy (name in `title` / `aria-label`).
+- **The public hamburger stays on phones.** The tab bar holds the five
+  links the owner chose (Home, Partners, Plan a trip, Contact, Sign in), so
+  the hamburger is the only way to About, Features, Services, News, Learn
+  and Tribes there. Do not remove it unless those move somewhere else.
+
 ### Landing page v2 + walkthroughs (UX round, Nov 2026)
 
 From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,

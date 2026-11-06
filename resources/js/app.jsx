@@ -80,15 +80,17 @@ createInertiaApp({
         const root = createRoot(el);
 
         const AppWithLoader = () => {
-            // Show the intro splash only ONCE per browser session. Every full
+            // Show the intro splash only once. Every full
             // page load used to block behind a 2.5s red splash — including the
             // login page — which read as "the site is slow". We gate it on
             // sessionStorage so a returning navigation (or a hard refresh mid-
             // session) mounts the app immediately. Guarded in try/catch for
             // private-mode / blocked-storage browsers.
+            // Once per DEVICE since Nov 2026 (localStorage), not once per
+            // session: a returning visitor has seen it.
             const alreadyShown = (() => {
                 try {
-                    return sessionStorage.getItem('tfeIntroShown') === '1';
+                    return localStorage.getItem('tfeIntroShown') === '1' || sessionStorage.getItem('tfeIntroShown') === '1';
                 } catch (e) {
                     return false;
                 }
@@ -107,7 +109,7 @@ createInertiaApp({
                             setLoading(false);
                             window.tfeLoaderFinished = true;
                             try {
-                                sessionStorage.setItem('tfeIntroShown', '1');
+                                localStorage.setItem('tfeIntroShown', '1');
                             } catch (e) {
                                 // storage blocked (private mode) — splash just
                                 // shows again on the next full load, no crash.

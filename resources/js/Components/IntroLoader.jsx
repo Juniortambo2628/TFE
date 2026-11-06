@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 const IntroLoader = ({ onFinish }) => {
     const [phase, setPhase] = useState('loading'); // 'loading' -> 'fading' -> 'finished'
-    const TOTAL_LOADING_TIME = 1300;
+    // Under 400ms in all (UX plan, Nov 2026): it held every first visit for
+    // 1.8s. A brand moment, not a wait.
+    const TOTAL_LOADING_TIME = 250;
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -10,7 +12,7 @@ const IntroLoader = ({ onFinish }) => {
             setTimeout(() => {
                 setPhase('finished');
                 if (onFinish) onFinish();
-            }, 500); // 500ms fade out duration
+            }, 150); // fade out
         }, TOTAL_LOADING_TIME);
 
         return () => clearTimeout(timer);
@@ -20,7 +22,7 @@ const IntroLoader = ({ onFinish }) => {
 
     return (
         <div 
-            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-500`}
+            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-150`}
             style={{ 
                 backgroundColor: '#DC143C',
                 opacity: phase === 'fading' ? 0 : 1,

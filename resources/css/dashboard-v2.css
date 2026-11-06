@@ -583,3 +583,13 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
     .tfe-dv2 { --tfe-bottom-clearance: calc(var(--tfe-tabbar-h, 84px) + 72px); }
 }
 .tfe-dv2 .tfe-dv2__page { padding-bottom: var(--tfe-bottom-clearance); }
+
+/* Narrow phones (UX plan, Nov 2026): the tournament collapses to its trophy,
+   so the header's bell, messages and avatar are not squeezed. The full name
+   is the badge's title and the switcher menu's first line. */
+@media (max-width: 479.98px) {
+    .tfe-dv2-header .fan-tournament-badge__name,
+    .tfe-dv2-header .tournament-switcher-label,
+    .tfe-dv2-header .tournament-switcher-status { display: none; }
+    .tfe-dv2-header .fan-tournament-badge .me-1 { margin-right: 0 !important; }
+}

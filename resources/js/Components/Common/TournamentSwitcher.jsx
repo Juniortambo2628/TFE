@@ -55,9 +55,9 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
     if (!options || options.length <= 1) {
         if (isLanding) return null;
         return tournament ? (
-            <div className="fan-tournament-badge">
-                <i className="fas fa-trophy me-1"></i>
-                {tournament.short_name || tournament.name}
+            <div className="fan-tournament-badge" title={tournament.name}>
+                <i className="fas fa-trophy me-1" aria-hidden="true"></i>
+                <span className="fan-tournament-badge__name">{tournament.short_name || tournament.name}</span>
             </div>
         ) : null;
     }
@@ -88,6 +88,7 @@ export default function TournamentSwitcher({ variant = 'landing' }) {
                 onClick={() => setOpen(!open)}
                 aria-expanded={open}
                 aria-haspopup="true"
+                aria-label={`Tournament: ${tournament?.name || tournament?.short_name || 'choose'}`}
                 type="button"
             >
                 <span className="tournament-switcher-icon">

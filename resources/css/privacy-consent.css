@@ -119,3 +119,30 @@
     border-color: rgba(255, 255, 255, 0.28);
     color: #fff;
 }
+
+/* The short line is the phone version (below). */
+.tfe-consent__short { display: none; }
+
+/* Phones: a slim bar above the tab bar, one line and two buttons, instead
+   of a card over half the first screen (UX plan, Nov 2026). */
+@media (max-width: 767.98px) {
+    .tfe-consent {
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 10px 10px 16px;
+        border-radius: 18px;
+    }
+    .tfe-consent__badge,
+    .tfe-consent__title,
+    .tfe-consent__body { display: none; }
+    .tfe-consent__short { display: block; flex: 1; margin: 0; font-size: 0.8rem; line-height: 1.35; color: rgba(255, 255, 255, 0.75); }
+    .tfe-consent__actions { flex: none; gap: 6px; }
+    .tfe-consent__accept,
+    .tfe-consent__manage { padding: 0.55rem 0.85rem; font-size: 0.68rem; }
+    .tfe-consent__manage { display: none; }
+}
