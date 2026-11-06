@@ -345,7 +345,7 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.58);
 }
 .v2-sectionnav__list {
     position: relative; /* chips' offsetLeft is measured against the row */

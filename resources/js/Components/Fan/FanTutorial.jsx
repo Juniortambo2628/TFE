@@ -231,14 +231,14 @@ export default function FanTutorial({ steps, tutorialId = 'fan_dashboard_tutoria
                 transition: 'opacity 0.2s ease', // Remove positional transition for responsiveness to rAF
                 // but keep opacity or slight movement
             }}>
-                <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#e31b23' }}>
+                <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#ff4b52' }}>
                     {currentStepData.title}
                 </div>
                 <div style={{ marginBottom: '20px', fontSize: '14px', lineHeight: '1.5', color: '#ccc' }}>
                     {currentStepData.content}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '12px', color: '#666' }}>
+                    <div style={{ fontSize: '12px', color: '#a1a1aa' }}>
                         Step {currentStep + 1} of {steps.length}
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>

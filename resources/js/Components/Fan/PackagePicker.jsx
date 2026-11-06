@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 import { assetPath } from '@/lib/assets';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import PoweredByBadge from '@/Components/Common/PoweredByBadge';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, titleCase } from '@/lib/utils';
 
 /**
  * PackagePicker — Step-0 chooser in the BudgetCalculator wizard.
@@ -54,11 +54,12 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                     const soldOut = pkg.is_sold_out;
                     return (
                         <div key={pkg.id} className="col-md-6 col-lg-4">
-                            <button
-                                type="button"
-                                disabled={soldOut}
-                                onClick={() => onPickPackage(pkg)}
-                                className="w-100 text-start fan-card-premium h-100 border-0"
+                            {/* A container, not a <button>: it holds the Details link
+                                and the partner badge, and a link inside a button is
+                                invisible to a screen reader (axe nested-interactive).
+                                "Use this package" stretches over the card instead. */}
+                            <article
+                                className="w-100 text-start fan-card-premium h-100 border-0 package-picker__card"
                                 style={{
                                     background: 'rgba(20,20,20,0.6)',
                                     cursor: soldOut ? 'not-allowed' : 'pointer',
@@ -88,28 +89,22 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                     />
                                 )}
                                 <div className="p-4">
-                                    <div className="d-flex justify-content-between align-items-start mb-2">
-                                        <h4 className="text-white mb-0" style={{ fontSize: '1.1rem' }}>{pkg.name}</h4>
-                                        <div className="text-end">
-                                            <div className="text-white fw-bold">{formatMoney(pkg.base_price, pkg.currency || 'USD')}</div>
-                                            <div className="text-white-50 small">{pkg.nights} nights</div>
-                                        </div>
-                                    </div>
+                                    {/* Name over price (UX plan, Nov 2026): side by side,
+                                        a long name wrapped into four narrow lines. */}
+                                    <h4 className="package-picker__name">{pkg.name}</h4>
+                                    <p className="package-picker__price">
+                                        <strong>{formatMoney(pkg.base_price, pkg.currency || 'USD')}</strong>
+                                        <span> · {pkg.nights} nights</span>
+                                    </p>
                                     {pkg.description && (
-                                        <p className="text-white-50 small mb-3" style={{ minHeight: 44 }}>
-                                            {pkg.description.length > 100 ? pkg.description.slice(0, 100) + '…' : pkg.description}
-                                        </p>
+                                        <p className="package-picker__desc">{pkg.description}</p>
                                     )}
                                     <div className="d-flex flex-wrap gap-1 mb-3">
-                                        <span className="badge bg-primary bg-opacity-25 text-info">
+                                        <span className="tfe-pill tfe-pill--info">
                                             {pkg.included_match_ids.length} match{pkg.included_match_ids.length === 1 ? '' : 'es'}
                                         </span>
-                                        <span className="badge bg-dark text-white-50 text-capitalize">
-                                            {pkg.flight_class}
-                                        </span>
-                                        <span className="badge bg-dark text-white-50">
-                                            {pkg.accommodation_level.replace('_', ' ')}
-                                        </span>
+                                        <span className="tfe-pill">{titleCase(pkg.flight_class)}</span>
+                                        <span className="tfe-pill">{titleCase(pkg.accommodation_level.replace(/_/g, ' '))}</span>
                                     </div>
 
                                     <CapacityBar
@@ -120,29 +115,32 @@ export default function PackagePicker({ packages = [], onPickPackage, onBuildCus
                                     />
 
                                     {pkg.publisher && (
-                                        <div className="mb-3">
+                                        <div className="mb-3 package-picker__over">
                                             <PoweredByBadge publisher={pkg.publisher} variant="chip" />
                                         </div>
                                     )}
 
                                     <div className="d-flex align-items-center justify-content-between gap-2">
-                                        <span className={`fw-semibold ${soldOut ? 'text-white-50' : 'text-danger'}`}>
+                                        <button
+                                            type="button"
+                                            disabled={soldOut}
+                                            onClick={() => onPickPackage(pkg)}
+                                            className={`package-picker__pick fw-semibold ${soldOut ? 'text-white-50' : ''}`}
+                                            aria-label={soldOut ? `${pkg.name} is sold out` : `Use the ${pkg.name} package`}
+                                        >
                                             {soldOut ? 'Sold out' : 'Use this package'}
-                                            {!soldOut && <i className="fas fa-arrow-right ms-2"></i>}
-                                        </span>
-                                        {/* Detail-page link. stopPropagation so it doesn't
-                                            trigger the parent "pick package" onClick. */}
+                                            {!soldOut && <i className="fas fa-arrow-right ms-2" aria-hidden="true"></i>}
+                                        </button>
                                         <Link
                                             href={route('fan.packages.show', pkg.id)}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="text-info small text-decoration-none"
+                                            className="package-picker__over text-info small text-decoration-none"
                                         >
                                             Details
                                             <i className="fas fa-external-link-alt ms-1" style={{ fontSize: '0.6rem' }}></i>
                                         </Link>
                                     </div>
                                 </div>
-                            </button>
+                            </article>
                         </div>
                     );
                 })}

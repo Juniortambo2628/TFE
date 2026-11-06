@@ -75,6 +75,23 @@ export default function FanStore({ auth, products, categories }) {
                     </div>
                 </div>
 
+                {/* An empty category says so and offers the way back (UX plan,
+                    Nov 2026) rather than leaving a blank grid. */}
+                {filteredProducts.length === 0 && (
+                    <div className="tfe-empty">
+                        <div className="tfe-empty__icon"><i className="fas fa-store" aria-hidden="true"></i></div>
+                        <p className="tfe-empty__title">{activeCategory === 'All' ? 'The store is empty for now' : `Nothing in ${activeCategory} yet`}</p>
+                        <p className="tfe-empty__body">New merchandise is added through the tournament. See everything that is in the store now.</p>
+                        {activeCategory !== 'All' && (
+                            <div className="tfe-empty__action">
+                                <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => setActiveCategory('All')}>
+                                    Show all products
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Products Grid */}
                 <div className="row g-4 p-3">
                     {filteredProducts.map(product => (

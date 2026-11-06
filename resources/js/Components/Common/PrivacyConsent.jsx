@@ -71,6 +71,12 @@ export default function PrivacyConsent() {
                 <div className="tfe-consent" role="dialog" aria-label="Cookie consent">
                     <span className="tfe-consent__badge">Privacy</span>
                     <h4 className="tfe-consent__title">We value your privacy</h4>
+                    {/* Phones get one line (UX plan, Nov 2026): the full card
+                        covered half the first screen of a first visit. */}
+                    <p className="tfe-consent__short">
+                        We use cookies to run TFE and measure visits.{' '}
+                        <button onClick={() => openLegal('cookies')} className="tfe-consent__link">Details</button>
+                    </p>
                     <p className="tfe-consent__body">
                         We use cookies to enhance your experience, analyze site traffic, and serve tailored content. By continuing you agree to our{' '}
                         <button onClick={() => openLegal('privacy')} className="tfe-consent__link">Privacy Policy</button>

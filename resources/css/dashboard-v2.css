@@ -13,6 +13,9 @@
 
 .tfe-dv2 {
     --dv2-accent: #e31b23;
+    /* The accent as TEXT on the dark surfaces: #e31b23 measures 3.9:1 on a
+       card, under AA's 4.5:1 (UX plan axe pass, Nov 2026). Fills keep it. */
+    --dv2-accent-text: #ff4b52;
     --dv2-accent-soft: rgba(227, 27, 35, 0.14);
     --dv2-bg: #08080a;
     --dv2-sidebar: #0f0f12;
@@ -27,8 +30,8 @@
     background: var(--dv2-bg);
     color: #fff;
 }
-.tfe-dv2[data-role='partner'] { --dv2-accent: #d97706; --dv2-accent-soft: rgba(217, 119, 6, 0.16); }
-.tfe-dv2[data-role='admin'] { --dv2-accent: #3b82f6; --dv2-accent-soft: rgba(59, 130, 246, 0.16); }
+.tfe-dv2[data-role='partner'] { --dv2-accent-text: #f59e0b; --dv2-accent: #d97706; --dv2-accent-soft: rgba(217, 119, 6, 0.16); }
+.tfe-dv2[data-role='admin'] { --dv2-accent-text: #60a5fa; --dv2-accent: #3b82f6; --dv2-accent-soft: rgba(59, 130, 246, 0.16); }
 .tfe-dv2[data-role='institution'] { --dv2-accent: #0d9488; --dv2-accent-soft: rgba(13, 148, 136, 0.18); }
 
 /* ── Sidebar ─────────────────────────────────────────────────── */
@@ -52,7 +55,7 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--dv2-accent);
+    color: var(--dv2-accent-text, var(--dv2-accent));
 }
 .tfe-dv2-sidebar__body { padding: 6px 12px 24px; }
 .tfe-dv2-sidebar__group + .tfe-dv2-sidebar__group { margin-top: 18px; }
@@ -63,7 +66,7 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--dv2-faint);
+    color: rgba(255, 255, 255, 0.58); /* --dv2-faint measured 3.5:1 here */
 }
 .tfe-dv2-sidebar__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
 .tfe-dv2-nav {
@@ -455,7 +458,7 @@ a.tfe-dv2-panel__row:hover { background: rgba(255, 255, 255, 0.04); color: #fff;
     -webkit-backdrop-filter: none;
 }
 .tfe-dv2 .tfe-slab__header { border-bottom-color: var(--dv2-border); }
-.tfe-dv2 .tfe-slab__title { font-weight: 600; color: var(--dv2-accent); letter-spacing: 0; text-transform: none; }
+.tfe-dv2 .tfe-slab__title { font-weight: 600; color: var(--dv2-accent-text, var(--dv2-accent)); letter-spacing: 0; text-transform: none; }
 
 .tfe-dv2 .tfe-table { background: transparent; }
 .tfe-dv2 .tfe-table thead th { color: var(--dv2-muted); border-bottom-color: var(--dv2-border); }
@@ -583,3 +586,13 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
     .tfe-dv2 { --tfe-bottom-clearance: calc(var(--tfe-tabbar-h, 84px) + 72px); }
 }
 .tfe-dv2 .tfe-dv2__page { padding-bottom: var(--tfe-bottom-clearance); }
+
+/* Narrow phones (UX plan, Nov 2026): the tournament collapses to its trophy,
+   so the header's bell, messages and avatar are not squeezed. The full name
+   is the badge's title and the switcher menu's first line. */
+@media (max-width: 479.98px) {
+    .tfe-dv2-header .fan-tournament-badge__name,
+    .tfe-dv2-header .tournament-switcher-label,
+    .tfe-dv2-header .tournament-switcher-status { display: none; }
+    .tfe-dv2-header .fan-tournament-badge .me-1 { margin-right: 0 !important; }
+}

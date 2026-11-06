@@ -767,7 +767,7 @@ a.tfe-sidebar-nav-item.is-active {
 /* Once the bar is tracking something, an untouched step must not look as
    loud as the one the fan is actually on. */
 .tfe-stepflow.has-progress .tfe-stepflow__step[data-state='todo'] {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.58); /* quieter than current, still AA */
 }
 
 .tfe-stepflow.has-progress .tfe-stepflow__step[data-state='todo'] .tfe-stepflow__num {

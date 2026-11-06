@@ -1612,3 +1612,36 @@ button.selection-card {
 /* First plan: Quick plan is the way in (UX plan, Nov 2026). */
 .calc-start__title { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; color: #fff; }
 .calc-stats-hint { flex-basis: 100%; margin: 4px 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); }
+
+/* Package picker cards (UX plan, Nov 2026): name over price, a two-line
+   description, so cards line up whatever the name's length. */
+.package-picker__name { margin: 0 0 4px; color: #fff; font-size: 1.1rem; font-weight: 600; line-height: 1.3; }
+.package-picker__price { margin: 0 0 10px; color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; }
+.package-picker__price strong { color: #fff; font-size: 1rem; }
+.package-picker__desc {
+    margin: 0 0 12px;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* The card's main action covers the whole card (a stretched button), so the
+   card stays one big target while its links remain separate controls. */
+.package-picker__card { position: relative; }
+.package-picker__pick {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #ff4b52;
+    font: inherit;
+    cursor: pointer;
+}
+.package-picker__pick::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.package-picker__pick:disabled { cursor: not-allowed; }
+.package-picker__pick:focus-visible { outline: none; }
+.package-picker__pick:focus-visible::after { outline: 2px solid #fff; outline-offset: -2px; }
+.package-picker__over { position: relative; z-index: 1; }
