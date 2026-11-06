@@ -1,154 +1,100 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import '../../css/hero-enhancements.css';
-
-// Components
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
-import Hero from '@/Components/Hero';
-
-import Testimonials from '@/Components/Landing/Testimonials';
-import TournamentCompare from '@/Components/Landing/TournamentCompare';
+import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import FeaturedPackages from '@/Components/Landing/FeaturedPackages';
 import CommunityPreview from '@/Components/Landing/CommunityPreview';
-import PartnerCarousel from '@/Components/Common/PartnerCarousel';
-import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
-import LandingCard from '@/Components/Common/LandingCard';
-import LandingModal from '@/Components/Common/LandingModal';
-import PrivacyConsent from '@/Components/Common/PrivacyConsent';
+import V2Hero from '@/Components/Landing/V2/V2Hero';
+import AudiencePanel from '@/Components/Landing/V2/AudiencePanel';
+import FactsStrip from '@/Components/Landing/V2/FactsStrip';
+import SectionNav from '@/Components/Landing/V2/SectionNav';
+import FanJourney from '@/Components/Landing/V2/FanJourney';
+import FeatureExplorer from '@/Components/Landing/V2/FeatureExplorer';
+import PartnerCategories from '@/Components/Landing/V2/PartnerCategories';
+import Faq from '@/Components/Landing/V2/Faq';
+import ClosingCta from '@/Components/Landing/V2/ClosingCta';
+import { scrollToSection } from '@/Components/Landing/V2/LandingAction';
+import useFixedHeaderOnScroll from '@/hooks/useFixedHeaderOnScroll';
 import { TournamentProvider } from '@/Context/TournamentContext';
+import '../../css/landing-v2.css';
 
-const EXPERIENCES = [
-    {
-        image: '/assets/img/backdrops/plane-square.jpg',
-        title: 'Private Yacht Tours',
-        subtitle: 'Coastal match-day cruise experiences',
-        tags: ['VIP', 'Cruise'],
-        description: 'Sail into match day in style. Private charters along the host coastline with onboard hospitality, transfers to the stadium and a skipper who knows the fixtures. Ideal for groups celebrating a milestone trip.',
-    },
-    {
-        image: '/assets/img/backdrops/field-spotlight.jpg',
-        title: 'Stadium Pitch Walks',
-        subtitle: 'Walk the turf before kick-off',
-        tags: ['Pitch Walk', 'Exclusive'],
-        description: 'Get closer than the front row. Guided pitch-side access before selected fixtures, with photo opportunities in the tunnel and dugout — a bucket-list moment for any fan.',
-    },
-    {
-        image: '/assets/img/IMG-15.jpg',
-        title: 'Luxury Stays',
-        subtitle: 'Curated 4-5 star properties',
-        tags: ['4-5 Star', 'Luxury'],
-        description: 'Hand-picked 4 and 5 star hotels within easy reach of the stadiums, with flexible check-in around kick-off times and rates negotiated for travelling fans.',
-    },
-    {
-        image: '/assets/img/backdrops/argentina-fans.jpg',
-        title: 'Fan Meetups',
-        subtitle: 'Connect with travelling fans',
-        tags: ['Community', 'Meetups'],
-        description: 'Find your people. Organised meetups, watch-alongs and supporter marches so you experience the tournament with fellow fans rather than on your own.',
-    },
-];
-
-export default function Home({ appName, venueBowls = [], featuredPackages, communityPreview }) {
+/**
+ * Landing page v2 (UX review, 2 Nov 2026, Track C) — /v2.
+ *
+ * The Najenga/Naoa structure: the page shows who TFE is for, how a trip
+ * works and what each screen looks like BEFORE anyone is asked to sign in,
+ * so by the time a visitor reaches a call to action they already know what
+ * they are going to do. It lives beside the current landing page (/) while
+ * the tester group compares the two; noindex until then.
+ *
+ * Copy: config/landing_v2.php + Admin -> Content -> Landing v2 overrides,
+ * arriving as `content`. Facts and partner counts are counted server-side.
+ */
+export default function Home({ content, facts = {}, partnerCounts = {}, partnerTypeLabels = {}, featuredPackages, communityPreview }) {
     const { tournament } = usePage().props;
-    const [experienceModal, setExperienceModal] = useState(null);
+    const [area, setArea] = useState(content.explorer?.areas?.[0]?.id);
 
-    // Global Initializations
+    useFixedHeaderOnScroll();
+
+    // A journey step opens its area in the explorer and scrolls to it.
+    const openArea = useCallback((id) => {
+        setArea(id);
+        scrollToSection('inside');
+    }, []);
+
+    // Deep links like /v2#inside-tickets open that area.
     useEffect(() => {
-        // NOTE: AOS (Animate On Scroll) used to be injected here, but nothing
-        // on the page carries a data-aos attribute anymore — every landing
-        // animation is framer-motion now. Loading AOS just fetched an extra
-        // CSS + JS bundle and attached idle scroll/resize listeners for zero
-        // effect, so it was removed as dead weight.
-
-        // rAF-throttled + passive so the scroll listener does at most one
-        // DOM write per frame instead of firing (and toggling a class)
-        // synchronously on every scroll tick — a common jank source.
-        let ticking = false;
-        let lastFixed = null;
-        const applyHeaderState = () => {
-            ticking = false;
-            const header = document.querySelector('.tfe-header');
-            if (!header) return;
-            const shouldFix = window.scrollY >= 60;
-            if (shouldFix !== lastFixed) {
-                lastFixed = shouldFix;
-                header.classList.toggle('fixed-header', shouldFix);
-            }
-        };
-        const handleScroll = () => {
-            if (!ticking) {
-                ticking = true;
-                window.requestAnimationFrame(applyHeaderState);
-            }
-        };
-        window.addEventListener('scroll', handleScroll, { passive: true });
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
+        const m = window.location.hash.match(/^#inside-([a-z-]+)$/);
+        if (m && content.explorer.areas.some((a) => a.id === m[1])) openArea(m[1]);
     }, []);
 
     return (
         <TournamentProvider>
-            <Head title="Home" />
-
+            <Head title="The Football Experience">
+            </Head>
             <Header />
 
-            <div className="page-wrapper overflow-hidden bg-black text-white">
-                <Hero venueBowls={venueBowls} />
+            {/* No Bootstrap overflow-hidden here: it makes this a scroll container
+                and the section bar would stop sticking (landing-v2.css). */}
+            <div className="page-wrapper bg-black text-white v2-page">
+                <V2Hero hero={content.hero} />
+                <AudiencePanel about={content.about} audiences={content.audiences} />
+                <FactsStrip facts={facts} labels={content.facts} />
+                <SectionNav sections={content.sections} />
 
-                {/* Bookable packages straight off the hero (Sprint 70) — the
-                    shortest path from arriving to paying. */}
-                <FeaturedPackages packages={featuredPackages} tournamentName={tournament?.short_name} />
+                <FanJourney journey={content.journey} onOpenArea={openArea} />
+                <FeatureExplorer explorer={content.explorer} active={area} onChange={setArea} tournamentId={tournament?.id} />
 
+                <FeaturedPackages
+                    id="trips"
+                    variant="carousel"
+                    packages={featuredPackages}
+                    tournamentName={tournament?.short_name}
+                    eyebrow={content.trips.eyebrow}
+                    title={content.trips.title}
+                    sub={content.trips.text}
+                />
 
-                {/* About / Features / Services / News / Contact now live on their
-                    own routes (linked from the nav) to keep the landing light. */}
+                <PartnerCategories partners={content.partners} counts={partnerCounts} typeLabels={partnerTypeLabels} />
 
-                {/* Compare-tournaments widget — helps fans pick which one to plan */}
-                <TournamentCompare />
+                <div id="community" className="v2-anchor">
+                    <CommunityPreview preview={communityPreview} />
+                </div>
 
-                {/* Popular Experiences — stacked variant (title row + cards) */}
-                <HorizontalCardSection
-                    id="experiences"
-                    variant="stacked"
-                    theme="light"
-                    title="Popular Experiences"
-                    headerAction={{ label: 'See All Tours', href: '#contact' }}
-                >
-                    {EXPERIENCES.map((card) => (
-                        <LandingCard
-                            key={card.title}
-                            image={card.image}
-                            title={card.title}
-                            subtitle={card.subtitle}
-                            tags={card.tags}
-                            onClick={setExperienceModal}
-                            modalData={{
-                                description: card.description,
-                                cta: { label: 'Start planning this', href: route('register') },
-                            }}
-                        />
-                    ))}
-              </HorizontalCardSection>
+                <Faq faq={content.faq} />
 
-
-                {/* Public posts + tribes, refreshed once a minute (Sprint 70). */}
-                <CommunityPreview preview={communityPreview} />
-
-                <Testimonials />
-                <PartnerCarousel />
-
+                <ClosingCta
+                    title={content.closing.title}
+                    text={content.closing.text}
+                    primary={{ action: 'planner', label: content.closing.primary, icon: 'fas fa-plane' }}
+                    secondary={{ action: 'section:trips', label: content.closing.secondary }}
+                    tournamentId={tournament?.id}
+                />
 
                 <Footer />
-          </div>
-            <LandingModal
-                open={experienceModal !== null}
-                onClose={() => setExperienceModal(null)}
-                data={experienceModal}
-            />
+            </div>
             <PrivacyConsent />
-       </TournamentProvider>
+        </TournamentProvider>
     );
 }

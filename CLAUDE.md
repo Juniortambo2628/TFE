@@ -656,18 +656,28 @@ receives or moves savings, and stores no financial data.**
   description and counts — never its posts or members; invite-only tribes
   are not listed at all. Join → register → the tribe's fan page, where the
   existing privacy rules decide.
-### V2 is the site (Nov 2026)
+### One design: v2 (Nov 2026)
 
-The tester group chose v2. **`config('app.design')`** (`TFE_DESIGN`, default
-`v2`) is the one switch: the plain public addresses render their V2 pages
-(`PublicDesign` middleware → `PageVersion::isDefault()`), `/` serves
-`HomeV2`, `/v2/...` and `/v2` 301 to the plain address (query kept), nothing
-sends `noindex`, and the shared `design` prop makes `useDashboardV2()` true
-for every account (the account-menu switch is hidden). `TFE_DESIGN=v1` is the
-fallback: everything below about "v2 beside v1" applies again. The v1 code
-is deleted one release after the switch (PR B); until then do not build on
-it. Guarded by `tests/Feature/DesignSwitchTest.php`; the comparison-era
-tests pin `app.design = v1`.
+The tester group chose v2 and the v1 code is gone (UX plan PRs A + B). There
+is no switch: the public pages render at their plain addresses and can be
+indexed, `/` is `Pages/Home.jsx` (the v2 landing), and every account has the
+Naoa dashboard. The comparison-period addresses `/v2` and `/v2/...` 301 to
+the plain address, query kept (`v2.redirect`, `V2RedirectTest`), because
+links to them were shared with testers.
+
+- Public pages read their copy from the `v2Pages` prop, shared by the
+  `PublicPageCopy` middleware. **Every public route must sit in a
+  `PublicPageCopy` group**, or its page renders blank
+  (`PublicPagesTest::test_every_public_page_route_shares_the_page_copy`).
+- Pieces several public pages share live in `Components/Public/`
+  (`ListingDetails`, `LearnResourceBody`, `ResourceCard`,
+  `TournamentPieces`, `PartnerHubPieces`), not inside a page file.
+- `users.dashboard_v2`, `DashboardVersionController`, `PageVersion`,
+  `lib/v2Paths` and `useStayInV2` are deleted. The `Components/Landing/V2/`
+  and `DashboardV2/` folder names and the `.tfe-dv2` / `.v2-` CSS prefixes
+  stay: they are names, not a version switch.
+- The sections below that talk about "v2 beside v1", `/v2` twins or a
+  per-person dashboard switch describe the comparison period (history).
 
 ### UX plan, PR C (Nov 2026)
 

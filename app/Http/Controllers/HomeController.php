@@ -8,10 +8,8 @@ use App\Models\Fixture;
 use App\Models\Listing;
 use App\Models\SiteSetting;
 use App\Models\User;
-use App\Services\StadiumBowlService;
 use App\Services\TournamentService;
 use App\Support\LandingContent;
-use App\Support\PageVersion;
 use App\Traits\ResolvesTournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -44,80 +42,27 @@ class HomeController extends Controller
 
     use ResolvesTournament;
 
-    public function index(Request $request, StadiumBowlService $bowls)
-    {
-        // v2 is the site's landing page (config app.design); this one is the
-        // v1 fallback until it is deleted.
-        if (PageVersion::isDefault()) {
-            return $this->landingV2($request);
-        }
-
-        return Inertia::render('Home', [
-            'appName' => config('app.name'),
-
-            // Real seating data for the hero's venue dialog. Deferred: the
-            // dialog only opens on a click, so this must not hold up the
-            // landing page's first paint.
-            //
-            // Before this the hero HASHED THE STADIUM NAME into a 20-85%
-            // figure and presented it as "Live indicative view of how
-            // sections fill up". A ground with no fixtures on sale now
-            // reports `has_inventory: false` and the map shows its seating
-            // layout with no percentage at all.
-            'venueBowls' => Inertia::defer(fn () => $bowls->forTournament($this->activeTournament()['id'])),
-
-            // Bookable trips on the landing page (Sprint 70): a visitor
-            // reaches a package from the first screen instead of finding the
-            // planner, the tournament page or a partner hub first. Packages
-            // and tours only — the things "Book now" can actually book.
-            // Deferred so it never holds up first paint.
-            // Public posts + busiest tribes (Sprint 70). Deferred, and the
-            // section re-polls just this prop once a minute so it reads live.
-            'communityPreview' => Inertia::defer(fn () => CommunityController::preview(
-                $this->activeTournament()['id'],
-            )),
-
-            'featuredPackages' => Inertia::defer(fn () => $this->offeringCards(
-                $this->activeTournament()['id'], 6, ['package', 'tour'],
-            )),
-        ]);
-    }
-
     /**
-     * Landing page v2 (UX review, 2 Nov 2026, Track C): the platform shown
-     * section by section — who it is for, how a trip works, what each screen
-     * does — before anyone is asked to sign in. Lives at /v2 beside the
-     * current landing page while the tester group compares them.
+     * The landing page (UX review, 2 Nov 2026; the site since Nov 2026): the
+     * platform shown section by section, who it is for, how a trip works,
+     * what each screen does, before anyone is asked to sign in.
      *
      * Copy comes from config/landing_v2.php with admin overrides on top
      * (LandingContent); the facts strip is counted here, never typed in.
      */
-    public function homeV2(Request $request)
-    {
-        // The preview address, now that v2 is the landing page itself.
-        if (PageVersion::isDefault()) {
-            $query = $request->getQueryString();
-
-            return redirect('/'.($query ? "?{$query}" : ''), 301);
-        }
-
-        return $this->noindex($this->landingV2($request), $request);
-    }
-
-    private function landingV2(Request $request)
+    public function index(Request $request)
     {
         $tournament = $this->activeTournament();
         $content = LandingContent::all();
         unset($content['walkthroughs']); // their own pages
 
-        return Inertia::render('HomeV2', [
+        return Inertia::render('Home', [
             'content' => $content,
             'facts' => $this->landingFacts($tournament),
             'partnerCounts' => $this->partnerCountsByType(),
             // The directory's own labels, so a chip reads as the directory does.
             'partnerTypeLabels' => AdminPartnerController::partnerTypes(),
-            // Same queries, and the same deferral, as the current landing
-            // page, so the two versions show the same trips and posts.
+            // Deferred so they never hold up first paint.
             'featuredPackages' => Inertia::defer(fn () => $this->offeringCards(
                 $tournament['id'], 8, ['package', 'tour'],
             )),
@@ -131,12 +76,10 @@ class HomeController extends Controller
         $page = LandingContent::all()['walkthroughs'][$audience] ?? null;
         abort_unless($page, 404);
 
-        $response = Inertia::render('Walkthrough', [
+        return Inertia::render('Walkthrough', [
             'audience' => $audience,
             'page' => $page,
         ]);
-
-        return PageVersion::isDefault() ? $response : $this->noindex($response, $request);
     }
 
     /**
@@ -200,11 +143,6 @@ class HomeController extends Controller
         return ['landing' => Arr::only(LandingContent::all(), $keys)];
     }
 
-    private function noindex($response, Request $request)
-    {
-        return $response->toResponse($request)->header('X-Robots-Tag', 'noindex, nofollow');
-    }
-
     /**
      * Approved + active listings for a tournament in the shared AccentCard
      * shape — the ONE query behind the tournament page's offerings and the
@@ -249,44 +187,44 @@ class HomeController extends Controller
     // defaults + admin CMS overrides) plus the section component.
     public function about()
     {
-        return Inertia::render(PageVersion::component('Sections/About'), [
+        return Inertia::render('Sections/About', [
             'hero' => self::pageHero('about'),
             'cards' => $this->sectionCards('about'),
-        ] + (PageVersion::isV2() ? $this->v2Landing(['about', 'audiences', 'facts']) + [
+        ] + $this->v2Landing(['about', 'audiences', 'facts']) + [
             'facts' => $this->landingFacts($this->activeTournament()),
-        ] : []));
+        ]);
     }
 
     public function features()
     {
-        return Inertia::render(PageVersion::component('Sections/Features'), [
+        return Inertia::render('Sections/Features', [
             'hero' => self::pageHero('features'),
             'cards' => $this->sectionCards('features'),
-        ] + (PageVersion::isV2() ? $this->v2Landing(['explorer']) : []));
+        ] + $this->v2Landing(['explorer']));
     }
 
     public function services()
     {
-        return Inertia::render(PageVersion::component('Sections/Services'), [
+        return Inertia::render('Sections/Services', [
             'hero' => self::pageHero('services'),
             'cards' => $this->sectionCards('services'),
-        ] + (PageVersion::isV2() ? $this->v2Landing(['audiences', 'partners']) + [
+        ] + $this->v2Landing(['audiences', 'partners']) + [
             'partnerCounts' => $this->partnerCountsByType(),
             'partnerTypeLabels' => AdminPartnerController::partnerTypes(),
-        ] : []));
+        ]);
     }
 
     public function news()
     {
-        return Inertia::render(PageVersion::component('Sections/News'), ['hero' => self::pageHero('news')]);
+        return Inertia::render('Sections/News', ['hero' => self::pageHero('news')]);
     }
 
     public function contact()
     {
-        return Inertia::render(PageVersion::component('Sections/Contact'), [
+        return Inertia::render('Sections/Contact', [
             'hero' => self::pageHero('contact'),
             'cards' => $this->sectionCards('contact'),
-        ] + (PageVersion::isV2() ? $this->v2Landing(['faq']) : []));
+        ] + $this->v2Landing(['faq']));
     }
 
     /**
@@ -335,7 +273,7 @@ class HomeController extends Controller
         // Where a past tournament's "plan the next one" CTA should point.
         $upcoming = collect($all)->firstWhere('status', 'upcoming');
 
-        return Inertia::render(PageVersion::component('Tournaments/Show'), [
+        return Inertia::render('Tournaments/Show', [
             // Only the keys Tournaments/Show.jsx actually renders (Sprint 53).
             // The assembled payload also carries the raw Wikipedia response,
             // every venue row with its extract and imagery, and the full

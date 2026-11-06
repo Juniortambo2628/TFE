@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link } from '@inertiajs/react';
 import Breadcrumbs from './Breadcrumbs';
 import { assetPath } from '@/lib/assets';
-import { TOOLBAR_ID, useActiveNav, useDashboardV2 } from '@/Layouts/DashboardV2';
+import { TOOLBAR_ID, useActiveNav } from '@/Layouts/DashboardV2';
 import useIsPhone from '@/hooks/useIsPhone';
 
 const HOME_ROUTE = {
@@ -27,59 +27,7 @@ const HOME_ROUTE = {
 const DEFAULT_BG = '/assets/img/fan/backgrounds/stadium_hero.png';
 
 export default function DashboardHero(props) {
-    return useDashboardV2() ? <DashboardHeroV2 {...props} /> : <DashboardHeroV1 {...props} />;
-}
-
-function DashboardHeroV1({
-    title,
-    subtitle = '',
-    breadcrumbs = [],
-    actions = null,
-    showBack = false,
-    bgImage = DEFAULT_BG,
-    children,
-    id = null,
-    role = 'fan',
-    action = null,
-}) {
-    const homeRoute = HOME_ROUTE[role] || HOME_ROUTE.fan;
-    const styleVars = bgImage ? { '--dash-hero-bg-image': `url(${assetPath(bgImage)})` } : undefined;
-
-    return (
-        <div id={id} className="mb-4">
-            <Breadcrumbs
-                title={title}
-                breadcrumbs={breadcrumbs}
-                actions={actions}
-                showBack={showBack}
-                homeRoute={homeRoute}
-            />
-
-            <div
-                className={`dashboard-hero has-bg`}
-                data-role={role}
-                style={styleVars}
-            >
-                <div className="dashboard-hero__body">
-                    <h1 className="dashboard-hero__title">{title}</h1>
-                    {subtitle && <p className="dashboard-hero__subtitle">{subtitle}</p>}
-                </div>
-
-                <div className="dashboard-hero__actions">
-                    {children}
-                    {action && (
-                        <button
-                            onClick={action.onClick}
-                            className={action.variant === 'outline' ? 'btn-admin-outline' : 'btn-admin'}
-                        >
-                            {action.icon && <i className={action.icon}></i>}
-                            {action.label}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+    return <DashboardHeroV2 {...props} />;
 }
 
 /**

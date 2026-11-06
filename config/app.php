@@ -16,15 +16,6 @@ return [
     'name' => env('APP_NAME', 'The Football App'),
 
     /*
-    | Which design the site renders (Nov 2026: the tester group chose v2).
-    | 'v2' serves the V2 pages at the plain addresses, redirects /v2/... to
-    | them and gives every account the new dashboard. 'v1' is the fallback:
-    | the old pages come back and /v2/... is a noindex preview again. The
-    | v1 code is deleted one release after the switch.
-    */
-    'design' => env('TFE_DESIGN', 'v2'),
-
-    /*
     |--------------------------------------------------------------------------
     | Demo Account Password
     |--------------------------------------------------------------------------

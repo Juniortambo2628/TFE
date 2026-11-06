@@ -1,357 +1,158 @@
 import React from 'react';
-import { assetPath } from '@/lib/assets';
-import { Head, Link, usePage } from '@inertiajs/react';
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import { Link, usePage } from '@inertiajs/react';
+import V2PageShell from '@/Components/Landing/V2/V2PageShell';
+import V2PageHero from '@/Components/Landing/V2/V2PageHero';
+import AccentCard from '@/Components/Common/AccentCard';
 import CapacityBar from '@/Components/Common/CapacityBar';
 import GlassPill from '@/Components/Common/GlassPill';
-import AccentCard from '@/Components/Common/AccentCard';
-import StepFlow from '@/Components/Common/StepFlow';
-import BackNav from '@/Components/Common/BackNav';
-import { formatSchedule } from '@/lib/schedule';
-import { TournamentProvider } from '@/Context/TournamentContext';
+import { V2IconCards, V2Section, V2Steps, closingProps, fill } from '@/Components/Landing/V2/V2Blocks';
+import { PartnerHubTicket, partnerEyebrow, scheduleFacts } from '@/Components/Public/PartnerHubPieces';
 import '../../css/partner-hub.css';
 import '../../css/tickets.css';
-import '../../css/virtual-card.css';
-import { formatNumber, formatKickoff, formatMoney } from '@/lib/utils';
 
 /**
- * PartnerHub — public /partners/{slug} page.
- *
- * Partner-branded hero (identity + About + What we offer), stats band,
- * the support pillars, and a grid of the partner's listings rendered with
- * the shared AccentCard. A slim "How it works" strip stays pinned to the
- * bottom of the viewport until the footer scrolls into view.
+ * /v2/partners/{slug}: the partner's own hub in the v2 structure — who they
+ * are (the panel under the hero), their numbers, what they do and how it
+ * works (their archetype's pillars and steps, from the server, as on the v1
+ * hub), then what they have on sale. The v1 hub's docked step bar becomes a
+ * section here, like the /v2 journey. Copy: `pages.hub`.
  */
-export default function PartnerHub({ profile, listings = [], tickets = [], features = [], steps = [], pillars = [] }) {
-    const { assetUrl } = usePage().props;
-    const accent = profile?.theme_accent || '#dc143c';
-    const heroBg = profile?.hero_image
-        ? profile.hero_image
-        : `${assetUrl}assets/img/backdrops/stadium-fans.jpg`;
-    const tags = profile?.service_tags || [];
+export default function PartnerHub({ profile, listings = [], tickets = [], steps = [], pillars = [] }) {
+    const { v2Pages, tournament } = usePage().props;
+    const copy = v2Pages.hub;
+    const name = profile.display_name;
+    const accent = profile.theme_accent || '#dc143c';
+    const tags = profile.service_tags || [];
+
+    const present = {
+        about: !!(profile.about || tags.length),
+        support: pillars.length > 0,
+        steps: steps.length > 0,
+        tickets: tickets.length > 0,
+        listings: true,
+    };
 
     return (
-        <TournamentProvider>
-            <Head title={profile?.display_name || 'Partner'} />
-            <Header />
-
-            <div className="page-wrapper overflow-hidden bg-black text-white partner-hub">
-                {/* Branded hero — identity on the left, About + What we offer on the right */}
-                <section
-                    className="partner-hub-hero"
-                    style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
+        <V2PageShell
+            title={name}
+            hero={(
+                <V2PageHero
+                    crumbs={[{ label: 'Partners', href: route('partners.index') }, { label: name }]}
+                    accent={accent}
+                    eyebrow={`Official ${partnerEyebrow(profile.partner_type_label)} Partner`}
+                    title={name}
+                    tagline={profile.tagline}
+                    background={profile.hero_image || '/assets/img/backdrops/stadium-fans.jpg'}
+                    media={profile.logo_url ? { src: profile.logo_url, alt: name } : undefined}
+                    actions={(
+                        <>
+                            {profile.contact_email && (
+                                <a href={`mailto:${profile.contact_email}`} className="tfe-btn tfe-btn--filled tfe-btn--lg">
+                                    <i className="fas fa-envelope" aria-hidden="true"></i> {copy.contact}
+                                </a>
+                            )}
+                            {profile.website_url && (
+                                <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="tfe-btn tfe-btn--lg">
+                                    {copy.website} <i className="fas fa-external-link-alt" aria-hidden="true"></i>
+                                </a>
+                            )}
+                        </>
+                    )}
                 >
-                    <div className="container">
-                        <BackNav
-                            crumbs={[
-                                { label: 'Partners', href: route('partners.index') },
-                                { label: profile?.display_name || 'Partner' },
-                            ]}
-                        />
-                        <div className="partner-hub-hero__grid">
-                            <div className="partner-hub-hero__identity">
-                                <div className="d-flex align-items-center gap-3 mb-3">
-                                    {profile?.logo_url && (
-                                        <img src={profile.logo_url} alt={profile.display_name} className="partner-hub-hero__logo" />
-                                    )}
-                                    <div>
-                                        <div className="partner-hub-hero__eyebrow">
-                                            Official {partnerEyebrow(profile?.partner_type_label)} Partner
-                                        </div>
-                                        <h1 className="partner-hub-hero__title">{profile?.display_name}</h1>
-                                    </div>
-                                </div>
-
-                                {profile?.verification_status === 'verified' && (
-                                    <GlassPill className="mb-3"><i className="fas fa-check-circle"></i> Verified partner</GlassPill>
-                                )}
-
-                                {profile?.tagline && (
-                                    <p className="partner-hub-hero__tagline">{profile.tagline}</p>
-                                )}
-
-                                <div className="d-flex flex-wrap gap-2 mt-3">
-                                    {profile?.contact_email && (
-                                        <a href={`mailto:${profile.contact_email}`} className="tfe-btn tfe-btn--filled tfe-btn--lg">
-                                            Contact us
-                                        </a>
-                                    )}
-                                    {profile?.website_url && (
-                                        <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="tfe-btn tfe-btn--lg">
-                                            Visit website
-                                            <i className="fas fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
-                                        </a>
-                                    )}
-                                </div>
+                    {profile.verification_status === 'verified' && (
+                        <GlassPill className="v2-pagehero__pill"><i className="fas fa-check-circle"></i> {copy.verified}</GlassPill>
+                    )}
+                </V2PageHero>
+            )}
+            sections={copy.sections.filter((s) => present[s.id])}
+            closing={closingProps(
+                { ...copy.closing, title: fill(copy.closing.title, name) },
+                { primary: { action: 'planner' }, secondary: { action: 'link:/partners' }, tournamentId: tournament?.id },
+            )}
+        >
+            <div style={{ '--v2-accent': accent }}>
+                {present.about && (
+                    <div id="about" className="v2-anchor container v2-panel-wrap">
+                        <div className="v2-panel v2-panel--hub">
+                            <div className="v2-panel__about">
+                                <p className="v2-eyebrow">{profile.partner_type_label}</p>
+                                <h2 className="v2-panel__title">About {name}</h2>
+                                {/* Partner-authored: text, never HTML. */}
+                                {profile.about && <p className="v2-panel__text">{profile.about}</p>}
                             </div>
-
-                            {(profile?.about || tags.length > 0) && (
-                                <div className="partner-hub-hero__about">
-                                    {profile?.about && (
-                                        <>
-                                            <h2 className="partner-hub-hero__about-title">About {profile?.display_name}</h2>
-                                            <p className="partner-hub-hero__about-text">{profile.about}</p>
-                                        </>
-                                    )}
-                                    {tags.length > 0 && (
-                                        <>
-                                            <h3 className="partner-hub-hero__offer-title">What we offer</h3>
-                                            <div className="d-flex flex-wrap gap-2">
-                                                {tags.map((tag, idx) => (
-                                                    <GlassPill key={idx} size="sm">{tag}</GlassPill>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
+                            {tags.length > 0 && (
+                                <div className="v2-panel__about">
+                                    <p className="v2-eyebrow">{copy.offer_title}</p>
+                                    <div className="v2-tags">{tags.map((t) => <GlassPill key={t} size="sm">{t}</GlassPill>)}</div>
                                 </div>
                             )}
                         </div>
                     </div>
-                </section>
+                )}
 
-                {/* Stats band */}
-                {profile?.stats && profile.stats.length > 0 && (
-                    <section className="py-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                {profile.stats?.length > 0 && (
+                    <section className="v2-facts" aria-label={`${name} in numbers`}>
                         <div className="container">
-                            <div className="tfe-stat-grid" style={{ '--partner-accent': accent }}>
-                                {profile.stats.map((stat, idx) => {
-                                    const variant = ['red', 'amber', 'teal', 'violet'][idx % 4];
-                                    return (
-                                        <div key={idx} className={`tfe-tile tfe-tile--${variant}`}>
-                                            <div className="tfe-tile__value">{stat.value}</div>
-                                            <div className="tfe-tile__label">{stat.label}</div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                            <dl className={`v2-facts__grid v2-facts__grid--${Math.min(profile.stats.length, 4)}`}>
+                                {profile.stats.map((s) => (
+                                    <div key={s.label} className="v2-facts__item">
+                                        <dt>{s.label}</dt>
+                                        <dd>{s.value}</dd>
+                                    </div>
+                                ))}
+                            </dl>
                         </div>
                     </section>
                 )}
 
-                {/* How we support the sports ecosystem */}
-                <HowWeSupportStrip accent={accent} pillars={pillars} />
+                {present.support && (
+                    <V2Section id="support" eyebrow={copy.support_eyebrow} title={fill(copy.support_title, name)}>
+                        <V2IconCards items={pillars.map((p) => ({ icon: `fas ${p.icon}`, title: p.title, text: p.body }))} />
+                    </V2Section>
+                )}
 
-                {features.length > 0 && (
-                    <section className="py-5">
-                        <div className="container">
-                            {features.map((f, i) => (
-                                <div key={i} className="partner-feature" style={{ '--partner-accent': accent }}>
-                                    <div className="partner-feature__icon"><i className={f.icon}></i></div>
-                                    <div className="partner-feature__body">
-                                        <h3>{f.title}</h3>
-                                        <p>{f.body}</p>
-                                        {f.perks && (
-                                            <ul className="partner-feature__perks">
-                                                {f.perks.map((p, k) => <li key={k}><i className="fas fa-check"></i> {p}</li>)}
-                                            </ul>
-                                        )}
-                                        <Link href={route(f.cta_route)} className="tfe-btn tfe-btn--filled">
-                                            <i className="fas fa-arrow-right"></i> {f.cta_label}
-                                        </Link>
-                                    </div>
-                                </div>
+                {present.steps && (
+                    <V2Section id="steps" eyebrow={copy.steps_eyebrow} title={copy.steps_title} tinted>
+                        <V2Steps steps={steps.map((s) => ({ title: s.title || s.label, text: s.body || s.description }))} />
+                    </V2Section>
+                )}
+
+                {present.tickets && (
+                    <V2Section id="tickets" eyebrow={copy.tickets_eyebrow} title={copy.tickets_title}>
+                        <div className="v2-cardgrid v2-cardgrid--3">
+                            {tickets.map((t) => <PartnerHubTicket key={t.id} ticket={t} accent={accent} />)}
+                        </div>
+                    </V2Section>
+                )}
+
+                <V2Section id="listings" eyebrow={copy.listings_eyebrow} title={fill(copy.listings_title, name)}>
+                    {listings.length === 0 ? (
+                        <div className="tfe-empty">
+                            <div className="tfe-empty__icon"><i className="fas fa-box-open" aria-hidden="true"></i></div>
+                            <div className="tfe-empty__title">{copy.listings_empty}</div>
+                        </div>
+                    ) : (
+                        <div className="v2-cardgrid">
+                            {listings.map((l) => (
+                                <AccentCard
+                                    key={l.id}
+                                    LinkComponent={Link}
+                                    href={route('listings.show', l.id)}
+                                    accent={accent}
+                                    artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
+                                    status={l.tournament_short || undefined}
+                                    title={l.name}
+                                    desc={l.description}
+                                    meta={scheduleFacts(l)}
+                                    cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
+                                >
+                                    <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
+                                </AccentCard>
                             ))}
                         </div>
-                    </section>
-                )}
-
-                {tickets.length > 0 && (
-                    <section className="py-5">
-                        <div className="container">
-                            <div className="d-flex align-items-baseline justify-content-between mb-4">
-                                <h2 className="text-white fw-bold mb-0">On-sale fixtures</h2>
-                                <Link href={route('fan.tickets.index')} className="text-white-50 small">Buy tickets <i className="fas fa-arrow-right ms-1"></i></Link>
-                            </div>
-                            <div className="row g-4">
-                                {tickets.map((t) => (
-                                    <div key={t.id} className="col-md-6 col-lg-4">
-                                        <PartnerHubTicket ticket={t} accent={accent} />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* Published listings — shared AccentCard */}
-                <section className="py-5" style={{ background: 'rgba(20,20,20,0.4)' }}>
-                    <div className="container">
-                        <div className="d-flex align-items-baseline justify-content-between mb-4">
-                            <h2 className="text-white fw-bold mb-0">
-                                {listings.length > 0 ? 'Available now' : 'No listings yet'}
-                            </h2>
-                            <span className="text-white-50 small">
-                                {listings.length} {listings.length === 1 ? 'listing' : 'listings'}
-                            </span>
-                        </div>
-
-                        {listings.length === 0 ? (
-                            <div className="text-center py-5">
-                                <i className="fas fa-box-open" style={{ fontSize: '3rem', color: 'rgba(255,255,255,0.15)' }}></i>
-                                <p className="text-white-50 mt-3 mb-0">
-                                    This partner hasn't published any listings yet. Check back soon.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="row g-4" style={{ paddingBottom: '96px' }}>
-                                {listings.map((l) => (
-                                    <div key={l.id} className="col-md-6 col-lg-4 col-xl-3">
-                                        <AccentCard
-                                            LinkComponent={Link}
-                                            href={route('listings.show', l.id)}
-                                            accent={accent}
-                                            artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
-                                            status={l.tournament_short || undefined}
-                                            title={l.name}
-                                            desc={l.description}
-                                            meta={scheduleFacts(l)}
-                                            cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
-                                        >
-                                            <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
-                                        </AccentCard>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <Footer />
+                    )}
+                </V2Section>
             </div>
-
-            {/* Slim, docked "How it works" strip — the steps are this
-                partner archetype's own pipeline, from the server's
-                PartnerHubController::stepsFor(). */}
-            <StepFlow steps={steps} label="How it works" accent={accent} />
-        </TournamentProvider>
-    );
-}
-
-// Strip the trailing "_partner" before title-casing so "Official {type}
-// Partner" doesn't read "Official Finance Partner Partner".
-export function PartnerHubTicket({ ticket, accent }) {
-    const KICK = formatKickoff(ticket.kickoff_at);
-    return (
-        <article className="ticket-card" style={{ '--partner-accent': accent }}>
-            <div
-                className="ticket-card__cover"
-                style={ticket.hero_image ? { backgroundImage: `url(${assetPath(ticket.hero_image)})` } : undefined}
-            >
-                <span className="tfe-pill tfe-pill--info ticket-card__stage">{ticket.stage}</span>
-            </div>
-            <div className="ticket-card__body">
-                <div className="ticket-card__matchup">
-                    <div className="ticket-card__team">
-                        {ticket.home_team_code && <img src={`/assets/Flags/${String(ticket.home_team_code).toLowerCase()}.png`} alt={ticket.home_team} onError={(e) => { e.target.style.display = 'none'; }} />}
-                        <span>{ticket.home_team}</span>
-                    </div>
-                    <span className="ticket-card__vs">vs</span>
-                    <div className="ticket-card__team">
-                        {ticket.away_team_code && <img src={`/assets/Flags/${String(ticket.away_team_code).toLowerCase()}.png`} alt={ticket.away_team} onError={(e) => { e.target.style.display = 'none'; }} />}
-                        <span>{ticket.away_team}</span>
-                    </div>
-                </div>
-                <div className="ticket-card__meta">
-                    <div><i className="fas fa-clock"></i> {KICK}</div>
-                    <div><i className="fas fa-map-marker-alt"></i> {ticket.venue_name}</div>
-                </div>
-                <div className="ticket-card__stock">
-                    <div className="ticket-card__bar"><span style={{ width: `${ticket.sold_pct}%` }} /></div>
-                    <div className="ticket-card__stock-meta">
-                        <strong>{formatNumber(ticket.remaining)}</strong> seats left
-                        <span>{ticket.sold_pct}% sold</span>
-                    </div>
-                </div>
-                <div className="ticket-card__foot">
-                    <div className="ticket-card__price">
-                        <span className="ticket-card__price-label">from</span>
-                        <strong>{formatMoney(ticket.price, ticket.currency || 'USD')}</strong>
-                    </div>
-                    <Link href={route('fan.tickets.index')} className="tfe-btn tfe-btn--filled">
-                        <i className="fas fa-ticket-alt"></i> Buy
-                    </Link>
-                </div>
-            </div>
-        </article>
-    );
-}
-
-/**
- * The facts under a listing card: when and where it runs, then what it
- * costs. `formatSchedule` returns null when there is nothing to say, and a
- * listing with no schedule is a legitimate state — so the fact is dropped
- * rather than rendered as an empty row.
- */
-export function scheduleFacts(listing) {
-    const when = formatSchedule(listing.starts_at, listing.ends_at, listing.location);
-
-    return [
-        ...(when ? [{ label: 'When', value: when }] : []),
-        priceFact(listing),
-    ];
-}
-
-/**
- * The price fact on a listing card.
- *
- * A zero is a real, meaningful price for the schools archetype — a league
- * or a grant is free to enter, and most of that partner's catalogue is.
- * Rendering it as "From USD 0" reads like a missing value rather than the
- * claim it actually is.
- */
-function priceFact(listing) {
-    const price = Number(listing.base_price);
-
-    if (!Number.isFinite(price) || price <= 0) {
-        return { label: 'Entry', value: 'Free' };
-    }
-
-    return { label: 'From', value: formatMoney(price, listing.currency || 'USD') };
-}
-
-/**
- * Trim a trailing "Partner" off the server's label so the eyebrow
- * `Official {x} Partner` does not read "Official Finance Partner Partner".
- *
- * The label itself comes from PartnerController::partnerTypes() — this used
- * to title-case the raw key instead, which rendered `school_community` as
- * "School Community" while the directory showed "Schools & Communities".
- */
-export function partnerEyebrow(label) {
-    if (!label) return '';
-
-    return label.replace(/\s+Partner$/i, '').trim();
-}
-
-/**
- * "How we support the sports ecosystem" — three pillars, from the server's
- * PartnerHubController::pillarsFor(). They used to be hardcoded as
- * Publish / Convert / Measure in travel-agent language, which a betting
- * sponsor and a school were both shown despite neither packaging a trip.
- */
-function HowWeSupportStrip({ accent, pillars = [] }) {
-    if (!pillars.length) return null;
-
-    return (
-        <section className="py-5">
-            <div className="container">
-                <h2 className="text-white fw-bold mb-4">How we support the sports ecosystem</h2>
-                <div className="row g-4">
-                    {pillars.map((p, i) => (
-                        <div key={i} className="col-md-4">
-                            <AccentCard
-                                LinkComponent="div"
-                                accent={accent}
-                                artwork={{ icon: `fas ${p.icon}` }}
-                                title={p.title}
-                                desc={p.body}
-                                className="tfe-acard--content"
-                            />
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
+        </V2PageShell>
     );
 }

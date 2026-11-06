@@ -5,7 +5,7 @@
 | Landing page v2 + audience walkthroughs (UX review, 2 Nov 2026, Track C)
 |--------------------------------------------------------------------------
 |
-| The copy and structure of /v2 (Pages/HomeV2.jsx) and the three walkthrough
+| The copy and structure of the landing page (Pages/Home.jsx) and the three walkthrough
 | pages (/for-fans, /for-partners, /for-schools — Pages/Walkthrough.jsx).
 | v2 is the landing page rebuilt on the Najenga/Naoa structure ("show how
 | the platform is used before asking anyone to sign in"), live beside the

@@ -1,222 +1,126 @@
 import React from 'react';
-import { openTripPlanner } from '@/lib/tripPlanner';
 import { Link, usePage } from '@inertiajs/react';
-import SectionPageShell from '@/Components/Landing/SectionPageShell';
-import PageHero from '@/Components/Common/PageHero';
+import V2PageShell from '@/Components/Landing/V2/V2PageShell';
+import V2PageHero from '@/Components/Landing/V2/V2PageHero';
+import LandingAction from '@/Components/Landing/V2/LandingAction';
 import AccentCard from '@/Components/Common/AccentCard';
-import GlassPill from '@/Components/Common/GlassPill';
 import CapacityBar from '@/Components/Common/CapacityBar';
-import { TEAM_NAMES } from '@/Data/countryFlags';
+import GlassPill from '@/Components/Common/GlassPill';
+import { V2Section, closingProps, fill } from '@/Components/Landing/V2/V2Blocks';
+import { Highlights, TeamsGrid } from '@/Components/Public/TournamentPieces';
+import { formatDateRange } from '@/lib/schedule';
 import { formatMoney } from '@/lib/utils';
-import assetPath from '@/lib/assets';
 import '../../../css/tournament-page.css';
 
-// Organiser eyebrow per tournament (matches the hero background brand).
 const ORGANIZER = { wc_2026: 'FIFA', euro_2024: 'UEFA', afcon_2027: 'CAF' };
 
-export default function TournamentShow({ tournament = {}, listings = [], upcoming }) {
-    const { assetUrl } = usePage().props;
-    const baseUrl = assetUrl || '';
-    const t = tournament;
+/**
+ * /v2/tournaments/{slug}: the same tournament payload as the v1 page. An
+ * upcoming tournament leads to its trips; a concluded one is a recap with a
+ * way on to the next. Copy: `pages.tournament`.
+ */
+export default function TournamentShow({ tournament: t = {}, listings = [], upcoming }) {
+    const { v2Pages, assetUrl } = usePage().props;
+    const copy = v2Pages.tournament;
+    const name = t.short_name || t.name;
     const accent = t.color_accent || '#dc143c';
     const isPast = t.status === 'concluded';
-    const organizer = ORGANIZER[t.id] || 'Official';
-    const statusLabel = isPast ? 'Concluded' : (t.status === 'ongoing' ? 'Live now' : 'Upcoming');
-    const teamCodes = t.team_flag_codes || [];
+    const status = isPast ? 'Concluded' : (t.status === 'ongoing' ? 'Live now' : 'Upcoming');
+    const dates = t.start_date ? formatDateRange(t.start_date, t.end_date) : null;
 
-    const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '');
-    const datesLabel = t.start_date ? `${fmtDate(t.start_date)} – ${fmtDate(t.end_date)}` : '';
+    const facts = [
+        { label: 'Teams', value: t.num_teams || t.facts?.teams },
+        { label: 'Matches', value: t.matches_played },
+        isPast ? { label: 'Goals', value: t.total_goals } : { label: 'Host nations', value: (t.hosts || []).length },
+    ].filter((f) => f.value);
 
-    const heroCtas = isPast
-        ? [upcoming
-            ? { label: `Plan for ${upcoming.short_name}`, href: `/tournaments/${upcoming.slug}`, icon: 'fas fa-arrow-right', filled: true }
-            : { label: 'Start planning your trip', onClick: () => openTripPlanner(), icon: 'fas fa-arrow-right', filled: true }]
-        : [
-            // Sprint 64 — an estimate first, the account at the point of
-            // booking, rather than a signup form as the opening move.
-            { label: 'Plan my trip', onClick: () => openTripPlanner({ tournamentId: t.id }), icon: 'fas fa-plane', filled: true },
-            { label: 'Explore packages', href: '/services', icon: 'fas fa-suitcase-rolling' },
-        ];
+    const hasHighlights = isPast && (t.winner || t.runner_up || t.top_scorer?.name || t.player_of_tournament);
+    const present = { glance: facts.length > 0, highlights: !!hasHighlights, offers: !isPast, teams: (t.team_flag_codes || []).length > 0 };
+    const closingCopy = isPast ? copy.closing_past : { ...copy.closing, title: fill(copy.closing.title, name) };
 
-    const stats = [
-        { label: 'Teams', value: t.num_teams || t.facts?.teams || '—', variant: 'red' },
-        { label: 'Matches', value: t.matches_played || '—', variant: 'amber' },
-        isPast
-            ? { label: 'Goals', value: t.total_goals || '—', variant: 'teal' }
-            : { label: 'Host nations', value: (t.hosts || []).length || '—', variant: 'teal' },
-    ];
-
-    const hero = (
-        <PageHero
-            breadcrumbs={[{ label: t.name }]}
-            accent={accent}
-            background={t.organizer_card_bg}
-            eyebrow={`${organizer} · ${statusLabel}`}
+    return (
+        <V2PageShell
             title={t.name}
-            tagline={t.tagline || (t.wikipedia_extract ? t.wikipedia_extract.substring(0, 150) : '')}
-            media={t.trophy_image ? { src: t.trophy_image, alt: `${t.short_name || t.name} trophy` } : undefined}
-            ctas={heroCtas}
+            hero={(
+                <V2PageHero
+                    crumbs={[{ label: t.name }]}
+                    accent={accent}
+                    eyebrow={`${ORGANIZER[t.id] || 'Official'} · ${status}`}
+                    title={t.name}
+                    tagline={t.tagline || (t.wikipedia_extract ? `${t.wikipedia_extract.substring(0, 150)}…` : '')}
+                    background={t.organizer_card_bg}
+                    media={t.trophy_image ? { src: t.trophy_image, alt: `${name} trophy` } : undefined}
+                    actions={isPast
+                        ? (upcoming && <LandingAction action={`link:/tournaments/${upcoming.slug}`} label={`Plan for ${upcoming.short_name}`} icon="fas fa-arrow-right" filled />)
+                        : <LandingAction action="planner" label="Plan my trip" icon="fas fa-plane" filled tournamentId={t.id} />}
+                >
+                    <div className="v2-tags v2-tags--hero">
+                        {dates && <GlassPill size="sm"><i className="fas fa-calendar-alt" /> {dates}</GlassPill>}
+                        {(t.hosts || []).map((h) => <GlassPill key={h} size="sm"><i className="fas fa-map-marker-alt" /> {h}</GlassPill>)}
+                    </div>
+                </V2PageHero>
+            )}
+            sections={copy.sections.filter((s) => present[s.id])}
+            closing={closingProps(closingCopy, {
+                primary: isPast && upcoming ? { action: `link:/tournaments/${upcoming.slug}` } : { action: 'planner' },
+                secondary: { action: 'link:/partners' },
+                tournamentId: isPast ? undefined : t.id,
+            })}
         >
-            <div className="tourpage-hero-meta">
-                {datesLabel && <GlassPill size="sm"><i className="fas fa-calendar-alt" /> {datesLabel}</GlassPill>}
-                {(t.hosts || []).map((h, i) => (
-                    <GlassPill key={i} size="sm"><i className="fas fa-map-marker-alt" /> {h}</GlassPill>
-                ))}
-            </div>
-        </PageHero>
-    );
+            <div className="tourpage" style={{ '--partner-accent': accent, '--v2-accent': accent }}>
+                {present.glance && (
+                    <section id="glance" className="v2-facts v2-anchor" aria-label={copy.glance_eyebrow}>
+                        <div className="container">
+                            <dl className={`v2-facts__grid v2-facts__grid--${facts.length}`}>
+                                {facts.map((f) => (
+                                    <div key={f.label} className="v2-facts__item"><dt>{f.label}</dt><dd>{f.value}</dd></div>
+                                ))}
+                            </dl>
+                        </div>
+                    </section>
+                )}
 
-    return (
-        <SectionPageShell title={t.name} heroSlot={hero}>
-            <div className="tourpage" style={{ '--partner-accent': accent }}>
-                <div className="container">
-                    {/* Snapshot stat tiles */}
-                    <div className="tfe-stat-grid tourpage-stats">
-                        {stats.map((s, i) => (
-                            <div key={i} className={`tfe-tile tfe-tile--${s.variant}`}>
-                                <div className="tfe-tile__value">{s.value}</div>
-                                <div className="tfe-tile__label">{s.label}</div>
+                {present.highlights && (
+                    <div id="highlights" className="v2-anchor container"><Highlights t={t} /></div>
+                )}
+
+                {present.offers && (
+                    <V2Section id="offers" eyebrow={copy.offers_eyebrow} title={fill(copy.offers_title, name)} text={copy.offers_text}>
+                        {listings.length === 0 ? (
+                            <div className="tfe-empty">
+                                <div className="tfe-empty__icon"><i className="fas fa-suitcase-rolling" aria-hidden="true"></i></div>
+                                <div className="tfe-empty__title">No packages yet — price your own trip instead.</div>
+                                <div className="tfe-empty__action"><LandingAction action="planner" label="Plan my trip" filled tournamentId={t.id} /></div>
                             </div>
-                        ))}
-                    </div>
-
-                    {isPast ? (
-                        <>
-                            <Highlights t={t} />
-                            <TeamsGrid title="Participating teams" codes={teamCodes} baseUrl={baseUrl} wikiFlags={t.wikipedia_flags || {}} />
-                            <div className="tourpage-cta-band">
-                                <h3 className="tourpage-cta-band__title">The next tournament is already in motion.</h3>
-                                <p className="tourpage-cta-band__sub">Lock in your plans early and travel with the fans who live for the game.</p>
-                                <Link
-                                    href={upcoming ? `/tournaments/${upcoming.slug}` : '/register'}
-                                    className="tfe-btn tfe-btn--filled tfe-btn--lg"
-                                >
-                                    {upcoming ? `Plan for ${upcoming.short_name}` : 'Start planning'}
-                                    <i className="fas fa-arrow-right" />
-                                </Link>
+                        ) : (
+                            <div className="v2-cardgrid v2-cardgrid--3">
+                                {listings.map((l) => (
+                                    <AccentCard
+                                        key={l.id}
+                                        LinkComponent={Link}
+                                        href={route('listings.show', l.id)}
+                                        accent={l.publisher?.theme_accent || accent}
+                                        artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
+                                        eyebrow={l.publisher ? `By ${l.publisher.display_name}` : undefined}
+                                        title={l.name}
+                                        desc={l.description}
+                                        meta={[{ label: 'From', value: formatMoney(l.base_price, l.currency) }]}
+                                        cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
+                                    >
+                                        <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
+                                    </AccentCard>
+                                ))}
                             </div>
-                        </>
-                    ) : (
-                        <>
-                            <Offerings listings={listings} accent={accent} baseUrl={baseUrl} />
-                            <TeamsGrid title="Teams to watch" codes={teamCodes} baseUrl={baseUrl} wikiFlags={t.wikipedia_flags || {}} />
-                        </>
-                    )}
-                </div>
-            </div>
-        </SectionPageShell>
-    );
-}
+                        )}
+                    </V2Section>
+                )}
 
-// ── Past-tournament highlights: champion, runner-up, top scorer, POTT ──
-export function Highlights({ t }) {
-    const cards = [
-        t.winner && { icon: 'fas fa-trophy', label: 'Champions', value: t.winner, tone: 'gold' },
-        t.runner_up && { icon: 'fas fa-medal', label: 'Runners-up', value: t.runner_up, tone: 'silver' },
-        t.top_scorer && t.top_scorer.name && {
-            icon: 'fas fa-futbol', label: 'Top scorer',
-            value: t.top_scorer.name + (t.top_scorer.goals ? ` · ${t.top_scorer.goals} goals` : ''),
-        },
-        t.player_of_tournament && { icon: 'fas fa-star', label: 'Player of the tournament', value: t.player_of_tournament },
-    ].filter(Boolean);
-
-    if (cards.length === 0) return null;
-
-    return (
-        <section className="tourpage-block">
-            <h2 className="tourpage-block__title">Tournament highlights</h2>
-            <div className="tourpage-highlights">
-                {cards.map((c, i) => (
-                    <div key={i} className={'tourpage-highlight' + (c.tone ? ` tourpage-highlight--${c.tone}` : '')}>
-                        <span className="tourpage-highlight__icon"><i className={c.icon} /></span>
-                        <div>
-                            <div className="tourpage-highlight__label">{c.label}</div>
-                            <div className="tourpage-highlight__value">{c.value}</div>
-                        </div>
+                {present.teams && (
+                    <div id="teams" className="v2-anchor container v2-teams">
+                        <TeamsGrid title={isPast ? 'Participating teams' : 'Teams to watch'} codes={t.team_flag_codes} baseUrl={assetUrl || ''} wikiFlags={t.wikipedia_flags || {}} />
                     </div>
-                ))}
+                )}
             </div>
-        </section>
-    );
-}
-
-// ── Participating / qualified teams (flags) ──
-export function TeamsGrid({ title, codes = [], baseUrl, wikiFlags }) {
-    if (!codes.length) return null;
-    return (
-        <section className="tourpage-block">
-            <h2 className="tourpage-block__title">{title} <span className="tourpage-block__count">{codes.length}</span></h2>
-            <div className="tourpage-teams">
-                {codes.map((code) => {
-                    const name = TEAM_NAMES[code] || code.toUpperCase();
-                    return (
-                        <span key={code} className="tourpage-team" title={name}>
-                            <img
-                                src={assetPath(`${baseUrl}assets/Flags/${code}.png`)}
-                                alt={name}
-                                loading="lazy"
-                                onError={(e) => { if (wikiFlags[code]) { e.currentTarget.src = wikiFlags[code]; } else { e.currentTarget.style.visibility = 'hidden'; } }}
-                            />
-                            <span className="tourpage-team__name">{name}</span>
-                        </span>
-                    );
-                })}
-            </div>
-        </section>
-    );
-}
-
-// ── Upcoming-tournament offerings (partner listings, or curated fallbacks) ──
-function Offerings({ listings = [], accent, baseUrl }) {
-    const fallback = [
-        { icon: 'fas fa-wallet', title: 'Plan a budget', desc: 'Build a full trip budget — tickets, flights, stays — in your currency.', href: '/register', cta: 'Start planning' },
-        { icon: 'fas fa-hand-holding-usd', title: 'Finance your trip', desc: 'Spread the cost over 12–24 months with a finance partner.', href: '/features', cta: 'See financing' },
-        { icon: 'fas fa-handshake', title: 'Browse partners', desc: 'Verified travel agents and providers packaging experiences you can book.', href: '/partners', cta: 'View partners' },
-    ];
-
-    return (
-        <section className="tourpage-block">
-            <h2 className="tourpage-block__title">Plan your trip</h2>
-            <p className="tourpage-block__sub">Everything you need to get to the tournament — sign up to lock it in.</p>
-            <div className="row g-4">
-                {listings.length > 0
-                    ? listings.map((l) => (
-                        <div key={l.id} className="col-md-6 col-lg-4">
-                            {/* Sprint 63 — this used to point at /register, so
-                                a visitor who clicked a specific package got a
-                                signup form having never seen the package. It
-                                opens the listing's own public page now; the
-                                account is asked for at the point of booking. */}
-                            <AccentCard
-                                LinkComponent={Link}
-                                href={route('listings.show', l.id)}
-                                accent={l.publisher?.theme_accent || accent}
-                                artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
-                                eyebrow={l.publisher ? `By ${l.publisher.display_name}` : undefined}
-                                title={l.name}
-                                desc={l.description}
-                                meta={[{ label: 'From', value: formatMoney(l.base_price, l.currency) }]}
-                                cta={{ label: l.is_sold_out ? 'Sold out' : 'View details', icon: l.is_sold_out ? null : 'fas fa-arrow-right' }}
-                            >
-                                <CapacityBar sold={l.sold_count} capacity={l.capacity} pct={l.availability_pct} />
-                            </AccentCard>
-                        </div>
-                    ))
-                    : fallback.map((f, i) => (
-                        <div key={i} className="col-md-6 col-lg-4">
-                            <AccentCard
-                                LinkComponent={Link}
-                                href={f.href}
-                                accent={accent}
-                                artwork={{ icon: `fas ${f.icon.replace('fas ', '')}` }}
-                                title={f.title}
-                                desc={f.desc}
-                                cta={{ label: f.cta, icon: 'fas fa-arrow-right' }}
-                                className="tfe-acard--content"
-                            />
-                        </div>
-                    ))}
-            </div>
-        </section>
+        </V2PageShell>
     );
 }
