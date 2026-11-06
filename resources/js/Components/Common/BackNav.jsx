@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, router } from '@inertiajs/react';
 import { navStack, normalizeUrl } from '@/lib/navHistory';
 import '../../../css/back-nav.css';
@@ -24,6 +25,11 @@ import '../../../css/back-nav.css';
  * Rendered by PageHero (`breadcrumbs` prop, which SectionPageShell passes
  * through) and directly by the partners directory and partner hub, whose
  * heroes are their own.
+ *
+ * Always within reach (Nov 2026): once the trail scrolls up out of view, a
+ * floating Back button takes its place under the header, and goes again
+ * when the trail is back on screen. Portalled to <body> (the page-enter
+ * transform trap, as TabBar).
  */
 export default function BackNav({ crumbs = [], className = '' }) {
     const home = { label: 'Home', href: '/' };
@@ -42,8 +48,13 @@ export default function BackNav({ crumbs = [], className = '' }) {
         }
     };
 
+    const ref = useRef(null);
+    const scrolledPast = useScrolledPast(ref);
+    const headerBottom = useHeaderBottom(scrolledPast);
+
     return (
-        <nav className={('tfe-backnav ' + className).trim()} aria-label="Breadcrumb">
+        <>
+        <nav ref={ref} className={('tfe-backnav ' + className).trim()} aria-label="Breadcrumb">
             <button type="button" className="tfe-backnav__back" onClick={goBack}>
                 <i className="fas fa-arrow-left" aria-hidden="true"></i>
                 <span>Back</span>
@@ -71,5 +82,66 @@ export default function BackNav({ crumbs = [], className = '' }) {
                 })}
             </ol>
         </nav>
+        {scrolledPast && typeof document !== 'undefined' && createPortal(
+            <button type="button" className="tfe-backnav-float" onClick={goBack} aria-label={`Back to ${parent.label}`} style={{ top: headerBottom + 10 }}>
+                <i className="fas fa-arrow-left" aria-hidden="true"></i>
+                <span>Back</span>
+            </button>,
+            document.body,
+        )}
+        </>
     );
+}
+
+/** True once `ref` has scrolled up out of view (not while it is below it). */
+function useScrolledPast(ref) {
+    const [past, setPast] = useState(false);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+        // Hidden under the fixed header counts as out of view. The callback
+        // fires as the trail crosses that line — its top is still positive
+        // then — so "above" is measured against the line, not against 0.
+        const HEADER = 80;
+        const observer = new IntersectionObserver(
+            ([entry]) => setPast(!entry.isIntersecting && entry.boundingClientRect.top < HEADER),
+            { rootMargin: `-${HEADER}px 0px 0px 0px` },
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [ref]);
+
+    return past;
+}
+
+/**
+ * Where the fixed header ends, while `active`. Its height differs by page and
+ * changes as it switches to its scrolled state, so it is measured rather
+ * than assumed — a guess put the button under the header on some pages.
+ */
+function useHeaderBottom(active) {
+    const [bottom, setBottom] = useState(88);
+
+    useEffect(() => {
+        if (!active) return undefined;
+        let frame = 0;
+        const measure = () => {
+            frame = 0;
+            const header = document.querySelector('.tfe-header');
+            const next = header ? Math.round(header.getBoundingClientRect().bottom) : 0;
+            setBottom((b) => (b === next ? b : Math.max(0, next)));
+        };
+        const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+        measure();
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule);
+        return () => {
+            window.removeEventListener('scroll', schedule);
+            window.removeEventListener('resize', schedule);
+            if (frame) cancelAnimationFrame(frame);
+        };
+    }, [active]);
+
+    return bottom;
 }

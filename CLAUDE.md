@@ -739,6 +739,17 @@ will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
   `lib/dashboardTabs.js` so a tab can never drift from its sidebar item; Menu
   opens the sidebar sheet. The v2 header carries no hamburger or quick links
   — navigation is the sidebar's and the bar's.
+- **The tab bar is liquid glass** (Nov 2026, after iOS 26 / Instagram): a
+  floating pill inset from the edges, a lens behind the current tab that
+  slides (`--tabbar-n` / `--tabbar-i` on the bar), icons-only while
+  scrolling down. A visitor's tabs are Home, Partners, Plan a trip (centre,
+  accent), Contact, Sign in; signed in, My trips/Dashboard and Menu replace
+  the last two. `--tfe-tabbar-h` is the space it needs (84px + safe area).
+- **Back is always within reach**: `BackNav` shows a floating glass Back
+  (`.tfe-backnav-float`, portalled) once its trail scrolls under the
+  header, placed from the header's MEASURED bottom — its height differs by
+  page. Tests that scroll must first wait for `window.tfeLoaderFinished`:
+  the first-visit intro splash holds the page fixed.
 - Never pass a layout an inline component (`header={(p) => …}`): it is a new
   type per render and remounts — that closed the account menu a second after
   it opened. `RoleLayout` memoises it now.
