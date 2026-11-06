@@ -6,7 +6,6 @@ import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import SectionNav from '@/Components/Landing/V2/SectionNav';
 import ClosingCta from '@/Components/Landing/V2/ClosingCta';
 import useFixedHeaderOnScroll from '@/hooks/useFixedHeaderOnScroll';
-import useStayInV2 from '@/hooks/useStayInV2';
 import { TournamentProvider } from '@/Context/TournamentContext';
 import '../../../../css/landing-v2.css';
 
@@ -18,16 +17,13 @@ import '../../../../css/landing-v2.css';
  *
  * `hero` is a rendered <V2PageHero>; `sections` feeds the bar (a section
  * missing from the page is left out of it); `closing` is ClosingCta's props.
- * Links on the page keep the visitor in v2 (useStayInV2). noindex, as /v2.
  */
 export default function V2PageShell({ title, hero, sections = [], closing, children }) {
     useFixedHeaderOnScroll();
-    useStayInV2();
 
     return (
         <TournamentProvider>
             <Head title={title}>
-                {usePage().props.design !== 'v2' && <meta name="robots" content="noindex, nofollow" head-key="robots" />}
             </Head>
             <Header />
 

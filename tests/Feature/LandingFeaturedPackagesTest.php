@@ -12,13 +12,6 @@ class LandingFeaturedPackagesTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** The v1 landing page (fallback). The v2 one at / reads the same offeringCards() query. */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        config(['app.design' => 'v1']);
-    }
-
     public function test_only_public_bookable_trips_are_featured(): void
     {
         $package = Listing::factory()->create(['tournament_id' => 'afcon_2027', 'type' => 'package', 'moderation_status' => 'approved']);

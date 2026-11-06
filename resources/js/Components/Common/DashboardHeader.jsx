@@ -4,7 +4,6 @@ import { Link, usePage } from '@inertiajs/react';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
 import { useSidebar } from '@/Components/ui/sidebar';
 import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
-import { useDashboardV2 } from '@/Layouts/DashboardV2';
 import { assetPath } from '@/lib/assets';
 
 /**
@@ -74,65 +73,7 @@ const ROLE_CONFIG = {
 };
 
 export default function DashboardHeader(props) {
-    return useDashboardV2() ? <DashboardHeaderV2 {...props} /> : <DashboardHeaderV1 {...props} />;
-}
-
-function DashboardHeaderV1({ role = 'fan', user, assetUrl, toggleSidebar }) {
-    // Fall back rather than throw — a role with no entry used to take the
-    // whole header down on `config.roleBadge` (Sprint 62).
-    const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.fan;
-    const { assetUrl: pageAssetUrl, auth: pageAuth } = usePage().props;
-    const activityBadges = pageAuth?.activityBadges || {};
-    const { toggleSidebar: toggleShadcnSidebar } = useSidebar();
-    const baseUrl = assetUrl || pageAssetUrl || '';
-    const doToggleSidebar = toggleSidebar || toggleShadcnSidebar;
-
-    return (
-        <div className="dashboard-header" data-role={role}>
-            <button
-                className="dashboard-hamburger"
-                id="dashboardHamburger"
-                onClick={(e) => { e.stopPropagation(); doToggleSidebar(); }}
-                aria-label="Toggle sidebar"
-            >
-                <i className="fas fa-bars"></i>
-            </button>
-
-            <div className="dashboard-title">
-                <img src={`${baseUrl}assets/img/logo/TFE-logo.png`} alt="TFE Logo" />
-            </div>
-
-            <div className="dashboard-header-nav">
-                {config.roleBadge && (
-                    <span className="dash-badge">
-                        <i className={config.roleBadge.icon}></i>
-                        {resolveRoleLabel(role, config.roleBadge.label, user)}
-                    </span>
-                )}
-
-                {config.navLinks.map((link) => (
-                    <Link
-                        key={link.route}
-                        id={`nav-link-${link.label.toLowerCase()}`}
-                        href={route(link.route)}
-                        className="dashboard-header-nav__link"
-                    >
-                        <i className={link.icon}></i>
-                        <span>{link.label}</span>
-                        {(activityBadges[link.route] || 0) > 0 && (
-                            <ActivityBadge count={activityBadges[link.route]} label={link.label} />
-                        )}
-                    </Link>
-                ))}
-            </div>
-
-            <div className="dashboard-header-actions">
-                {role === 'fan' && <FanTournamentSwitcher variant="dashboard" />}
-
-                <HeaderUserCluster user={user} role={role} />
-            </div>
-        </div>
-    );
+    return <DashboardHeaderV2 {...props} />;
 }
 
 /**

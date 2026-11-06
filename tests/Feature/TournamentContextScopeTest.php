@@ -112,7 +112,7 @@ class TournamentContextScopeTest extends TestCase
         $response->assertOk();
 
         $page = $response->viewData('page');
-        $this->assertSame('V2/Tournaments/Show', $page['component']);
+        $this->assertSame('Tournaments/Show', $page['component']);
         $this->assertSame($concluded['id'], $page['props']['tournament']['id']);
     }
 

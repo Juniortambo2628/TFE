@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use App\Services\PaystackService;
 use App\Services\TournamentService;
-use App\Support\PageVersion;
 use Inertia\Inertia;
 
 /**
@@ -45,7 +44,7 @@ class ListingShowController extends Controller
 
         $publisher = $listing->publisherSummary();
 
-        return Inertia::render(PageVersion::component('Listings/Show'), [
+        return Inertia::render('Listings/Show', [
             'listing' => [
                 'id' => $listing->id,
                 'name' => $listing->name,

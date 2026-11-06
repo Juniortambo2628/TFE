@@ -1,164 +1,107 @@
-import React, { useState, useEffect } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
+import V2PageShell from '@/Components/Landing/V2/V2PageShell';
+import V2PageHero from '@/Components/Landing/V2/V2PageHero';
 import AccentCard from '@/Components/Common/AccentCard';
-import BackNav from '@/Components/Common/BackNav';
-import { TournamentProvider } from '@/Context/TournamentContext';
-import '../../css/partners-index.css';
+import { V2Section, closingProps } from '@/Components/Landing/V2/V2Blocks';
 
 /**
- * PartnersIndex — public /partners directory.
- *
- * Search bar (name/tagline/about), partner_type chip filter, and
- * tournament chip filter. Each row is a tiled card that links to the
- * partner's branded hub. This closes the discovery loop so partners
- * publishing under Sprint 10 actually get seen by fans.
+ * /v2/partners: the same directory as /partners (same query, same filters in
+ * the URL), with the search in the hero and the filters as one chip row each
+ * above the results. Copy: `pages.partners`.
  */
 export default function PartnersIndex({ profiles = [], partner_types = {}, tournaments = [], filters = {} }) {
-    const { assetUrl } = usePage().props;
+    const { v2Pages } = usePage().props;
+    const copy = v2Pages.partners;
     const [q, setQ] = useState(filters.q || '');
     const [type, setType] = useState(filters.type || '');
     const [tournamentId, setTournamentId] = useState(filters.tournament_id || '');
+    const first = useRef(true);
 
-    // Debounced search — 350ms after the fan stops typing.
+    // Debounced, and not on first render: the page already has these results.
     useEffect(() => {
+        if (first.current) { first.current = false; return undefined; }
         const t = setTimeout(() => {
-            const params = {};
-            if (q) params.q = q;
-            if (type) params.type = type;
-            if (tournamentId) params.tournament_id = tournamentId;
-            router.get(route('partners.index'), params, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
+            const params = Object.fromEntries(Object.entries({ q, type, tournament_id: tournamentId }).filter(([, v]) => v));
+            router.get(route('partners.index'), params, { preserveState: true, preserveScroll: true, replace: true });
         }, 350);
         return () => clearTimeout(t);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [q, type, tournamentId]);
 
-    const clearFilters = () => {
-        setQ('');
-        setType('');
-        setTournamentId('');
-    };
-
-    const heroBg = `${assetUrl}assets/img/backdrops/stadium-fans.jpg`;
+    const filtered = q || type || tournamentId;
+    const [one, many = one] = String(copy.count).split('|');
+    const countLabel = profiles.length === 1 ? one : many;
 
     return (
-        <TournamentProvider>
-            <Head title="Partners" />
-            <Header />
-
-            <div className="partners-index-page">
-                <section
-                    className="partners-index-hero"
-                    style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.9) 100%), url(${heroBg})` }}
+        <V2PageShell
+            title="Partners"
+            hero={(
+                <V2PageHero
+                    crumbs={[{ label: 'Partners' }]}
+                    eyebrow={copy.eyebrow}
+                    title={copy.title}
+                    tagline={copy.tagline}
+                    background="/assets/img/backdrops/stadium-fans.jpg"
                 >
-                    <div className="container">
-                        <BackNav crumbs={[{ label: 'Partners' }]} />
-                        <div className="partners-index-hero__eyebrow">The Football Experience</div>
-                        <h1 className="partners-index-hero__title">Every partner behind your trip</h1>
-                        <p className="partners-index-hero__subtitle">
-                            Verified travel agents, hospitality providers, finance partners, clubs and federations
-                            packaging experiences fans can actually book.
-                        </p>
+                    <label className="v2-search">
+                        <i className="fas fa-search" aria-hidden="true"></i>
+                        <span className="v2-sr-only">{copy.search}</span>
+                        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={copy.search} />
+                    </label>
+                </V2PageHero>
+            )}
+            closing={closingProps(copy.closing, { primary: { action: 'route:contact' }, secondary: { action: 'link:/for-partners' } })}
+        >
+            <V2Section id="directory">
+                <div className="v2-filters">
+                    <ChipRow label={copy.type_label} all={copy.all} value={type} onChange={setType}
+                        options={Object.entries(partner_types).map(([value, label]) => ({ value, label }))} />
+                    <ChipRow label={copy.tournament_label} all={copy.all} value={tournamentId} onChange={setTournamentId}
+                        options={tournaments.map((t) => ({ value: t.id, label: t.short_name || t.name }))} />
+                </div>
 
-                        <div className="partners-index-search">
-                            <i className="fas fa-search partners-index-search__icon"></i>
-                            <input
-                                type="text"
-                                value={q}
-                                onChange={(e) => setQ(e.target.value)}
-                                placeholder="Search partners by name, service or destination…"
-                                className="partners-index-search__input"
-                            />
-                            {(q || type || tournamentId) && (
-                                <button className="partners-index-search__clear" onClick={clearFilters}>
-                                    Clear
-                                </button>
-                            )}
-                        </div>
+                <div className="v2-results-head">
+                    <p className="v2-results-head__count" aria-live="polite"><strong>{profiles.length}</strong> {countLabel}</p>
+                    {filtered && (
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={() => { setQ(''); setType(''); setTournamentId(''); }}>
+                            {copy.clear}
+                        </button>
+                    )}
+                </div>
+
+                {profiles.length === 0 ? (
+                    <div className="tfe-empty">
+                        <div className="tfe-empty__icon"><i className="fas fa-search" aria-hidden="true"></i></div>
+                        <div className="tfe-empty__title">{copy.empty_title}</div>
+                        <div className="tfe-empty__body">{copy.empty_text}</div>
                     </div>
-                </section>
-
-                <section className="partners-index-filters">
-                    <div className="container">
-                        <div className="partners-index-filter-group">
-                            <span className="partners-index-filter-label">Partner type</span>
-                            <div className="partners-index-chip-row">
-                                <button
-                                    className={`partners-index-chip${type === '' ? ' is-active' : ''}`}
-                                    onClick={() => setType('')}
-                                >
-                                    All
-                                </button>
-                                {Object.entries(partner_types).map(([key, label]) => (
-                                    <button
-                                        key={key}
-                                        className={`partners-index-chip${type === key ? ' is-active' : ''}`}
-                                        onClick={() => setType(type === key ? '' : key)}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="partners-index-filter-group">
-                            <span className="partners-index-filter-label">Tournament</span>
-                            <div className="partners-index-chip-row">
-                                <button
-                                    className={`partners-index-chip${tournamentId === '' ? ' is-active' : ''}`}
-                                    onClick={() => setTournamentId('')}
-                                >
-                                    All
-                                </button>
-                                {tournaments.map((t) => (
-                                    <button
-                                        key={t.id}
-                                        className={`partners-index-chip${tournamentId === t.id ? ' is-active' : ''}`}
-                                        onClick={() => setTournamentId(tournamentId === t.id ? '' : t.id)}
-                                    >
-                                        {t.short_name || t.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                ) : (
+                    <div className="v2-cardgrid">
+                        {profiles.map((p) => <PartnerCard key={p.slug} profile={p} />)}
                     </div>
-                </section>
+                )}
+            </V2Section>
+        </V2PageShell>
+    );
+}
 
-                <section className="partners-index-results">
-                    <div className="container">
-                        <div className="partners-index-count">
-                            {profiles.length} {profiles.length === 1 ? 'partner' : 'partners'}
-                        </div>
-
-                        {profiles.length === 0 ? (
-                            <div className="partners-index-empty">
-                                <i className="fas fa-search"></i>
-                                <h3>No partners match those filters</h3>
-                                <p>Try widening the type or clearing the tournament filter.</p>
-                            </div>
-                        ) : (
-                            <div className="partners-index-grid">
-                                {profiles.map((p) => (
-                                    <PartnerCard key={p.slug} profile={p} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <Footer />
+function ChipRow({ label, all, value, onChange, options }) {
+    return (
+        <div className="v2-filters__row" role="group" aria-label={label}>
+            <span className="v2-filters__label">{label}</span>
+            <div className="v2-filters__chips">
+                <button type="button" className="v2-type-chip" aria-pressed={value === ''} onClick={() => onChange('')}>{all}</button>
+                {options.map((o) => (
+                    <button key={o.value} type="button" className="v2-type-chip" aria-pressed={value === o.value} onClick={() => onChange(value === o.value ? '' : o.value)}>
+                        {o.label}
+                    </button>
+                ))}
             </div>
-        </TournamentProvider>
+        </div>
     );
 }
 
 function PartnerCard({ profile }) {
-    const accent = profile.theme_accent || '#dc143c';
     const tags = profile.service_tags || [];
     const pills = tags.slice(0, 3);
     if (tags.length > 3) pills.push(`+${tags.length - 3}`);
@@ -167,16 +110,14 @@ function PartnerCard({ profile }) {
         <AccentCard
             LinkComponent={Link}
             href={route('partners.hub', profile.slug)}
-            accent={accent}
+            accent={profile.theme_accent || '#dc143c'}
             artwork={profile.logo_url ? { src: profile.logo_url, alt: profile.display_name } : undefined}
             status={profile.verification_status === 'verified' ? 'Verified' : undefined}
             eyebrow={profile.partner_type_label}
             title={profile.display_name}
             desc={profile.tagline}
             pills={pills}
-            meta={[
-                { label: 'Listings', value: profile.listings_count },
-            ]}
+            meta={[{ label: 'Listings', value: profile.listings_count }]}
             cta={{ label: 'Visit hub' }}
         />
     );

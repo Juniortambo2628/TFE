@@ -11,19 +11,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Landing page v2 (/v2) and the audience walkthroughs (/for-fans,
+ * The landing page (/) and the audience walkthroughs (/for-fans,
  * /for-partners, /for-schools) — UX review, 2 Nov 2026, Track C.
  */
 class LandingV2Test extends TestCase
 {
     use RefreshDatabase;
-
-    /** The /v2 preview, as it was during the comparison: the v1 fallback now. DesignSwitchTest covers v2 at /. */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        config(['app.design' => 'v1']);
-    }
 
     private function publicPartner(string $type, string $verification = 'verified'): User
     {
@@ -41,13 +34,13 @@ class LandingV2Test extends TestCase
         return $user;
     }
 
-    public function test_v2_renders_its_copy_and_stays_out_of_search_results(): void
+    public function test_the_landing_page_renders_its_copy_and_can_be_indexed(): void
     {
-        $res = $this->get(route('home.v2'))->assertOk();
+        $res = $this->get(route('index'))->assertOk();
 
-        $this->assertStringContainsString('noindex', (string) $res->headers->get('X-Robots-Tag'));
+        $this->assertNull($res->headers->get('X-Robots-Tag'));
         $page = $res->viewData('page');
-        $this->assertSame('HomeV2', $page['component']);
+        $this->assertSame('Home', $page['component']);
         $this->assertSame(config('landing_v2.hero.title'), $page['props']['content']['hero']['title']);
         // Walkthrough copy has its own pages; v2 does not ship it.
         $this->assertArrayNotHasKey('walkthroughs', $page['props']['content']);
@@ -79,7 +72,7 @@ class LandingV2Test extends TestCase
             'stage' => 'Final',
         ]);
 
-        $facts = $this->get(route('home.v2'))->viewData('page')['props']['facts'];
+        $facts = $this->get(route('index'))->viewData('page')['props']['facts'];
 
         $this->assertSame(2, $facts['matches'], 'Only the active tournament\'s matches.');
         $this->assertSame(1, $facts['partners'], 'Only verified, public partners.');
@@ -89,7 +82,7 @@ class LandingV2Test extends TestCase
     {
         Fixture::query()->delete();
 
-        $facts = $this->get(route('home.v2'))->viewData('page')['props']['facts'];
+        $facts = $this->get(route('index'))->viewData('page')['props']['facts'];
 
         $this->assertArrayNotHasKey('matches', $facts);
     }
@@ -101,7 +94,7 @@ class LandingV2Test extends TestCase
         $hidden = User::factory()->partner()->create(['partner_type' => 'airline']);
         PartnerProfile::create(['user_id' => $hidden->id, 'display_name' => 'Hidden', 'is_public' => false]);
 
-        $props = $this->get(route('home.v2'))->viewData('page')['props'];
+        $props = $this->get(route('index'))->viewData('page')['props'];
 
         // The directory lists unverified public partners too, so the chip
         // that links to it counts the same rows.
@@ -118,7 +111,7 @@ class LandingV2Test extends TestCase
         SiteSetting::set('landing_v2_explorer.areas.0.action', 'link://evil.example', 'text', 'landing_v2');
         SiteSetting::set('landing_v2_closing.title', '   ', 'text', 'landing_v2'); // blank = default
 
-        $content = $this->get(route('home.v2'))->viewData('page')['props']['content'];
+        $content = $this->get(route('index'))->viewData('page')['props']['content'];
 
         $this->assertSame('Your trip, sorted.', $content['hero']['title']);
         $this->assertSame('Edited answer.', $content['faq']['items'][0]['a']);
@@ -136,7 +129,7 @@ class LandingV2Test extends TestCase
             $this->assertSame('Walkthrough', $page['component']);
             $this->assertSame(config("landing_v2.walkthroughs.{$audience}.headline"), $page['props']['page']['headline']);
             $this->assertNotEmpty($page['props']['page']['chapters']);
-            $this->assertStringContainsString('noindex', (string) $res->headers->get('X-Robots-Tag'));
+            $this->assertNull($res->headers->get('X-Robots-Tag'));
         }
 
         $this->get('/for-nobody')->assertNotFound();

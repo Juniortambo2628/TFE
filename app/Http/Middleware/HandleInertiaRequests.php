@@ -119,9 +119,6 @@ class HandleInertiaRequests extends Middleware
                 ->lookup($tournamentId ?: $tournamentService->resolveFromRequest($request)),
             // Web push (Nov 2026): the VAPID public key a browser subscribes
             // with. Null when push is not configured, so the toggle hides.
-            // 'v2' since the switch (config app.design): the dashboard and
-            // the public pages read this rather than a per-person flag.
-            'design' => config('app.design', 'v2'),
             'webPushKey' => fn () => $request->user() && app(WebPushService::class)->enabled()
                 ? config('webpush.public_key') : null,
             'flash' => [

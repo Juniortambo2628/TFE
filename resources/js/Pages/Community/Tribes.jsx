@@ -1,35 +1,41 @@
 import React from 'react';
-import SectionPageShell from '@/Components/Landing/SectionPageShell';
+import { usePage } from '@inertiajs/react';
+import V2PageShell from '@/Components/Landing/V2/V2PageShell';
+import V2PageHero from '@/Components/Landing/V2/V2PageHero';
+import { V2Section, closingProps } from '@/Components/Landing/V2/V2Blocks';
 import { PublicPostCard, TribeCard } from '@/Components/Landing/CommunityCards';
 
-/** Public tribe directory (Sprint 70). Joining asks for an account. */
+/** /v2/tribes: the same public directory as /tribes. Joining asks for an account. */
 export default function Tribes({ hero, tribes = [], posts = [] }) {
-    return (
-        <SectionPageShell title="Tribes" hero={hero}>
-            <section className="landing-community">
-                <div className="container">
-                    {tribes.length === 0 ? (
-                        <div className="tfe-empty">
-                            <div className="tfe-empty__icon"><i className="fas fa-layer-group" aria-hidden="true"></i></div>
-                            <div className="tfe-empty__title">No tribes yet</div>
-                            <div className="tfe-empty__body">Sign up and start the first one for this tournament.</div>
-                        </div>
-                    ) : (
-                        <div className="community-tribe-grid">
-                            {tribes.map((t) => <TribeCard key={t.slug} tribe={t} />)}
-                        </div>
-                    )}
+    const { v2Pages, tournament } = usePage().props;
+    const sections = [{ id: 'tribes', label: 'Tribes' }, ...(posts.length ? [{ id: 'posts', label: 'Latest from fans' }] : [])];
 
-                    {posts.length > 0 && (
-                        <>
-                            <h2 className="landing-community__title community-section-title">Latest from fans</h2>
-                            <div className="community-grid__posts community-grid__posts--wide">
-                                {posts.map((p) => <PublicPostCard key={p.id} post={p} />)}
-                            </div>
-                        </>
-                    )}
-                </div>
-            </section>
-        </SectionPageShell>
+    return (
+        <V2PageShell
+            title="Tribes"
+            hero={<V2PageHero crumbs={[{ label: 'Tribes' }]} eyebrow={hero.eyebrow} title={hero.title} tagline={hero.tagline} background={hero.background} />}
+            sections={sections}
+            closing={closingProps(v2Pages.tribes.closing, { primary: { action: 'route:register' }, secondary: { action: 'planner' }, tournamentId: tournament?.id })}
+        >
+            <V2Section id="tribes" eyebrow="Tribes" title={`${tribes.length} ${tribes.length === 1 ? 'tribe' : 'tribes'} to join`}>
+                {tribes.length === 0 ? (
+                    <div className="tfe-empty">
+                        <div className="tfe-empty__icon"><i className="fas fa-layer-group" aria-hidden="true"></i></div>
+                        <div className="tfe-empty__title">No tribes yet</div>
+                        <div className="tfe-empty__body">Sign up and start the first one for this tournament.</div>
+                    </div>
+                ) : (
+                    <div className="community-tribe-grid landing-community">{tribes.map((t) => <TribeCard key={t.slug} tribe={t} />)}</div>
+                )}
+            </V2Section>
+
+            {posts.length > 0 && (
+                <V2Section id="posts" eyebrow="Community" title="Latest from fans" tinted>
+                    <div className="community-grid__posts community-grid__posts--wide landing-community">
+                        {posts.map((p) => <PublicPostCard key={p.id} post={p} />)}
+                    </div>
+                </V2Section>
+            )}
+        </V2PageShell>
     );
 }

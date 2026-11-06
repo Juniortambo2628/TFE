@@ -15,7 +15,6 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BudgetApiController;
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CommunityController;
-use App\Http\Controllers\DashboardVersionController;
 use App\Http\Controllers\Fan\ActivityController;
 use App\Http\Controllers\Fan\AdController;
 use App\Http\Controllers\Fan\BankSavingsController;
@@ -58,47 +57,30 @@ use App\Http\Controllers\SandboxBankController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TripPlannerController;
-use App\Http\Middleware\PublicDesign;
-use App\Http\Middleware\V2PublicPages;
+use App\Http\Middleware\PublicPageCopy;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
-// Landing page v2 and its audience walkthroughs (UX review, 2 Nov 2026,
-// Track C). Since the switch to v2 (config app.design) `/` serves it and
-// /v2 redirects there.
+// The comparison-period addresses (/v2 and /v2/...) redirect permanently to
+// the plain pages, query kept, so links shared while the tester group
+// compared the two designs keep working.
+Route::get('/v2/{path?}', function (Request $request, ?string $path = null) {
+    $query = $request->getQueryString();
 
-Route::get('/v2', [HomeController::class, 'homeV2'])->name('home.v2');
+    return redirect('/'.ltrim((string) $path, '/').($query ? "?{$query}" : ''), 301);
+})->where('path', '.*')->name('v2.redirect');
+
 Route::get('/for-{audience}', [HomeController::class, 'walkthrough'])
     ->where('audience', 'fans|partners|schools')
     ->name('walkthrough');
-
-// The v2 twins of the public pages (UX review, Nov 2026): the same
-// controller actions under /v2, rendering the V2/ pages, noindex. See
-// App\Http\Middleware\V2PublicPages.
-Route::prefix('v2')->name('v2.')->middleware(V2PublicPages::class)->group(function () {
-    Route::get('/about', [HomeController::class, 'about'])->name('about');
-    Route::get('/features', [HomeController::class, 'features'])->name('features');
-    Route::get('/services', [HomeController::class, 'services'])->name('services');
-    Route::get('/news', [HomeController::class, 'news'])->name('news');
-    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-    Route::get('/tournaments/{slug}', [HomeController::class, 'tournament'])->name('tournaments.show');
-    Route::get('/tribes', [CommunityController::class, 'index'])->name('community.tribes');
-    Route::get('/tribes/{slug}', [CommunityController::class, 'show'])->name('community.tribes.show');
-    Route::get('/partners', [PartnerHubController::class, 'index'])->name('partners.index');
-    Route::get('/partners/{slug}', [PartnerHubController::class, 'show'])->name('partners.hub');
-    Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index');
-    Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
-    Route::middleware(PublicDesign::class)->group(function () {
-        Route::get('/listings/{listing}', [ListingShowController::class, 'show'])->name('listings.show');
-    });
-});
 
 // News JSON API — consumed by the News section via the Ziggy route name
 // (name kept as news.index so `route('news.index')` still resolves). Path
 // moved under /api so the public /news page below can own the /news URL.
 Route::get('/api/news', [NewsController::class, 'index'])->name('news.index');
 
-Route::middleware(PublicDesign::class)->group(function () {
+Route::middleware(PublicPageCopy::class)->group(function () {
     // Public section pages — each mirrors the landing structure (header + the
     // section + footer) so the landing page stays light. Nav links point here.
     Route::get('/about', [HomeController::class, 'about'])->name('about');
@@ -142,11 +124,6 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('push')->name('push.')->gro
     Route::get('/latest', [PushSubscriptionController::class, 'latest'])->name('latest');
 });
 
-// "Try the new dashboard" (UX review, Nov 2026): every role, one switch.
-Route::post('/account/dashboard-version', [DashboardVersionController::class, 'update'])
-    ->middleware('auth')
-    ->name('account.dashboard-version');
-
 Route::get('/dashboard', function () {
     return DashboardHelper::redirectByRole();
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -179,8 +156,10 @@ Route::post('/client-errors', [ClientErrorController::class, 'store'])
 // browsing a partner's hub was bounced to login the moment they clicked a
 // package — before they had seen what was on offer. Signed-in fans still get
 // the richer `fan.packages.show` (fixtures, seat map, itinerary map).
-Route::get('/listings/{listing}', [ListingShowController::class, 'show'])
-    ->name('listings.show');
+Route::middleware(PublicPageCopy::class)->group(function () {
+    Route::get('/listings/{listing}', [ListingShowController::class, 'show'])
+        ->name('listings.show');
+});
 
 // Public "Plan my trip" dialog (Sprint 64). An estimate without an account,
 // then the estimate itself carries the visitor through sign-in to a booking
