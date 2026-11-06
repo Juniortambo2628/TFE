@@ -2,7 +2,6 @@ import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import { formatMoney } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 
@@ -22,9 +21,6 @@ export default function Activities({ auth, activities }) {
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 />
 
-                <div className="mb-4 px-4">
-                    <AdPlaceholder position="horizontal" />
-                </div>
 
                 <div className="px-4 pb-5">
                     <div className="content-card">

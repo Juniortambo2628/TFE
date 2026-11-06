@@ -126,3 +126,19 @@ test('old /v2 addresses land on the plain pages, which are v2 and indexable', as
     }
     expect(errors).toEqual([]);
 });
+
+// UX plan (Nov 2026): on a phone a ticket's price and Buy are on the first
+// screen, clear of the tab bar; and only the current tab is highlighted.
+test('ticket price and Buy are on the first screen on a phone', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'phone', 'phone layout');
+    await signIn(page, FAN.phone);
+    await page.goto('/fan/tickets');
+    const buy = page.locator('.ticket-card').first().getByRole('button', { name: /Buy tickets/ });
+    const box = await buy.boundingBox();
+    const bar = await page.locator('.tfe-tabbar--dashboard').boundingBox();
+    expect(box.y + box.height).toBeLessThanOrEqual(bar.y);
+
+    // The primary tab (Plan) is an outline here, not a second filled highlight.
+    const planIcon = page.locator('.tfe-tabbar--dashboard .tfe-tabbar__item--primary i');
+    expect(await planIcon.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+});

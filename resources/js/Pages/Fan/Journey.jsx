@@ -2,7 +2,6 @@ import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
 import WeatherCard from '@/Components/Fan/WeatherCard';
@@ -66,10 +65,6 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 />
 
-                {/* Ad Placeholder Top */}
-                <div className="mb-4">
-                    <AdPlaceholder position="horizontal" />
-                </div>
 
                 {/* Sprint 40 polish — migrated to .tfe-tile so the Journey
                     summary row matches every other dashboard's stat row. The

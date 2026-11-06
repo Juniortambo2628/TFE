@@ -683,6 +683,17 @@ tests pin `app.design = v1`.
   while it is hovered or focused. On phones the stadium strip replaces
   "See how it works" on the first screen.
 
+### UX plan, PRs D + E (Nov 2026)
+
+- **One highlight in the tab bar**: the primary tab (Plan / Plan a trip) is
+  an accent OUTLINE; only the lens means "you are here", and the primary
+  icon fills only when it is the current page.
+- **Ticket cards on phones**: shorter photo, price + Buy straight under the
+  teams (CSS `order`), side by side.
+- **No placeholder ads**: `AdPlaceholder` is deleted. Real ads are Admin →
+  Ads, rendered in the feed by `AdPostCard`; a page must never draw a
+  stand-in. `tests/JS/noPlaceholderAds.test.mjs` scans for one.
+
 ### Landing page v2 + walkthroughs (UX round, Nov 2026)
 
 From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,

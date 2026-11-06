@@ -2,7 +2,6 @@ import { assetPath } from '@/lib/assets';
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, useForm, router, Link } from '@inertiajs/react';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { formatMoney, formatNumber } from '@/lib/utils';
@@ -37,10 +36,6 @@ export default function PredictWin({ auth, upcomingMatches, userStats, leaderboa
                 bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
             />
 
-            {/* Ad Placeholder */}
-            <div className="mb-4">
-                <AdPlaceholder position="horizontal" />
-            </div>
 
             <SummaryTiles
                 items={[

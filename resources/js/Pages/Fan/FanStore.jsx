@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Head, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import { formatMoney } from '@/lib/utils';
@@ -44,10 +43,6 @@ export default function FanStore({ auth, products, categories }) {
                 bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
             />
 
-            {/* Ad Placeholder */}
-            <div className="mb-4">
-                <AdPlaceholder position="horizontal" />
-            </div>
 
             <SummaryTiles
                 items={[

@@ -15,7 +15,6 @@ import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import HorizontalCardSection from '@/Components/Common/HorizontalCardSection';
 import LandingCard from '@/Components/Common/LandingCard';
 import LandingModal from '@/Components/Common/LandingModal';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import PrivacyConsent from '@/Components/Common/PrivacyConsent';
 import { TournamentProvider } from '@/Context/TournamentContext';
 
@@ -103,10 +102,6 @@ export default function Home({ appName, venueBowls = [], featuredPackages, commu
                     shortest path from arriving to paying. */}
                 <FeaturedPackages packages={featuredPackages} tournamentName={tournament?.short_name} />
 
-                {/* Top Ad Space */}
-                <div className="container my-5">
-                    <AdPlaceholder position="horizontal" />
-              </div>
 
                 {/* About / Features / Services / News / Contact now live on their
                     own routes (linked from the nav) to keep the landing light. */}
@@ -138,10 +133,6 @@ export default function Home({ appName, venueBowls = [], featuredPackages, commu
                     ))}
               </HorizontalCardSection>
 
-                {/* Middle Ad Space */}
-                <div className="container my-5">
-                    <AdPlaceholder position="horizontal" />
-              </div>
 
                 {/* Public posts + tribes, refreshed once a minute (Sprint 70). */}
                 <CommunityPreview preview={communityPreview} />
@@ -149,10 +140,6 @@ export default function Home({ appName, venueBowls = [], featuredPackages, commu
                 <Testimonials />
                 <PartnerCarousel />
 
-                {/* Bottom Ad Space */}
-                <div className="container mt-5 mb-0">
-                    <AdPlaceholder position="horizontal" />
-              </div>
 
                 <Footer />
           </div>
