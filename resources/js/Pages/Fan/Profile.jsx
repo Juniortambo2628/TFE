@@ -1,4 +1,5 @@
 import TextAlertsCard from '@/Components/Fan/TextAlertsCard';
+import PushAlertsCard from '@/Components/Common/PushAlertsCard';
 import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { usePage, router, Link, useForm } from '@inertiajs/react';
@@ -580,6 +581,7 @@ export default function Profile({
                     buried the Save button under two more cards. */}
                 {isOwnProfile && <div className="tfe-card-grid tfe-card-grid--2 profile-community-grid">{community}</div>}
 
+                {isOwnProfile && <PushAlertsCard />}
                 {isOwnProfile && <TextAlertsCard contact={textAlerts} />}
 
                 <TeamPickerDialog

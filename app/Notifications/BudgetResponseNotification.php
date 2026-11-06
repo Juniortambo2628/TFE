@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Budget;
 use App\Notifications\Channels\SmsChannel;
+use App\Notifications\Channels\WebPushChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -27,7 +28,7 @@ class BudgetResponseNotification extends Notification implements ShouldQueue
         // Sprint 35 — broadcast alongside database so the bell updates
         // live when Reverb is reachable; no-op with BROADCAST_CONNECTION=log.
         // Sprint 66 — and a text, for fans who opted in with a verified number.
-        return ['database', 'broadcast', SmsChannel::class];
+        return ['database', 'broadcast', WebPushChannel::class, SmsChannel::class];
     }
 
     public function toSms(object $notifiable): string

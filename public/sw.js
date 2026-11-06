@@ -17,7 +17,7 @@
  * Bump VERSION when this file's caching rules change; old caches are
  * deleted on activate.
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `tfe-shell-${VERSION}`;
 const ASSETS = `tfe-assets-${VERSION}`;
 const IMAGES = `tfe-images-${VERSION}`;
@@ -100,3 +100,51 @@ async function trim(cache, limit) {
     const keys = await cache.keys();
     for (let i = 0; i < keys.length - limit; i += 1) await cache.delete(keys[i]);
 }
+
+/*
+ * Web push (Nov 2026). Pushes arrive EMPTY (App\Services\WebPushService):
+ * the worker asks TFE, over the person's own session, for their newest
+ * unread notification and shows that. Signed out, or nothing unread, it
+ * shows a generic line: browsers require a visible notification for every
+ * push, and a silent one gets the subscription revoked.
+ */
+self.addEventListener('push', (event) => {
+    event.waitUntil((async () => {
+        let n = null;
+        try {
+            const res = await fetch('/push/latest', {
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json' },
+                cache: 'no-store',
+            });
+            if (res.ok) n = (await res.json()).notification;
+        } catch (e) { /* offline: fall through to the generic line */ }
+
+        const title = n?.title || 'The Football Experience';
+        await self.registration.showNotification(title, {
+            body: n?.body || 'You have a new update on your trip.',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/favicon-32.png',
+            tag: n?.id || 'tfe-update',
+            data: { url: n?.url || '/' },
+        });
+        if (n?.unread && self.navigator?.setAppBadge) {
+            self.navigator.setAppBadge(n.unread).catch(() => {});
+        }
+    })());
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const target = new URL(event.notification.data?.url || '/', self.location.origin);
+    if (target.origin !== self.location.origin) return;
+    event.waitUntil((async () => {
+        const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        const tab = open.find((c) => new URL(c.url).origin === self.location.origin);
+        if (tab) {
+            await tab.focus();
+            return tab.navigate(target.href);
+        }
+        return self.clients.openWindow(target.href);
+    })());
+});
