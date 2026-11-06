@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import FanLayout from '@/Layouts/FanLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import '../../../css/fan/tribes.css';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
@@ -95,7 +94,6 @@ export default function Tribes({ tribes, stats, activeScope = 'this_and_cross', 
                 </button>
             </DashboardHero>
 
-            <AdPlaceholder position="horizontal" className="mb-4" />
 
             <SummaryTiles
                 className="mb-4"

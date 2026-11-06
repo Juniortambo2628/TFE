@@ -155,13 +155,24 @@
         width: 40px;
         height: 28px;
         border-radius: 999px;
-        background: var(--tfe-tabbar-accent, #dc143c);
-        box-shadow: 0 6px 16px -4px var(--tfe-tabbar-accent, #dc143c), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        color: #fff;
+        /* An outline, not a filled pill (UX plan, Nov 2026): a filled red pill
+           beside the lens read as a second "you are here". Only the lens means
+           that; the accent ring just says "this is the main action". */
+        background: transparent;
+        box-shadow: inset 0 0 0 1.5px var(--tfe-tabbar-accent, #dc143c);
+        color: var(--tfe-tabbar-accent, #dc143c);
         font-size: 0.9rem;
     }
 
     .tfe-tabbar__item--primary {
+        color: #fff;
+    }
+
+    /* On its own page it is simply the current tab: the lens shows that, and
+       the icon fills to match. */
+    .tfe-tabbar__item--primary[aria-current='page'] i {
+        background: var(--tfe-tabbar-accent, #dc143c);
+        box-shadow: none;
         color: #fff;
     }
 

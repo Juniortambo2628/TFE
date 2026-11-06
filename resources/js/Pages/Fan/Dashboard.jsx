@@ -5,7 +5,6 @@ import { useTournament } from '@/Context/TournamentContext';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
 import FanFooter from '@/Components/Fan/FanFooter';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import FanTutorial from '@/Components/Fan/FanTutorial';
 import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
@@ -183,9 +182,6 @@ export default function Dashboard({ auth, nextAction = null, activeBudget, activ
                                 ] : []),
                             ]}
                         />
-                        <div className="tfe-slab__body" style={{ paddingTop: 0 }}>
-                            <AdPlaceholder position="vertical" />
-                        </div>
                     </ContentCard>
 
                     {/* Recent Activity */}
@@ -255,10 +251,6 @@ export default function Dashboard({ auth, nextAction = null, activeBudget, activ
                     </ContentCard>
                 </div>
 
-                {/* Horizontal Ad Placeholder */}
-                <div className="mt-5 mb-4">
-                    <AdPlaceholder position="horizontal" />
-                </div>
 
                 {/* Partners Carousel */}
                 <PartnerCarousel />

@@ -3,7 +3,6 @@ import FanLayout from '@/Layouts/FanLayout';
 import { Head, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import '../../../css/fan/fan-pages.css';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import useUndoableRemoval from '@/hooks/useUndoableRemoval';
@@ -76,10 +75,6 @@ export default function Events({ auth, events, userRsvps = [] }) {
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 />
 
-                {/* Ad Placeholder */}
-                <div className="mb-4">
-                    <AdPlaceholder position="horizontal" />
-                </div>
 
                 <SummaryTiles
                     className="mb-5"

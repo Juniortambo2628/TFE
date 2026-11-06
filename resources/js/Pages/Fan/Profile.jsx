@@ -5,7 +5,6 @@ import FanLayout from '@/Layouts/FanLayout';
 import { usePage, router, Link, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import '../../../css/fan/profile.css';
-import AdPlaceholder from '@/Components/Common/AdPlaceholder';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import TfeModal from '@/Components/Common/TfeModal';
 import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
@@ -335,9 +334,6 @@ export default function Profile({
                     bgImage="/assets/img/fan/backgrounds/gaming_hero.png"
                 />
 
-                <div className="mb-4">
-                    <AdPlaceholder position="horizontal" />
-                </div>
 
                 <SplitEditorLayout previewTitle={isOwnProfile ? 'Live preview' : 'Profile'} preview={identity}>
                     {isOwnProfile ? (
