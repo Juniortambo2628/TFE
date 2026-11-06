@@ -15,6 +15,7 @@ import {
 import { useActiveNav } from '@/Layouts/DashboardV2';
 import { assetPath } from '@/lib/assets';
 import { activeMenuItem, dashboardTabs } from '@/lib/dashboardTabs';
+import { sectionCounts } from '@/lib/activityCounts';
 import TabBar from '@/Components/Common/TabBar';
 
 /**
@@ -36,7 +37,10 @@ function AppSidebarV2({ roleLabel = 'Member', menuItems = [], tabs = [] }) {
     const { url } = usePage();
     const { isMobile, openMobile, setOpenMobile } = useSidebar();
     const { setItem } = useActiveNav();
-    const badges = usePage().props.auth?.activityBadges || {};
+    // Activity counts per page; the Messages row adds unread messages so it
+    // reads the same as the header's envelope (lib/activityCounts).
+    const { auth } = usePage().props;
+    const badges = sectionCounts(auth?.activityBadges || {}, auth?.unreadMessagesCount || 0);
 
     const groups = useMemo(() => {
         const out = [{ heading: null, items: [] }];
@@ -113,9 +117,9 @@ function AppSidebarV2({ roleLabel = 'Member', menuItems = [], tabs = [] }) {
                                                 >
                                                     <i className={item.icon} aria-hidden="true" />
                                                     <span>{item.label}</span>
-                                                    {badge > 0
-                                                        ? <ActivityBadge count={badge} label={item.label} />
-                                                        : isActive && <span className="tfe-dv2-nav__dot" aria-hidden="true" />}
+                                                    {/* Red means "new" and nothing else: the light pill
+                                                        already marks the current page, so no dot. */}
+                                                    {badge > 0 && <ActivityBadge count={badge} label={item.label} />}
                                                 </Link>
                                             </li>
                                         );

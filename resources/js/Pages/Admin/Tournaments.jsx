@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ListingGrid from '@/Components/Common/ListingGrid';
 import { Link, router, usePage } from '@inertiajs/react';
+import { statusLabel } from '@/lib/utils';
 
 /**
  * Admin → Tournaments.
@@ -142,7 +143,7 @@ export default function Tournaments({ tournaments = [], activeTournament }) {
                                             <span className="tfe-pill tfe-pill--approved ms-2">Featured</span>
                                         )}
                                     </td>
-                                    <td><span className="tfe-pill tfe-pill--concluded">{t.status}</span></td>
+                                    <td><span className="tfe-pill tfe-pill--concluded">{statusLabel(t.status)}</span></td>
                                     <td>{(t.hosts || []).join(', ') || '—'}</td>
                                     <td>{t.venue_count}</td>
                                     <td>{t.override_count || '—'}</td>

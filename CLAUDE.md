@@ -704,6 +704,26 @@ links to them were shared with testers.
   Ads, rendered in the feed by `AdPostCard`; a page must never draw a
   stand-in. `tests/JS/noPlaceholderAds.test.mjs` scans for one.
 
+### UX plan, PRs F + G (Nov 2026)
+
+- **One meaning per count**: the header envelope and the sidebar's Messages
+  row both show what is waiting on the Messages page (unread messages +
+  new announcements), via `lib/activityCounts` (`sectionCounts`,
+  `messagesCount`, `MESSAGES_ROUTE`). Before, the envelope counted messages
+  and the row counted announcements.
+- **No active-item dot** in the sidebar: red means "new" only; the light
+  pill marks the current page.
+- **Status pills** print through `statusLabel()` (`lib/utils`): sentence
+  case, underscores as spaces. Never `toUpperCase()` a status.
+- **Next step everywhere**: `App\Support\NextStep::forFan()` is the ONE
+  next-step rule (pay → accept → waiting → plan). The fan dashboard leads
+  with it, and `HandleInertiaRequests` shares it as `nextStep` on `fan.*`
+  routes for the side panel, which opens by default from 1440px.
+- **Bottom clearance**: `--tfe-bottom-clearance` on `.tfe-dv2` (toolbar on
+  desktop; tab bar + toolbar on phones) pads `.tfe-dv2__page`; no page
+  pads for the bars itself. Guarded in `dashboard-v2.spec.js` (tests that
+  scroll wait for `tfeLoaderFinished` first).
+
 ### Landing page v2 + walkthroughs (UX round, Nov 2026)
 
 From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,

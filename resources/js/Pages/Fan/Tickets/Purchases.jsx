@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney, formatKickoff } from '@/lib/utils';
+import { formatMoney, formatKickoff, statusLabel } from '@/lib/utils';
 import '../../../../css/fan/fan-pages.css';
 import '../../../../css/tickets.css';
 
@@ -37,7 +37,7 @@ export default function TicketsPurchases({ auth, purchases = [] }) {
                     {purchases.map((p) => (
                         <article key={p.id} className="ticket-stub">
                             <div className="ticket-stub__band">
-                                <span className="tfe-pill tfe-pill--approved">{p.status}</span>
+                                <span className="tfe-pill tfe-pill--approved">{statusLabel(p.status)}</span>
                                 <span className="ticket-stub__ref">Ref {p.reference}</span>
                             </div>
                             <div className="ticket-stub__body">

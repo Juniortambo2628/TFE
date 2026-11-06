@@ -2,7 +2,7 @@ import React from 'react';
 import { Head } from '@inertiajs/react';
 import PartnerLayout from '@/Layouts/PartnerLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
-import { formatMoney, formatDateTime } from '@/lib/utils';
+import { formatMoney, formatDateTime, statusLabel } from '@/lib/utils';
 import '../../../css/tickets.css';
 
 const AT = (s) => formatDateTime(s);
@@ -56,7 +56,7 @@ export default function TicketSales({ auth, sales = [] }) {
                                         <td>{s.quantity}</td>
                                         <td>{formatMoney(s.total, s.currency)}</td>
                                         <td style={{ textTransform: 'capitalize' }}>{(s.paid_with || 'card').replace('_', ' ')}</td>
-                                        <td><span className="tfe-pill tfe-pill--approved">{s.status}</span></td>
+                                        <td><span className="tfe-pill tfe-pill--approved">{statusLabel(s.status)}</span></td>
                                         <td style={{ fontSize: '0.75rem' }}>{AT(s.created_at)}</td>
                                     </tr>
                                 ))}

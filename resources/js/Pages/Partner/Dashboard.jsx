@@ -4,7 +4,7 @@ import { Link, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, statusLabel } from '@/lib/utils';
 import { useTournament } from '@/Context/TournamentContext';
 import MinorsBadge from '@/Components/Common/MinorsBadge';
 
@@ -218,7 +218,7 @@ function RequestRow({ req, isFinance = false, isTicketing = false }) {
             </td>
             <td><strong>{amount}</strong></td>
             <td>
-                <span className={`tfe-pill ${STATUS_PILL[req.status] || 'tfe-pill--info'}`}>{req.status}</span>
+                <span className={`tfe-pill ${STATUS_PILL[req.status] || 'tfe-pill--info'}`}>{statusLabel(req.status)}</span>
             </td>
         </tr>
     );
