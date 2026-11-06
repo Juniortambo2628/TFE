@@ -108,7 +108,10 @@ function DashboardHeroV2({ title, subtitle = '', breadcrumbs = [], actions = nul
 
     return (
         <div id={id} className="tfe-dv2-hero">
-            <nav className="tfe-dv2-hero__crumbs" aria-label="Breadcrumb">
+            {/* `is-top`: only "Dashboard › this page", which a phone hides
+                (the tab bar is the way home); deeper trails stay, they are
+                the way back. */}
+            <nav className={'tfe-dv2-hero__crumbs' + (trail.length <= 1 ? ' is-top' : '')} aria-label="Breadcrumb">
                 {isHome && trail.length === 0 ? (
                     <span aria-current="page">Dashboard</span>
                 ) : (

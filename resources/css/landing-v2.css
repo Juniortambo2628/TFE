@@ -159,13 +159,42 @@
     font-size: 0.82rem;
     font-weight: 600;
 }
+.v2-hero__venue { padding: 6px 6px 6px 14px; gap: 12px; }
+.v2-hero__venue-name { display: inline-flex; align-items: center; gap: 8px; margin: 0; min-width: 0; }
+.v2-hero__venue-name > span:first-of-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v2-hero__venue i { color: var(--v2-accent); }
+.v2-hero__venue-trip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    color: #0a0a0b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.v2-hero__venue-trip i { color: var(--v2-accent); }
+.v2-hero__venue-trip:hover { background: #f1f1f1; }
+.v2-hero__venue-trip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .v2-hero__venue-city { color: rgba(255, 255, 255, 0.6); font-weight: 500; }
 
 @media (max-width: 767.98px) {
     .v2-hero { padding: 132px 0 150px; }
     .v2-hero__ctas > .tfe-btn { flex: 1 1 100%; justify-content: center; }
-    .v2-hero__venue { left: 16px; right: auto; bottom: 108px; }
+    /* In the flow under the actions: pinned to the hero's bottom it met
+       either the buttons or the tab bar, depending on the screen height. */
+    .v2-hero { flex-direction: column; align-items: stretch; justify-content: flex-end; }
+    /* "See how it works" only scrolls to what is right below; on a phone the
+       stadium strip and its "Trip to {city}" take its place on the first screen. */
+    .v2-hero:has(.v2-hero__venue) .v2-hero__ctas > :nth-child(2) { display: none; }
+    .v2-hero__venue { position: relative; left: auto; right: auto; bottom: auto; display: flex; margin: 16px 16px 0; justify-content: space-between; }
+    /* The button names the city; the strip keeps just the stadium. */
+    .v2-hero__venue-city { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
     .v2-hero__slide { transition: none; }

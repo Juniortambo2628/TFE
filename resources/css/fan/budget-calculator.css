@@ -1608,3 +1608,7 @@ button.selection-card {
     color: rgba(255, 255, 255, 0.5);
 }
 .calc-save-summary__value { color: #fff; font-weight: 700; font-size: 1.2rem; }
+
+/* First plan: Quick plan is the way in (UX plan, Nov 2026). */
+.calc-start__title { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; color: #fff; }
+.calc-stats-hint { flex-basis: 100%; margin: 4px 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); }

@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/react';
 import { assetPath } from '@/lib/assets';
 import { preloadImage } from '@/Data/stadiumImages';
 import LandingAction from '@/Components/Landing/V2/LandingAction';
+import { openTripPlanner } from '@/lib/tripPlanner';
 
 const SLIDE_MS = 6500;
 
@@ -24,14 +25,17 @@ export default function V2Hero({ hero }) {
         [tournament?.id],
     );
     const [index, setIndex] = useState(0);
+    // Held while the pointer or focus is on the stadium's own button, so the
+    // city it names cannot change under the finger about to tap it.
+    const [paused, setPaused] = useState(false);
     const reduceMotion = typeof window !== 'undefined'
         && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
     useEffect(() => {
-        if (reduceMotion || slides.length < 2) return undefined;
+        if (reduceMotion || paused || slides.length < 2) return undefined;
         const t = setInterval(() => setIndex((i) => (i + 1) % slides.length), SLIDE_MS);
         return () => clearInterval(t);
-    }, [slides.length, reduceMotion]);
+    }, [slides.length, reduceMotion, paused]);
 
     // Warm the next slide so the cross-fade never shows a half-loaded image.
     useEffect(() => {
@@ -76,12 +80,33 @@ export default function V2Hero({ hero }) {
                 </div>
             </div>
 
+            {/* The stadium on screen, and a trip to it (UX review, 2 Nov 2026,
+                carried over from the v1 hero): "Trip to {city}" opens the
+                planner on that stadium's matches. */}
             {current && (
-                <p className="v2-hero__venue" aria-live="off">
-                    <i className="fas fa-location-dot" aria-hidden="true"></i>
-                    <span>{current.name}</span>
-                    {current.city && <span className="v2-hero__venue-city"> · {current.city}</span>}
-                </p>
+                <div
+                    className="v2-hero__venue"
+                    onPointerEnter={() => setPaused(true)}
+                    onPointerLeave={() => setPaused(false)}
+                    onFocus={() => setPaused(true)}
+                    onBlur={() => setPaused(false)}
+                >
+                    <p className="v2-hero__venue-name" aria-live="off">
+                        <i className="fas fa-location-dot" aria-hidden="true"></i>
+                        <span>{current.name}</span>
+                        {current.city && <span className="v2-hero__venue-city"> · {current.city}</span>}
+                    </p>
+                    {current.city && (
+                        <button
+                            type="button"
+                            className="v2-hero__venue-trip"
+                            onClick={() => openTripPlanner({ tournamentId: tournament?.id, venue: current.name })}
+                            aria-label={`Plan a trip to ${current.city} for a match at ${current.name}`}
+                        >
+                            <i className="fas fa-plane" aria-hidden="true"></i> Trip to {current.city}
+                        </button>
+                    )}
+                </div>
             )}
         </section>
     );

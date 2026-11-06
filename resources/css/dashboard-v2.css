@@ -546,3 +546,17 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
     /* With an action bar showing, the page toolbar moves up above both. */
     body:has(.tfe-mobile-actionbar) .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 84px); }
 }
+
+/* Page headings on a phone (UX plan, Nov 2026): the first screen is for the
+   page, not its title block. */
+@media (max-width: 767.98px) {
+    .tfe-dv2-hero { margin-bottom: 16px; }
+    .tfe-dv2-hero__crumbs.is-top { display: none; }
+    .tfe-dv2-hero__row { gap: 12px; }
+    .tfe-dv2 .tfe-dv2-hero__icon { width: 40px; height: 40px; border-radius: 12px; font-size: 1rem; }
+    .tfe-dv2-hero__title { font-size: 1.4rem; }
+    .tfe-dv2-hero__subtitle { font-size: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
+@media (max-width: 479.98px) {
+    .tfe-dv2-hero__subtitle { display: none; }
+}

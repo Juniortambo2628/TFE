@@ -39,3 +39,22 @@ for (const [path, selector] of [['/', '.v2-hero__inner .v2-eyebrow'], ['/partner
         expect(logo.height).toBeGreaterThanOrEqual(80);
     });
 }
+
+// Carried over from the v1 hero (UX review, 2 Nov 2026): "Trip to {city}"
+// names the stadium on screen and opens the planner on that stadium's matches.
+test('Trip to {city} opens the planner on the stadium on screen', async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.removeItem('tfe.planner.v1'); } catch {} });
+    await page.goto('/');
+    const venue = page.locator('.v2-hero__venue');
+    const trip = venue.getByRole('button', { name: /Plan a trip to/ });
+    await trip.hover(); // holds the carousel on this stadium
+    const stadium = (await venue.locator('.v2-hero__venue-name > span').first().textContent()).trim();
+    await expect(trip).toHaveText(/^\s*Trip to \S/);
+
+    await trip.click();
+    const filter = page.locator('.tfe-modal input[type=search]');
+    await expect(filter).toHaveValue(stadium);
+    const rows = page.locator('.tfe-modal label small');
+    await expect(rows.first()).toContainText(stadium);
+    for (const text of await rows.allTextContents()) expect(text).toContain(stadium);
+});

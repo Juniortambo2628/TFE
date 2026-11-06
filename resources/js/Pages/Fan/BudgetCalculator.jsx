@@ -93,6 +93,9 @@ export default function BudgetCalculator({
     // fast-path prepacked options before building custom. budgetToEdit
     // and the ?match= deep link skip past it (handled below).
     const [wizardStep, setWizardStep] = useState(0);
+    // A first plan starts from Quick plan; this opens the full wizard instead.
+    const [stepByStep, setStepByStep] = useState(false);
+    const [arrivedWithMatch] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('match'));
     
     // Filter State
     const [selectedStadiums, setSelectedStadiums] = useState([]);
@@ -704,6 +707,14 @@ export default function BudgetCalculator({
     };
 
 
+    const showStart = !stepByStep && !budgetToEdit && !plannerEstimate && !showResults
+        && !arrivedWithMatch && (savedBudgets || []).length === 0 && wizardStep === 0;
+
+    // Nothing is priced until there is something to price: a package, a
+    // match, a planner estimate or a saved plan. Before that the totals read
+    // "—" rather than "$0.00 · 7 days", which contradicted itself.
+    const hasPick = Boolean(selectedPackage || selectedMatchIds.length || plannerEstimate || budgetToEdit || showResults);
+
     return (
         <FanLayout title="Budget Calculator">
             <Head title="Budget Calculator" />
@@ -712,7 +723,7 @@ export default function BudgetCalculator({
                 
                 <DashboardHero role="fan" 
                     title="Smart Budget Calculator"
-                    subtitle={`Plan your ${tournament?.short_name || 'tournament'} journey with AI-powered cost estimates`}
+                    subtitle={`Plan your ${tournament?.short_name || 'tournament'} trip with instant cost estimates`}
                     bgImage="/assets/img/fan/backgrounds/finance_hero.png"
                     actions={
                         savedBudgets.length > 0 && (
@@ -790,7 +801,7 @@ export default function BudgetCalculator({
                     <div className="hero-stats dash-flex dash-gap-xl">
                         <div className="hero-stat-item">
                             <span className="stat-label">Estimated Cost</span>
-                            <span className="stat-value">{formatMoney(estimatedCost, currency)}</span>
+                            <span className="stat-value">{hasPick ? formatMoney(estimatedCost, currency) : '—'}</span>
                         </div>
                         <div className="hero-stat-item">
                             <span className="stat-label">Matches</span>
@@ -798,7 +809,7 @@ export default function BudgetCalculator({
                         </div>
                         <div className="hero-stat-item">
                             <span className="stat-label">Days</span>
-                            <span className="stat-value">{nights}</span>
+                            <span className="stat-value">{hasPick ? nights : '—'}</span>
                         </div>
                         <div className="hero-stat-item currency-picker">
                             <label htmlFor="calc-currency" className="stat-label">Currency</label>
@@ -832,12 +843,15 @@ export default function BudgetCalculator({
                             </select>
                         </div>
                     </div>
+                    {!hasPick && (
+                        <p className="calc-stats-hint">Pick a package or your matches to see your estimate.</p>
+                    )}
                 </DashboardHero>
 
                 {/* The short road (Sprint 65): the same three-step planner the
                     public site uses, for a fan who wants a number and a booking
                     rather than every lever below. Same engine, same result. */}
-                {!budgetToEdit && !showResults && !plannerEstimate && (
+                {!budgetToEdit && !showResults && !plannerEstimate && !showStart && (
                     <div className="tfe-slab mb-4">
                         <div className="tfe-slab__body d-flex flex-wrap align-items-center gap-3">
                             <div className="flex-grow-1">
@@ -875,6 +889,33 @@ export default function BudgetCalculator({
                     </div>
                 )}
 
+                {/* First plan (UX plan, Nov 2026): the three-question planner
+                    is the way in, the full wizard the alternative. Hidden, not
+                    unmounted, so choosing step by step keeps nothing waiting. */}
+                {showStart && (
+                    <div className="tfe-slab mb-4 calc-start">
+                        <div className="tfe-slab__body">
+                            <h2 className="calc-start__title">Get an estimate in three questions</h2>
+                            <p className="tfe-form-help mb-3">
+                                Where you fly from, how many of you, how long. You get a price and the partner packages that fit, and can book in one more tap.
+                            </p>
+                            <div className="d-flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    className="tfe-btn tfe-btn--filled"
+                                    onClick={() => openTripPlanner({ tournamentId: initialTournamentId || tournament?.id })}
+                                >
+                                    <i className="fas fa-bolt" aria-hidden="true"></i> Quick plan
+                                </button>
+                                <button type="button" className="tfe-btn" onClick={() => setStepByStep(true)}>
+                                    <i className="fas fa-list-ol" aria-hidden="true"></i> Build it step by step
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="calc-wizard" hidden={showStart}>
                 {/* Wizard progress. The package picker (step 0) is only
                     reachable when this tournament has packages, so it joins
                     the run conditionally and the cursor shifts with it —
@@ -1271,6 +1312,7 @@ export default function BudgetCalculator({
                     </Suspense>
                 )}
 
+                </div>
             </div>
 
             <MatchFilterDialog
