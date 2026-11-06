@@ -33,3 +33,21 @@ test('the Home crumb is always there and goes home', async ({ page }) => {
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Home' }).click();
     await page.waitForURL((u) => u.pathname === '/');
 });
+
+test('Back stays within reach after the page scrolls', async ({ page }) => {
+    await page.goto('/partners/serengeti-sports-travel');
+    // The first-visit intro splash holds the page still until it ends.
+    await page.waitForFunction(() => window.tfeLoaderFinished === true);
+    const float = page.locator('.tfe-backnav-float');
+    await expect(float).toHaveCount(0);
+
+    await page.evaluate(() => window.scrollTo(0, 1600));
+    await expect(float).toBeVisible();
+    await expect(float).toBeInViewport();
+    await float.click();
+    await page.waitForURL((u) => u.pathname === '/partners');
+
+    // Gone again with the trail back on screen.
+    await expect(page.locator('.tfe-backnav__back')).toBeVisible();
+    await expect(float).toHaveCount(0);
+});

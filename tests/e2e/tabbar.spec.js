@@ -15,26 +15,19 @@ test('public tab bar: labelled, working, and nothing hides under it', async ({ p
     }
 
     await expect(bar).toBeVisible();
-    for (const label of ['Plan a trip', 'My trips', 'Partners', 'Menu']) {
-        await expect(bar.getByText(label, { exact: true })).toBeVisible();
-    }
+    // A visitor (6 Nov 2026): Home, Partners, Plan a trip (centre, accent),
+    // Contact, Sign in — in that order.
+    await expect(bar.locator('.tfe-tabbar__item span')).toHaveText(['Home', 'Partners', 'Plan a trip', 'Contact', 'Sign in']);
+    await expect(bar.locator('.tfe-tabbar__item--primary')).toHaveText('Plan a trip');
+    await expect(bar.locator('a[aria-current="page"]')).toHaveText('Home');
+    await expect(bar.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', /\/login$/);
 
     // The hero (and its pinned tournament card) ends where the bar begins.
     const barBox = await bar.boundingBox();
     const hero = await page.locator('#hero').boundingBox();
     expect(hero.y + hero.height).toBeLessThanOrEqual(barBox.y + 2);
 
-    // Menu opens the site menu; Plan a trip opens the planner over the bar.
-    // Located by what it controls: its label flips to "Close" when open.
-    const menu = bar.locator('button[aria-controls="tfe-mobile-nav"]');
-    await expect(menu).toHaveText('Menu');
-    await menu.click();
-    await expect(page.locator('#tfe-mobile-nav')).toBeVisible();
-    await expect(menu).toHaveAttribute('aria-expanded', 'true');
-    await expect(menu).toHaveText('Close');
-    await menu.click();
-    await expect(menu).toHaveAttribute('aria-expanded', 'false');
-
+    // Plan a trip opens the planner over the bar.
     await bar.getByRole('button', { name: 'Plan a trip' }).click();
     await expect(page.locator('.tfe-modal')).toBeVisible();
     await page.keyboard.press('Escape');
@@ -43,6 +36,13 @@ test('public tab bar: labelled, working, and nothing hides under it', async ({ p
     await bar.getByRole('link', { name: 'Partners' }).click();
     await page.waitForURL('**/partners');
     await expect(page.locator('.tfe-tabbar a[aria-current="page"]')).toHaveText('Partners');
+
+    // It condenses to icons while scrolling down, and comes back on the way up.
+    await page.waitForFunction(() => window.tfeLoaderFinished === true);
+    for (const y of [300, 600, 900]) await page.evaluate((to) => window.scrollTo(0, to), y);
+    await expect(bar).toHaveClass(/is-compact/);
+    for (const y of [700, 500]) await page.evaluate((to) => window.scrollTo(0, to), y);
+    await expect(bar).not.toHaveClass(/is-compact/);
 
     expect(errors).toEqual([]);
 });

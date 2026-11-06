@@ -13,76 +13,121 @@
 }
 
 @media (max-width: 991.98px) {
+    /* The space the bar takes: its height, the gap under it, and the
+       home-indicator inset. It floats, so the page scrolls under it, but
+       the last line of a page must still clear it. */
     body:has(.tfe-tabbar) {
-        --tfe-tabbar-h: calc(64px + env(safe-area-inset-bottom, 0px));
+        --tfe-tabbar-h: calc(84px + env(safe-area-inset-bottom, 0px));
         padding-bottom: var(--tfe-tabbar-h);
     }
 
     /* Whatever the browser scrolls into view (a tabbed-to link, an anchor)
        stops above the bar, not under it. */
     html:has(.tfe-tabbar) {
-        scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 12px);
+        scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px) + 12px);
     }
 
+    /* ── Liquid glass (Nov 2026, after the iOS 26 / Instagram tab bar) ──
+       A floating pill inset from the edges; the page shows through it,
+       blurred and lifted, with a bright rim on top. */
     .tfe-tabbar {
         display: block;
         position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        left: 12px;
+        right: 12px;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        margin: 0 auto;
+        max-width: 520px;
         /* Above the header (1000) and docked StepFlow (1050); below the
            cookie banner (1070) and every dialog (1080), so the trip planner
            this bar opens covers it. */
         z-index: 1060;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        background: rgba(10, 10, 12, 0.92);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
+        border-radius: 999px;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02) 55%),
+            rgba(28, 28, 32, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.22),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+            0 18px 40px -12px rgba(0, 0, 0, 0.65),
+            0 2px 8px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(22px) saturate(180%);
+        -webkit-backdrop-filter: blur(22px) saturate(180%);
+        transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), max-width 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* No backdrop-filter (older Android WebViews): solid enough to read. */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .tfe-tabbar { background: rgba(20, 20, 24, 0.96); }
     }
 
     .tfe-tabbar__list {
+        position: relative;
         display: flex;
-        margin: 0 auto;
-        padding: 0 4px;
-        max-width: 640px;
+        margin: 0;
+        padding: 6px;
         list-style: none;
     }
 
-    .tfe-tabbar__list > li {
+    .tfe-tabbar__list > li:not(.tfe-tabbar__lens) {
+        position: relative;
+        z-index: 1;
         flex: 1 1 0;
         min-width: 0;
     }
 
+    /* The lens behind the current tab. Every tab is the same width, so its
+       place is just the tab's index over the count; it slides on change. */
+    .tfe-tabbar__lens {
+        position: absolute;
+        top: 6px;
+        bottom: 6px;
+        left: 6px;
+        width: calc((100% - 12px) / var(--tabbar-n, 5));
+        transform: translateX(calc(100% * var(--tabbar-i, 0)));
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 14px rgba(0, 0, 0, 0.25);
+        transition: transform 0.38s cubic-bezier(0.3, 1.25, 0.4, 1);
+        pointer-events: none;
+    }
+
     .tfe-tabbar__item {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3px;
         width: 100%;
-        height: 64px;
+        height: 58px;
         padding: 0 2px;
         border: 0;
+        border-radius: 999px;
         background: none;
-        color: rgba(255, 255, 255, 0.72);
-        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.74);
+        font-size: 0.66rem;
         font-weight: 600;
         line-height: 1.1;
         text-decoration: none;
         -webkit-tap-highlight-color: transparent;
-        transition: color 0.2s ease;
+        transition: color 0.2s ease, height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.15s ease;
     }
+
+    .tfe-tabbar__item:active { transform: scale(0.94); }
 
     .tfe-tabbar__item span {
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        transition: opacity 0.2s ease, max-height 0.32s ease;
+        max-height: 1.2em;
     }
 
     .tfe-tabbar__item i {
-        font-size: 1.15rem;
+        font-size: 1.12rem;
         line-height: 1;
     }
 
@@ -93,7 +138,6 @@
         color: #fff;
     }
 
-    .tfe-tabbar__item[aria-current='page'] i,
     .tfe-tabbar__item[aria-expanded='true'] i {
         color: var(--tfe-tabbar-accent, #dc143c);
     }
@@ -101,7 +145,6 @@
     .tfe-tabbar__item:focus-visible {
         outline: 2px solid rgba(255, 255, 255, 0.6);
         outline-offset: -4px;
-        border-radius: 12px;
     }
 
     /* The one action the whole platform is built around gets the accent. */
@@ -109,16 +152,29 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 26px;
+        width: 40px;
+        height: 28px;
         border-radius: 999px;
         background: var(--tfe-tabbar-accent, #dc143c);
+        box-shadow: 0 6px 16px -4px var(--tfe-tabbar-accent, #dc143c), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         color: #fff;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .tfe-tabbar__item--primary {
         color: #fff;
+    }
+
+    /* Condensed while the page scrolls down: icons only, a slimmer pill. */
+    .tfe-tabbar.is-compact { max-width: 360px; }
+    .tfe-tabbar.is-compact .tfe-tabbar__item { height: 44px; gap: 0; }
+    .tfe-tabbar.is-compact .tfe-tabbar__item span { opacity: 0; max-height: 0; }
+    .tfe-tabbar.is-compact .tfe-tabbar__item--primary i { height: 26px; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .tfe-tabbar,
+        .tfe-tabbar__lens,
+        .tfe-tabbar__item { transition: none; }
     }
 
     /* Everything else pinned to the bottom of a public page sits above the
