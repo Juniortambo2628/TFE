@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Booking;
 use App\Notifications\Channels\SmsChannel;
+use App\Notifications\Channels\WebPushChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -20,7 +21,7 @@ class BookingPaidNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', SmsChannel::class];
+        return ['database', WebPushChannel::class, SmsChannel::class];
     }
 
     public function toArray(object $notifiable): array

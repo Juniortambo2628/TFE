@@ -6,6 +6,7 @@ use App\Models\ContactMessage;
 use App\Models\SiteSetting;
 use App\Services\StadiumImageService;
 use App\Services\TournamentService;
+use App\Services\WebPushService;
 use App\Support\ActivityBadges;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -116,6 +117,10 @@ class HandleInertiaRequests extends Middleware
             // It is one short-TTL cache read of a ~60-key map.
             'stadiumImages' => fn () => app(StadiumImageService::class)
                 ->lookup($tournamentId ?: $tournamentService->resolveFromRequest($request)),
+            // Web push (Nov 2026): the VAPID public key a browser subscribes
+            // with. Null when push is not configured, so the toggle hides.
+            'webPushKey' => fn () => $request->user() && app(WebPushService::class)->enabled()
+                ? config('webpush.public_key') : null,
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

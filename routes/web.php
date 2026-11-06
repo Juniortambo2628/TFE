@@ -53,6 +53,7 @@ use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
 use App\Http\Controllers\Partner\TicketController as PartnerTicketController;
 use App\Http\Controllers\PartnerHubController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SandboxBankController;
 use App\Http\Controllers\SerpApiController;
 use App\Http\Controllers\TestimonialController;
@@ -126,6 +127,14 @@ Route::get('/learn', [LearningHubController::class, 'index'])->name('learn.index
 Route::get('/learn/{slug}', [LearningHubController::class, 'show'])->name('learn.show');
 Route::get('/news/{category}', [NewsController::class, 'index'])->name('news.category');
 Route::get('/news-categories', [NewsController::class, 'categories'])->name('news.categories');
+
+// Web push (Nov 2026): opt in / out from a browser, and what a push shows.
+// See App\Services\WebPushService for why pushes carry no payload.
+Route::middleware(['auth', 'throttle:30,1'])->prefix('push')->name('push.')->group(function () {
+    Route::post('/subscriptions', [PushSubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::delete('/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+    Route::get('/latest', [PushSubscriptionController::class, 'latest'])->name('latest');
+});
 
 // "Try the new dashboard" (UX review, Nov 2026): every role, one switch.
 Route::post('/account/dashboard-version', [DashboardVersionController::class, 'update'])

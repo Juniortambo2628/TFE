@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\LoanApplication;
+use App\Notifications\Channels\WebPushChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -28,7 +29,7 @@ class LoanStatusNotification extends Notification implements ShouldQueue
         // see CLAUDE.md). Broadcast is a no-op with
         // BROADCAST_CONNECTION=log so tests / local envs without
         // Reverb don't need any extra setup.
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', WebPushChannel::class];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

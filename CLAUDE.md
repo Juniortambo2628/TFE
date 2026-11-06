@@ -782,8 +782,18 @@ Phase 0 of `docs/proposals/mobile-app.md`. `public/manifest.webmanifest`
   prompted — and nothing in Chrome-on-iOS or in-app browsers, which cannot
   add to the home screen at all.
 - `?plan=1` opens the trip planner (the manifest's "Plan a trip" shortcut).
-- **Web push is NOT built yet**: it needs `laravel-notification-channels/webpush`,
-  VAPID keys in the production `.env` and a subscriptions table.
+- **Web push** (`WebPushService`, `WebPushChannel`, `push_subscriptions`):
+  pushes are **EMPTY** — only the VAPID signature (`Support/WebPush/Vapid`,
+  plain openssl, no package). The service worker answers a push by fetching
+  `push.latest` (newest unread, over the person's own session) and links
+  through `notifications.open`. No payload means no RFC 8291 encryption,
+  nothing about a fan's trip passing through Google/Apple/Mozilla, and a
+  signed-out device shows only a generic line. List the channel AFTER
+  `database` in `via()`. Off until `WEBPUSH_VAPID_*` are set
+  (`php artisan webpush:vapid`); changing the keys orphans every device.
+  Toggle: `PushAlertsCard` on the fan profile, per DEVICE. iPhone: only
+  from the Home Screen app (iOS 16.4+). A 404/410 deletes the row.
+  Guarded by `WebPushTest` + `tests/JS/webPush.test.mjs`.
 
 ### The public listing page (Sprint 63)
 
