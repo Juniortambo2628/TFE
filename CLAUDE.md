@@ -739,6 +739,26 @@ links to them were shared with testers.
   the hamburger is the only way to About, Features, Services, News, Learn
   and Tribes there. Do not remove it unless those move somewhere else.
 
+### UX plan, PRs J + K (Nov 2026)
+
+- **Package picker cards** (`Fan/PackagePicker`): name over price, a
+  two-line clamped description, `.tfe-pill` chips (the Bootstrap `badge`
+  classes render unstyled on dashboards). The card is an `<article>` whose
+  "Use this package" button stretches over it (`.package-picker__pick`
+  `::after`), with Details and the partner badge above it
+  (`.package-picker__over`). A link inside a `<button>` is invisible to a
+  screen reader (axe `nested-interactive`).
+- **Accessibility is tested**: `tests/e2e/a11y.spec.js` runs axe
+  (`@axe-core/playwright`, WCAG 2 A/AA + 2.2 AA, which includes target
+  size) on the main public and fan pages; serious or critical findings
+  fail CI.
+- **Red as text** on the dark surfaces is `--dv2-accent-text` (#ff4b52;
+  amber/blue for partner/admin). `#e31b23` measures 3.9:1 there; keep it
+  for fills and buttons. Muted labels are at least `rgba(255,255,255,0.58)`.
+- Deferred landing sections already show `SkeletonCards` while loading.
+- Every list page has an empty state; the Store's category grid was the
+  one without.
+
 ### Landing page v2 + walkthroughs (UX round, Nov 2026)
 
 From the 2 Nov UX review (`docs/meetings/`). `/v2` (`HomeController@homeV2`,

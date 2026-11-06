@@ -76,7 +76,7 @@
 }
 
 .tfe-footer__col h4 {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.58); /* 0.45 measured 4.46:1, under AA */
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;

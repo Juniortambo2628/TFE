@@ -19,6 +19,8 @@ test('the cookie notice is a slim bar above the tab bar on a phone', async ({ pa
     await page.goto('/');
     const bar = page.locator('.tfe-consent');
     await expect(bar).toBeVisible();
+    // It slides up into place; measure where it lands.
+    await bar.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const box = await bar.boundingBox();
     expect(box.height).toBeLessThan(100);
     const tabs = await page.locator('.tfe-tabbar').boundingBox();
