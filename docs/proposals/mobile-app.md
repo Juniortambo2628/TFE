@@ -35,6 +35,10 @@ flow were all built for phones this round.
 
 ### Phase 0: installable website (PWA), ~1 week, no accounts needed
 
+**Status (6 Nov 2026): built, except web push.** Manifest, icons, offline
+page, service worker, install card and the Plan-a-trip shortcut are in;
+web push follows as its own change (it needs production keys).
+
 - App manifest (name, icons, theme colour, start page `/fan/dashboard` or `/`).
 - Icon set from the TFE logo (iOS, Android, maskable).
 - A service worker that caches the app's own files and shows a proper

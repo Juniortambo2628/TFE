@@ -760,6 +760,31 @@ body scrolls (`dvh`, so phone browser bars do not count). Pass `fit` for a
 few lines with no steps — `ConfirmationDialog` and `StatusDialog` do. Guarded
 by the height check in `tests/e2e/planner.spec.js`.
 
+### Installable website / PWA (Nov 2026)
+
+Phase 0 of `docs/proposals/mobile-app.md`. `public/manifest.webmanifest`
+(+ `public/icons/`, generated from the logo), `public/offline.html`,
+`public/sw.js` (registered from `app.jsx`, production builds only).
+
+- **The service worker never caches pages.** Navigations always go to the
+  network and fall back to `/offline.html`; pages carry a person's plans,
+  bookings and savings (no-store), and a cached copy could show stale prices
+  or a signed-out session. Hashed `/build/assets/*` are cache-first; images
+  are stale-while-revalidate, capped. POSTs, Inertia XHRs, `/api` and other
+  sites are not touched. Bump `VERSION` when the rules change.
+- **Playwright's offline switch does not reach a service worker's own
+  requests**, so `tests/e2e/pwa.spec.js` checks the offline page is
+  precached; the fallback itself was verified by stopping the server.
+- `InstallPrompt` (mounted by the public `Header`, phones only):
+  returning visitors only, never when installed, 30 days quiet after "Not
+  now" (`lib/installPrompt.js`). One-tap on Android/Chrome
+  (`beforeinstallprompt`); a how-to on iPhone Safari, which cannot be
+  prompted — and nothing in Chrome-on-iOS or in-app browsers, which cannot
+  add to the home screen at all.
+- `?plan=1` opens the trip planner (the manifest's "Plan a trip" shortcut).
+- **Web push is NOT built yet**: it needs `laravel-notification-channels/webpush`,
+  VAPID keys in the production `.env` and a subscriptions table.
+
 ### The public listing page (Sprint 63)
 
 `/listings/{id}` (`ListingShowController`, `Pages/Listings/Show.jsx`) is the

@@ -18,6 +18,19 @@ installErrorReporter();
 // site for wherever the visitor came from.
 installNavHistory(router);
 
+// Installable website (docs/proposals/mobile-app.md, phase 0): the service
+// worker gives an installed TFE its offline page and keeps the built assets
+// and images warm. Production builds only — in dev it would serve Vite's
+// modules from a cache. After load, so it never competes with first paint.
+if (import.meta.env.PROD && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+            // Not supported here (private mode, an old WebView): the site
+            // works exactly as before without it.
+        });
+    });
+}
+
 const appName = import.meta.env.VITE_APP_NAME || 'The Football Experience';
 
 // Page-name prefix -> the persistent role shell that wraps it. Every page

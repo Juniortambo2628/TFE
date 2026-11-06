@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
 import assetPath from '@/lib/assets';
 import TripPlannerDialog from '@/Components/Common/TripPlannerDialog';
 import PublicTabBar from '@/Components/PublicTabBar';
+import InstallPrompt from '@/Components/Common/InstallPrompt';
 import { openTripPlanner } from '@/lib/tripPlanner';
 import '../../css/tournament-switcher.css';
 import '../../css/fan/dashboard-header-extras.css';
@@ -24,6 +25,15 @@ export default function Header() {
     // CLAUDE.md forbids.
     const logo = assetPath('/assets/img/logo/TFE-logo.png');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // `?plan=1` opens the trip planner: the installed app's "Plan a trip"
+    // shortcut (manifest.webmanifest) lands here. After the dialog has
+    // mounted, so its listener is there to hear it.
+    useEffect(() => {
+        if (new URLSearchParams(window.location.search).get('plan') !== '1') return undefined;
+        const t = setTimeout(() => openTripPlanner(), 0);
+        return () => clearTimeout(t);
+    }, []);
     const user = auth?.user;
 
     const switcherVariant = page.component === 'Home'
@@ -145,6 +155,7 @@ export default function Header() {
                 onToggleMenu={() => setIsMenuOpen((v) => !v)}
                 menuId="tfe-mobile-nav"
             />
+            <InstallPrompt />
         </header>
     );
 }
