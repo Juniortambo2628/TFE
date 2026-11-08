@@ -6,7 +6,7 @@ import { filterTeamNames } from '@/lib/teamOptions';
 
 /**
  * useTournamentTeams — Returns the qualifying-team option list for the
- * currently active tournament as a shape ready for SearchableSelect and
+ * currently active tournament as a shape ready for a picker and
  * similar dropdowns:
  *   [{ value: 'Argentina', label: 'Argentina', iso: 'ar', flag: '/…/ar.png' }, …]
  *

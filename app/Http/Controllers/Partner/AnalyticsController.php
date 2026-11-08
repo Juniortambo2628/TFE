@@ -13,7 +13,7 @@ use Inertia\Response;
 
 /**
  * Measure tab — per-partner analytics. Same tile shape as the admin
- * analytics page (MetricTile primitive) but every metric is scoped to
+ * analytics page, but every metric is scoped to
  * the logged-in partner: their listings, their budget queue, their
  * revenue. Partners who haven't published a listing yet see the same
  * page against an empty set with an explicit "publish your first listing"

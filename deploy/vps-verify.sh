@@ -59,8 +59,34 @@ code() {
   curl -s -o /dev/null -w '%{http_code}' -L --max-time 90 -k \
     --resolve "$DOMAIN:80:$IP" --resolve "$DOMAIN:443:$IP" "$1"
 }
-c="$(code "http://$DOMAIN/")";            [[ "$c" == 200 ]] && ok "home page 200"            || bad "home page returned $c (see $SHARED/storage/logs/laravel.log)"
-c="$(code "http://$DOMAIN/robots.txt")";  [[ "$c" == 200 ]] && ok "static file 200"          || bad "static file returned $c"
+# The release has just been swapped in and PHP-FPM may still be reloading,
+# so a 502/503 on the first request is not yet a failure: retry a 5xx (or
+# no answer at all) with backoff before calling it one.
+code_retry() {
+  local url="$1" c="" wait
+  for wait in 0 5 10 20; do
+    sleep "$wait"
+    c="$(code "$url")"
+    [[ "$c" == 000 || "$c" == 5* ]] || break
+    printf '        %s answered %s, retrying\n' "$url" "$c" >&2
+  done
+  echo "$c"
+}
+# On a failure, show the latest error HEADLINES only (one line each, cut
+# short): the full log carries stack traces and request data that do not
+# belong in a CI log.
+recent_errors() {
+  local log
+  # `single` writes laravel.log, `daily` laravel-YYYY-MM-DD.log: take the newest.
+  log="$(ls -t "$SHARED"/storage/logs/laravel*.log 2>/dev/null | head -1)"
+  [[ -n "$log" && -r "$log" ]] || return 0
+  echo "        latest errors in $log:"
+  tail -n 400 "$log" | grep -E '^\[[0-9-]+ [0-9:]+\] [a-z]+\.(ERROR|CRITICAL|ALERT|EMERGENCY):' \
+    | tail -n 5 | cut -c1-240 | sed 's/^/          /'
+}
+c="$(code_retry "http://$DOMAIN/")"
+if [[ "$c" == 200 ]]; then ok "home page 200"; else bad "home page returned $c"; recent_errors; fi
+c="$(code_retry "http://$DOMAIN/robots.txt")";  [[ "$c" == 200 ]] && ok "static file 200"          || bad "static file returned $c"
 ASSET="$(grep -o '"file": *"assets/[^"]*\.css"' "$CUR/public/build/manifest.json" | head -1 | sed 's/.*"assets/assets/; s/"$//')"
 if [[ -n "$ASSET" ]]; then
   c="$(code "http://$DOMAIN/build/$ASSET")"; [[ "$c" == 200 ]] && ok "built asset 200" || bad "built asset /build/$ASSET returned $c"
