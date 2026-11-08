@@ -2166,7 +2166,7 @@ resources/
   js/
     Components/
       Common/  # role-agnostic primitives (StatCard, DashboardHero,
-               #   PoweredByBadge, MetricTile, CapacityBar, TournamentPill,
+               #   PoweredByBadge, CapacityBar, TournamentPill,
                #   TournamentSwitcher, DashboardHeader, HeaderDropdown)
       Fan/     # fan-only pieces (PackagePicker, FinanceThisTrip,
                #   ActiveLoanTile, ItineraryMap, MatchCard, …)
@@ -2175,7 +2175,7 @@ resources/
     Layouts/
       BaseLayout.jsx     # SidebarProvider + Toaster + CommandMenu
       RoleLayout.jsx     # factory used by FanLayout/AdminLayout/PartnerLayout
-      FanLayout.jsx AdminLayout.jsx PartnerLayout.jsx GuestLayout.jsx
+      FanLayout.jsx AdminLayout.jsx PartnerLayout.jsx InstitutionLayout.jsx
     Pages/     # Inertia components, named to match controller returns
               #   ('Fan/Dashboard', 'Admin/Settings', 'Partner/Listings', …)
 
