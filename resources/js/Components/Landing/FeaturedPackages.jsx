@@ -79,7 +79,7 @@ export default function FeaturedPackages({
                                     LinkComponent={Link}
                                     href={route('listings.show', l.id)}
                                     accent={l.publisher?.theme_accent || undefined}
-                                    artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
+                                    cover={l.hero_image || undefined}
                                     eyebrow={l.publisher ? `By ${l.publisher.display_name}` : undefined}
                                     title={l.name}
                                     desc={l.description}

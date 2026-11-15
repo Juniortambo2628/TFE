@@ -2592,6 +2592,15 @@ tests/
   Fit each footprint axis against the field of view it actually spans (length →
   horizontal, width → vertical) and re-frame on resize, or the bowl sits small
   in a lot of sky (Sprint 57).
+- Never give a listing card its photo as a floating `thumb`. On a phone the
+  92px thumbnail sat on the title and description. A listing's image is
+  the card's `cover` (background) with the text over it; `accent-card.css`
+  darkens the scrim for cover cards that carry meta / a CTA, and shows
+  their CTA without hover (a phone never hovers). `thumb` is left for the
+  admin partner list's logos, with the title kept clear of it (Nov 2026).
+- Never size a stat figure in fixed rem alone. `.tfe-tile` is a size
+  container and its value is `min(2rem, 12cqw)`, so "KES 20,000.00" fits a
+  half-width phone tile (Nov 2026).
 - Never write `repeat(auto-fill|auto-fit, minmax(320px, 1fr))` with a bare
   fixed minimum. A column can never be narrower than its minimum, so on a
   phone (a 288px panel inside page + panel padding) the cards ran off the

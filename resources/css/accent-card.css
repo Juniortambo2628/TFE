@@ -331,6 +331,17 @@
     transform: translateY(0);
 }
 
+/* ...except where hovering is not how anyone gets there: on a touch
+   screen, and on listing cards (they carry a price), the action is always
+   shown. A phone never hovers, so it never appeared there at all. */
+.tfe-acard--cover:has(.tfe-acard__meta) .tfe-acard__cta {
+    opacity: 1;
+    transform: none;
+}
+@media (hover: none) {
+    .tfe-acard--cover .tfe-acard__cta { opacity: 1; transform: none; }
+}
+
 /* Landing horizontal-scroll section card (Popular Experiences, News) —
    fixed width to sit in the .cards-track, full track height, clickable. */
 .tfe-acard--landing {
@@ -608,3 +619,38 @@
 .tfe-acard--hero:hover .tfe-acard__art { transform: translateY(-50%); }
 
 .tfe-acard--hero .btn-glass-pill { flex: 1 1 auto; justify-content: center; }
+
+/* ── Listing cards with a photo (Nov 2026) ─────────────────────────────
+   A listing's image is the card's BACKGROUND (cover), with the text on
+   top. As a floating 92px thumbnail it sat on the title and description on
+   a phone. A listing card carries much more than a landing card (price,
+   booked bar, button), so its text climbs into the bright part of the
+   default gradient: when a cover card has meta or a CTA, the scrim is dark
+   most of the way up and tinted with the partner's accent. */
+.tfe-acard--cover:has(.tfe-acard__meta, .tfe-acard__cta, .tfe-acard__slot) .tfe-acard__cover-overlay {
+    background:
+        linear-gradient(to top,
+            rgba(6, 6, 10, 0.96) 0%,
+            rgba(6, 6, 10, 0.9) 45%,
+            rgba(6, 6, 10, 0.62) 75%,
+            rgba(6, 6, 10, 0.3) 100%),
+        linear-gradient(135deg, color-mix(in srgb, var(--acard-accent) 30%, transparent), transparent 60%);
+}
+.tfe-acard--cover .tfe-acard__title,
+.tfe-acard--cover .tfe-acard__eyebrow {
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+}
+.tfe-acard--cover .tfe-acard__desc {
+    color: rgba(255, 255, 255, 0.82);
+    max-width: none;
+}
+
+/* The floating thumbnail (now only partner logos in the admin list): the
+   text above it keeps clear of it instead of running underneath. */
+.tfe-acard:has(> .tfe-acard__art--thumb) .tfe-acard__eyebrow,
+.tfe-acard:has(> .tfe-acard__art--thumb) .tfe-acard__title {
+    padding-right: calc(92px + 0.75rem);
+}
+.tfe-acard:has(> .tfe-acard__art--thumb) .tfe-acard__content {
+    min-height: calc(92px + 0.4rem);
+}

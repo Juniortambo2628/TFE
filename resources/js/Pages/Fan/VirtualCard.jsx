@@ -3,11 +3,22 @@ import { Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
+import VirtualCardFace from '@/Components/Fan/VirtualCardFace';
 import { formatMoney, formatDateTime, statusLabel } from '@/lib/utils';
 import '../../../css/fan/fan-pages.css';
 import '../../../css/virtual-card.css';
 
 const AT = (s) => formatDateTime(s);
+
+/**
+ * A wallet's amount for its tile. The tile already shows the currency code
+ * in its chip, so a currency with no symbol of its own ("KES 20,000.00")
+ * drops the repeated code and the figure fits two tiles across a phone.
+ * Symbols (€, £, $, FCFA) stay: they are part of how the amount reads.
+ */
+function walletAmount(amount, code) {
+    return formatMoney(amount, code).replace(new RegExp(`^${code}\\s*`), '');
+}
 
 export default function VirtualCard({ auth, card, partner, currencies = [] }) {
     const accent = partner?.theme_accent || '#0072CE';
@@ -42,22 +53,11 @@ function Activate({ partner, accent }) {
     return (
         <div className="vcard-activate" style={{ '--vcard-accent': accent }}>
             <div className="vcard-activate__mock">
-                <div className="vcard-face vcard-face--placeholder">
-                    <div className="vcard-face__band">
-                        {partner?.logo_url ? (
-                            <img src={partner.logo_url} alt={partner.display_name} className="vcard-face__logo" />
-                        ) : (
-                            <span className="vcard-face__brand">{partner?.display_name || 'Ecobank Fan Finance'}</span>
-                        )}
-                        <span className="vcard-face__watermark">DEMO</span>
-                    </div>
-                    <div className="vcard-face__pan">•••• •••• •••• ••••</div>
-                    <div className="vcard-face__row">
-                        <div><span>Cardholder</span><strong>YOUR NAME</strong></div>
-                        <div><span>Expires</span><strong>MM/YY</strong></div>
-                        <div className="vcard-face__network">VISA</div>
-                    </div>
-                </div>
+                <VirtualCardFace
+                    issuer={partner?.display_name || 'Ecobank Fan Finance'}
+                    logoUrl={partner?.logo_url}
+                    placeholder
+                />
             </div>
 
             <div className="vcard-activate__pitch">
@@ -85,22 +85,14 @@ function ActiveCard({ card, partner, accent }) {
     return (
         <div className="vcard-page" style={{ '--vcard-accent': accent }}>
             <section className="vcard-page__top">
-                <div className="vcard-face">
-                    <div className="vcard-face__band">
-                        {partner?.logo_url ? (
-                            <img src={partner.logo_url} alt={partner.display_name} className="vcard-face__logo" />
-                        ) : (
-                            <span className="vcard-face__brand">{partner?.display_name || 'Ecobank Fan Finance'}</span>
-                        )}
-                        <span className="vcard-face__watermark">DEMO</span>
-                    </div>
-                    <div className="vcard-face__pan">{card.masked_pan}</div>
-                    <div className="vcard-face__row">
-                        <div><span>Cardholder</span><strong>{card.holder_name}</strong></div>
-                        <div><span>Expires</span><strong>{card.expiry}</strong></div>
-                        <div className="vcard-face__network">{card.network?.toUpperCase() || 'VISA'}</div>
-                    </div>
-                </div>
+                <VirtualCardFace
+                    issuer={partner?.display_name || 'Ecobank Fan Finance'}
+                    logoUrl={partner?.logo_url}
+                    holder={card.holder_name}
+                    expiry={card.expiry}
+                    last4={card.last4}
+                    network={card.network || 'visa'}
+                />
 
                 <div className="vcard-actions">
                     <span className={`tfe-pill ${card.status === 'active' ? 'tfe-pill--approved' : 'tfe-pill--pending'}`}>
@@ -126,14 +118,19 @@ function ActiveCard({ card, partner, accent }) {
                     </div>
                 </div>
                 <div className="tfe-slab__body">
-                    <div className="tfe-stat-grid">
-                        {currencies.map((code, i) => (
-                            <div key={code} className={`tfe-tile tfe-tile--${['blue','cyan','teal','graph','violet','amber','rose'][i % 7]}`}>
-                                <div className="tfe-tile__head">
-                                    <div className="tfe-tile__icon"><i className="fas fa-wallet"></i></div>
+                    {/* Own tiles, not .tfe-tile: a stat tile's 2rem figure is
+                        made for "12" or "$4k", and "NGN 150,000.00" ran out
+                        of a half-width phone tile. The amount here scales
+                        with its tile (container units). */}
+                    <div className="vcard-wallets">
+                        {currencies.map((code) => (
+                            <div key={code} className={'vcard-wallet' + (code === primary ? ' is-primary' : '')}>
+                                <div className="vcard-wallet__head">
+                                    <span className="vcard-wallet__code">{code}</span>
+                                    {code === primary && <span className="vcard-wallet__primary">Primary</span>}
                                 </div>
-                                <p className="tfe-tile__value">{formatMoney(card.balances[code], code)}</p>
-                                <p className="tfe-tile__label">{code} wallet</p>
+                                <p className="vcard-wallet__amount">{walletAmount(card.balances[code], code)}</p>
+                                <p className="vcard-wallet__label">{code} wallet</p>
                             </div>
                         ))}
                     </div>

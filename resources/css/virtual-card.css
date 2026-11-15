@@ -12,107 +12,142 @@
     .vcard-page__top { grid-template-columns: 1fr; }
 }
 
-/* The card face. Two-tone gradient rooted in the partner accent. */
+/* The card face (Components/Fan/VirtualCardFace). ID-1 proportions, laid
+   out like a real card, and sized in container units so the whole face
+   scales together: 1cqw is 1% of the card's width. */
 .vcard-face {
     position: relative;
-    aspect-ratio: 1.586;
-    max-width: 480px;
-    padding: 22px 26px;
-    border-radius: 22px;
+    container-type: inline-size;
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 85.6 / 53.98;
+    padding: 6.5cqw 7cqw 6cqw;
+    border-radius: 4.5cqw;
     color: #fff;
-    background: linear-gradient(140deg,
-        var(--vcard-accent) 0%,
-        color-mix(in srgb, var(--vcard-accent) 65%, #0a0a1a) 55%,
-        #060612 100%);
-    box-shadow: 0 24px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
     overflow: hidden;
     isolation: isolate;
+    background:
+        /* fine guilloché lines, as printed on real cards */
+        repeating-radial-gradient(circle at 115% 120%, rgba(255,255,255,0.045) 0 1px, transparent 1px 7px),
+        radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--vcard-accent) 85%, #fff) 0%, transparent 55%),
+        linear-gradient(135deg,
+            var(--vcard-accent) 0%,
+            color-mix(in srgb, var(--vcard-accent) 55%, #050816) 60%,
+            #050816 100%);
+    box-shadow:
+        0 28px 50px -18px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 1px 0 rgba(255, 255, 255, 0.18) inset;
+    font-family: var(--font-display, inherit);
 }
-.vcard-face::before {
-    content: '';
+.vcard-face__sheen {
     position: absolute;
-    inset: -20% -20% auto auto;
-    width: 70%;
-    height: 70%;
-    background: radial-gradient(closest-side, rgba(255,255,255,0.22), transparent 70%);
+    inset: 0;
     z-index: -1;
     pointer-events: none;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.14) 45%, transparent 60%);
 }
-.vcard-face::after {
-    content: '';
-    position: absolute;
-    bottom: 12px;
-    right: 14px;
-    width: 40px;
-    height: 30px;
-    background: linear-gradient(135deg, #ffd166, #f4a261);
-    border-radius: 5px;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
-    opacity: 0.85;
-    z-index: 0;
+.vcard-face--placeholder { opacity: 0.7; filter: saturate(0.7); }
+
+.vcard-face__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 3cqw;
 }
+.vcard-face__issuer { display: flex; flex-direction: column; gap: 0.8cqw; min-width: 0; }
+.vcard-face__brand {
+    font-size: 4.6cqw;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vcard-face__logo { height: 7cqw; width: auto; filter: brightness(0) invert(1); }
+.vcard-face__kind {
+    font-size: 2.6cqw;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+}
+.vcard-face__nfc { width: 7.5cqw; height: 7.5cqw; flex: none; color: rgba(255, 255, 255, 0.85); }
 
-.vcard-face--placeholder { opacity: 0.65; }
-
-.vcard-face__band {
+.vcard-face__mid {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    margin-top: 4cqw;
 }
-.vcard-face__brand {
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    font-size: 0.92rem;
-}
-.vcard-face__logo { max-height: 28px; width: auto; filter: brightness(0) invert(1); }
-.vcard-face__watermark {
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.12);
-    border: 1px dashed rgba(255,255,255,0.35);
-    font-size: 0.65rem;
+.vcard-face__chip { width: 12.5cqw; height: auto; display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+.vcard-face__demo {
+    font-size: 2.4cqw;
     font-weight: 700;
     letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.8cqw 2cqw;
+    border-radius: 99px;
+    border: 1px dashed rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.85);
 }
 
+/* One line, four groups, never wraps. */
 .vcard-face__pan {
-    font-family: 'Courier New', ui-monospace, monospace;
-    font-size: 1.4rem;
-    letter-spacing: 0.15em;
-    margin-top: 12px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    align-self: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 3cqw;
+    white-space: nowrap;
+    font-family: 'OCR A Std', 'Courier New', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 6.4cqw;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 -1px 0 rgba(255, 255, 255, 0.12);
 }
+.vcard-face__pan .is-last { color: #fff; font-weight: 700; }
 
-.vcard-face__row {
+.vcard-face__bottom {
     display: flex;
     align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
+    gap: 6cqw;
+    min-width: 0;
 }
-.vcard-face__row > div:not(.vcard-face__network) span {
+.vcard-face__holder { min-width: 0; flex: 0 1 auto; }
+.vcard-face__holder strong,
+.vcard-face__expiry strong {
     display: block;
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
+    font-size: 3.7cqw;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.vcard-face__row strong {
-    font-size: 0.9rem;
-    letter-spacing: 0.06em;
+.vcard-face__expiry { display: flex; align-items: center; gap: 1.5cqw; flex: none; }
+.vcard-face__expiry .vcard-face__label { margin: 0; line-height: 1.05; }
+.vcard-face__label {
+    display: block;
+    font-size: 2.1cqw;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.62);
+    margin-bottom: 0.8cqw;
 }
-.vcard-face__network {
-    margin-left: auto;
-    font-family: Georgia, serif;
+.vcard-face__network { margin-left: auto; flex: none; }
+.vcard-face__network--visa {
+    font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
     font-style: italic;
-    font-size: 1.5rem;
     font-weight: 900;
-    letter-spacing: 0.05em;
+    font-size: 8cqw;
+    line-height: 0.8;
+    letter-spacing: -0.02em;
 }
+.vcard-face__network--mc { width: 14cqw; height: auto; }
 
 /* Actions column beside the card. */
 .vcard-actions {
@@ -143,6 +178,49 @@
     gap: 8px;
     flex-wrap: wrap;
 }
+
+/* Wallet balances: one tile per currency, two across on a phone. The
+   amount is sized against its own tile so a long figure always fits. */
+.vcard-wallets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr));
+    gap: 10px;
+}
+.vcard-wallet {
+    container-type: inline-size;
+    min-width: 0;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vcard-wallet.is-primary {
+    border-color: color-mix(in srgb, var(--vcard-accent) 60%, transparent);
+    background: color-mix(in srgb, var(--vcard-accent) 14%, rgba(255, 255, 255, 0.03));
+}
+.vcard-wallet__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.vcard-wallet__code {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+.vcard-wallet__primary { font-size: 0.68rem; color: rgba(255, 255, 255, 0.62); }
+.vcard-wallet__amount {
+    margin: 0;
+    color: #fff;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(0.95rem, 11cqw, 1.5rem);
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vcard-wallet__label { margin: 4px 0 0; font-size: 0.78rem; color: rgba(255, 255, 255, 0.62); }
 
 /* Activation split — card mock on the left, pitch on the right. */
 .vcard-activate {

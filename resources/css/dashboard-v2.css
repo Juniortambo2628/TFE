@@ -444,7 +444,7 @@ a.tfe-dv2-panel__row:hover { background: rgba(255, 255, 255, 0.04); color: #fff;
     color: var(--dv2-accent);
     box-shadow: none;
 }
-.tfe-dv2 .tfe-tile__value { font-size: 1.65rem; font-weight: 600; line-height: 1.1; color: #fff; }
+.tfe-dv2 .tfe-tile__value { font-size: min(1.65rem, 12cqw); font-weight: 600; line-height: 1.1; color: #fff; }
 .tfe-dv2 .tfe-tile__label { margin-top: 2px; font-size: 0.9rem; font-weight: 500; color: rgba(255, 255, 255, 0.82); text-transform: none; letter-spacing: 0; }
 .tfe-dv2 .tfe-tile__subtext { margin-top: 2px; font-size: 0.76rem; color: var(--dv2-muted); }
 
@@ -496,7 +496,7 @@ a.tfe-dv2-panel__row:hover { background: rgba(255, 255, 255, 0.04); color: #fff;
     .tfe-dv2 .tfe-tile { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
     .tfe-dv2 .tfe-tile__head { flex-direction: row; justify-content: space-between; width: 100%; }
     .tfe-dv2 .tfe-tile__icon { width: 36px; height: 36px; border-radius: 10px; }
-    .tfe-dv2 .tfe-tile__value { font-size: 1.3rem; }
+    .tfe-dv2 .tfe-tile__value { font-size: min(1.3rem, 12cqw); }
     .tfe-dv2 .tfe-tile__label { font-size: 0.82rem; }
     .tfe-dv2-hero__icon { width: 40px; height: 40px; border-radius: 12px; font-size: 0.95rem; }
     .tfe-dv2-hero__row { align-items: flex-start; gap: 12px; }

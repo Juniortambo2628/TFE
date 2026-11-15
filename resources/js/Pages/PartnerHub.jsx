@@ -139,7 +139,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], steps
                                     LinkComponent={Link}
                                     href={route('listings.show', l.id)}
                                     accent={accent}
-                                    artwork={l.hero_image ? { src: l.hero_image, alt: l.name, variant: 'thumb' } : undefined}
+                                    cover={l.hero_image || undefined}
                                     status={l.tournament_short || undefined}
                                     title={l.name}
                                     desc={l.description}

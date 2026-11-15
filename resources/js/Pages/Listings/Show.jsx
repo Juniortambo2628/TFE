@@ -68,7 +68,7 @@ export default function ListingShow({ listing, tournament, more = [], onlinePaym
                                     title={m.name}
                                     desc={m.description || undefined}
                                     meta={when ? [{ label: 'When', value: when }] : []}
-                                    artwork={m.hero_image ? { src: assetPath(m.hero_image), alt: m.name, variant: 'thumb' } : undefined}
+                                    cover={m.hero_image ? assetPath(m.hero_image) : undefined}
                                     status={Number(m.base_price) === 0 ? 'Free' : formatMoney(m.base_price, m.currency || 'USD')}
                                     cta={{ label: 'View details', icon: 'fas fa-arrow-right' }}
                                 />
