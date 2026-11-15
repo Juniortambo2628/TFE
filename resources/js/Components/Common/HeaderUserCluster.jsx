@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { MESSAGES_ROUTE, messagesCount } from '@/lib/activityCounts';
 import { toast } from 'sonner';
+import axios from 'axios';
 import HeaderDropdown from '@/Components/Common/HeaderDropdown';
 import useHeaderLogic from '@/Hooks/useHeaderLogic';
 import { formatDateTime } from '@/lib/utils';
@@ -72,6 +73,13 @@ function NotificationItem({ notif }) {
         : <div className={cls}>{inner}</div>;
 }
 
+// The dropdown's "N new" chip counts the rows shown as new, so it still
+// says what was new after opening has cleared the icon's count. Nothing
+// new, no chip.
+function newBadge(n) {
+    return n > 0 ? `${n} new` : null;
+}
+
 function MessageItem({ msg, href }) {
     return (
         <Link href={href} className="dash-activity-item">
@@ -124,7 +132,34 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
     const messages = auth?.messages || [];
     // Everything waiting on the Messages page, the same number its sidebar
     // row shows (lib/activityCounts).
-    const unreadMessages = messagesCount(auth?.activityBadges || {}, auth?.unreadMessagesCount || 0, resolvedRole);
+    const serverUnreadMessages = messagesCount(auth?.activityBadges || {}, auth?.unreadMessagesCount || 0, resolvedRole);
+    // Cleared the moment the envelope is opened; the next page's props
+    // carry the server's own (now lower) count.
+    const [messagesSeen, setMessagesSeen] = useState(false);
+    useEffect(() => { setMessagesSeen(false); }, [serverUnreadMessages, auth?.messages]);
+    const unreadMessages = messagesSeen ? 0 : serverUnreadMessages;
+
+    // Opening a dropdown marks what it shows as seen (Nov 2026): the counts
+    // used to stay until each row was opened one by one, and a notification
+    // with no link could never clear. The rows keep their "unread" look for
+    // this opening, so you can still see which ones were new.
+    const markSeen = (routeName) => {
+        axios.post(route(routeName)).catch(() => { /* the count comes back on the next page; nothing to tell */ });
+    };
+    const openNotifications = (e) => {
+        if (!dropdowns.notifications && liveUnread > 0) {
+            setLiveUnread(0);
+            markSeen('notifications.seen');
+        }
+        toggleDropdown('notifications', e);
+    };
+    const openMessages = (e) => {
+        if (!dropdowns.messages && unreadMessages > 0) {
+            setMessagesSeen(true);
+            markSeen('messages.seen');
+        }
+        toggleDropdown('messages', e);
+    };
     const messagesRoute = MESSAGES_ROUTE[resolvedRole] || MESSAGES_ROUTE.fan;
     const profileLinks = PROFILE_LINKS[resolvedRole] || PROFILE_LINKS.fan;
 
@@ -133,7 +168,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
             <div className="dashboard-header-item">
                 <button
                     className="dash-btn-icon"
-                    onClick={(e) => toggleDropdown('notifications', e)}
+                    onClick={openNotifications}
                     aria-label="Notifications"
                 >
                     <i className="fas fa-bell"></i>
@@ -142,7 +177,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
                 <HeaderDropdown
                     isOpen={dropdowns.notifications}
                     title="Notifications"
-                    badge={`${liveUnread} new`}
+                    badge={newBadge(liveNotifications.filter((n) => !n.read_at).length)}
                     footer={
                         <Link href={route(messagesRoute)} className="dashboard-dropdown-footer-link">
                             View all <i className="fas fa-arrow-right"></i>
@@ -163,7 +198,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
             <div className="dashboard-header-item">
                 <button
                     className="dash-btn-icon"
-                    onClick={(e) => toggleDropdown('messages', e)}
+                    onClick={openMessages}
                     aria-label="Messages"
                 >
                     <i className="fas fa-envelope"></i>
@@ -172,7 +207,7 @@ export default function HeaderUserCluster({ user, role = 'auto' }) {
                 <HeaderDropdown
                     isOpen={dropdowns.messages}
                     title="Messages"
-                    badge={`${unreadMessages} new`}
+                    badge={newBadge(messages.filter((m) => m.is_read === false).length)}
                     footer={
                         <Link href={route(messagesRoute)} className="dashboard-dropdown-footer-link">
                             View all <i className="fas fa-arrow-right"></i>

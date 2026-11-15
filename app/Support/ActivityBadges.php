@@ -13,7 +13,9 @@ use App\Models\User;
  * that only goes up.
  *
  * Messages are counted from messages.is_read (they are not notifications),
- * and cleared by reading them, as before.
+ * shared separately as unreadMessagesCount. Opening the header's envelope
+ * reads them, with the announcements on the same page; opening the bell
+ * reads every notification (NotificationController::seen / messagesSeen).
  */
 class ActivityBadges
 {
@@ -62,10 +64,10 @@ class ActivityBadges
             }
         }
 
-        $unreadMessages = $user->receivedMessages()->where('is_read', false)->count();
-        if ($unreadMessages > 0) {
-            $badges['fan.communication'] = ($badges['fan.communication'] ?? 0) + $unreadMessages;
-        }
+        // Unread messages are deliberately NOT added here. They are shared
+        // as unreadMessagesCount, and the client adds them to the Messages
+        // row and the envelope for every role (lib/activityCounts). Adding
+        // them here too counted each unread message twice (Nov 2026).
 
         return $badges;
     }

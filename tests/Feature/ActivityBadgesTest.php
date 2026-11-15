@@ -28,10 +28,55 @@ class ActivityBadgesTest extends TestCase
         $this->ping($fan, 'event');
         Message::create(['user_id' => $fan->id, 'subject' => 's', 'body' => 'b', 'is_read' => false]);
 
+        // Unread messages are NOT in here: they are shared on their own as
+        // unreadMessagesCount, which the client adds to the Messages row and
+        // the envelope (lib/activityCounts). Counting them here as well made
+        // one unread message read "2" (Nov 2026).
         $this->assertSame(
-            ['fan.feed' => 2, 'fan.events' => 1, 'fan.communication' => 1],
+            ['fan.feed' => 2, 'fan.events' => 1],
             ActivityBadges::for($fan),
         );
+    }
+
+    public function test_an_unread_message_is_counted_once(): void
+    {
+        $fan = User::factory()->create();
+        Message::create(['user_id' => $fan->id, 'subject' => 's', 'body' => 'b', 'is_read' => false]);
+
+        $auth = $this->actingAs($fan)->get(route('fan.dashboard'))->viewData('page')['props']['auth'];
+        $this->assertSame(1, $auth['unreadMessagesCount']);
+        $this->assertArrayNotHasKey('fan.communication', $auth['activityBadges']);
+    }
+
+    public function test_opening_the_bell_marks_its_notifications_read(): void
+    {
+        $fan = User::factory()->create();
+        $this->ping($fan, 'booking_hold_expiring');
+        $this->ping($fan, 'social');
+
+        $this->actingAs($fan)->postJson(route('notifications.seen'))->assertNoContent();
+
+        $this->assertSame(0, $fan->unreadNotifications()->count());
+    }
+
+    public function test_opening_the_envelope_reads_messages_and_announcements_only(): void
+    {
+        $fan = User::factory()->create();
+        Message::create(['user_id' => $fan->id, 'subject' => 's', 'body' => 'b', 'is_read' => false]);
+        $this->ping($fan, 'announcement');
+        $this->ping($fan, 'social');
+
+        $this->actingAs($fan)->postJson(route('messages.seen'))->assertNoContent();
+
+        $this->assertSame(0, $fan->receivedMessages()->where('is_read', false)->count());
+        // The announcement was on the Messages page; the like was not.
+        $this->assertSame(['fan.feed' => 1], ActivityBadges::for($fan));
+    }
+
+    public function test_marking_seen_needs_a_signed_in_user(): void
+    {
+        $this->postJson(route('notifications.seen'))->assertUnauthorized();
+        $this->postJson(route('messages.seen'))->assertUnauthorized();
     }
 
     public function test_badges_are_shared_with_every_page(): void

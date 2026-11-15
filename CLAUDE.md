@@ -711,6 +711,12 @@ links to them were shared with testers.
   new announcements), via `lib/activityCounts` (`sectionCounts`,
   `messagesCount`, `MESSAGES_ROUTE`). Before, the envelope counted messages
   and the row counted announcements.
+  Unread messages are added ONLY there, from `unreadMessagesCount`;
+  `ActivityBadges::for()` must not add them as well (it did, so one
+  unread message read "2"). Opening the bell posts `notifications.seen`
+  (all notifications read) and opening the envelope `messages.seen` (own
+  messages + announcements; an admin's contact-form inbox is untouched),
+  so a count means "not looked at yet" rather than "not opened one by one".
 - **No active-item dot** in the sidebar: red means "new" only; the light
   pill marks the current page.
 - **Status pills** print through `statusLabel()` (`lib/utils`): sentence
