@@ -51,6 +51,30 @@
     gap: 1rem;
 }
 
+/* Back slot (BackNav portals its Back button here once the breadcrumb has
+   scrolled away). Empty, it takes no room, so the header is unchanged. */
+.tfe-header-back {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.tfe-header-back:empty {
+    display: none;
+}
+
+/* With Back at the left end, the logo moves to the centre on phones and
+   tablets, where the nav links are in the menu and the header has only
+   Back, the logo and the menu button. On desktop the logo stays beside
+   Back, ahead of the nav. */
+@media (max-width: 991.98px) {
+    .tfe-header .header-wrapper:has(.tfe-header-back:not(:empty)) .logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
 .tfe-header .navbar-nav {
     display: flex;
     flex-direction: row;

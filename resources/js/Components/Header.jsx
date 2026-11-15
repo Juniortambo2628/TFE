@@ -68,6 +68,11 @@ export default function Header() {
         >
             <div className="container">
                 <div className="header-wrapper d-flex align-items-center position-relative">
+                    {/* BackNav portals its Back button in here once the
+                        page's breadcrumb has scrolled away (HEADER_BACK_SLOT).
+                        Empty otherwise; while it is filled the logo moves to
+                        the centre on phones and tablets (header.css). */}
+                    <div id="tfe-header-back" className="tfe-header-back"></div>
                     <div className="logo">
                         <Link href="/" className="tfe-logo-link">
                             <img src={logo} alt="The Football Experience" className="tfe-logo-img" />
