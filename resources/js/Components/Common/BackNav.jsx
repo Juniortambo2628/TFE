@@ -27,10 +27,15 @@ import '../../../css/back-nav.css';
  * heroes are their own.
  *
  * Always within reach (Nov 2026): once the trail scrolls up out of view, a
- * floating Back button takes its place under the header, and goes again
- * when the trail is back on screen. Portalled to <body> (the page-enter
- * transform trap, as TabBar).
+ * Back button appears at the left of the fixed header, and goes again when
+ * the trail is back on screen. It used to float under the header, where it
+ * sat on top of the sticky section tabs (Nov 2026 feedback), so it now goes
+ * into the header's own slot (#HEADER_BACK_SLOT, rendered by Header). A
+ * page without that header falls back to the floating button, portalled to
+ * <body> (the page-enter transform trap, as TabBar).
  */
+const HEADER_BACK_SLOT = 'tfe-header-back';
+
 export default function BackNav({ crumbs = [], className = '' }) {
     const home = { label: 'Home', href: '/' };
     const trail = [home, ...crumbs];
@@ -50,7 +55,9 @@ export default function BackNav({ crumbs = [], className = '' }) {
 
     const ref = useRef(null);
     const scrolledPast = useScrolledPast(ref);
-    const headerBottom = useHeaderBottom(scrolledPast);
+    const slot = scrolledPast && typeof document !== 'undefined'
+        ? document.getElementById(HEADER_BACK_SLOT)
+        : null;
 
     return (
         <>
@@ -83,11 +90,16 @@ export default function BackNav({ crumbs = [], className = '' }) {
             </ol>
         </nav>
         {scrolledPast && typeof document !== 'undefined' && createPortal(
-            <button type="button" className="tfe-backnav-float" onClick={goBack} aria-label={`Back to ${parent.label}`} style={{ top: headerBottom + 10 }}>
+            <button
+                type="button"
+                className={slot ? 'tfe-backnav-header' : 'tfe-backnav-float'}
+                onClick={goBack}
+                aria-label={`Back to ${parent.label}`}
+            >
                 <i className="fas fa-arrow-left" aria-hidden="true"></i>
                 <span>Back</span>
             </button>,
-            document.body,
+            slot || document.body,
         )}
         </>
     );
@@ -113,35 +125,4 @@ function useScrolledPast(ref) {
     }, [ref]);
 
     return past;
-}
-
-/**
- * Where the fixed header ends, while `active`. Its height differs by page and
- * changes as it switches to its scrolled state, so it is measured rather
- * than assumed — a guess put the button under the header on some pages.
- */
-function useHeaderBottom(active) {
-    const [bottom, setBottom] = useState(88);
-
-    useEffect(() => {
-        if (!active) return undefined;
-        let frame = 0;
-        const measure = () => {
-            frame = 0;
-            const header = document.querySelector('.tfe-header');
-            const next = header ? Math.round(header.getBoundingClientRect().bottom) : 0;
-            setBottom((b) => (b === next ? b : Math.max(0, next)));
-        };
-        const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
-        measure();
-        window.addEventListener('scroll', schedule, { passive: true });
-        window.addEventListener('resize', schedule);
-        return () => {
-            window.removeEventListener('scroll', schedule);
-            window.removeEventListener('resize', schedule);
-            if (frame) cancelAnimationFrame(frame);
-        };
-    }, [active]);
-
-    return bottom;
 }

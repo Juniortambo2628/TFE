@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import TournamentSwitcher from '@/Components/Common/TournamentSwitcher';
 import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
@@ -36,6 +36,21 @@ export default function Header() {
     }, []);
     const user = auth?.user;
 
+    // While the phone menu is open: Escape closes it, and it is sized to
+    // stop above the tab bar from where the header actually ends (the
+    // header is shorter once the page has scrolled).
+    const headerRef = useRef(null);
+    useEffect(() => {
+        if (!isMenuOpen) return undefined;
+        const header = headerRef.current;
+        if (header) {
+            header.style.setProperty('--tfe-mobile-nav-top', `${Math.round(header.getBoundingClientRect().bottom) + 8}px`);
+        }
+        const onKey = (e) => { if (e.key === 'Escape') setIsMenuOpen(false); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isMenuOpen]);
+
     const switcherVariant = page.component === 'Home'
         ? 'landing'
         : page.component === 'Tournaments/Show'
@@ -51,6 +66,18 @@ export default function Header() {
         { label: 'Partners', href: route('partners.index') },
     ];
 
+    // The phone menu: the same pages plus Learn and Tribes, each with an icon.
+    const menuLinks = [
+        { label: 'About', href: route('about'), icon: 'fa-circle-info' },
+        { label: 'Features', href: route('features'), icon: 'fa-star' },
+        { label: 'Services', href: route('services'), icon: 'fa-briefcase' },
+        { label: 'News', href: route('news'), icon: 'fa-newspaper' },
+        { label: 'Learn', href: route('learn.index'), icon: 'fa-graduation-cap' },
+        { label: 'Tribes', href: route('community.tribes'), icon: 'fa-users' },
+        { label: 'Partners', href: route('partners.index'), icon: 'fa-handshake' },
+        { label: 'Contact', href: route('contact'), icon: 'fa-envelope' },
+    ];
+
     const renderLinks = () =>
         navLinks.map((link) => (
             <li key={link.href} className="nav-item">
@@ -62,12 +89,18 @@ export default function Header() {
 
     return (
         <header
+            ref={headerRef}
             className="header position-fixed start-0 top-0 w-100 tfe-header"
             style={{ zIndex: 1000 }}
             data-role={user?.is_admin ? 'admin' : user?.is_partner ? 'partner' : 'fan'}
         >
             <div className="container">
                 <div className="header-wrapper d-flex align-items-center position-relative">
+                    {/* BackNav portals its Back button in here once the
+                        page's breadcrumb has scrolled away (HEADER_BACK_SLOT).
+                        Empty otherwise; while it is filled the logo moves to
+                        the centre on phones and tablets (header.css). */}
+                    <div id="tfe-header-back" className="tfe-header-back"></div>
                     <div className="logo">
                         <Link href="/" className="tfe-logo-link">
                             <img src={logo} alt="The Football Experience" className="tfe-logo-img" />
@@ -110,38 +143,63 @@ export default function Header() {
                     </div>
 
                     <div id="tfe-mobile-nav" className={'tfe-mobile-nav d-lg-none' + (isMenuOpen ? ' show' : '')}>
-                        <ul className="navbar-nav">{renderLinks()}</ul>
-                        <button
-                            type="button"
-                            className="tfe-btn w-100 justify-content-center mt-2"
-                            onClick={() => { setIsMenuOpen(false); openTripPlanner(); }}
-                        >
-                            <i className="fas fa-plane" aria-hidden="true"></i> Plan my trip
-                        </button>
-                        {user ? (
-                            <div className="mt-3 pt-3 border-top border-secondary d-flex flex-column gap-2">
-                                <div className="text-white-50 small">Signed in as {user.name}</div>
-                                <Link
-                                    href={route(user.is_admin ? 'admin.dashboard' : user.is_partner ? 'partner.dashboard' : 'fan.dashboard')}
-                                    className="tfe-btn tfe-btn--filled w-100 justify-content-center"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <i className="fas fa-home"></i> Go to my dashboard
-                                </Link>
-                                <Link
-                                    href={route('logout')}
-                                    method="post"
-                                    as="button"
-                                    className="tfe-btn w-100 justify-content-center"
-                                >
-                                    <i className="fas fa-sign-out-alt"></i> Logout
-                                </Link>
-                            </div>
-                        ) : (
-                            <Link href={route('login')} className="tfe-btn tfe-btn--filled w-100 justify-content-center mt-2" onClick={() => setIsMenuOpen(false)}>
-                                <span>Sign In</span>
-                            </Link>
-                        )}
+                        {/* Phones/tablets. The bottom tab bar already carries
+                            Home, Partners, Plan a trip and Sign in / My trips,
+                            so this is the rest of the site as a tile grid,
+                            then the account. Learn and Tribes are only
+                            reachable from here on a phone. */}
+                        <p className="tfe-mobile-nav__label">Explore</p>
+                        <ul className="tfe-mobile-nav__grid">
+                            {menuLinks.map((link) => (
+                                <li key={link.href}>
+                                    <Link
+                                        className="tfe-mobile-nav__tile"
+                                        href={link.href}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        <i className={`fas ${link.icon}`} aria-hidden="true"></i>
+                                        <span>{link.label}</span>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <div className="tfe-mobile-nav__account">
+                            {user ? (
+                                <>
+                                    <div className="tfe-mobile-nav__who">
+                                        <span className="tfe-mobile-nav__avatar" aria-hidden="true">
+                                            {(user.name || '?').trim().charAt(0).toUpperCase()}
+                                        </span>
+                                        <span className="tfe-mobile-nav__who-text">
+                                            <small>Signed in as</small>
+                                            <strong>{user.name}</strong>
+                                        </span>
+                                    </div>
+                                    <div className="tfe-mobile-nav__actions">
+                                        <Link
+                                            href={route(user.is_admin ? 'admin.dashboard' : user.is_partner ? 'partner.dashboard' : 'fan.dashboard')}
+                                            className="tfe-btn tfe-btn--filled"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <i className="fas fa-house" aria-hidden="true"></i> Dashboard
+                                        </Link>
+                                        <Link href={route('logout')} method="post" as="button" className="tfe-btn">
+                                            <i className="fas fa-right-from-bracket" aria-hidden="true"></i> Log out
+                                        </Link>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="tfe-mobile-nav__actions">
+                                    <Link href={route('login')} className="tfe-btn tfe-btn--filled" onClick={() => setIsMenuOpen(false)}>
+                                        <i className="fas fa-right-to-bracket" aria-hidden="true"></i> Sign in
+                                    </Link>
+                                    <Link href={route('register')} className="tfe-btn" onClick={() => setIsMenuOpen(false)}>
+                                        <i className="fas fa-user-plus" aria-hidden="true"></i> Create account
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -738,6 +738,13 @@ links to them were shared with testers.
   links the owner chose (Home, Partners, Plan a trip, Contact, Sign in), so
   the hamburger is the only way to About, Features, Services, News, Learn
   and Tribes there. Do not remove it unless those move somewhere else.
+  Its menu (Nov 2026) is a two-column grid of icon tiles (`menuLinks` in
+  `Header.jsx`, which adds Learn and Tribes to the desktop links), then the
+  account (Dashboard / Log out, or Sign in / Create account). It spans the
+  header, stops above the tab bar (`--tfe-mobile-nav-top`, measured on
+  open) and is SOLID: inside the scrolled header's own backdrop-filter a
+  glass panel let the page show through. "Plan my trip" is not in it — the
+  tab bar's centre tab is.
 
 ### UX plan, PRs J + K (Nov 2026)
 
@@ -861,11 +868,15 @@ will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
   scrolling down. A visitor's tabs are Home, Partners, Plan a trip (centre,
   accent), Contact, Sign in; signed in, My trips/Dashboard and Menu replace
   the last two. `--tfe-tabbar-h` is the space it needs (84px + safe area).
-- **Back is always within reach**: `BackNav` shows a floating glass Back
-  (`.tfe-backnav-float`, portalled) once its trail scrolls under the
-  header, placed from the header's MEASURED bottom — its height differs by
-  page. Tests that scroll must first wait for `window.tfeLoaderFinished`:
-  the first-visit intro splash holds the page fixed.
+- **Back is always within reach**: once its trail scrolls under the
+  header, `BackNav` portals a Back button into the public header's own
+  slot (`#tfe-header-back`, `.tfe-backnav-header`) at its left end; below
+  lg the logo moves to the centre while it is there (`:has()` in
+  header.css). It used to float under the header and covered the sticky
+  section tabs. `.tfe-backnav-float` is only the fallback for a page with
+  no public header. Tests that scroll must first wait for
+  `window.tfeLoaderFinished`: the first-visit intro splash holds the page
+  fixed.
 - Never pass a layout an inline component (`header={(p) => …}`): it is a new
   type per render and remounts — that closed the account menu a second after
   it opened. `RoleLayout` memoises it now.
