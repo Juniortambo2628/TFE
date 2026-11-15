@@ -16,6 +16,7 @@ import '../../css/landing-v2.css';
  * -> Content -> Landing v2.
  */
 export default function Walkthrough({ page }) {
+    const { publicImages } = usePage().props;
     const sections = useMemo(
         () => page.chapters.map((c, i) => ({ id: `step-${i + 1}`, label: c.title })),
         [page],
@@ -71,10 +72,11 @@ export default function Walkthrough({ page }) {
                 </div>
 
                 <ClosingCta
+                    {...(publicImages?.closing ? { image: publicImages.closing } : {})}
                     title={page.cta.title}
                     text={page.cta.text}
                     primary={{ action: page.cta.action, label: page.cta.label, icon: 'fas fa-arrow-right' }}
-                    secondary={page.cta.secondary ? { action: 'link:/v2', label: page.cta.secondary } : undefined}
+                    secondary={page.cta.secondary ? { action: 'link:/', label: page.cta.secondary } : undefined}
                 />
             </div>
         </SectionPageShell>

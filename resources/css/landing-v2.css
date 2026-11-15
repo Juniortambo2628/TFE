@@ -731,6 +731,50 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 .v2-icard__text { flex: 1; margin: 8px 0 0; font-size: 0.92rem; line-height: 1.6; color: var(--v2-muted); }
 .v2-icard__action { margin-top: 18px; }
 
+/*
+ * Photo cards (Nov 2026): a card given an `image` carries it as its
+ * background, the icon chip at the top and the text over a dark scrim at the
+ * bottom — the listing cover-card treatment. Without an image a card keeps
+ * its plain surface, so a slot whose photo is not committed yet looks as before.
+ */
+.v2-icard--photo,
+.v2-partner-cat--photo {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 320px;
+    background: #0b0b0d var(--v2-card-image) center / cover no-repeat;
+}
+.v2-icard--photo::before,
+.v2-partner-cat--photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to top, rgba(6, 6, 10, 0.96) 0%, rgba(6, 6, 10, 0.82) 38%, rgba(6, 6, 10, 0.35) 68%, rgba(6, 6, 10, 0.12) 100%);
+}
+.v2-icard--photo .v2-icard__icon,
+.v2-partner-cat--photo .v2-partner-cat__icon {
+    margin-bottom: auto;
+    background: rgba(10, 10, 14, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #fff;
+    backdrop-filter: blur(8px);
+}
+.v2-icard--photo .v2-icard__title,
+.v2-partner-cat--photo .v2-partner-cat__title { margin-top: 28px; }
+.v2-icard--photo .v2-icard__text,
+.v2-partner-cat--photo .v2-partner-cat__text { flex: none; color: rgba(255, 255, 255, 0.82); }
+.v2-partner-cat--photo .v2-type-chip { background: rgba(10, 10, 14, 0.5); }
+.v2-partner-cat--photo .v2-type-chip--empty { color: rgba(255, 255, 255, 0.7); }
+/* Photo cards want rows that fill: three across (six cards = two full rows),
+   four when there are four, two below 992px, one on a phone. */
+.v2-icards--photo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.v2-icards--photo[data-count='4'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.v2-icards--photo[data-count='2'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 991.98px) { .v2-icards--photo, .v2-icards--photo[data-count='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575.98px) { .v2-icards--photo, .v2-icards--photo[data-count] { grid-template-columns: minmax(0, 1fr); } }
+
 /* A numbered run that is not a set of links (listing, a partner's steps). */
 .v2-journey--static { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
 @media (max-width: 767.98px) { .v2-journey--static { grid-template-columns: 1fr; } }

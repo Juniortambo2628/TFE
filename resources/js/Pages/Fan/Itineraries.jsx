@@ -1,6 +1,6 @@
 import React from 'react';
 import FanLayout from '@/Layouts/FanLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import MinorsBadge from '@/Components/Common/MinorsBadge';
@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useTournament } from '@/Context/TournamentContext';
 
 export default function Itineraries({ itineraries }) {
+    const isInstitution = usePage().props.auth?.user?.account_type === 'institution';
     const { tournament } = useTournament();
     const [itineraryToConfirm, setItineraryToConfirm] = useState(null);
     const [schoolGroupFor, setSchoolGroupFor] = useState(null);
@@ -175,14 +176,19 @@ export default function Itineraries({ itineraries }) {
                                                         <i className="fas fa-check-circle"></i> Review & Confirm
                                                     </button>
                                                 )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setSchoolGroupFor(itinerary)}
-                                                    className="tfe-btn tfe-btn--sm"
-                                                >
-                                                    <i className="fas fa-school"></i>
-                                                    {itinerary.school_group ? ' School group' : ' Declare school group'}
-                                                </button>
+                                                {/* School accounts only (Nov 2026): an individual
+                                                    fan's plan is not a school trip. A declaration
+                                                    that already exists stays viewable. */}
+                                                {(isInstitution || itinerary.school_group) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSchoolGroupFor(itinerary)}
+                                                        className="tfe-btn tfe-btn--sm"
+                                                    >
+                                                        <i className="fas fa-school"></i>
+                                                        {itinerary.school_group ? ' School group' : ' Declare school group'}
+                                                    </button>
+                                                )}
                                                 {itinerary.school_group && (
                                                     <button
                                                         type="button"

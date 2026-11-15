@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import { assetPath } from '@/lib/assets';
 
 /**
  * Partner categories (plan C2.7). Each lists its partner types, linking to the
@@ -25,7 +26,11 @@ export default function PartnerCategories({ partners, counts = {}, typeLabels = 
 
                 <div className="v2-partners">
                     {partners.categories.map((c) => (
-                        <article key={c.id} className="v2-partner-cat">
+                        <article
+                            key={c.id}
+                            className={`v2-partner-cat${c.image ? ' v2-partner-cat--photo' : ''}`}
+                            style={c.image ? { '--v2-card-image': `url(${assetPath(c.image)})` } : undefined}
+                        >
                             <span className="v2-partner-cat__icon" aria-hidden="true"><i className={c.icon}></i></span>
                             <h3 className="v2-partner-cat__title">{c.label}</h3>
                             <p className="v2-partner-cat__text">{c.text}</p>

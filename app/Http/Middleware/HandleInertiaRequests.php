@@ -9,6 +9,7 @@ use App\Services\TournamentService;
 use App\Services\WebPushService;
 use App\Support\ActivityBadges;
 use App\Support\NextStep;
+use App\Support\PublicImages;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -118,6 +119,9 @@ class HandleInertiaRequests extends Middleware
             // It is one short-TTL cache read of a ~60-key map.
             'stadiumImages' => fn () => app(StadiumImageService::class)
                 ->lookup($tournamentId ?: $tournamentService->resolveFromRequest($request)),
+            // Generated public-page photography (App\Support\PublicImages):
+            // hero fallbacks, the closing band and the sign-in photo.
+            'publicImages' => fn () => PublicImages::all(),
             // Web push (Nov 2026): the VAPID public key a browser subscribes
             // with. Null when push is not configured, so the toggle hides.
             // The fan's next step for the dashboard side panel (UX plan, Nov

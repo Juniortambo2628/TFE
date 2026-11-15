@@ -1,3 +1,4 @@
+import { assetPath } from '@/lib/assets';
 import React from 'react';
 import LandingAction from '@/Components/Landing/V2/LandingAction';
 
@@ -30,9 +31,16 @@ export function V2Section({ id, eyebrow, title, text, actions, tinted = false, c
 /** Icon cards in a grid: principles, features, quicker routes. */
 export function V2IconCards({ items = [], tournamentId }) {
     return (
-        <div className="v2-icards">
+        <div
+            className={`v2-icards${items.some((it) => it.image) ? ' v2-icards--photo' : ''}`}
+            data-count={items.length}
+        >
             {items.map((it) => (
-                <article key={it.title} className="v2-icard">
+                <article
+                    key={it.title}
+                    className={`v2-icard${it.image ? ' v2-icard--photo' : ''}`}
+                    style={it.image ? { '--v2-card-image': `url(${assetPath(it.image)})` } : undefined}
+                >
                     {it.icon && <span className="v2-icard__icon" aria-hidden="true"><i className={it.icon}></i></span>}
                     <h3 className="v2-icard__title">{it.title}</h3>
                     {it.text && <p className="v2-icard__text">{it.text}</p>}
