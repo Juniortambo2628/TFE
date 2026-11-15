@@ -130,34 +130,153 @@
 }
 
 /* Mobile dropdown panel opened by the hamburger. */
+/* Phone/tablet menu: a panel under the header, the width of the header,
+   that stops above the bottom tab bar and scrolls inside itself if it has
+   to. Pages as a two-column grid of icon tiles, then the account. */
 .tfe-header .tfe-mobile-nav {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 8px);
+    left: 0;
     right: 0;
-    min-width: 240px;
     display: none;
     flex-direction: column;
-    gap: 0.25rem;
-    background: rgba(10, 10, 12, 0.97);
+    gap: 0.75rem;
+    max-height: calc(100dvh - var(--tfe-mobile-nav-top, 110px) - var(--tfe-tabbar-h, 84px) - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Solid, not glass: once scrolled the header has its own
+       backdrop-filter, and a blurred panel inside a blurred header lets
+       the page show through it. */
+    background: #0b0b0d;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    border-radius: 20px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0.6rem;
+    padding: 0.9rem;
     z-index: 1200;
+    animation: tfe-mobile-nav-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .tfe-header .tfe-mobile-nav.show {
     display: flex;
 }
 
-.tfe-header .tfe-mobile-nav .navbar-nav {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.1rem;
+@keyframes tfe-mobile-nav-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tfe-header .tfe-mobile-nav { animation: none; }
 }
 
-.tfe-header .tfe-mobile-nav .nav-link {
-    padding: 0.65rem 1rem;
+.tfe-mobile-nav__label {
+    margin: 0 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.tfe-mobile-nav__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tfe-mobile-nav__tile {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 52px;
+    padding: 0.6rem 0.8rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.tfe-mobile-nav__tile i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--dv2-accent-text, #ff4b52);
+    font-size: 0.9rem;
+}
+.tfe-mobile-nav__tile span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tfe-mobile-nav__tile:hover,
+.tfe-mobile-nav__tile:focus-visible {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.tfe-mobile-nav__account {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tfe-mobile-nav__who {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+}
+.tfe-mobile-nav__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-weight: 700;
+}
+.tfe-mobile-nav__who-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+.tfe-mobile-nav__who-text small {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 0.75rem;
+}
+.tfe-mobile-nav__who-text strong {
+    color: #fff;
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tfe-mobile-nav__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+.tfe-mobile-nav__actions .tfe-btn {
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
 }

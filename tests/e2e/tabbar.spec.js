@@ -46,3 +46,27 @@ test('public tab bar: labelled, working, and nothing hides under it', async ({ p
 
     expect(errors).toEqual([]);
 });
+
+// Nov 2026 feedback: the phone menu ran under the tab bar (Log out was cut
+// off) and listed links as a long column. It is a tile grid now, with Learn
+// and Tribes, and it ends above the tab bar.
+test('phone menu: tile grid with every page, ending above the tab bar', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'phone', 'the menu is phones and tablets only');
+    await page.goto('/partners/serengeti-sports-travel');
+    await page.waitForFunction(() => window.tfeLoaderFinished === true);
+    await page.locator('.tfe-nav-toggler').click();
+
+    const menu = page.locator('#tfe-mobile-nav');
+    await expect(menu).toBeVisible();
+    await expect(menu.locator('.tfe-mobile-nav__tile span')).toHaveText(
+        ['About', 'Features', 'Services', 'News', 'Learn', 'Tribes', 'Partners', 'Contact'],
+    );
+    await expect(menu.getByRole('link', { name: 'Sign in' })).toBeVisible();
+
+    const box = await menu.boundingBox();
+    const bar = await page.locator('.tfe-tabbar').boundingBox();
+    expect(box.y + box.height).toBeLessThanOrEqual(bar.y);
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+});

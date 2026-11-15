@@ -738,6 +738,13 @@ links to them were shared with testers.
   links the owner chose (Home, Partners, Plan a trip, Contact, Sign in), so
   the hamburger is the only way to About, Features, Services, News, Learn
   and Tribes there. Do not remove it unless those move somewhere else.
+  Its menu (Nov 2026) is a two-column grid of icon tiles (`menuLinks` in
+  `Header.jsx`, which adds Learn and Tribes to the desktop links), then the
+  account (Dashboard / Log out, or Sign in / Create account). It spans the
+  header, stops above the tab bar (`--tfe-mobile-nav-top`, measured on
+  open) and is SOLID: inside the scrolled header's own backdrop-filter a
+  glass panel let the page show through. "Plan my trip" is not in it — the
+  tab bar's centre tab is.
 
 ### UX plan, PRs J + K (Nov 2026)
 
