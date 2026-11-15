@@ -86,7 +86,7 @@
 
 .tfe-planner-breakdown {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
     gap: 10px 32px;
     margin: 0;
 }
@@ -101,7 +101,7 @@
 
 .tfe-planner-packages {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
     gap: 10px;
 }
 .tfe-planner-pkg {

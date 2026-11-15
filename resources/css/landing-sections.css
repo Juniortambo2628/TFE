@@ -64,7 +64,7 @@
 @media (max-width: 991px) { .community-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .community-grid__posts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.community-grid__posts--wide { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.community-grid__posts--wide { grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
 @media (max-width: 640px) { .community-grid__posts { grid-template-columns: minmax(0, 1fr); } }
 .community-grid__tribes { display: grid; gap: 16px; }
 
@@ -124,7 +124,7 @@
 .community-tribe__excerpt { margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.65); }
 .community-tribe__meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.78rem; color: rgba(255, 255, 255, 0.55); }
 
-.community-tribe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.community-tribe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 18px; }
 .community-section-title { margin: 40px 0 16px; font-size: 1.3rem; font-weight: 700; color: #fff; }
 .tfe-slab .community-section-title { margin-top: 0; }
 
@@ -141,7 +141,7 @@
 .community-tribe-page__locked p { margin: 4px 0 0; color: rgba(255, 255, 255, 0.65); }
 
 .community-grid--tribes-only { grid-template-columns: minmax(0, 1fr); }
-.community-grid--tribes-only .community-grid__tribes { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.community-grid--tribes-only .community-grid__tribes { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
 
 /* ---- Featured trips as a carousel (landing page v2, UX review 2 Nov 2026) ----
    The same cards as the grid, in one sideways row that snaps card by card.

@@ -36,7 +36,7 @@
 /* ── Stat Cards ── */
 .dash-stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
     gap: var(--space-lg);
 }
 
@@ -280,7 +280,7 @@
 /* ── Quick Actions ── */
 .dash-quick-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
     gap: var(--space-md);
 }
 
@@ -447,7 +447,7 @@
 /* ── Team Grid ── */
 .dash-team-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(70px, 100%), 1fr));
     gap: var(--space-sm);
 }
 
@@ -710,7 +710,7 @@
 /* ── Form Helpers ── */
 .dash-form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: var(--space-lg);
 }
 .dash-col-full { grid-column: 1 / -1; }

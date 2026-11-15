@@ -362,7 +362,7 @@ export default function Users({ auth, users = { data: [] }, stats = {}, filters 
                                         <label className="admin-form-label text-white mb-3">Supporting Team</label>
                                         <div className="no-scrollbar" style={{ 
                                             display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(70px, 100%), 1fr))',
                                             gap: '8px',
                                             width: '100%',
                                             maxHeight: '400px',

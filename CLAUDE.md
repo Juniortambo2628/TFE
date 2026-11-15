@@ -2592,6 +2592,12 @@ tests/
   Fit each footprint axis against the field of view it actually spans (length →
   horizontal, width → vertical) and re-frame on resize, or the bowl sits small
   in a lot of sky (Sprint 57).
+- Never write `repeat(auto-fill|auto-fit, minmax(320px, 1fr))` with a bare
+  fixed minimum. A column can never be narrower than its minimum, so on a
+  phone (a 288px panel inside page + panel padding) the cards ran off the
+  screen, clipped by `<main>`'s `overflow-x: clip` so nothing scrolled to
+  show it. Write `minmax(min(320px, 100%), 1fr)`. 56 grids had it;
+  `tests/JS/gridOverflow.test.mjs` fails on a new one (Nov 2026).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server

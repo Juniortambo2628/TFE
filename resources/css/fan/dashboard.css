@@ -1,7 +1,7 @@
 /* Dashboard Dedicated Styles */
 
 /* Grid Layouts */
-/* Flex, not grid (Sprint 56). With `repeat(auto-fit, minmax(240px, 1fr))` a
+/* Flex, not grid (Sprint 56). With `repeat(auto-fit, minmax(min(240px, 100%), 1fr))` a
    row fits four tiles at dashboard width, so a five-tile page — the partner
    dashboard, admin Ads, admin Media — dropped its fifth into a second row
    240px wide with a screenful of void beside it. Wrapping flex items with a
@@ -409,7 +409,7 @@
 /* Quick Action Grid Adjustments */
 .quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
     gap: 1.5rem;
 }
 

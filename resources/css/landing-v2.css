@@ -708,7 +708,7 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 @media (max-width: 767.98px) { .v2-panel--hub { grid-template-columns: 1fr; } }
 
 /* Icon cards: principles, features, quicker routes, a partner's pillars. */
-.v2-icards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.v2-icards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 14px; }
 .v2-icard {
     display: flex;
     flex-direction: column;
@@ -732,7 +732,7 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 .v2-icard__action { margin-top: 18px; }
 
 /* A numbered run that is not a set of links (listing, a partner's steps). */
-.v2-journey--static { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.v2-journey--static { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
 @media (max-width: 767.98px) { .v2-journey--static { grid-template-columns: 1fr; } }
 
 /* Services: one block per audience, copy beside its picture. */
@@ -751,8 +751,8 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 }
 
 /* Card grids (partners, listings, resources): AccentCards in even columns. */
-.v2-cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
-.v2-cardgrid--3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.v2-cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 18px; }
+.v2-cardgrid--3 { grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
 @media (max-width: 575.98px) {
     .v2-cardgrid,
     .v2-cardgrid--3 { grid-template-columns: 1fr; }
@@ -810,7 +810,7 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 
 /* News: headline cards that open on the publisher's site. */
 .v2-news__intro { margin: 0 0 28px; }
-.v2-news { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.v2-news { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
 .v2-news__card {
     display: flex;
     flex-direction: column;
