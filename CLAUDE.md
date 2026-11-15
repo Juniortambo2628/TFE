@@ -874,7 +874,10 @@ will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
   lg the logo moves to the centre while it is there (`:has()` in
   header.css). It used to float under the header and covered the sticky
   section tabs. `.tfe-backnav-float` is only the fallback for a page with
-  no public header. Tests that scroll must first wait for
+  no public header.
+  The header publishes its real height as `--tfe-header-h` on `<html>`
+  (ResizeObserver, `border-box`: its padding shrinks on scroll too), and
+  the sticky "On this page" strip sticks to that, flush under it. Tests that scroll must first wait for
   `window.tfeLoaderFinished`: the first-visit intro splash holds the page
   fixed.
 - Never pass a layout an inline component (`header={(p) => …}`): it is a new

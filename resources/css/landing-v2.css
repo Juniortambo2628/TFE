@@ -59,7 +59,7 @@
 
 .v2-section {
     padding: 88px 0;
-    scroll-margin-top: calc(var(--v2-header-h) + var(--v2-nav-h) + 8px);
+    scroll-margin-top: calc(var(--tfe-header-h, var(--v2-header-h)) + var(--v2-nav-h) + 8px);
 }
 .v2-section--tinted {
     background: linear-gradient(180deg, rgba(220, 20, 60, 0.05), rgba(255, 255, 255, 0.015) 40%, transparent);
@@ -68,7 +68,7 @@
 }
 .v2-anchor,
 .v2-page #trips {
-    scroll-margin-top: calc(var(--v2-header-h) + var(--v2-nav-h) + 8px);
+    scroll-margin-top: calc(var(--tfe-header-h, var(--v2-header-h)) + var(--v2-nav-h) + 8px);
 }
 
 .v2-head { max-width: 720px; margin-bottom: 44px; }
@@ -324,7 +324,9 @@
 /* ── Section nav (sticky) ────────────────────────────────────── */
 .v2-sectionnav {
     position: sticky;
-    top: var(--v2-header-h);
+    /* The header's measured height (Header.jsx), so the strip sits flush
+       under it as it shrinks on scroll; the fixed value is the fallback. */
+    top: var(--tfe-header-h, var(--v2-header-h));
     z-index: 900; /* under the header (1000), over the content */
     margin-top: 48px;
     background: rgba(0, 0, 0, 0.82);
@@ -641,7 +643,7 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
     gap: 48px;
     padding: 48px 0;
     border-top: 1px solid var(--v2-border);
-    scroll-margin-top: calc(var(--v2-header-h) + var(--v2-nav-h) + 8px);
+    scroll-margin-top: calc(var(--tfe-header-h, var(--v2-header-h)) + var(--v2-nav-h) + 8px);
 }
 .v2-chapter:first-child { border-top: 0; }
 .v2-chapter:nth-child(even) .v2-chapter__copy { order: 2; }
@@ -870,4 +872,4 @@ a.v2-type-chip:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 .v2-locked p { margin: 4px 0 0; color: var(--v2-muted); }
 
 /* The listing details reuse the v1 panel; give it the v2 rhythm. */
-.v2-page--inner .listing-page { padding: 64px 0 24px; scroll-margin-top: calc(var(--v2-header-h) + var(--v2-nav-h) + 8px); }
+.v2-page--inner .listing-page { padding: 64px 0 24px; scroll-margin-top: calc(var(--tfe-header-h, var(--v2-header-h)) + var(--v2-nav-h) + 8px); }
