@@ -495,6 +495,17 @@
   text-align: center;
 }
 
+.tfe-auth__error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
 /* Back-to-home pill, floats top-left over the whole shell */
 .tfe-auth__back {
   position: absolute;

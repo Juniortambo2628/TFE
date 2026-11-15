@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\SafeMail;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -46,6 +48,17 @@ class User extends Authenticatable implements MustVerifyEmail, WebAuthnAuthentic
         'is_admin',
         'company_name',
     ];
+
+    /**
+     * Send the verification link, reporting a mail-server failure instead of
+     * throwing it. Returns whether the mail went out. Sign-up calls this
+     * through the Registered listener, which ignores the result, so a down
+     * mail server no longer turns a successful sign-up into a 500.
+     */
+    public function sendEmailVerificationNotification(): bool
+    {
+        return SafeMail::attempt(fn () => $this->notify(new VerifyEmail));
+    }
 
     /**
      * The attributes that should be hidden for serialization.

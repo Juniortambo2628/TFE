@@ -6,6 +6,7 @@ use App\Models\LoginHistory;
 use App\Models\User;
 use App\Models\UserSecuritySetting;
 use App\Notifications\LoginAlertNotification;
+use App\Support\SafeMail;
 use Illuminate\Http\Request;
 
 /**
@@ -63,12 +64,13 @@ trait HandlesPostLogin
         $settings = UserSecuritySetting::where('user_id', $user->id)->first();
 
         if ($settings && $settings->login_notifications) {
-            $user->notify(new LoginAlertNotification([
+            // An alert that cannot be mailed must not stop the sign-in.
+            SafeMail::attempt(fn () => $user->notify(new LoginAlertNotification([
                 'ip_address' => $request->ip(),
                 'device' => $device,
                 'location' => 'Unknown',
                 'time' => now()->format('M d, Y \a\t h:i A'),
-            ]));
+            ])));
         }
     }
 

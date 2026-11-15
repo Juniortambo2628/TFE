@@ -26,6 +26,13 @@ export default function VerifyEmail({ status, tripSaved = false }) {
                 </div>
             )}
 
+            {status === 'verification-link-failed' && (
+                <div className="tfe-auth__error" role="alert">
+                    We couldn't send the email just now. Please try again in a few minutes —
+                    if it keeps happening, contact us and we'll verify your account for you.
+                </div>
+            )}
+
             {tripSaved && (
                 <div className="tfe-auth__alt mb-3">
                     <i className="fas fa-receipt me-2" aria-hidden="true"></i>
