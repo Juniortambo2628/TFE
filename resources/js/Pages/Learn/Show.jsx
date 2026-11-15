@@ -7,7 +7,7 @@ import { LearnResourceBody } from '@/Components/Public/LearnResourceBody';
 
 /** /v2/learn/{slug}: one resource, the same body as /learn/{slug}. */
 export default function LearnShow({ resource: r, related = [] }) {
-    const { v2Pages } = usePage().props;
+    const { v2Pages, publicImages } = usePage().props;
 
     return (
         <V2PageShell
@@ -18,7 +18,7 @@ export default function LearnShow({ resource: r, related = [] }) {
                     eyebrow={r.category_label}
                     title={r.title}
                     tagline={r.summary}
-                    background={r.hero_image || '/assets/img/backdrops/field-night.jpg'}
+                    background={r.hero_image || publicImages?.learn || '/assets/img/backdrops/field-night.jpg'}
                     accent={r.publisher?.theme_accent || '#15803d'}
                 />
             )}

@@ -19,6 +19,12 @@ class SchoolGroupDeclarationFormTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** Declaring a school group is for institution accounts (Nov 2026). */
+    private function institution(): User
+    {
+        return User::factory()->create(['account_type' => 'institution']);
+    }
+
     private function budgetFor(User $user): Budget
     {
         return Budget::create([
@@ -54,7 +60,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
 
     public function test_an_official_declares_a_group_against_their_own_plan(): void
     {
-        $official = User::factory()->create();
+        $official = $this->institution();
         $budget = $this->budgetFor($official);
 
         $this->actingAs($official)
@@ -73,7 +79,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
     public function test_declared_at_is_stamped_by_the_server(): void
     {
         // A client-supplied date on a warranty is worth nothing.
-        $official = User::factory()->create();
+        $official = $this->institution();
         $budget = $this->budgetFor($official);
 
         $this->actingAs($official)->post(
@@ -91,7 +97,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
     {
         // The warranty given for 20 minors does not cover the 40 that just
         // replaced them, so the declaration date moves with the numbers.
-        $official = User::factory()->create();
+        $official = $this->institution();
         $budget = $this->budgetFor($official);
 
         SchoolGroupDeclaration::create($this->payload([
@@ -115,7 +121,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
 
     public function test_both_warranties_are_required(): void
     {
-        $official = User::factory()->create();
+        $official = $this->institution();
         $budget = $this->budgetFor($official);
 
         // One box ticked is not a partial warranty — it is not one at all.
@@ -136,7 +142,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
 
     public function test_a_party_of_minors_needs_a_supervising_adult(): void
     {
-        $official = User::factory()->create();
+        $official = $this->institution();
         $budget = $this->budgetFor($official);
 
         $this->actingAs($official)
@@ -148,7 +154,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
 
     public function test_an_age_is_required_when_minors_travel_and_dropped_when_they_do_not(): void
     {
-        $official = User::factory()->create();
+        $official = $this->institution();
 
         // Required: it decides whether unaccompanied-minor handling applies.
         $withMinors = $this->budgetFor($official);
@@ -176,8 +182,8 @@ class SchoolGroupDeclarationFormTest extends TestCase
     public function test_an_official_cannot_declare_against_someone_elses_plan(): void
     {
         // Route-model binding is not an authorization check (Sprint 56).
-        $owner = User::factory()->create();
-        $stranger = User::factory()->create();
+        $owner = $this->institution();
+        $stranger = $this->institution();
         $budget = $this->budgetFor($owner);
 
         $this->actingAs($stranger)
@@ -189,8 +195,8 @@ class SchoolGroupDeclarationFormTest extends TestCase
 
     public function test_a_declaration_can_be_withdrawn_by_its_owner_only(): void
     {
-        $owner = User::factory()->create();
-        $stranger = User::factory()->create();
+        $owner = $this->institution();
+        $stranger = $this->institution();
         $budget = $this->budgetFor($owner);
 
         SchoolGroupDeclaration::create($this->payload(['budget_id' => $budget->id, 'declared_at' => now()]));
@@ -210,7 +216,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
     {
         // The school has to be able to see what it declared without
         // re-opening the form.
-        $official = User::factory()->create();
+        $official = $this->institution();
         $declared = $this->budgetFor($official);
         $plainTrip = $this->budgetFor($official);
 
@@ -232,7 +238,7 @@ class SchoolGroupDeclarationFormTest extends TestCase
     {
         // The design guarantee: extra keys are not merely ignored by the
         // validator, they have nowhere to land.
-        $official = User::factory()->create();
+        $official = $this->institution();
         $budget = $this->budgetFor($official);
 
         $this->actingAs($official)->post(
@@ -250,5 +256,19 @@ class SchoolGroupDeclarationFormTest extends TestCase
             $this->assertStringNotContainsString('child', $column);
             $this->assertStringNotContainsString('date_of_birth', $column);
         }
+    }
+
+    public function test_only_an_institution_account_can_declare_a_school_group(): void
+    {
+        // An individual fan's plan is not a school trip; the button is not
+        // shown to them, and the endpoint refuses them as well.
+        $fan = User::factory()->create(['account_type' => 'individual']);
+        $budget = $this->budgetFor($fan);
+
+        $this->actingAs($fan)
+            ->post(route('fan.budgets.school-group.store', $budget->id), $this->payload())
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('school_group_declarations', 0);
     }
 }

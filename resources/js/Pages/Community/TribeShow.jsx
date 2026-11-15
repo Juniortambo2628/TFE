@@ -11,7 +11,7 @@ import { formatNumber } from '@/lib/utils';
  * on the tribe's fan page, where its privacy rules decide.
  */
 export default function TribeShow({ tribe }) {
-    const { v2Pages, tournament } = usePage().props;
+    const { v2Pages, tournament, publicImages } = usePage().props;
     const isPrivate = tribe.privacy === 'private';
     const joinHref = route('community.tribes.join', tribe.slug);
 
@@ -24,7 +24,7 @@ export default function TribeShow({ tribe }) {
                     eyebrow={isPrivate ? 'Tribe · join by request' : 'Tribe · open to all'}
                     title={tribe.name}
                     tagline={tribe.excerpt}
-                    background={tribe.banner || '/assets/img/backdrops/argentina-fans.jpg'}
+                    background={tribe.banner || publicImages?.tribes || '/assets/img/backdrops/argentina-fans.jpg'}
                     actions={<a href={joinHref} className="tfe-btn tfe-btn--filled tfe-btn--lg"><i className="fas fa-user-plus" aria-hidden="true"></i> {isPrivate ? 'Sign up to request to join' : 'Sign up to join'}</a>}
                 />
             )}

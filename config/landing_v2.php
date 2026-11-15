@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\PublicImages;
+
 /*
 |--------------------------------------------------------------------------
 | Landing page v2 + audience walkthroughs (UX review, 2 Nov 2026, Track C)
@@ -26,6 +28,11 @@
 */
 
 $screen = fn (string $name) => "/assets/img/landing-v2/{$name}.webp";
+
+// Generated photography for the public pages (public/assets/img/public/).
+// A placement only gets its photo once the file is committed, so a card or
+// hero with no file yet keeps its current look rather than a broken image.
+$photo = [PublicImages::class, 'photo'];
 
 return [
 
@@ -208,10 +215,10 @@ return [
         'cta_label' => 'Become a partner',
         'directory_label' => 'See every partner',
         'categories' => [
-            ['id' => 'travel', 'icon' => 'fas fa-plane-departure', 'label' => 'Travel & stays', 'text' => 'Travel agents, hotels and airlines that package the trip itself.', 'types' => ['travel_agent', 'hotel_provider', 'airline']],
-            ['id' => 'money', 'icon' => 'fas fa-building-columns', 'label' => 'Money', 'text' => 'Banks and finance partners that help fans pay for the journey.', 'types' => ['finance_partner']],
-            ['id' => 'tickets', 'icon' => 'fas fa-ticket', 'label' => 'Tickets & events', 'text' => 'Ticket sellers and organisers of the events around the matches.', 'types' => ['ticketing_partner', 'event_organiser']],
-            ['id' => 'football', 'icon' => 'fas fa-futbol', 'label' => 'Football', 'text' => 'Clubs, federations, sponsors and the schools programmes growing the next generation.', 'types' => ['club', 'federation', 'sponsor', 'school_community']],
+            ['id' => 'travel', 'image' => $photo('card-partners-travel.webp'), 'icon' => 'fas fa-plane-departure', 'label' => 'Travel & stays', 'text' => 'Travel agents, hotels and airlines that package the trip itself.', 'types' => ['travel_agent', 'hotel_provider', 'airline']],
+            ['id' => 'money', 'image' => $photo('card-partners-money.webp'), 'icon' => 'fas fa-building-columns', 'label' => 'Money', 'text' => 'Banks and finance partners that help fans pay for the journey.', 'types' => ['finance_partner']],
+            ['id' => 'tickets', 'image' => $photo('card-partners-tickets.webp'), 'icon' => 'fas fa-ticket', 'label' => 'Tickets & events', 'text' => 'Ticket sellers and organisers of the events around the matches.', 'types' => ['ticketing_partner', 'event_organiser']],
+            ['id' => 'football', 'image' => $photo('card-partners-football.webp'), 'icon' => 'fas fa-futbol', 'label' => 'Football', 'text' => 'Clubs, federations, sponsors and the schools programmes growing the next generation.', 'types' => ['club', 'federation', 'sponsor', 'school_community']],
         ],
     ],
 
@@ -251,7 +258,7 @@ return [
             'eyebrow' => 'For fans',
             'headline' => 'Your tournament trip, step by step',
             'tagline' => 'How a fan goes from picking a match to walking into the stadium — and what TFE does at each step.',
-            'background' => '/assets/img/backdrops/argentina-fans.jpg',
+            'background' => $photo('hero-for-fans.webp', '/assets/img/backdrops/argentina-fans.jpg'),
             'chapters' => [
                 ['title' => 'Pick your matches', 'text' => 'Start from a match, a stadium or just a number of games. The planner works without an account.', 'points' => ['Filter by team, venue or stage', 'Plan from any stadium on the home page'], 'image' => $screen('planner-desktop'), 'phone' => $screen('planner-phone')],
                 ['title' => 'Get a price for the whole trip', 'text' => 'Tell us where you are travelling from, how many of you are going and for how long. You get one estimate for flights, stay, tickets and extras, in your own currency.', 'points' => ['Seven currencies', 'See what each part costs'], 'image' => $screen('plan-desktop'), 'phone' => null],
@@ -268,7 +275,7 @@ return [
             'eyebrow' => 'For partners',
             'headline' => 'Reach fans while they are planning',
             'tagline' => 'How travel agents, hotels, airlines, ticketing and finance partners work on TFE — from publishing an offer to measuring what it brings in.',
-            'background' => '/assets/img/backdrops/stadium-fans.jpg',
+            'background' => $photo('hero-for-partners.webp', '/assets/img/backdrops/stadium-fans.jpg'),
             'chapters' => [
                 ['title' => 'Your own page on TFE', 'text' => 'Every partner gets a branded page with its story, its colours and everything it offers. Verified partners are marked across the platform.', 'points' => ['Your logo, accent colour and hero image', 'A link fans can share'], 'image' => $screen('partner-hub-desktop'), 'phone' => null],
                 ['title' => 'Publish what you sell', 'text' => 'Packages, tours, offers, events and programmes go live as soon as you save them, and you can hide or show each one at any time.', 'points' => ['Trip details only where they apply', 'Published under your name'], 'image' => $screen('partner-listings-desktop'), 'phone' => null],
@@ -283,7 +290,7 @@ return [
             'eyebrow' => 'For schools & academies',
             'headline' => 'Group trips and programmes, run by the institution',
             'tagline' => 'How a school, academy or community group plans a tournament trip on TFE — and where to find programmes and learning resources.',
-            'background' => '/assets/img/backdrops/field-top.jpg',
+            'background' => $photo('hero-for-schools.webp', '/assets/img/backdrops/field-top.jpg'),
             'chapters' => [
                 ['title' => 'Register as an institution', 'text' => 'The account belongs to the school, not to one teacher, and a named official acts for it.', 'points' => ['Schools, universities, academies, clubs and community groups', 'Reviewed before it is verified'], 'image' => $screen('register-institution-desktop'), 'phone' => null],
                 ['title' => 'Plan the trip', 'text' => 'Use the same planner and budget tools as any fan, for the whole party.', 'points' => ['One estimate for the group', 'Save it and share it with partners'], 'image' => $screen('plan-desktop'), 'phone' => null],
@@ -310,10 +317,10 @@ return [
                 'title' => 'Four things we hold to',
                 'text' => 'They decide what we build, and what we leave to the people better placed to do it.',
                 'items' => [
-                    ['icon' => 'fas fa-calculator', 'title' => 'An estimate before an account', 'text' => 'Anyone can price a trip in three steps. We only ask you to sign in when you want to save or book it.'],
-                    ['icon' => 'fas fa-circle-check', 'title' => 'Partners we have checked', 'text' => 'Trips, flights, tickets and financing come from partners on TFE. A verified badge means we have checked who they are.'],
-                    ['icon' => 'fas fa-building-columns', 'title' => 'Your savings stay with your bank', 'text' => 'Saving and financing run through bank and finance partners. TFE never holds, receives or moves your savings.'],
-                    ['icon' => 'fas fa-school', 'title' => 'Schools stay in charge of their pupils', 'text' => 'A school declares its own group through a named official. It runs consent and supervision; TFE holds no pupil data.'],
+                    ['icon' => 'fas fa-calculator', 'title' => 'An estimate before an account', 'image' => $photo('card-about-estimate.webp'), 'text' => 'Anyone can price a trip in three steps. We only ask you to sign in when you want to save or book it.'],
+                    ['icon' => 'fas fa-circle-check', 'title' => 'Partners we have checked', 'image' => $photo('card-about-verified.webp'), 'text' => 'Trips, flights, tickets and financing come from partners on TFE. A verified badge means we have checked who they are.'],
+                    ['icon' => 'fas fa-building-columns', 'title' => 'Your savings stay with your bank', 'image' => $photo('card-about-savings.webp'), 'text' => 'Saving and financing run through bank and finance partners. TFE never holds, receives or moves your savings.'],
+                    ['icon' => 'fas fa-school', 'title' => 'Schools stay in charge of their pupils', 'image' => $photo('card-about-schools.webp'), 'text' => 'A school declares its own group through a named official. It runs consent and supervision; TFE holds no pupil data.'],
                 ],
             ],
             'behind' => [
@@ -333,12 +340,12 @@ return [
                 'title' => 'The smaller things that add up',
                 'text' => 'Some depend on a partner switching them on, and we say where they do.',
                 'items' => [
-                    ['icon' => 'fas fa-coins', 'title' => 'Seven currencies', 'text' => 'Plan in US dollars, euros, pounds, shillings, rand, naira or CFA francs. A saved plan keeps the currency you chose.'],
-                    ['icon' => 'fas fa-cube', 'title' => '3D seat map', 'text' => 'See each ground tier by tier, and how full it is where tickets are on sale through TFE.'],
-                    ['icon' => 'fas fa-mobile-screen', 'title' => 'M-Pesa', 'text' => 'Pay a booking from your phone, where in-app payment is switched on.'],
-                    ['icon' => 'fas fa-comment-sms', 'title' => 'Text alerts', 'text' => 'Quotes, payments and holds about to expire, by SMS or WhatsApp. Only if you ask, and one reply stops them.'],
-                    ['icon' => 'fas fa-fingerprint', 'title' => 'Passkeys', 'text' => 'Sign in with your fingerprint or face instead of a password, and add two-step sign-in.'],
-                    ['icon' => 'fas fa-users', 'title' => 'Tribes', 'text' => 'Supporter groups for each tournament, public, by request or by invitation.'],
+                    ['icon' => 'fas fa-coins', 'title' => 'Seven currencies', 'image' => $photo('card-feature-currencies.webp'), 'text' => 'Plan in US dollars, euros, pounds, shillings, rand, naira or CFA francs. A saved plan keeps the currency you chose.'],
+                    ['icon' => 'fas fa-cube', 'title' => '3D seat map', 'image' => $photo('card-feature-seatmap.webp'), 'text' => 'See each ground tier by tier, and how full it is where tickets are on sale through TFE.'],
+                    ['icon' => 'fas fa-mobile-screen-button', 'title' => 'M-Pesa', 'image' => $photo('card-feature-mpesa.webp'), 'text' => 'Pay a booking from your phone, where in-app payment is switched on.'],
+                    ['icon' => 'fas fa-comment-sms', 'title' => 'Text alerts', 'image' => $photo('card-feature-alerts.webp'), 'text' => 'Quotes, payments and holds about to expire, by SMS or WhatsApp. Only if you ask, and one reply stops them.'],
+                    ['icon' => 'fas fa-fingerprint', 'title' => 'Passkeys', 'image' => $photo('card-feature-passkeys.webp'), 'text' => 'Sign in with your fingerprint or face instead of a password, and add two-step sign-in.'],
+                    ['icon' => 'fas fa-users', 'title' => 'Tribes', 'image' => $photo('card-feature-tribes.webp'), 'text' => 'Supporter groups for each tournament, public, by request or by invitation.'],
                 ],
             ],
             'closing' => ['title' => 'Try it with your own trip', 'text' => 'Pick a match and see the price, before you sign up.', 'primary' => 'Plan my trip', 'secondary' => 'See the services'],
@@ -353,6 +360,7 @@ return [
             'groups' => [
                 [
                     'id' => 'for-fans',
+                    'image' => $photo('card-services-fans.webp'),
                     'eyebrow' => 'For fans',
                     'title' => 'Everything between you and the stadium',
                     'text' => 'One plan from the match you pick to the trip home.',
@@ -362,6 +370,7 @@ return [
                 ],
                 [
                     'id' => 'for-partners',
+                    'image' => $photo('card-services-partners.webp'),
                     'eyebrow' => 'For partners',
                     'title' => 'A shop window and a request queue',
                     'text' => 'Travel agents, airlines, hotels, ticketing and finance partners, clubs and sponsors.',
@@ -371,6 +380,7 @@ return [
                 ],
                 [
                     'id' => 'for-schools',
+                    'image' => $photo('card-services-schools.webp'),
                     'eyebrow' => 'For schools and academies',
                     'title' => 'Group trips, declared once',
                     'text' => 'An institution account, with a named official who acts for it.',
@@ -403,9 +413,9 @@ return [
                 'eyebrow' => 'Quicker routes',
                 'title' => 'You may not need to wait for us',
                 'items' => [
-                    ['icon' => 'fas fa-plane', 'title' => 'Pricing a trip', 'text' => 'The planner gives you an estimate straight away.', 'label' => 'Plan my trip', 'action' => 'planner'],
-                    ['icon' => 'fas fa-handshake', 'title' => 'Finding a partner', 'text' => 'Every partner on TFE, by type and tournament.', 'label' => 'Browse partners', 'action' => 'link:/partners'],
-                    ['icon' => 'fas fa-school', 'title' => 'A school trip', 'text' => 'Register your institution in three steps.', 'label' => 'Register a school', 'action' => 'route:register.institution'],
+                    ['icon' => 'fas fa-plane', 'title' => 'Pricing a trip', 'image' => $photo('card-contact-pricing.webp'), 'text' => 'The planner gives you an estimate straight away.', 'label' => 'Plan my trip', 'action' => 'planner'],
+                    ['icon' => 'fas fa-handshake', 'title' => 'Finding a partner', 'image' => $photo('card-contact-partner.webp'), 'text' => 'Every partner on TFE, by type and tournament.', 'label' => 'Browse partners', 'action' => 'link:/partners'],
+                    ['icon' => 'fas fa-school', 'title' => 'A school trip', 'image' => $photo('card-contact-school.webp'), 'text' => 'Register your institution in three steps.', 'label' => 'Register a school', 'action' => 'route:register.institution'],
                 ],
             ],
             'closing' => ['title' => 'Ready when you are', 'text' => 'Price a trip now, and talk to us about the rest.', 'primary' => 'Plan my trip', 'secondary' => 'Back to the top'],

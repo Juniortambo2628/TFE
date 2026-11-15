@@ -43,8 +43,8 @@ export default function Services({ hero, landing, partnerCounts = {}, partnerTyp
                             <V2Points points={g.items} />
                             <LandingAction action={g.action} label={g.link_label} icon="fas fa-arrow-right" size="md" />
                         </div>
-                        {images[g.id] && (
-                            <div className="v2-service__image" style={{ '--v2-card-image': `url(${assetPath(images[g.id])})` }} aria-hidden="true" />
+                        {(g.image || images[g.id]) && (
+                            <div className="v2-service__image" style={{ '--v2-card-image': `url(${assetPath(g.image || images[g.id])})` }} aria-hidden="true" />
                         )}
                     </div>
                 </V2Section>

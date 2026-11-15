@@ -18,7 +18,7 @@ import '../../css/tickets.css';
  * section here, like the /v2 journey. Copy: `pages.hub`.
  */
 export default function PartnerHub({ profile, listings = [], tickets = [], steps = [], pillars = [] }) {
-    const { v2Pages, tournament } = usePage().props;
+    const { v2Pages, tournament, publicImages } = usePage().props;
     const copy = v2Pages.hub;
     const name = profile.display_name;
     const accent = profile.theme_accent || '#dc143c';
@@ -42,7 +42,7 @@ export default function PartnerHub({ profile, listings = [], tickets = [], steps
                     eyebrow={`Official ${partnerEyebrow(profile.partner_type_label)} Partner`}
                     title={name}
                     tagline={profile.tagline}
-                    background={profile.hero_image || '/assets/img/backdrops/stadium-fans.jpg'}
+                    background={profile.hero_image || publicImages?.partners || '/assets/img/backdrops/stadium-fans.jpg'}
                     media={profile.logo_url ? { src: profile.logo_url, alt: name } : undefined}
                     actions={(
                         <>

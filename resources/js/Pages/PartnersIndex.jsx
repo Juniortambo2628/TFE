@@ -11,7 +11,7 @@ import { V2Section, closingProps } from '@/Components/Landing/V2/V2Blocks';
  * above the results. Copy: `pages.partners`.
  */
 export default function PartnersIndex({ profiles = [], partner_types = {}, tournaments = [], filters = {} }) {
-    const { v2Pages } = usePage().props;
+    const { v2Pages, publicImages } = usePage().props;
     const copy = v2Pages.partners;
     const [q, setQ] = useState(filters.q || '');
     const [type, setType] = useState(filters.type || '');
@@ -41,7 +41,7 @@ export default function PartnersIndex({ profiles = [], partner_types = {}, tourn
                     eyebrow={copy.eyebrow}
                     title={copy.title}
                     tagline={copy.tagline}
-                    background="/assets/img/backdrops/stadium-fans.jpg"
+                    background={publicImages?.partners || '/assets/img/backdrops/stadium-fans.jpg'}
                 >
                     <label className="v2-search">
                         <i className="fas fa-search" aria-hidden="true"></i>

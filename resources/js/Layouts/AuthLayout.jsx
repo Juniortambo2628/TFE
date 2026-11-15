@@ -31,13 +31,14 @@ export default function AuthLayout({
     backLabel = 'Home',
     backIcon = 'fas fa-home',
 }) {
-    const { assetUrl } = usePage().props;
+    const { assetUrl, publicImages } = usePage().props;
     const logo = `${assetUrl}assets/img/logo/TFE-logo.png`;
     // Default hero ships as an optimised WebP (~130KB) with a JPEG
     // fallback (~220KB), down from the 2.1MB original. A caller can still
     // pass a custom heroImage, which is used as-is.
-    const heroWebp = heroImage ? null : `${assetUrl}assets/img/fan-auth.webp`;
-    const hero = heroImage || `${assetUrl}assets/img/fan-auth-opt.jpg`;
+    const generated = heroImage ? null : publicImages?.auth;
+    const heroWebp = heroImage || generated ? null : `${assetUrl}assets/img/fan-auth.webp`;
+    const hero = heroImage || generated || `${assetUrl}assets/img/fan-auth-opt.jpg`;
 
     return (
         <div className={`tfe-auth${wide ? ' tfe-auth--wide' : ''}`}>

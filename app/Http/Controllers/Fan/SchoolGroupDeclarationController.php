@@ -29,6 +29,13 @@ class SchoolGroupDeclarationController extends Controller
     {
         $this->authorizeBudget($budget);
 
+        // Only an institution account declares a school group (Nov 2026):
+        // an individual fan's plan is not a school trip. Reads the column,
+        // as every account-type check does (User::isInstitution()).
+        if (! $request->user()->isInstitution()) {
+            abort(403);
+        }
+
         // An age is only meaningful — and only asked for — when minors are
         // actually travelling. It decides whether unaccompanied-minor
         // handling applies, and is still nobody's identity.

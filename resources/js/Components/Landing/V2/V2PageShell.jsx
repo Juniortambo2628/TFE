@@ -20,6 +20,7 @@ import '../../../../css/landing-v2.css';
  */
 export default function V2PageShell({ title, hero, sections = [], closing, children }) {
     useFixedHeaderOnScroll();
+    const { publicImages } = usePage().props;
 
     return (
         <TournamentProvider>
@@ -32,7 +33,7 @@ export default function V2PageShell({ title, hero, sections = [], closing, child
                 {hero}
                 {sections.length > 0 && <SectionNav sections={sections} />}
                 {children}
-                {closing && <ClosingCta {...closing} />}
+                {closing && <ClosingCta {...(publicImages?.closing ? { image: publicImages.closing } : {})} {...closing} />}
                 <Footer />
             </div>
             <PrivacyConsent />

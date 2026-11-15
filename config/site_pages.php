@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\PublicImages;
+
 /*
 |--------------------------------------------------------------------------
 | Public section-page heroes
@@ -16,6 +18,10 @@
 |
 */
 
+// Generated photography (public/assets/img/public/): used once the file is
+// committed, otherwise the current backdrop stays.
+$photo = [PublicImages::class, 'photo'];
+
 return [
 
     // Public tribe directory (Sprint 70).
@@ -23,7 +29,7 @@ return [
         'eyebrow' => 'Community',
         'title' => 'Tribes',
         'tagline' => 'Travel with your people. Supporter groups, watch-alongs and trip crews for every tournament — sign up to join one.',
-        'background' => '/assets/img/backdrops/argentina-fans.jpg',
+        'background' => $photo('hero-tribes.webp', '/assets/img/backdrops/argentina-fans.jpg'),
         'cta_label' => 'Join TFE',
         'cta_href' => '/register',
     ],
@@ -32,7 +38,7 @@ return [
         'eyebrow' => 'About TFE',
         'title' => 'About Us',
         'tagline' => 'Premium travel experiences for football fans who value comfort, style and a personal approach — trusted destinations, exclusive offers, top-tier service.',
-        'background' => '/assets/img/backdrops/stadium-fans.jpg',
+        'background' => $photo('hero-about.webp', '/assets/img/backdrops/stadium-fans.jpg'),
         'cta_label' => 'Explore what we offer',
         'cta_href' => '/services',
     ],
@@ -41,7 +47,7 @@ return [
         'eyebrow' => 'Features',
         'title' => 'Core Features',
         'tagline' => 'Structured financing, flexible payment plans, community savings and all-inclusive packages — built so the tournament fits your budget.',
-        'background' => '/assets/img/backdrops/nigeria-fans.jpg',
+        'background' => $photo('hero-features.webp', '/assets/img/backdrops/nigeria-fans.jpg'),
         'cta_label' => 'See our services',
         'cta_href' => '/services',
     ],
@@ -50,7 +56,7 @@ return [
         'eyebrow' => 'Services',
         'title' => 'What We Offer',
         'tagline' => 'Comprehensive solutions to make your tournament dream a reality — from flexible financing to complete travel packages.',
-        'background' => '/assets/img/backdrops/field-night.jpg',
+        'background' => $photo('hero-services.webp', '/assets/img/backdrops/field-night.jpg'),
         'cta_label' => 'Get started',
         'cta_href' => '/register',
     ],
@@ -59,7 +65,7 @@ return [
         'eyebrow' => 'News',
         'title' => 'Latest News',
         'tagline' => 'The latest stories from across the football world — fixtures, teams, transfers and tournament news.',
-        'background' => '/assets/img/backdrops/night-stadium.jpg',
+        'background' => $photo('hero-news.webp', '/assets/img/backdrops/night-stadium.jpg'),
         'cta_label' => null,
         'cta_href' => null,
     ],
@@ -68,7 +74,7 @@ return [
         'eyebrow' => 'Contact',
         'title' => 'Get in Touch',
         'tagline' => 'Questions about our packages or financing? Our team is here to help you plan your trip with confidence.',
-        'background' => '/assets/img/backdrops/brazil-fan-landscape.jpg',
+        'background' => $photo('hero-contact.webp', '/assets/img/backdrops/brazil-fan-landscape.jpg'),
         'cta_label' => 'Message us',
         'cta_href' => 'mailto:hello@tfe.okjtech.co.ke',
     ],
@@ -77,7 +83,7 @@ return [
         'eyebrow' => 'Learning Hub',
         'title' => 'Coach, Teach, Play Better',
         'tagline' => 'Coaching guides, safeguarding standards and session plans from the partners running programmes across the region — free to read, for anyone who works with young players.',
-        'background' => '/assets/img/backdrops/field-night.jpg',
+        'background' => $photo('hero-learn.webp', '/assets/img/backdrops/field-night.jpg'),
         'cta_label' => 'Browse resources',
         'cta_href' => '#learn-resources',
     ],

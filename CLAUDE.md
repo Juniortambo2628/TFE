@@ -725,6 +725,25 @@ One structure: `[Back slot #tfe-header-back] [logo] [site links | role badge] [a
   while it is hovered or focused. On phones the stadium strip replaces
   "See how it works" on the first screen.
 
+### Public-page photography + photo cards (Nov 2026)
+
+- **Generated images, one slot each.** Heroes and cards on the public pages
+  (not the landing page) take photos from `public/assets/img/public/`,
+  named as in the "TFE public-page image prompts (Gemini)" doc.
+  `App\Support\PublicImages::photo($file, $fallback)` returns the photo only
+  once its file is committed, so a slot without one keeps its current image.
+  Config uses it (`landing_v2.php` card `image`s + walkthrough backgrounds,
+  `site_pages.php` hero backgrounds); the rest (partners/learn/tribes hero
+  fallbacks, the closing band, the sign-in photo) is the shared
+  `publicImages` prop.
+- **Photo cards**: `V2IconCards` and `PartnerCategories` render an item
+  with an `image` as `--photo` (background photo, scrim, icon chip on top,
+  text at the bottom); without one, the plain card. The landing page's own
+  ClosingCta keeps its image; inner pages use `publicImages.closing`.
+- **Declare school group is institution-only**: the button shows for
+  institutions (or a plan that already has a declaration), and
+  `SchoolGroupDeclarationController::store` 403s anyone else.
+
 ### UX plan, PRs D + E (Nov 2026)
 
 - **One highlight in the tab bar**: the primary tab (Plan / Plan a trip) is
