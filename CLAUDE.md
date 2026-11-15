@@ -17,6 +17,25 @@ model in Sprint 1 — tournaments live in `config/tournaments.php` (`wc_2026`,
 `afcon_2027`, `euro_2024`, …) and every fan-facing resource is scoped to an
 `active_tournament` in session.
 
+## The OKJT kit (shared with the other OKJTech projects)
+
+The other OKJTech products (Naoa, Najenga, TenaFi) share a kit: `@okjt/ui`,
+`@okjt/site`, `@okjt/dashboard` and `okjt/laravel-kit`, in `packages/` of
+Juniortambo2628/OKJT. TFE can't use the kit's screens yet, because they need
+Tailwind 4 and TFE runs Tailwind 3 with Bootstrap utilities. Moving TFE to
+Tailwind 4 is a separate project, not to be started unasked. Until then:
+
+- **TFE gives to the kit.** Much of what the kit is gaining was built here first
+  (`TfeModal`, `TabBar`, `StepFlow`, undo instead of "are you sure?",
+  `ForgetShadowedCookies`, the media library, the client error log, the PWA
+  and web push, the accessibility and grid-overflow tests). When you build or
+  fix something that isn't specific to football, add a line to the pull
+  request: `Kit candidate: <what and where>`.
+- **TFE may use the kit's parts that don't need Tailwind**: the helper
+  functions and hooks in `@okjt/ui` (for example `installChunkReload()`), and
+  `okjt/laravel-kit` on the server. Prefer them to writing a TFE copy, and never
+  copy kit code into TFE.
+
 ## Stack + tooling
 
 - **Backend**: PHP 8.3+, Laravel 12, SQLite (dev) / MySQL (WAMP prod). Pint for formatting.
