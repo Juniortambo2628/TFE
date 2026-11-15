@@ -60,9 +60,13 @@ export default function AuthLayout({
                     <img src={hero} alt="" className="tfe-auth__media-img" loading="eager" fetchpriority="high" />
                 </picture>
                 <div className="tfe-auth__media-inner">
-                    <Link href={route('index')} className="tfe-auth__brand">
-                        <span>The Football Experience</span>
-                    </Link>
+                    {/* The Home pill takes this corner when there is one; the
+                        logo below already names the site. */}
+                    {!backHref ? (
+                        <Link href={route('index')} className="tfe-auth__brand">
+                            <span>The Football Experience</span>
+                        </Link>
+                    ) : <span />}
 
                     <div className="tfe-auth__tagline">
                         <img src={logo} alt="The Football Experience" className="tfe-auth__hero-logo" />
