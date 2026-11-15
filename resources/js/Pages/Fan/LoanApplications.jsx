@@ -157,9 +157,10 @@ function OfferingCard({ offering }) {
             LinkComponent={Link}
             href={route('fan.packages.show', offering.id)}
             accent={accent}
-            artwork={offering.hero_image
-                ? { src: offering.hero_image, alt: offering.name, variant: 'thumb' }
-                : { icon: 'fas fa-hand-holding-usd' }}
+            // The partner's image is the card's background with the text over
+            // it (Nov 2026): as a floating thumbnail it sat on the title.
+            cover={offering.hero_image || undefined}
+            artwork={offering.hero_image ? undefined : { icon: 'fas fa-hand-holding-usd' }}
             title={offering.name}
             desc={offering.description}
             eyebrow={offering.publisher?.display_name}

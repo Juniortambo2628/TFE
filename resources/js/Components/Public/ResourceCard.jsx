@@ -17,7 +17,8 @@ export function ResourceCard({ resource: r, href }) {
             LinkComponent={Link}
             href={href || route('learn.show', r.slug)}
             accent={r.publisher?.theme_accent || '#15803d'}
-            artwork={r.hero_image ? { src: r.hero_image, alt: r.title, variant: 'thumb' } : { icon: 'fas fa-book-open' }}
+            cover={r.hero_image || undefined}
+            artwork={r.hero_image ? undefined : { icon: 'fas fa-book-open' }}
             status={r.category_label}
             title={r.title}
             desc={r.summary}
