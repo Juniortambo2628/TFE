@@ -153,11 +153,14 @@ test('the end of each page sits above the floating bars', async ({ page }, testI
         await page.waitForFunction(() => window.tfeLoaderFinished === true, null, { timeout: 15000 });
         await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
         await page.waitForTimeout(400);
+        // Every dashboard page ends with the site footer (Nov 2026). Its last
+        // readable row (links, copyright) must clear the bars; the wordmark
+        // band under it is decoration and may run beneath them.
         const last = await page.evaluate(() => {
-            const kids = [...document.querySelectorAll('.tfe-dv2__page > *')].filter((el) => el.offsetHeight > 0);
-            const el = kids[kids.length - 1];
+            const el = document.querySelector('.tfe-dv2 .tfe-footer .tfe-footer__meta');
             return el ? el.getBoundingClientRect().bottom : 0;
         });
+        expect(last, `${path}: footer present`).toBeGreaterThan(0);
         const bars = await page.evaluate(() => [...document.querySelectorAll('.tfe-dv2-toolbar, .tfe-tabbar--dashboard')]
             .filter((el) => el.offsetHeight > 0)
             .map((el) => el.getBoundingClientRect().top));
@@ -177,4 +180,36 @@ test('the side panel shows the next step on a wide screen', async ({ page }, tes
     await expect(panel).not.toHaveClass(/is-rail/);
     await expect(panel.locator('.tfe-dv2-panel__label', { hasText: 'Next step' })).toBeVisible();
     await expect(panel.locator('.tfe-dv2-panel__next a')).toHaveAttribute('href', /\/fan\//);
+});
+
+// One header and one footer (Nov 2026): the dashboard renders the site's
+// header (dashboard variant) and footer; Back shows on every inner page.
+test('one header: Back on inner pages, not on home, and the site footer', async ({ page }, testInfo) => {
+    const errors = watchErrors(page);
+    await signIn(page, FAN[testInfo.project.name] || FAN.desktop);
+
+    await page.goto('/fan/dashboard');
+    const back = page.locator('.tfe-header--dashboard .tfe-backnav-header');
+    await expect(page.locator('.tfe-header--dashboard')).toBeVisible();
+    await expect(back).toHaveCount(0);
+    await expect(page.locator('.tfe-header--dashboard button[aria-label=Notifications]')).toBeVisible();
+
+    // Arriving straight on an inner page (no history in this visit), Back
+    // climbs to its parent: Itineraries sits under Journey / home.
+    await page.goto('/fan/itineraries');
+    await expect(back).toBeVisible();
+    await back.click();
+    await page.waitForURL((u) => u.pathname !== '/fan/itineraries');
+
+    // The public footer ends the page, with the signed-in links.
+    await expect(page.locator('.tfe-dv2 .tfe-footer')).toHaveCount(1);
+    await expect(page.locator('.tfe-dv2 .tfe-footer__meta')).toContainText('Log out');
+    expect(errors).toEqual([]);
+});
+
+test('signed in, public pages have the bell and envelope at every width', async ({ page }, testInfo) => {
+    await signIn(page, FAN[testInfo.project.name] || FAN.desktop);
+    await page.goto('/partners');
+    await expect(page.locator('.tfe-header button[aria-label=Notifications]')).toBeVisible();
+    await expect(page.locator('.tfe-header button[aria-label=Messages]')).toBeVisible();
 });

@@ -202,3 +202,12 @@
     }
     .tfe-footer__meta { justify-content: flex-start; }
 }
+
+/* "Log out" is a POST, so a <button>; drawn like the links beside it. */
+.tfe-footer__linkbtn {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+}

@@ -3,9 +3,17 @@ import { useTournament } from '@/Context/TournamentContext';
 import assetPath from '@/lib/assets';
 import '../../css/footer.css';
 
+/**
+ * The site footer: every public page, and (Nov 2026) the end of every
+ * dashboard page too (BaseLayout). Signed in, its last row offers the
+ * dashboard and Log out instead of Sign In / Sign Up.
+ */
 export default function Footer() {
     const { tournament } = useTournament();
-    const { assetUrl } = usePage().props;
+    const { assetUrl, auth } = usePage().props;
+    const user = auth?.user;
+    const dashboardRoute = user?.is_admin ? 'admin.dashboard' : user?.is_partner ? 'partner.dashboard'
+        : user?.account_type === 'institution' ? 'institution.dashboard' : 'fan.dashboard';
     const journeyLabel = tournament ? (tournament.short_name || tournament.name) : 'tournament';
     const wordmark = 'The Football Experience';
     const okjLogo = assetPath(`${assetUrl || ''}assets/partner-logos/OKJTechLogo-White_Transparent.png`);
@@ -47,11 +55,14 @@ export default function Footer() {
                         <div className="tfe-footer__col">
                             <h4>Explore</h4>
                             <ul>
-                                <li><a href="/#about">About</a></li>
-                                <li><a href="/#features">Features</a></li>
-                                <li><a href="/#services">Services</a></li>
+                                {/* Each its own page: the old /#about anchors pointed
+                                    at landing sections that moved to these. */}
+                                <li><Link href={route('about')}>About</Link></li>
+                                <li><Link href={route('features')}>Features</Link></li>
+                                <li><Link href={route('services')}>Services</Link></li>
                                 <li><Link href={route('partners.index')}>Partners</Link></li>
-                                <li><a href="/#news">News</a></li>
+                                <li><Link href={route('news')}>News</Link></li>
+                                <li><Link href={route('learn.index')}>Learn</Link></li>
                             </ul>
                         </div>
 
@@ -80,11 +91,19 @@ export default function Footer() {
                             <img src={okjLogo} alt="OKJ Technologies" className="tfe-footer__okj" />
                         </a>
                     </span>
-                    <span>
-                        <Link href={route('login')} className="text-white-50 text-decoration-none">Sign In</Link>
-                        {'  ·  '}
-                        <Link href={route('register')} className="text-white-50 text-decoration-none">Sign Up</Link>
-                    </span>
+                    {user ? (
+                        <span>
+                            <Link href={route(dashboardRoute)} className="text-white-50 text-decoration-none">Dashboard</Link>
+                            {'  ·  '}
+                            <Link href={route('logout')} method="post" as="button" className="tfe-footer__linkbtn text-white-50 text-decoration-none">Log out</Link>
+                        </span>
+                    ) : (
+                        <span>
+                            <Link href={route('login')} className="text-white-50 text-decoration-none">Sign In</Link>
+                            {'  ·  '}
+                            <Link href={route('register')} className="text-white-50 text-decoration-none">Sign Up</Link>
+                        </span>
+                    )}
                 </div>
             </div>
 

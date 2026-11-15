@@ -67,7 +67,10 @@
    Back, the logo and the menu button. On desktop the logo stays beside
    Back, ahead of the nav. */
 @media (max-width: 991.98px) {
-    .tfe-header .header-wrapper:has(.tfe-header-back:not(:empty)) .logo {
+    /* Not when signed in: then the bell and envelope sit on the right too,
+       and a centred logo lands on them. That header keeps Back + logo on
+       the left, as the dashboard's does. */
+    .tfe-header:not(.tfe-header--dashboard) .header-wrapper:has(.tfe-header-back:not(:empty)):not(:has(.tfe-header-cluster)) .logo {
         position: absolute;
         left: 50%;
         top: 50%;
@@ -279,4 +282,79 @@
     justify-content: center;
     gap: 0.45rem;
     width: 100%;
+}
+
+
+/* ── The dashboard variant (Header variant="dashboard", Nov 2026) ──────
+   Same component and structure as the public header; the box itself is
+   `.tfe-dv2-header` (dashboard-v2.css: sticky in the content column, its
+   height and glass). Here: the bar fills it, the logo is the phone-size
+   mark and only shows where the sidebar is off screen. */
+.tfe-header--dashboard .tfe-header__bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+}
+.tfe-header--dashboard .tfe-logo-img { height: 34px; }
+@media (min-width: 768px) {
+    .tfe-header--dashboard .logo { display: none; }
+}
+@media (max-width: 767.98px) {
+    .tfe-header--dashboard .tfe-header__bar { gap: 8px; }
+}
+
+/* Public pages, signed in: notifications and messages at every width; the
+   account menu from lg (below it, the phone menu panel has the account). */
+@media (max-width: 991.98px) {
+    .tfe-header .tfe-header-cluster .dashboard-user-profile { display: none; }
+}
+
+/* Narrow phones: Back is the arrow alone (its name is in aria-label), so
+   Back, the logo and the header's buttons fit side by side. */
+@media (max-width: 479.98px) {
+    .tfe-header .tfe-backnav-header { padding: 0; width: 40px; justify-content: center; }
+    .tfe-header .tfe-backnav-header .tfe-backnav-header__label { display: none; }
+}
+
+
+/* ── The signed-in cluster: notifications, messages, account ──────────
+   One wrapper in both variants (.dashboard-header.tfe-dv2-header__cluster,
+   which carries the role accent variables), styled here so public pages
+   get it too. .dashboard-header is also the OLD fixed full-width dashboard
+   bar in fan-dashboard-header.css, which stays loaded after visiting a
+   dashboard, so it is undone here inside the header. */
+.tfe-header .tfe-dv2-header__cluster.dashboard-header {
+    position: static;
+    height: auto;
+    width: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+}
+.tfe-header .tfe-dv2-header__cluster .dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tfe-header .tfe-dv2-header__cluster .user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--dash-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+@media (max-width: 767.98px) {
+    .tfe-header .tfe-dv2-header__cluster .user-name,
+    .tfe-header .tfe-dv2-header__cluster .chevron { display: none; }
 }

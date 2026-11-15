@@ -8,6 +8,7 @@ import { ShellProvider } from './ShellContext';
 import { ActiveNavProvider, ToolbarProvider } from './DashboardV2';
 import PageToolbar from '@/Components/Common/DashboardV2/PageToolbar';
 import SidePanel from '@/Components/Common/DashboardV2/SidePanel';
+import Footer from '@/Components/Footer';
 import '../../css/dashboard-v2.css';
 
 /**
@@ -67,6 +68,11 @@ function BaseLayoutV2({
                         </div>
                         <SidePanel />
                     </div>
+                    {/* The public site's footer, on every dashboard page too
+                        (Nov 2026). Outside the page transition, so it stays
+                        put while pages change; the room the floating bars
+                        need is under it (dashboard-v2.css). */}
+                    <Footer />
                     <PageToolbar />
                 </main>
 

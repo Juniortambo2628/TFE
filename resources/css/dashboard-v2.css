@@ -151,19 +151,6 @@
 .tfe-dv2-iconbtn .tfe-activity-badge,
 .tfe-dv2-iconbtn [class*='activity-badge'] { position: absolute; top: 4px; right: 2px; }
 
-/* The shared notifications / messages / account cluster, brought in from
-   the current header. Its wrapper there is the fixed full-width bar; here
-   it is just a row in the header. */
-.tfe-dv2 .tfe-dv2-header__cluster.dashboard-header {
-    position: static;
-    height: auto;
-    padding: 0;
-    background: none;
-    border: 0;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-}
 
 /* ── Page heading ────────────────────────────────────────────── */
 .tfe-dv2-hero { margin-bottom: 24px; }
@@ -469,23 +456,7 @@ a.tfe-dv2-panel__row:hover { background: rgba(255, 255, 255, 0.04); color: #fff;
 /* The current header's fixed-height offset does not apply here. */
 .tfe-dv2 .tfe-page { margin-top: 0; }
 
-/* The account menu's avatar, drawn without the current header's styles. */
-.tfe-dv2 .tfe-dv2-header__cluster .user-avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--dv2-accent);
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.85rem;
-}
-@media (max-width: 767.98px) {
-    .tfe-dv2 .tfe-dv2-header__cluster .user-name,
-    .tfe-dv2 .tfe-dv2-header__cluster .chevron { display: none; }
-}
+/* The header cluster's rules moved to header.css (one header, Nov 2026). */
 
 /* Phones: summary cards two to a row with the icon above, as Naoa does,
    rather than a column of full-width cards to scroll past. */
@@ -585,7 +556,13 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
 @media (max-width: 767.98px) {
     .tfe-dv2 { --tfe-bottom-clearance: calc(var(--tfe-tabbar-h, 84px) + 72px); }
 }
-.tfe-dv2 .tfe-dv2__page { padding-bottom: var(--tfe-bottom-clearance); }
+/* The page ends above the footer (BaseLayout), so the room the floating
+   bars need now sits at the end of the footer, the last thing on every page. */
+.tfe-dv2 .tfe-dv2__content { padding-bottom: 48px; }
+.tfe-dv2 .tfe-dv2__page { padding-bottom: 0; }
+/* The footer's links and copyright end above the bars; its wordmark band is
+   decoration and runs on underneath them to the bottom of the page. */
+.tfe-dv2 .tfe-footer > .container { padding-bottom: var(--tfe-bottom-clearance); }
 
 /* Narrow phones (UX plan, Nov 2026): the tournament collapses to its trophy,
    so the header's bell, messages and avatar are not squeezed. The full name
