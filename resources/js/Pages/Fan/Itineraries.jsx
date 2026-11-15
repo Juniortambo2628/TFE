@@ -239,7 +239,7 @@ export default function Itineraries({ itineraries }) {
             <style>{`
                 .itin-plans-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
                     gap: 18px;
                 }
                 .itin-plan-card {
@@ -314,6 +314,12 @@ export default function Itineraries({ itineraries }) {
                     margin-top: auto;
                 }
                 .itin-plan-card__actions .tfe-btn { flex: 1 1 auto; justify-content: center; }
+                /* Phones: the card sits inside the page and the panel's
+                   padding already, so its own is trimmed. */
+                @media (max-width: 575.98px) {
+                    .itin-plan-card { padding: 16px; border-radius: 14px; }
+                    .itin-plans-grid { gap: 14px; }
+                }
                 .itin-plan-card__active-flag {
                     font-size: 0.75rem;
                     color: #34d399;

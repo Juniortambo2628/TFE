@@ -711,6 +711,12 @@ links to them were shared with testers.
   new announcements), via `lib/activityCounts` (`sectionCounts`,
   `messagesCount`, `MESSAGES_ROUTE`). Before, the envelope counted messages
   and the row counted announcements.
+  Unread messages are added ONLY there, from `unreadMessagesCount`;
+  `ActivityBadges::for()` must not add them as well (it did, so one
+  unread message read "2"). Opening the bell posts `notifications.seen`
+  (all notifications read) and opening the envelope `messages.seen` (own
+  messages + announcements; an admin's contact-form inbox is untouched),
+  so a count means "not looked at yet" rather than "not opened one by one".
 - **No active-item dot** in the sidebar: red means "new" only; the light
   pill marks the current page.
 - **Status pills** print through `statusLabel()` (`lib/utils`): sentence
@@ -874,7 +880,10 @@ will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
   lg the logo moves to the centre while it is there (`:has()` in
   header.css). It used to float under the header and covered the sticky
   section tabs. `.tfe-backnav-float` is only the fallback for a page with
-  no public header. Tests that scroll must first wait for
+  no public header.
+  The header publishes its real height as `--tfe-header-h` on `<html>`
+  (ResizeObserver, `border-box`: its padding shrinks on scroll too), and
+  the sticky "On this page" strip sticks to that, flush under it. Tests that scroll must first wait for
   `window.tfeLoaderFinished`: the first-visit intro splash holds the page
   fixed.
 - Never pass a layout an inline component (`header={(p) => …}`): it is a new
@@ -2583,6 +2592,12 @@ tests/
   Fit each footprint axis against the field of view it actually spans (length →
   horizontal, width → vertical) and re-frame on resize, or the bowl sits small
   in a lot of sky (Sprint 57).
+- Never write `repeat(auto-fill|auto-fit, minmax(320px, 1fr))` with a bare
+  fixed minimum. A column can never be narrower than its minimum, so on a
+  phone (a 288px panel inside page + panel padding) the cards ran off the
+  screen, clipped by `<main>`'s `overflow-x: clip` so nothing scrolled to
+  show it. Write `minmax(min(320px, 100%), 1fr)`. 56 grids had it;
+  `tests/JS/gridOverflow.test.mjs` fails on a new one (Nov 2026).
 - Never edit `StadiumImageService::normalize()`/`matches()` without editing
   their mirrors in `resources/js/Data/stadiumImages.js` in the same commit —
   the two sides index the same shared map, so a drift means the server

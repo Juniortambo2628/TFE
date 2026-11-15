@@ -420,7 +420,7 @@ a.tfe-sidebar-nav-item.is-active {
 /* ── Media library picker grid ───────────────────────────────────────── */
 .tfe-media-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
     gap: 12px;
 }
 
@@ -510,7 +510,7 @@ a.tfe-sidebar-nav-item.is-active {
 }
 
 /* Grid the tiles live in — auto-fit so anywhere from 2 to 6 works. */
-/* Wrapping flex rather than `repeat(auto-fit, minmax(180px, 1fr))`
+/* Wrapping flex rather than `repeat(auto-fit, minmax(min(180px, 100%), 1fr))`
    (Sprint 56): six shortcuts in a full-width card fit five per row, leaving
    the sixth alone in a 180px box. Growing flex items let the leftovers
    stretch across the row they land on — the same fix, and the same
@@ -533,7 +533,7 @@ a.tfe-sidebar-nav-item.is-active {
 
 .tfe-stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
     gap: 18px;
     margin-bottom: 24px;
 }
@@ -2145,7 +2145,7 @@ label.tfe-modal-row__title { cursor: pointer; }
 
 .tfe-prize-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 16px;
     padding: 16px 22px 22px;
 }
@@ -2408,7 +2408,7 @@ label.tfe-modal-row__title { cursor: pointer; }
 .tfe-skeleton-cards {
     display: grid;
     gap: 20px;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
 }
 
 .tfe-skeleton-card {
@@ -2698,7 +2698,7 @@ label.tfe-modal-row__title { cursor: pointer; }
 
 .tfe-team-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
     gap: 10px;
     max-height: 52vh;
     overflow-y: auto;

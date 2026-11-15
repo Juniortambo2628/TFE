@@ -80,3 +80,18 @@ test('on a phone the logo centres while Back is in the header', async ({ page })
     const centre = logo.x + logo.width / 2;
     expect(Math.abs(centre - (bar.x + bar.width / 2))).toBeLessThan(2);
 });
+
+// Nov 2026 feedback: the "On this page" strip stuck a fixed distance down,
+// but the header shrinks once the page scrolls, so the page showed through
+// a gap between them. It now sticks to the header's measured height.
+test('the section strip sits flush under the scrolled header', async ({ page }) => {
+    await page.goto('/partners/serengeti-sports-travel');
+    await page.waitForFunction(() => window.tfeLoaderFinished === true);
+    await page.evaluate(() => window.scrollTo(0, 1600));
+    // Let the header finish shrinking (its logo animates over 0.3s).
+    await page.waitForTimeout(500);
+
+    const header = await page.locator('.tfe-header').boundingBox();
+    const strip = await page.locator('.v2-sectionnav').boundingBox();
+    expect(Math.abs(strip.y - (header.y + header.height))).toBeLessThanOrEqual(1);
+});

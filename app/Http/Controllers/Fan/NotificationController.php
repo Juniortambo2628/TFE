@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Fan;
 
 use App\Http\Controllers\Controller;
+use App\Support\ActivityBadges;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -43,5 +45,31 @@ class NotificationController extends Controller
         Auth::user()->receivedMessages()->where('is_read', false)->update(['is_read' => true]);
 
         return back();
+    }
+
+    /**
+     * The bell's dropdown was opened: everything in it has been seen, so its
+     * count goes. Before this a notification only cleared when its own row
+     * was tapped, and one with no link never cleared at all (Nov 2026).
+     */
+    public function seen(Request $request): Response
+    {
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        return response()->noContent();
+    }
+
+    /**
+     * The envelope's dropdown was opened: the person's own messages and the
+     * announcements counted with them are seen. An admin's contact-form
+     * inbox is not touched: those are enquiries to answer, read one by one.
+     */
+    public function messagesSeen(Request $request): Response
+    {
+        $user = $request->user();
+        $user->receivedMessages()->where('is_read', false)->update(['is_read' => true]);
+        ActivityBadges::clearFor($user, 'fan.communication');
+
+        return response()->noContent();
     }
 }

@@ -230,6 +230,21 @@
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
 }
 
+.loan-timeline__step { min-width: 0; }
+
+/* Phones: four labelled steps do not fit in one row (they ran ~60px past
+   the screen at 360px), so they go two by two, without the connectors. */
+@media (max-width: 575.98px) {
+    .loan-timeline {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.15rem 0.5rem;
+    }
+    .loan-timeline__step + .loan-timeline__step::before {
+        display: none;
+    }
+}
+
 /* ── Facts row (budget + interest + date) ────────────────────── */
 
 .loan-row__facts {

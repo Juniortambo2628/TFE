@@ -45,7 +45,7 @@ export default function CompleteProfile({ auth }) {
                     <label className="tfe-form-label">Which team will you be supporting? <span className="text-red-500">*</span></label>
                     <div className="team-grid" style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(70px, 100%), 1fr))',
                         gap: '8px',
                         width: '100%',
                     }}>

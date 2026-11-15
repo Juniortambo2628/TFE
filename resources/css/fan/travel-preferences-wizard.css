@@ -145,7 +145,7 @@
 /* ── Region grid ──────────────────────────────────────────── */
 .pref-region-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
     gap: 8px;
 }
 
@@ -183,7 +183,7 @@
 /* ── Country grid ─────────────────────────────────────────── */
 .pref-country-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr));
     gap: 8px;
 }
 
@@ -232,7 +232,7 @@
 
 .pref-option-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
     gap: 8px;
 }
 .pref-option-grid.two-col {

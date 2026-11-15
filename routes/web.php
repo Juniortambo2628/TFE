@@ -146,6 +146,11 @@ Route::post('/analytics/track', [AnalyticsController::class, 'track'])->name('an
 // Open a bell notification — any signed-in role (Sprint 70).
 Route::middleware('auth')->get('/notifications/{id}/open', [NotificationController::class, 'open'])
     ->name('notifications.open');
+// Opening the header's bell / envelope marks what they show as seen (Nov 2026).
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
+    Route::post('/notifications/seen', [NotificationController::class, 'seen'])->name('notifications.seen');
+    Route::post('/messages/seen', [NotificationController::class, 'messagesSeen'])->name('messages.seen');
+});
 
 Route::post('/client-errors', [ClientErrorController::class, 'store'])
     ->middleware('throttle:30,1')

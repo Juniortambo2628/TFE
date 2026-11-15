@@ -42,7 +42,7 @@ export default function ListingGrid({
     emptyTitle = 'Nothing here yet',
     emptyBody,
     LinkComponent = Link,
-    columns = 'repeat(auto-fill, minmax(280px, 1fr))',
+    columns = 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
 }) {
     const [mode, setMode] = useState('grid');
     const hasTable = !!tableView;

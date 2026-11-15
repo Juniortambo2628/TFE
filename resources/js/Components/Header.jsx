@@ -35,11 +35,31 @@ export default function Header() {
         return () => clearTimeout(t);
     }, []);
     const user = auth?.user;
+    const headerRef = useRef(null);
+
+    // Publishes the header's real height as --tfe-header-h on <html>, so
+    // what sticks under it (the "On this page" strip) sits flush against it.
+    // The header shrinks once the page scrolls (smaller logo, less padding),
+    // and a fixed guess left a gap the page showed through.
+    useEffect(() => {
+        const header = headerRef.current;
+        if (!header || typeof ResizeObserver === 'undefined') return undefined;
+        const root = document.documentElement;
+        const publish = () => root.style.setProperty('--tfe-header-h', `${Math.round(header.getBoundingClientRect().height)}px`);
+        const observer = new ResizeObserver(publish);
+        // border-box: the header's padding shrinks on scroll too, which a
+        // content-box observer never hears about.
+        observer.observe(header, { box: 'border-box' });
+        publish();
+        return () => {
+            observer.disconnect();
+            root.style.removeProperty('--tfe-header-h');
+        };
+    }, []);
 
     // While the phone menu is open: Escape closes it, and it is sized to
     // stop above the tab bar from where the header actually ends (the
     // header is shorter once the page has scrolled).
-    const headerRef = useRef(null);
     useEffect(() => {
         if (!isMenuOpen) return undefined;
         const header = headerRef.current;

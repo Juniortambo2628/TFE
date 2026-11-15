@@ -196,7 +196,7 @@
 
 .admin-stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
@@ -906,14 +906,14 @@
 
 .admin-cms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
     gap: 20px;
     align-items: start;
 }
 
 /* Denser variant for compact cards (stadium venue tiles). */
 .admin-cms-grid--tight {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
     gap: 16px;
 }
 
@@ -961,7 +961,7 @@
 
 .admin-tournament-toolbar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 20px;
     align-items: start;
 }
