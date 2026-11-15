@@ -1,3 +1,4 @@
+import { DASHBOARD_HOME_ROUTE } from '@/Components/Common/DashboardHeader';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from '@inertiajs/react';
@@ -6,12 +7,7 @@ import { assetPath } from '@/lib/assets';
 import { TOOLBAR_ID, useActiveNav } from '@/Layouts/DashboardV2';
 import useIsPhone from '@/hooks/useIsPhone';
 
-const HOME_ROUTE = {
-    fan: 'fan.dashboard',
-    admin: 'admin.dashboard',
-    partner: 'partner.dashboard',
-    institution: 'institution.dashboard',
-};
+const HOME_ROUTE = DASHBOARD_HOME_ROUTE;
 
 /**
  * DashboardHero — single hero card used by every role.

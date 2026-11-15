@@ -1,10 +1,7 @@
 import React from 'react';
-import ActivityBadge from '@/Components/Common/ActivityBadge';
-import { Link, usePage } from '@inertiajs/react';
-import HeaderUserCluster from '@/Components/Common/HeaderUserCluster';
-import { useSidebar } from '@/Components/ui/sidebar';
-import FanTournamentSwitcher from '@/Components/Common/TournamentSwitcher';
-import { assetPath } from '@/lib/assets';
+import Header from '@/Components/Header';
+import HeaderBack from '@/Components/Common/HeaderBack';
+import { useActiveNav } from '@/Layouts/DashboardV2';
 
 /**
  * DashboardHeader — one header for every dashboard role.
@@ -72,42 +69,52 @@ const ROLE_CONFIG = {
     },
 };
 
-export default function DashboardHeader(props) {
-    return <DashboardHeaderV2 {...props} />;
-}
+/** Each role's dashboard home: the page Back climbs to, and the one with no Back. */
+export const DASHBOARD_HOME_ROUTE = {
+    fan: 'fan.dashboard',
+    admin: 'admin.dashboard',
+    partner: 'partner.dashboard',
+    institution: 'institution.dashboard',
+};
 
 /**
- * The Naoa-style header (Layouts/DashboardV2), kept to what belongs on
- * every page: who you are acting as (the role badge; the logo on phones,
- * where the sidebar is not on screen), the fan's tournament, then the
- * notifications, messages and account menu shared with the current header.
+ * The dashboard's header: THE site header (Components/Header) in its
+ * dashboard variant (Nov 2026). This wrapper only decides content: the role
+ * badge, and Back.
  *
- * Navigation lives in the sidebar and, on phones, the bottom tab bar
- * (AppSidebar): the hamburger and the quick-link icons that used to crowd
- * this bar moved there, so a page's header reads the same on every role.
+ * Back shows on every page except the role's home. It retraces this visit,
+ * or goes up to the sidebar item the page belongs to (a booking -> Journey),
+ * or to the dashboard home from a top-level page (HeaderBack.goBack).
+ *
+ * Navigation itself lives in the sidebar and, on phones, the bottom tab bar
+ * (AppSidebar), so the header has no site links or hamburger here.
  */
-function DashboardHeaderV2({ role = 'fan', user }) {
+export default function DashboardHeader({ role = 'fan', user }) {
     const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.fan;
+    const { item } = useActiveNav();
+    const homeRoute = DASHBOARD_HOME_ROUTE[role] || DASHBOARD_HOME_ROUTE.fan;
+    const onHome = route().current(homeRoute);
+
+    let back = null;
+    if (!onHome) {
+        // On a sidebar page itself, its parent is home; deeper, it is that page.
+        const inSection = item?.route && !route().current(item.route) && item.route !== homeRoute;
+        back = inSection
+            ? <HeaderBack parentHref={route(item.route)} parentLabel={item.label} />
+            : <HeaderBack parentHref={route(homeRoute)} parentLabel="Dashboard" />;
+    }
+
+    const badge = config.roleBadge
+        ? { icon: config.roleBadge.icon, label: resolveRoleLabel(role, config.roleBadge.label, user) }
+        : null;
 
     return (
-        <header className="tfe-dv2-header" data-role={role}>
-            <img className="tfe-dv2-header__logo" src={assetPath('/assets/img/logo/TFE-logo.png')} alt="The Football Experience" />
-
-            {config.roleBadge && (
-                <span className="tfe-dv2-header__badge">
-                    <i className={config.roleBadge.icon} aria-hidden="true"></i>
-                    {resolveRoleLabel(role, config.roleBadge.label, user)}
-                </span>
-            )}
-
-            <div className="tfe-dv2-header__actions">
-                {role === 'fan' && <FanTournamentSwitcher variant="dashboard" />}
-                <div className="dashboard-header tfe-dv2-header__cluster" data-role={role}>
-                    <div className="dashboard-header-actions">
-                        <HeaderUserCluster user={user} role={role} />
-                    </div>
-                </div>
-            </div>
-        </header>
+        <Header
+            variant="dashboard"
+            role={role}
+            roleBadge={badge}
+            back={back}
+            homeHref={route(homeRoute)}
+        />
     );
 }

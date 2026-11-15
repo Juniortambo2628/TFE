@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, router } from '@inertiajs/react';
-import { navStack, normalizeUrl } from '@/lib/navHistory';
+import { Link } from '@inertiajs/react';
+import HeaderBack, { goBack as goBackTo } from '@/Components/Common/HeaderBack';
 import '../../../css/back-nav.css';
 
 /**
@@ -41,17 +41,8 @@ export default function BackNav({ crumbs = [], className = '' }) {
     const trail = [home, ...crumbs];
     const parent = trail.length > 1 ? trail[trail.length - 2] : home;
 
-    const goBack = () => {
-        if (navStack.canGoBack()) {
-            window.history.back();
-        } else {
-            // Replace, not push: going up to the parent is a step BACK, so the
-            // page being left must not be what the next Back returns to.
-            const href = parent.href || '/';
-            navStack.replaceTop(normalizeUrl(href));
-            router.visit(href, { replace: true });
-        }
-    };
+    // The one Back rule, shared with the dashboard header (HeaderBack).
+    const goBack = () => goBackTo(parent.href || '/');
 
     const ref = useRef(null);
     const scrolledPast = useScrolledPast(ref);
@@ -90,15 +81,11 @@ export default function BackNav({ crumbs = [], className = '' }) {
             </ol>
         </nav>
         {scrolledPast && typeof document !== 'undefined' && createPortal(
-            <button
-                type="button"
+            <HeaderBack
+                parentHref={parent.href || '/'}
+                parentLabel={parent.label}
                 className={slot ? 'tfe-backnav-header' : 'tfe-backnav-float'}
-                onClick={goBack}
-                aria-label={`Back to ${parent.label}`}
-            >
-                <i className="fas fa-arrow-left" aria-hidden="true"></i>
-                <span>Back</span>
-            </button>,
+            />,
             slot || document.body,
         )}
         </>

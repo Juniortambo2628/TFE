@@ -679,6 +679,38 @@ links to them were shared with testers.
 - The sections below that talk about "v2 beside v1", `/v2` twins or a
   per-person dashboard switch describe the comparison period (history).
 
+### One header, one footer (Nov 2026)
+
+`Components/Header.jsx` is THE header for public pages and every dashboard.
+`<Header />` on public shells; the dashboard shell renders it through
+`DashboardHeader` as `<Header variant="dashboard" role roleBadge back homeHref />`.
+One structure: `[Back slot #tfe-header-back] [logo] [site links | role badge] [actions]`.
+
+- **Public**: fixed full width, site links on desktop, Plan my trip, Sign In
+  for visitors, the phone menu, and the once-mounted planner / tab bar /
+  install prompt. **Dashboard**: the box is still `.tfe-dv2-header` (sticky
+  in the content column); logo on phones only (the sidebar has it), role
+  badge, the fan's tournament switcher, no site links or hamburger.
+- **Signed-in cluster** (`HeaderUserCluster`: bell, envelope, account) is in
+  both at every width, in the same `.dashboard-header.tfe-dv2-header__cluster`
+  wrapper, styled in `header.css`. On public phones the account part hides
+  (the menu panel has it). `.dashboard-header` is also the old fixed bar in
+  `fan-dashboard-header.css`, which stays loaded after a dashboard visit, so
+  `header.css` undoes it inside `.tfe-header`. Keep that.
+- **Back** is `Components/Common/HeaderBack` (`goBack(parentHref)`: retrace
+  the visit, else REPLACE-visit the parent). BackNav portals it into the
+  public header once the trail scrolls away; `DashboardHeader` renders it
+  on every page but the role home (`DASHBOARD_HOME_ROUTE`), parent = the
+  active sidebar item, or home from a top-level page. Arrow-only <480px.
+- The public logo centres beside Back only for VISITORS; signed in, the bell
+  and envelope are on the right too and a centred logo landed on them.
+- **Footer** (`Components/Footer`) ends every dashboard page as well
+  (BaseLayout, outside the page transition). Signed in, its last row is
+  Dashboard · Log out. On dashboards the bars' clearance is inside the
+  footer's container, so the links clear the bars and the decorative
+  wordmark band runs under them; `dashboard-v2.spec.js` checks
+  `.tfe-footer__meta`.
+
 ### UX plan, PR C (Nov 2026)
 
 - **v2 page headings on phones**: `is-top` crumbs (only "Dashboard ›
@@ -875,10 +907,10 @@ will. Hero actions are portalled to the floating toolbar (`TOOLBAR_ID`).
   accent), Contact, Sign in; signed in, My trips/Dashboard and Menu replace
   the last two. `--tfe-tabbar-h` is the space it needs (84px + safe area).
 - **Back is always within reach**: once its trail scrolls under the
-  header, `BackNav` portals a Back button into the public header's own
-  slot (`#tfe-header-back`, `.tfe-backnav-header`) at its left end; below
-  lg the logo moves to the centre while it is there (`:has()` in
-  header.css). It used to float under the header and covered the sticky
+  header, `BackNav` portals `HeaderBack` into the header's own slot
+  (`#tfe-header-back`, `.tfe-backnav-header`) at its left end; below lg,
+  for a visitor, the logo moves to the centre while it is there (`:has()`
+  in header.css). It used to float under the header and covered the sticky
   section tabs. `.tfe-backnav-float` is only the fallback for a page with
   no public header.
   The header publishes its real height as `--tfe-header-h` on `<html>`

@@ -12,11 +12,27 @@ import '../../css/fan/dashboard-header-extras.css';
 import '../../css/header.css';
 
 /**
- * Public site header. Session-aware since Sprint 48 — a signed-in visitor
- * sees the same notifications / messages / profile cluster the dashboards
- * show; the "Sign In" button only renders for guests.
+ * THE header (Nov 2026): public pages and every dashboard render this one
+ * component, so its layout, Back slot, notifications, messages and account
+ * menu are the same code everywhere.
+ *
+ *   <Header />                                   public pages
+ *   <Header variant="dashboard" role="fan" … />  the dashboard shell (DashboardHeader)
+ *
+ * One structure for both: [Back] [logo] [site links | role badge] [actions].
+ * What differs is content, not layout:
+ *  - public: fixed full width; site links on desktop, "Plan my trip",
+ *    Sign In for visitors, the phone menu, the trip planner, tab bar and
+ *    install prompt (all mounted once, here).
+ *  - dashboard: sticks at the top of the content column beside the sidebar
+ *    (its logo shows on phones only, the sidebar carries it on desktop),
+ *    the role badge instead of site links (the sidebar is the navigation),
+ *    the fan's tournament switcher, and Back on every inner page (`back`).
+ *  - both: a signed-in person's notifications, messages and account menu,
+ *    at every width.
  */
-export default function Header() {
+export default function Header({ variant = 'public', role = null, roleBadge = null, back = null, homeHref = '/' }) {
+    const isDashboard = variant === 'dashboard';
     const page = usePage();
     const { auth } = page.props;
     // Root-relative, not `assetUrl + path`: assetUrl is absolute, so the
@@ -30,6 +46,7 @@ export default function Header() {
     // shortcut (manifest.webmanifest) lands here. After the dialog has
     // mounted, so its listener is there to hear it.
     useEffect(() => {
+        if (isDashboard) return undefined; // the planner is mounted on public pages only
         if (new URLSearchParams(window.location.search).get('plan') !== '1') return undefined;
         const t = setTimeout(() => openTripPlanner(), 0);
         return () => clearTimeout(t);
@@ -71,11 +88,14 @@ export default function Header() {
         return () => window.removeEventListener('keydown', onKey);
     }, [isMenuOpen]);
 
-    const switcherVariant = page.component === 'Home'
-        ? 'landing'
-        : page.component === 'Tournaments/Show'
-            ? 'tournament'
-            : null;
+    const switcherVariant = isDashboard
+        ? (role === 'fan' ? 'dashboard' : null)
+        : page.component === 'Home'
+            ? 'landing'
+            : page.component === 'Tournaments/Show'
+                ? 'tournament'
+                : null;
+    const headerRole = role || (user?.is_admin ? 'admin' : user?.is_partner ? 'partner' : 'fan');
 
     const navLinks = [
         { label: 'About', href: route('about') },
@@ -107,12 +127,43 @@ export default function Header() {
             </li>
         ));
 
+    if (isDashboard) {
+        return (
+            <header ref={headerRef} className="tfe-header tfe-header--dashboard tfe-dv2-header" data-role={headerRole}>
+                <div className="header-wrapper tfe-header__bar">
+                    <div id="tfe-header-back" className="tfe-header-back">{back}</div>
+                    <div className="logo">
+                        <Link href={homeHref} className="tfe-logo-link" aria-label="Dashboard home">
+                            <img src={logo} alt="The Football Experience" className="tfe-logo-img tfe-dv2-header__logo" />
+                        </Link>
+                    </div>
+
+                    {roleBadge && (
+                        <span className="tfe-dv2-header__badge">
+                            <i className={roleBadge.icon} aria-hidden="true"></i>
+                            {roleBadge.label}
+                        </span>
+                    )}
+
+                    <div className="tfe-header-actions tfe-dv2-header__actions">
+                        {switcherVariant && <TournamentSwitcher variant={switcherVariant} />}
+                        <div className="dashboard-header tfe-dv2-header__cluster" data-role={headerRole}>
+                            <div className="dashboard-header-actions">
+                                <HeaderUserCluster user={user} role={headerRole} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        );
+    }
+
     return (
         <header
             ref={headerRef}
             className="header position-fixed start-0 top-0 w-100 tfe-header"
             style={{ zIndex: 1000 }}
-            data-role={user?.is_admin ? 'admin' : user?.is_partner ? 'partner' : 'fan'}
+            data-role={headerRole}
         >
             <div className="container">
                 <div className="header-wrapper d-flex align-items-center position-relative">
@@ -140,8 +191,14 @@ export default function Header() {
                         </button>
 
                         {user ? (
-                            <div className="d-none d-lg-flex align-items-center gap-2">
-                                <HeaderUserCluster user={user} />
+                            // Every width (Nov 2026): notifications and messages
+                            // were desktop-only here, so a signed-in fan on a
+                            // phone had no bell on public pages. The account
+                            // menu stays desktop-only; the phone menu has it.
+                            <div className="dashboard-header tfe-dv2-header__cluster tfe-header-cluster" data-role={headerRole}>
+                                <div className="dashboard-header-actions">
+                                    <HeaderUserCluster user={user} role={headerRole} />
+                                </div>
                             </div>
                         ) : (
                             <Link href={route('login')} className="tfe-btn tfe-btn--filled d-none d-lg-inline-flex">
