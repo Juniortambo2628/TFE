@@ -40,15 +40,20 @@ export default function Analytics({ signups30d = [], referrals = {}, stats = {} 
                 ]}
             />
 
-            <div className="admin-card-dark admin-overview mb-4">
-                <div className="admin-overview__head">
-                    <div>
-                        <h3 className="admin-overview__title">New fans · last 30 days</h3>
-                        <p className="admin-overview__sub">Daily sign-ups to the platform.</p>
-                    </div>
+            {/* tfe-slab, not admin-overview: that class lives in admin-dashboard.css,
+                which only the Dashboard page imports, so this card had no padding
+                unless the Dashboard had been opened first. */}
+            <section className="tfe-slab mb-4">
+                <div className="tfe-slab__header">
+                    <h3 className="tfe-slab__title">
+                        <i className="fas fa-chart-area me-2" aria-hidden="true" /> New fans · last 30 days
+                    </h3>
+                    <span className="tfe-slab__title-sub">Daily sign-ups to the platform</span>
                 </div>
-                <AdminAreaChart className="h-64 mt-2" data={chartData} index="date" category="count" colour="cyan" yAxisWidth={40} />
-            </div>
+                <div className="tfe-slab__body">
+                    <AdminAreaChart data={chartData} index="date" category="count" colour="cyan" yAxisWidth={40} />
+                </div>
+            </section>
 
             <div className="row g-4">
                 <ReferralCard title="Ticket referrals" icon="fa-ticket-alt" rows={referrals.ticket_purchases || []} />
