@@ -117,7 +117,7 @@
     cursor: pointer;
 }
 .tfe-planner-pkg.is-active {
-    border-color: var(--partner-accent, var(--accent, #dc2626));
+    border-color: rgba(255, 255, 255, 0.55);
     box-shadow: 0 0 0 1px var(--partner-accent, var(--accent, #dc2626));
 }
 .tfe-planner-pkg:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -12,7 +12,7 @@
     padding: 1.25rem 1.5rem;
     background:
         linear-gradient(135deg, color-mix(in srgb, var(--partner-accent) 22%, transparent) 0%, rgba(0, 0, 0, 0.35) 100%);
-    border: 1px solid color-mix(in srgb, var(--partner-accent) 45%, transparent);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 16px;
     color: #fff;
     display: flex;
@@ -111,49 +111,8 @@
     font-size: 0.85rem;
 }
 
-/* ── Status timeline ─────────────────────────────────────────── */
-
-.active-loan-tile__timeline {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 0.85rem;
-    background: rgba(0, 0, 0, 0.35);
-    border-radius: 10px;
-}
-
-.active-loan-tile__step {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.75rem;
-    text-transform: none;
-    letter-spacing: 0.06em;
-}
-
-.active-loan-tile__step + .active-loan-tile__step::before {
-    content: '';
-    width: 14px;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.active-loan-tile__dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.active-loan-tile__step.is-done { color: rgba(16, 185, 129, 0.9); }
-.active-loan-tile__step.is-done .active-loan-tile__dot { background: #10b981; }
-.active-loan-tile__step.is-current { color: #fff; }
-.active-loan-tile__step.is-current .active-loan-tile__dot {
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
-}
+/* The stage row is a StepFlow (inline). */
+.active-loan-tile__steps { margin: 0; }
 
 /* ── Footer ──────────────────────────────────────────────────── */
 

@@ -24,7 +24,7 @@
     padding: 1.75rem 1.5rem;
     background:
         linear-gradient(135deg, rgba(0, 114, 206, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%);
-    border: 1px solid rgba(0, 114, 206, 0.35);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 16px;
     text-align: left;
 }

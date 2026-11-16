@@ -5,7 +5,7 @@ import DashboardHero from '@/Components/Common/DashboardHero';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { useTournament } from '@/Context/TournamentContext';
 import WeatherCard from '@/Components/Fan/WeatherCard';
-import { formatMoney } from '@/lib/utils';
+import { formatMoney, statusLabel } from '@/lib/utils';
 
 export default function Journey({ auth, paymentData, activeBudget, weather = undefined }) {
     const { tournament } = useTournament();
@@ -108,7 +108,7 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                      <span className="d-block text-white-50 small text-uppercase">Estimated Budget</span>
                                      <span className="h4 fw-bold text-white">{formatMoney(activeBudget.total_cost, activeBudget.currency || 'USD')}</span>
                                 </div>
-                                <div className="col-md-4 border-start border-end border-secondary">
+                                <div className="col-md-4 journey-plan__mid">
                                      <span className="d-block text-white-50 small text-uppercase">Matches Planned</span>
                                      <span className="h4 fw-bold text-white">{activeBudget.match_count} Matches</span>
                                 </div>
@@ -154,14 +154,15 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                         ) : (
                              <div className="d-flex flex-column gap-3">
                                  {bookings.map(booking => (
-                                    <div key={booking.id} className="p-3 bg-dark rounded border border-secondary text-white shadow-sm hover-glow">
+                                    <div key={booking.id} className="journey-booking">
                                         <div className="d-flex justify-content-between align-items-start mb-2">
                                             <div>
                                                 <h5 className="mb-1 text-white fw-bold">{booking.package_name}</h5>
-                                                 <span className="badge bg-secondary me-2 text-white">{booking.package_type} Package</span>
-                                                <span className={`badge ${booking.status === 'confirmed' ? 'bg-success' : 'bg-warning text-dark'}`}>
-                                                    {booking.status.replace('_', ' ')}
-                                                </span>
+                                                <div className="journey-booking__pills">
+                                                    <span className={`tfe-pill ${booking.status === 'confirmed' ? 'tfe-pill--approved' : 'tfe-pill--pending'}`}>
+                                                        {statusLabel(booking.status)}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div className="text-end">
                                                 <div className="fw-bold text-white">{formatMoney(booking.total_amount, booking.currency || primaryCurrency)}</div>
@@ -175,9 +176,9 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                                     <span className="small text-white-50"><i className="fas fa-clock me-1"></i> Payment Deadline</span>
                                                     <span className="small text-danger fw-bold">{formatTime(timeLeft[booking.id])}</span>
                                                 </div>
-                                                <div className="progress bg-secondary" style={{ height: '6px' }}>
-                                                    <div 
-                                                        className="progress-bar bg-danger" 
+                                                <div className="journey-booking__hold">
+                                                    <div
+                                                        className="journey-booking__hold-fill" 
                                                         style={{ 
                                                             width: `${Math.max(0, Math.min(100, ( (new Date(booking.expires_at) - new Date()) / (48 * 60 * 60 * 1000) ) * 100))}%`,
                                                             transition: 'width 1s linear'
@@ -226,9 +227,9 @@ export default function Journey({ auth, paymentData, activeBudget, weather = und
                                         <div className="text-end">
                                             <div className="fw-bold mb-1">{formatMoney(schedule.amount, schedule.currency || primaryCurrency)}</div>
                                             {schedule.status === 'pending' ? (
-                                                <a href={schedule.partner_pay_url || '#'} target="_blank" rel="noreferrer" className="btn btn-sm btn-success">Pay on partner</a>
+                                                <a href={schedule.partner_pay_url || '#'} target="_blank" rel="noreferrer" className="tfe-btn tfe-btn--sm">Pay on partner</a>
                                             ) : (
-                                                 <span className="badge bg-success">Paid</span>
+                                                 <span className="tfe-pill tfe-pill--approved">Paid</span>
                                             )}
                                         </div>
                                     </div>

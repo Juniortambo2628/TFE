@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
 import { formatMoney } from '@/lib/utils';
+import StepFlow from '@/Components/Common/StepFlow';
 
 /**
  * ActiveLoanTile — Sprint 16.
@@ -12,6 +13,7 @@ import { formatMoney } from '@/lib/utils';
  * component assumes `loan` is present.
  */
 const STAGES = ['PENDING', 'APPROVED', 'DISBURSED'];
+const STAGE_STEPS = [{ title: 'Requested' }, { title: 'Approved' }, { title: 'Disbursed' }];
 
 const STATUS_COPY = {
     PENDING: 'Underwriting in progress',
@@ -57,17 +59,15 @@ export default function ActiveLoanTile({ loan }) {
                 )}
             </div>
 
-            <div className="active-loan-tile__timeline">
-                {STAGES.map((stage, i) => (
-                    <div
-                        key={stage}
-                        className={`active-loan-tile__step${i <= activeIdx ? ' is-done' : ''}${i === activeIdx ? ' is-current' : ''}`}
-                    >
-                        <span className="active-loan-tile__dot"></span>
-                        <span className="active-loan-tile__step-label">{stage}</span>
-                    </div>
-                ))}
-            </div>
+            {/* The ONE step indicator. A pending application has been
+                requested and waits on approval; a disbursed one has
+                nothing left to wait on, so every step reads done. */}
+            <StepFlow
+                variant="inline"
+                className="active-loan-tile__steps"
+                steps={STAGE_STEPS}
+                cursor={activeIdx < 0 ? 0 : activeIdx + 2}
+            />
 
             <div className="active-loan-tile__foot">
                 <div className="active-loan-tile__facts">

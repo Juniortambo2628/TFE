@@ -37,7 +37,9 @@ export default function CapacityBar({
 
     // Bootstrap classes map cleanly to the three tones.
     const barClass = { danger: 'bg-danger', warning: 'bg-warning', success: 'bg-success' }[tone];
-    const textClass = { danger: 'text-danger', warning: 'text-warning', success: 'text-success' }[tone];
+    // Own tones, not Bootstrap's text-success/-danger: those dark greens and
+    // reds measure under 4.5:1 on the dark cards (axe, Nov 2026).
+    const textClass = `tfe-capacity-tone tfe-capacity-tone--${tone}`;
 
     return (
         <div className={className}>
@@ -50,9 +52,9 @@ export default function CapacityBar({
             </div>
             {seatsLeftLabel && (
                 isSoldOut ? (
-                    <div className="text-danger small mt-1">Sold out</div>
+                    <div className="tfe-capacity-tone tfe-capacity-tone--danger small mt-1">Sold out</div>
                 ) : (
-                    <div className={`small mt-1 ${value >= thresholds.danger ? 'text-danger' : 'text-white-50'}`}>
+                    <div className={`small mt-1 ${value >= thresholds.danger ? 'tfe-capacity-tone tfe-capacity-tone--danger' : 'text-white-50'}`}>
                         {formatNumber((capacity - sold))} {capacity - sold === 1 ? 'seat' : 'seats'} left
                     </div>
                 )

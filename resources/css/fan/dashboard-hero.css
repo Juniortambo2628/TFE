@@ -40,7 +40,7 @@
     --dash-hero-accent: #d97706;
     --dash-hero-gradient: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
     --dash-hero-shadow: 0 4px 24px rgba(217, 119, 6, 0.15);
-    --dash-hero-border: 1px solid #d97706;
+    --dash-hero-border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
 }
 
 /* Sprint 62 — institutions read as their own context, not a paler fan. */
@@ -58,7 +58,7 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-color: color-mix(in srgb, var(--dash-hero-accent) 30%, transparent);
+    border-color: var(--border-divider, rgba(255, 255, 255, 0.08));
 }
 
 .dashboard-hero__body {

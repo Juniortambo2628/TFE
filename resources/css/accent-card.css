@@ -37,7 +37,7 @@
 }
 
 .tfe-acard--active {
-    border-color: color-mix(in srgb, var(--acard-accent) 70%, transparent);
+    border-color: rgba(255, 255, 255, 0.55);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--acard-accent) 50%, transparent), 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 

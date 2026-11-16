@@ -447,7 +447,7 @@
 .hero-countdown-card { max-width: 420px; width: 100%; background: rgba(15, 15, 20, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 1.5rem !important; }
 
 /* Countdown card red header bar */
-.hero-countdown-header { background: rgba(220, 20, 60, 0.15); border-bottom: 1px solid rgba(220, 20, 60, 0.3); }
+.hero-countdown-header { background: rgba(220, 20, 60, 0.15); border-bottom: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08)); }
 
 .hero-trophy-icon {
     font-size: 0.75rem;

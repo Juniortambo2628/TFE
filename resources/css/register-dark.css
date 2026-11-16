@@ -233,7 +233,7 @@ select.pill-input {
 }
 .team-option.selected {
   box-shadow: 0 10px 30px rgba(184, 11, 30, 0.12);
-  border-color: var(--accent-1);
+  border-color: rgba(255, 255, 255, 0.55);
   background: linear-gradient(180deg, rgba(184, 11, 30, 0.06), rgba(0, 0, 0, 0.02));
 }
 .team-flag {

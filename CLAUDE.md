@@ -763,6 +763,29 @@ One structure: `[Back slot #tfe-header-back] [logo] [site links | role badge] [a
   institutions (or a plan that already has a declaration), and
   `SchoolGroupDeclarationController::store` 403s anyone else.
 
+### Dashboard visual pass (Nov 2026)
+
+- **Cards never carry a coloured border** (the owner's rule). Resting
+  borders are the neutral hairline (`var(--border-divider)`); hover and
+  selected states may lighten with white, never tint with red, amber,
+  blue or a partner accent, and no accent stripe down one side. Colour
+  belongs on icons, pills and fills. `tests/JS/noColouredCardBorders.test.mjs`
+  scans every stylesheet and fails on a new one.
+- **A page stylesheet stays loaded after a visit**, so a bare class rule in
+  one is global for the rest of the session. `budget-calculator.css` had
+  `.matches-grid { max-height: 400px; overflow-y: auto }`, which clipped
+  every Match Schedule day to a scroll box once the fan had opened the
+  calculator. Scope page rules under the page's root class.
+- **A size container cannot size its own padding/radius in `cqw`**: those
+  resolve against an ancestor container. `VirtualCardFace` puts
+  `container-type` on `.vcard-frame` around the face.
+- `ActiveLoanTile`'s stages are a `StepFlow`; the fan dashboard's old
+  `FanFooter` block is deleted (the site `Footer` ends every dashboard
+  page); a lone last card in `.content-cards-grid` spans the row; four
+  stat tiles go 4 across or 2×2, never 3+1; the package picker is its own
+  card in a panel-sized grid (it borrowed `.fan-card-premium`, whose
+  overlay sat over the text).
+
 ### UX plan, PRs D + E (Nov 2026)
 
 - **One highlight in the tab bar**: the primary tab (Plan / Plan a trip) is

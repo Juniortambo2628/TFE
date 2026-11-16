@@ -39,7 +39,7 @@
 }
 
 .approval-card.is-selected {
-    border-color: #3b82f6;
+    border-color: rgba(255, 255, 255, 0.55);
     box-shadow: 0 0 0 1px #3b82f6;
 }
 
