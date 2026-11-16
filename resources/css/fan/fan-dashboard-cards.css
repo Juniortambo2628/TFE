@@ -1711,12 +1711,12 @@ body:has(.tfe-modal-overlay) .command-menu-trigger {
 
 .message-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: var(--accent);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .message-item.unread {
   background: rgba(239, 68, 68, 0.05);
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: var(--border-divider, rgba(255, 255, 255, 0.08));
 }
 
 .message-avatar {
@@ -1799,12 +1799,12 @@ body:has(.tfe-modal-overlay) .command-menu-trigger {
 
 .notification-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: var(--accent);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .notification-item.unread {
   background: rgba(239, 68, 68, 0.05);
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: var(--border-divider, rgba(255, 255, 255, 0.08));
 }
 
 .notification-icon {
@@ -1856,6 +1856,12 @@ body:has(.tfe-modal-overlay) .command-menu-trigger {
 
 .content-card + .content-card {
   margin-top: 24px;
+}
+
+/* Side by side in a grid, a stacked-card margin only pushes the second
+   column down (Journey's Payment Schedule sat 24px below Current Bookings). */
+.content-cards-grid > .content-card + .content-card {
+  margin-top: 0;
 }
 
 .summary-cards-grid + .content-card {

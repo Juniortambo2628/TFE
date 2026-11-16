@@ -192,8 +192,10 @@
     font-size: 1rem;
 }
 
-/* Matches Grid */
-.matches-grid {
+/* Matches Grid. Scoped to the calculator: this sheet stays loaded after a
+   visit, and a bare .matches-grid/.match-card rule clipped the Match
+   Schedule's day groups to a 400px scroll box everywhere else. */
+.calculator-container .matches-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 20px;
@@ -201,7 +203,7 @@
     overflow-y: auto;
 }
 
-.match-card {
+.calculator-container .match-card {
     background: #111;
     border: 2px solid #333;
     border-radius: 12px;
@@ -211,17 +213,17 @@
     position: relative;
 }
 
-.match-card:hover {
-    border-color: #dc143c;
+.calculator-container .match-card:hover {
+    border-color: rgba(255, 255, 255, 0.24);
     transform: translateY(-2px);
 }
 
-.match-card.selected {
-    border-color: #dc143c;
+.calculator-container .match-card.selected {
+    border-color: rgba(255, 255, 255, 0.55);
     background: rgba(220, 20, 60, 0.1);
 }
 
-.match-card.selected::after {
+.calculator-container .match-card.selected::after {
     content: '\f00c';
     font-family: 'Font Awesome 5 Free';
     font-weight: 900;
@@ -289,11 +291,11 @@
 }
 
 .option-card:hover {
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.24);
 }
 
 .option-card.active {
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.55);
     background: rgba(220, 20, 60, 0.1);
 }
 
@@ -484,7 +486,7 @@
         max-width: 100%;
     }
     
-    .matches-grid {
+    .calculator-container .matches-grid {
         grid-template-columns: 1fr;
     }
     
@@ -500,7 +502,7 @@
 /* Selection Summary */
 .selection-summary {
     background: rgba(220, 20, 60, 0.1);
-    border: 1px solid rgba(220, 20, 60, 0.3);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
@@ -889,7 +891,7 @@
 }
 
 .accordion-item.active {
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.55);
 }
 
 .accordion-item.active .accordion-header {
@@ -1597,7 +1599,7 @@ button.selection-card {
     background: rgba(0, 0, 0, 0.4);
     padding: 10px;
     border-radius: 8px;
-    border-left: 4px solid #f59e0b;
+    border-left: 0;
 }
 .partner-status-box__title { margin: 0; color: #fff; font-size: 1rem; }
 .calc-save-summary { padding: 14px 16px; }
@@ -1631,13 +1633,73 @@ button.selection-card {
 
 /* The card's main action covers the whole card (a stretched button), so the
    card stays one big target while its links remain separate controls. */
-.package-picker__card { position: relative; }
+.package-picker__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    gap: 14px;
+}
+.package-picker__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
+    color: #fff;
+    text-align: left;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.package-picker__card:hover { border-color: rgba(255, 255, 255, 0.24); background: rgba(255, 255, 255, 0.05); }
+.package-picker__card.is-sold-out { opacity: 0.55; }
+.package-picker__img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.package-picker__body { display: flex; flex-direction: column; flex: 1; padding: 18px; }
+.package-picker__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.package-picker__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.package-picker__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
+}
+.package-picker__details { color: rgba(255, 255, 255, 0.7); font-size: 0.85rem; text-decoration: none; }
+.package-picker__details:hover { color: #fff; }
+
+.package-picker__card--custom {
+    align-items: flex-start;
+    gap: 6px;
+    padding: 22px 18px;
+    cursor: pointer;
+    font: inherit;
+}
+.package-picker__custom-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 18px;
+}
+.package-picker__custom-go { margin-top: auto; padding-top: 10px; font-weight: 600; display: inline-flex; gap: 8px; align-items: center; }
+
 .package-picker__pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 0;
     border: 0;
     background: none;
     color: #ff4b52;
     font: inherit;
+    font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
 }
 .package-picker__pick::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }

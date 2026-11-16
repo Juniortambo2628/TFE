@@ -4,7 +4,6 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useTournament } from '@/Context/TournamentContext';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import PartnerCarousel from '@/Components/Common/PartnerCarousel';
-import FanFooter from '@/Components/Fan/FanFooter';
 import FanTutorial from '@/Components/Fan/FanTutorial';
 import MatchCard from '@/Components/Fan/MatchCard';
 import StatCard from '@/Components/Common/StatCard';
@@ -12,7 +11,7 @@ import ActiveLoanTile from '@/Components/Fan/ActiveLoanTile';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import ContentCard from '@/Components/Common/ContentCard';
 import PillBadge from '@/Components/Common/PillBadge';
-import { formatMoney } from '@/lib/utils';
+import { formatDateTime, formatMoney } from '@/lib/utils';
 
 // Sprint 33 — map partner_status onto a PillBadge variant so the
 // Planned Budget tile can show status inline instead of stacking it
@@ -222,21 +221,20 @@ export default function Dashboard({ auth, nextAction = null, activeBudget, activ
 
                     {/* Payment History */}
                     <ContentCard
-                        className="mt-3"
                         title="Payment History"
                         subtitle={recentPayments?.length ? `${recentPayments.length} recent payments` : null}
                     >
                         <div className="payments-list">
                              {recentPayments && recentPayments.length > 0 ? (
                                  recentPayments.map(payment => (
-                                     <div key={payment.id} className="payment-item d-flex justify-content-between py-2 border-bottom border-secondary">
+                                     <div key={payment.id} className="payment-item d-flex justify-content-between py-2">
                                         <div className="payment-info">
                                             <div className="payment-title font-weight-bold">{payment.description || 'Payment'}</div>
                                             <div className="payment-package text-muted small">{payment.reference}</div>
                                         </div>
                                         <div className="payment-details text-end">
                                             <div className="payment-amount">{formatMoney(payment.amount)}</div>
-                                            <div className="payment-date small text-white-50">{new Date(payment.created_at).toLocaleDateString()}</div>
+                                            <div className="payment-date small text-white-50">{formatDateTime(payment.created_at)}</div>
                                         </div>
                                     </div>
                                 ))
@@ -255,8 +253,6 @@ export default function Dashboard({ auth, nextAction = null, activeBudget, activ
                 {/* Partners Carousel */}
                 <PartnerCarousel />
 
-                {/* Footer Section */}
-                <FanFooter />
 
             </div>
         </FanLayout>

@@ -271,7 +271,7 @@
 }
 
 .pref-option-card:hover {
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.24);
 }
 .pref-option-card:hover i {
     color: #dc143c;
@@ -437,7 +437,7 @@
     transition: all 0.15s;
 }
 .pref-summary-item:hover {
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.24);
     background: rgba(220, 20, 60, 0.05);
 }
 

@@ -177,7 +177,7 @@ export default function BookingDetails({ auth, booking, matches, checkout = null
 
                             {booking.status === 'pending_payment' && (
                                 <>
-                                    <div className="alert alert-warning border-warning bg-transparent text-warning-emphasis p-3 mb-4 rounded-3">
+                                    <div className="booking-hold-note">
                                         <i className="fas fa-exclamation-triangle me-2"></i>
                                         Payment is required to secure this booking.
                                         {expiresAt && ` It is held until ${formatDateTime(expiresAt)}.`}

@@ -667,7 +667,7 @@
     align-items: center;
     gap: 10px;
     background: rgba(220, 20, 60, 0.1);
-    border: 1px solid rgba(220, 20, 60, 0.3);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 8px;
     padding: 8px 12px;
     cursor: pointer;
@@ -676,7 +676,7 @@
 
 .story-linked-item:hover {
     background: rgba(220, 20, 60, 0.2);
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.24);
 }
 
 .story-linked-avatar {
@@ -718,7 +718,7 @@
 
 .story-ad-card {
     background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
-    border: 2px solid #dc143c;
+    border: 2px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 12px;
     padding: 15px;
     cursor: pointer;

@@ -37,6 +37,10 @@
 /* ── Sidebar ─────────────────────────────────────────────────── */
 .tfe-dv2 .bg-sidebar { background: var(--dv2-sidebar); color: #fff; }
 .tfe-dv2 .tfe-dv2-sidebar { border-right: 1px solid var(--dv2-border); }
+/* The sidebar is fixed at the window's height; the column it reserves runs
+   the page's full height in the same colour, so a long page has no strip of
+   page background under the menu. */
+.tfe-dv2 .tfe-sidebar-peer { align-self: stretch; background: var(--dv2-sidebar); }
 .tfe-dv2-sidebar__head { align-items: center; gap: 10px; padding: 22px 16px 14px; }
 .tfe-dv2-sidebar__logo {
     display: inline-flex;
@@ -573,3 +577,68 @@ body:has(.tfe-dv2[data-role='institution']) .tfe-tabbar--dashboard { --tfe-tabba
     .tfe-dv2-header .tournament-switcher-status { display: none; }
     .tfe-dv2-header .fan-tournament-badge .me-1 { margin-right: 0 !important; }
 }
+
+/* ── Card grids: no lone half-width card (Nov 2026) ──────────────
+   A two-column grid with an odd number of cards left the last one at
+   half width beside empty space (the fan dashboard's Payment History).
+   The last card of an odd run spans the row instead. */
+@media (min-width: 992px) {
+    .tfe-dv2 .content-cards-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+/* Activity rows: a readable icon chip, not a 20px red square whose 10px
+   glyph read as a dash. */
+.tfe-dv2 .activity-icon {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: 12px;
+    background: var(--dv2-accent-soft);
+    margin-right: 12px;
+}
+.tfe-dv2 .activity-icon i { font-size: 15px; color: var(--dv2-accent-text); }
+.tfe-dv2 .payment-item + .payment-item { border-top: 1px solid var(--dv2-border); }
+
+/* Four stat tiles never leave one alone on a second row: four across when
+   there is room, otherwise two by two. */
+@media (min-width: 576px) {
+    .tfe-dv2 .tfe-stat-grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+    .tfe-dv2 .tfe-stat-grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Journey: a booking inside Current Bookings (was Bootstrap's bg-dark +
+   border-secondary + badges, which dashboards do not load). */
+.journey-booking {
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--dv2-card-2, #18181c);
+    border: 1px solid var(--dv2-border, rgba(255, 255, 255, 0.07));
+    color: #fff;
+}
+.journey-booking__pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.journey-booking__hold {
+    height: 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+}
+.journey-booking__hold-fill { height: 100%; border-radius: inherit; background: var(--dv2-accent, #e31b23); }
+.journey-plan__mid {
+    border-left: 1px solid var(--dv2-border, rgba(255, 255, 255, 0.07));
+    border-right: 1px solid var(--dv2-border, rgba(255, 255, 255, 0.07));
+}
+@media (max-width: 767.98px) { .journey-plan__mid { border: 0; } }
+
+/* Booking page: "payment is required" note. Neutral edge, the warning is in
+   the icon (Bootstrap's .alert is not loaded on dashboards). */
+.booking-hold-note {
+    margin-bottom: 1.5rem;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid var(--dv2-border, rgba(255, 255, 255, 0.07));
+    color: rgba(255, 255, 255, 0.85);
+}
+.booking-hold-note i { color: #f59e0b; }

@@ -14,12 +14,18 @@
 
 /* The card face (Components/Fan/VirtualCardFace). ID-1 proportions, laid
    out like a real card, and sized in container units so the whole face
-   scales together: 1cqw is 1% of the card's width. */
-.vcard-face {
-    position: relative;
+   scales together: 1cqw is 1% of the card's width. The container is the
+   frame around the face, not the face: an element's own padding and radius
+   resolve cqw against an ANCESTOR container, which on a wide dashboard gave
+   the card a huge radius and padding that squeezed its contents. */
+.vcard-frame {
     container-type: inline-size;
     width: 100%;
     max-width: 460px;
+}
+.vcard-face {
+    position: relative;
+    width: 100%;
     aspect-ratio: 85.6 / 53.98;
     padding: 6.5cqw 7cqw 6cqw;
     border-radius: 4.5cqw;
@@ -195,7 +201,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .vcard-wallet.is-primary {
-    border-color: color-mix(in srgb, var(--vcard-accent) 60%, transparent);
+    border-color: rgba(255, 255, 255, 0.55);
     background: color-mix(in srgb, var(--vcard-accent) 14%, rgba(255, 255, 255, 0.03));
 }
 .vcard-wallet__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }

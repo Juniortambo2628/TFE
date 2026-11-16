@@ -24,7 +24,10 @@ export default function VirtualCardFace({
 }) {
     const groups = ['••••', '••••', '••••', last4 || '••••'];
 
+    // The frame is the size container: a container's own padding and radius
+    // cannot be measured in its own cqw (they resolve against an ancestor).
     return (
+        <div className="vcard-frame">
         <div
             className={'vcard-face' + (placeholder ? ' vcard-face--placeholder' : '')}
             role="img"
@@ -64,6 +67,7 @@ export default function VirtualCardFace({
                 </div>
                 <NetworkMark network={network} />
             </div>
+        </div>
         </div>
     );
 }

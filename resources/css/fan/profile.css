@@ -332,7 +332,7 @@
 
 .compact-tribe-item:hover {
     background: rgba(220, 20, 60, 0.1);
-    border-color: #dc143c;
+    border-color: rgba(255, 255, 255, 0.24);
     transform: translateY(-2px);
 }
 

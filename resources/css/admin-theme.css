@@ -821,7 +821,7 @@
 }
 .filepond-dark-wrapper .filepond--panel-root {
     background-color: #1a1a1a;
-    border: 1px dashed #3b82f6;
+    border: 1px dashed var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 12px;
 }
 .filepond-dark-wrapper .filepond--drop-label {

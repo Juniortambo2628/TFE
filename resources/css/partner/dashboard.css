@@ -15,7 +15,7 @@
 /* ── Hero Section ── */
 .partner-hero {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid var(--partner-amber);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 1.5rem;
@@ -23,7 +23,7 @@
 
 .partner-hero-with-shadow {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid var(--partner-amber);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 1.5rem;
@@ -33,7 +33,7 @@
 /* Dynamic hero — border and shadow set via CSS custom properties */
 .partner-hero-dynamic {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid var(--hero-border, var(--partner-amber));
+    border: 1px solid var(--hero-border, var(--border-divider, rgba(255, 255, 255, 0.08)));
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 1.5rem;
@@ -44,7 +44,7 @@
 .partner-profile-hero {
     background-size: cover;
     background-position: center;
-    border: 1px solid var(--partner-amber);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
     border-radius: var(--radius-xl);
     padding: var(--space-xl);
     position: relative;
@@ -207,7 +207,7 @@
 .partner-quick-action-amber i { color: #d97706; }
 
 .partner-quick-action-blue {
-    border-color: #3b82f6;
+    border-color: var(--border-divider, rgba(255, 255, 255, 0.08));
 }
 .partner-quick-action-blue i { color: #3b82f6; }
 
@@ -569,7 +569,7 @@
 
 .partner-comm-msg-bubble.is-partner {
     background: var(--tint-amber);
-    border: 1px solid var(--partner-amber);
+    border: 1px solid var(--border-divider, rgba(255, 255, 255, 0.08));
 }
 
 .partner-comm-msg-bubble.is-fan {
