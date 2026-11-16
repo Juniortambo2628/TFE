@@ -234,3 +234,49 @@ pages follow when the kit's content editing exists.
 - [ ] The kit's format helpers (F11) do not exist yet; they come from TFE in
   phase 1.
 - [ ] TFE in the kit's consumers check (an OKJT PR, phase 1).
+
+### Phase 2 (TFE PR: Tailwind 4)
+
+- [x] **Baseline**: `scripts/visual-baseline.mjs`, 138 pages (every
+  parameterless GET page, all five roles, 1440 and 390 px), screenshots plus
+  the kit's `style-snapshot` of every visible element. Captured before the
+  change, and again after it.
+- [x] **Tailwind 4.3** through `@tailwindcss/postcss`. Done by hand: the
+  upgrade tool moved TFE's own sheets into `layer(base)`, which loses to every
+  unlayered rule, and it rewrote the vendored landing template's CSS. Instead
+  `app.css` keeps Tailwind 3's cascade: TFE's sheets, then preflight and the
+  utilities, unlayered, in v3's order (only the theme variables are layered).
+  The JS config stays, loaded with `@config`.
+- [x] **Kept v3's look**: v4's default palette is in oklch and every colour
+  shifts a little, so `tailwind-v3-palette.css` pins v3's hex values for the
+  families TFE uses. The font fallback list is written out for the same
+  reason. Wallet's one gradient interpolates in sRGB (`/srgb`), as v3 did.
+- [x] **Scanning**: `@tailwind utilities source(none)` keeps it to the
+  config's `content` list. v4's automatic detection would read the whole
+  project, and with `<html class="dark">` stray `dark:` classes would apply.
+  Tremor's runtime chart colours moved from the regex safelist to
+  `@source inline()`.
+- [x] **PurgeCSS and autoprefixer removed**. app CSS 115 → 149 KB (21.5 →
+  26.7 KB gzip).
+- [x] **Found on the way: PurgeCSS was deleting hand-written CSS from every
+  production build.** Its extractor missed selectors built in template
+  literals or not in JSX at all, so these never reached production and now do:
+  the form baseline's hover, focus, disabled and readonly states; the admin
+  charts' faint-white gridlines (production drew Recharts' `#ccc`); the
+  Predict page's `.predict-match` rows; and smaller rules (`.icon-box`,
+  `.match-list-flag`, `.tfe-btn[aria-disabled]`). Two of those rules were
+  wrong once they ran, and are fixed: the readonly rule used `:read-only`,
+  which Chromium applies to every select and checkbox (now `[readonly]`),
+  and the hover/focus rules used the `background` shorthand, which wiped
+  the select arrow (now `background-color`).
+- [x] **Comparison result**: no difference at rest except the gridlines
+  above. What remains is equivalent output (extra transparent shadow layers,
+  a 127 → 128 alpha rounding, gradient stops written out) and one select on
+  the phone contact page under the mouse, now showing its hover state.
+- [x] `sidebar.jsx`: `w-[--x]` → `w-(--x)` (v4 syntax), `theme(spacing.4)`
+  → `1rem`.
+- [ ] **Tremor → Recharts** (decision 5): Tremor still renders correctly on
+  v4 (it only needs its runtime colours generated), so this moves to its own
+  PR rather than riding on the build change.
+- [ ] Bootstrap utilities stay as they are (decision 3); converted page by
+  page in phase 4.

@@ -21,9 +21,11 @@ model in Sprint 1 — tournaments live in `config/tournaments.php` (`wc_2026`,
 
 The other OKJTech products (Naoa, Najenga, TenaFi) share a kit: `@okjt/ui`,
 `@okjt/site`, `@okjt/dashboard` and `okjt/laravel-kit`, in `packages/` of
-Juniortambo2628/OKJT. TFE can't use the kit's screens yet, because they need
-Tailwind 4 and TFE runs Tailwind 3 with Bootstrap utilities. Moving TFE to
-Tailwind 4 is a separate project, not to be started unasked. Until then:
+Juniortambo2628/OKJT. TFE can't use the kit's screens yet: they need Tailwind 4 and
+react-router. TFE moved to Tailwind 4 in Nov 2026 (see **Tailwind 4** below)
+and keeps its Bootstrap utilities; the kit's Inertia support (R3) and the
+per-role shell swap follow, in the order in
+`docs/proposals/okjt-kit-migration.md`. Until then:
 
 - **TFE gives to the kit.** Much of what the kit is gaining was built here first
   (`TfeModal`, `TabBar`, `StepFlow`, undo instead of "are you sure?",
@@ -39,7 +41,7 @@ Tailwind 4 is a separate project, not to be started unasked. Until then:
 ## Stack + tooling
 
 - **Backend**: PHP 8.3+, Laravel 12, SQLite (dev) / MySQL (WAMP prod). Pint for formatting.
-- **Frontend**: Inertia.js v2, React 19, Vite 7. Tailwind + Bootstrap classes coexist.
+- **Frontend**: Inertia.js v2, React 19, Vite 7. Tailwind 4 + Bootstrap utility classes coexist.
   shadcn/ui + Recharts + Tremor for admin dashboards.
 - **Tests**: PHPUnit 11 (149 tests / 277 assertions as of Sprint 17).
 - **Playwright** via `/opt/pw-browsers/chromium` for smoke screenshots — see
@@ -2099,33 +2101,42 @@ The components keep their constant as a **default prop value** so the landing
 sections still render when no `cards` are passed — keep it in step with the
 config if you change either.
 
-### Tremor chart colours (Sprint 56)
+### Tailwind 4 (kit migration phase 2, Nov 2026)
 
-`@tremor/react` builds its class names at runtime — `fill-${color}-500`,
-`stroke-${color}-500` — so they appear in no file any extractor scans, not
-even inside the package. Tailwind emitted none of them and the charts drew
-**black bars on a black card**, on the admin dashboard and on Admin →
-Analytics alike.
+TFE builds with Tailwind 4 (`@tailwindcss/postcss`), set up so that nothing
+looks different from Tailwind 3. Details and the before/after comparison:
+`docs/proposals/okjt-kit-migration.md` §7.
 
-Both configs need the colours:
-
-- `tailwind.config.js` → `safelist` pattern (so Tailwind emits them at all);
-- `postcss.config.js` → PurgeCSS safelist (so the prod build keeps them).
-
-Only the colours our charts pass are listed (`emerald`, `cyan`). Pass a new
-one to a Tremor chart and add it to both, or it is invisible again — and if
-you only forget PurgeCSS, it works in dev and breaks in prod.
-
-### PurgeCSS safelist gotcha
-
-`postcss.config.js` runs `@fullhuman/postcss-purgecss` in prod
-builds only. Its default extractor mangles JSX template literals,
-so any class used via ``` `foo-${bar}` ``` gets stripped from prod
-CSS while surviving in dev. The safelist covers every custom class
-prefix in `resources/css/` (see `postcss.config.js`). If you add a
-new prefix, add it to the safelist — a class-name pattern that
-only appears inside template literals will silently vanish on prod
-otherwise.
+- **`app.css` keeps v3's cascade on purpose.** v4 puts its output in cascade
+  layers, and a layer loses to every unlayered rule (TFE's own sheets and the
+  Bootstrap utilities). So preflight and `@tailwind utilities` are imported
+  unlayered, after TFE's sheets, as v3 emitted them; only the theme variables
+  are layered. Do not switch to a bare `@import "tailwindcss"`.
+- **`tailwind.config.js` is still the config**, loaded with `@config`.
+- **`tailwind-v3-palette.css` pins v3's colours.** v4's palette is in oklch and
+  every `bg-red-500` would shift slightly. A family not in that file gets v4's
+  value; add it there if you start using one.
+- **`source(none)`**: only the config's `content` list is scanned. v4's
+  automatic detection reads the whole project, and with `<html class="dark">`
+  stray `dark:` classes would start to apply.
+- **Tremor's chart colours** are built at runtime (`fill-${color}-500`), so
+  no scan finds them: they are listed in `@source inline()` in `app.css`
+  (Sprint 56: without them the bars were black on a black card). Pass a new
+  colour to a Tremor chart and add it there.
+- **v4 syntax**: CSS-variable arbitrary values are `w-(--sidebar-width)`, not
+  `w-[--sidebar-width]`; a gradient that must match v3 takes `/srgb`
+  (`bg-linear-to-br/srgb`), since v4 interpolates in oklab.
+- **No PurgeCSS any more.** It used to delete hand-written CSS from every
+  production build: any selector its extractor missed (template literals,
+  `:is()` states) worked in dev and vanished in prod. That is how the form
+  baseline's hover/focus/readonly states, the admin charts' gridline colour
+  and the Predict page's `.predict-match` rows never reached production.
+  Every rule in `resources/css/` now ships, so a stale rule is live: delete
+  it rather than relying on it never matching.
+- To check a build change: `node scripts/visual-baseline.mjs <dir>` before and
+  after (seeded app on :8000; `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`
+  here), then `node node_modules/@okjt/ui/tools/style-snapshot.mjs compare
+  <before>/styles <after>/styles`.
 
 ## Public section pages + heroes (post-Sprint 30)
 

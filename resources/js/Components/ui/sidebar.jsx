@@ -146,7 +146,7 @@ const Sidebar = React.forwardRef(
       return (
         <div
           className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
+            "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
             className
           )}
           ref={ref}
@@ -171,7 +171,7 @@ const Sidebar = React.forwardRef(
           {/* Sidebar panel */}
           <div
             className={cn(
-              "fixed inset-y-0 z-[1100] flex w-[--sidebar-width-mobile] flex-col bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-in-out",
+              "fixed inset-y-0 z-[1100] flex w-(--sidebar-width-mobile) flex-col bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-in-out",
               side === "left" ? "left-0" : "right-0",
               openMobile
                 ? "translate-x-0"
@@ -209,24 +209,24 @@ const Sidebar = React.forwardRef(
         {/* Gap on desktop — this is what the layout uses for width */}
         <div
           className={cn(
-            "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-200 ease-linear",
+            "relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
             "group-data-[collapsible=offcanvas]:w-0",
             "group-data-[side=right]:rotate-180",
             variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
+              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_1rem)]"
+              : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
           )}
         />
         <div
           className={cn(
-            "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex",
+            "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
             // Adjust inner sidebar variants
             variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_1rem_+2px)]"
+              : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
             className
           )}
           {...props}
@@ -295,7 +295,7 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "peer-data-[variant=inset]:min-h-[calc(100svh-1rem)] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         className
       )}
       {...props}
@@ -562,7 +562,7 @@ const SidebarMenuSkeleton = React.forwardRef(
           <div className="flex size-4 items-center justify-center rounded-md bg-sidebar-accent/50" />
         )}
         <div
-          className="h-4 max-w-[--skeleton-width] flex-1 rounded-md bg-sidebar-accent/50"
+          className="h-4 max-w-(--skeleton-width) flex-1 rounded-md bg-sidebar-accent/50"
           style={{ "--skeleton-width": width }}
         />
       </div>
