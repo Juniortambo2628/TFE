@@ -275,8 +275,12 @@ pages follow when the kit's content editing exists.
   the phone contact page under the mouse, now showing its hover state.
 - [x] `sidebar.jsx`: `w-[--x]` → `w-(--x)` (v4 syntax), `theme(spacing.4)`
   → `1rem`.
-- [ ] **Tremor → Recharts** (decision 5): Tremor still renders correctly on
-  v4 (it only needs its runtime colours generated), so this moves to its own
-  PR rather than riding on the build change.
+- [x] **Tremor → Recharts** (decision 5, its own PR):
+  `Components/Admin/AdminChart` (`AdminBarChart`, `AdminAreaChart`) draws the
+  admin dashboard's two bar charts and the analytics area chart with Recharts,
+  keeping Tremor's look (horizontal gridlines only, no axis lines, white
+  ticks, v3 emerald/cyan). `@tremor/react` and the `@source inline()` line
+  for its runtime colours are gone. Admin JS no longer carries
+  Tremor (~200 KB gzip).
 - [ ] Bootstrap utilities stay as they are (decision 3); converted page by
   page in phase 4.

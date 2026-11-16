@@ -42,7 +42,7 @@ per-role shell swap follow, in the order in
 
 - **Backend**: PHP 8.3+, Laravel 12, SQLite (dev) / MySQL (WAMP prod). Pint for formatting.
 - **Frontend**: Inertia.js v2, React 19, Vite 7. Tailwind 4 + Bootstrap utility classes coexist.
-  shadcn/ui + Recharts + Tremor for admin dashboards.
+  shadcn/ui + Recharts for admin dashboards (`Components/Admin/AdminChart`).
 - **Tests**: PHPUnit 11 (149 tests / 277 assertions as of Sprint 17).
 - **Playwright** via `/opt/pw-browsers/chromium` for smoke screenshots — see
   `scratchpad/shots.cjs` patterns.
@@ -616,7 +616,7 @@ receives or moves savings, and stores no financial data.**
   page chunk is ~19KB gzip, from ~102KB. The filter overlay is a `TfeModal`
   (`MatchFilterDialog`). `CalculatorRecap` pins the choices so far. A failed
   save names the field and returns to its step (`lib/calculatorErrors`).
-  `tests/JS/bundleBoundaries.test.mjs` keeps Tremor admin-only, recharts
+  `tests/JS/bundleBoundaries.test.mjs` keeps recharts
   behind the lazy results, `three` inside the canvas.
 - **Fixture ids are strings** (`db_105`). Never `Number()`/`parseInt()` one —
   the planner preselect and the calculator's `?match=` link both did, so
@@ -2119,10 +2119,11 @@ looks different from Tailwind 3. Details and the before/after comparison:
 - **`source(none)`**: only the config's `content` list is scanned. v4's
   automatic detection reads the whole project, and with `<html class="dark">`
   stray `dark:` classes would start to apply.
-- **Tremor's chart colours** are built at runtime (`fill-${color}-500`), so
-  no scan finds them: they are listed in `@source inline()` in `app.css`
-  (Sprint 56: without them the bars were black on a black card). Pass a new
-  colour to a Tremor chart and add it there.
+- **No Tremor.** The admin charts are `Components/Admin/AdminChart`
+  (`AdminBarChart`, `AdminAreaChart`), Recharts drawn directly with Tremor's
+  old look. Tremor needed Tailwind 3 and built its colour classes at runtime
+  (`fill-${color}-500`), which no scan finds: in Sprint 56 that drew black
+  bars on a black card. Colours are hex props now, so nothing can go missing.
 - **v4 syntax**: CSS-variable arbitrary values are `w-(--sidebar-width)`, not
   `w-[--sidebar-width]`; a gradient that must match v3 takes `/srgb`
   (`bg-linear-to-br/srgb`), since v4 interpolates in oklab.

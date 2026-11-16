@@ -17,10 +17,6 @@
 @import './tailwind-v3-palette.css';
 @config '../../tailwind.config.js';
 
-/* Tremor builds these class names at runtime (`fill-${color}-500`), so no
-   scan finds them; the charts drew black bars without them (Sprint 56). */
-@source inline("{fill,stroke,text,bg,border}-{emerald,cyan}-{300,400,500,600}");
-
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
