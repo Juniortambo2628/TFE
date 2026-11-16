@@ -3,7 +3,24 @@
 @import './primitives.css';
 @import './dashboard-shared.css';
 
-@layer base {
+/*
+ * Tailwind 4 (kit migration phase 2, docs/proposals/okjt-kit-migration.md).
+ * Kept in Tailwind 3's cascade on purpose: v4 puts its output in cascade
+ * layers, which lose to every unlayered rule (TFE's own sheets and the
+ * Bootstrap utilities), so a straight `@import "tailwindcss"` would flip
+ * which style wins on hundreds of elements. Only the theme variables are
+ * layered; preflight and the utilities stay unlayered, in v3's order:
+ * TFE's sheets, preflight, the base rules, utilities, then the rest below.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import './tailwind-v3-palette.css';
+@config '../../tailwind.config.js';
+
+/* Tremor builds these class names at runtime (`fill-${color}-500`), so no
+   scan finds them; the charts drew black bars without them (Sprint 56). */
+@source inline("{fill,stroke,text,bg,border}-{emerald,cyan}-{300,400,500,600}");
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -64,20 +81,19 @@
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 217 91% 60%;
   }
+
+* {
+  border-color: hsl(var(--border));
+}
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* source(none): scan only the `content` list in tailwind.config.js, as v3 did.
+   v4's automatic detection reads the whole project, and with <html class="dark">
+   the dark: variants it found elsewhere would start to apply. */
+@tailwind utilities source(none);
 
 
 

@@ -81,7 +81,7 @@ export default function Wallet({ auth, walletData }) {
 
                         {/* Quick Actions / Info */}
                         <div className="space-y-6">
-                            <div className="bg-gradient-to-br from-red-600 to-red-800 p-6 rounded-2xl shadow-xl">
+                            <div className="bg-linear-to-br/srgb from-red-600 to-red-800 p-6 rounded-2xl shadow-xl">
                                 <h4 className="text-white font-bold mb-2">Book Your Trip</h4>
                                 <p className="text-white/80 text-sm mb-4">You can now use your escrow balance to book matches and accommodation.</p>
                                 <Link
