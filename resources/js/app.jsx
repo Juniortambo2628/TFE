@@ -8,10 +8,15 @@ import React, { useState } from 'react';
 import IntroLoader from './Components/IntroLoader';
 import { installErrorReporter } from './lib/errorReporter';
 import { installNavHistory } from './lib/navHistory';
+import { installChunkReload } from '@okjt/ui/helpers';
 
 // Uncaught errors and failed same-origin asset loads reach the server log
 // instead of only a tester's devtools (Sprint 69).
 installErrorReporter();
+
+// A tab left open across a deploy asks for the old build's lazy chunks, which
+// are gone; reload once into the new build (OKJT kit, @okjt/ui/helpers).
+installChunkReload();
 
 // Records the visits made in this tab, so a public page's Back button
 // (Components/Common/BackNav) can go back one step without ever leaving the

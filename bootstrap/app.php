@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Okjt\Kit\Http\Middleware\SecurityHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,6 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
+
+        // Security headers on every response, from the OKJT kit
+        // (config/okjt.php → security_headers). The content-security policy
+        // is report-only until it has been checked against real traffic.
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->alias([
             'is_admin' => IsAdmin::class,
