@@ -16,6 +16,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.24",
         "laravel/tinker": "^2.10.1",
+        "okjt/laravel-kit": "0.8.0",
         "pragmarx/google2fa-laravel": "^2.3",
         "tightenco/ziggy": "^2.0"
     },

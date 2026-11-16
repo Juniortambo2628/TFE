@@ -1,6 +1,7 @@
 # Moving TFE onto the OKJT kit
 
-Status: **proposal, waiting for decisions** (section 6). Written 2026-11-16.
+Status: **approved** (2026-11-16): all seven decisions in section 6 taken as
+recommended. Progress is logged in section 7.
 
 Read at: TFE `509f2ea` (+ PR #90), OKJT `packages/` 0.8.0
 (`SPEC.md`, `CONSOLIDATION_PLAN.md`, `UPGRADING.md`).
@@ -210,3 +211,26 @@ pages follow when the kit's content editing exists.
 | 5 | Replace Tremor with Recharts on the two admin chart pages? | Yes |
 | 6 | Auth: keep TFE's own for now? | Yes, until the kit's matches it |
 | 7 | Who reviews the security-header and auth-adjacent PRs? | Kevin, as the kit already requires |
+
+**Decided 2026-11-16:** the owner took every recommendation above.
+
+## 7. Progress
+
+### Phase 0 (TFE PR, "Needs Kevin")
+
+- [x] `@okjt/ui` 0.4.0 (exact): `installChunkReload()` from
+  `@okjt/ui/helpers` in `app.jsx`. TFE had nothing for this: a tab left open
+  across a deploy failed on its next lazily loaded page.
+- [x] `okjt/laravel-kit` 0.8.0 (exact): `SecurityHeaders` on every response
+  (TFE sent none). The content-security policy is **report-only**, with
+  Bunny Fonts added; switch to enforcing once reports show nothing missing.
+- [x] **Found on the way:** the kit's service provider replaces the
+  password-reset link with `config('app.frontend_url')`, which Laravel 12
+  defaults to `http://localhost:3000`. Installed as-is, every TFE reset email
+  would have linked to localhost. TFE sets its own link back in
+  `AppServiceProvider` (`ResetLinkUrlTest`, which fails without it). Kit fix
+  to propose: only override the link when the project sets a front-end URL,
+  or behind `okjt.auth.password_reset.override`.
+- [ ] The kit's format helpers (F11) do not exist yet; they come from TFE in
+  phase 1.
+- [ ] TFE in the kit's consumers check (an OKJT PR, phase 1).
