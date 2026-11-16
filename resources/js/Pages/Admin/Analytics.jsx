@@ -2,7 +2,7 @@ import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import SummaryTiles from '@/Components/Common/SummaryTiles';
-import { AreaChart } from '@tremor/react';
+import { AdminAreaChart } from '@/Components/Admin/AdminChart';
 import { formatNumber } from '@/lib/utils';
 
 /**
@@ -47,19 +47,7 @@ export default function Analytics({ signups30d = [], referrals = {}, stats = {} 
                         <p className="admin-overview__sub">Daily sign-ups to the platform.</p>
                     </div>
                 </div>
-                <div className="tremor-chart-white">
-                    <AreaChart
-                        className="h-64 mt-2"
-                        data={chartData}
-                        index="date"
-                        categories={['count']}
-                        colors={['cyan']}
-                        yAxisWidth={40}
-                        showAnimation
-                        curveType="monotone"
-                        showLegend={false}
-                    />
-                </div>
+                <AdminAreaChart className="h-64 mt-2" data={chartData} index="date" category="count" colour="cyan" yAxisWidth={40} />
             </div>
 
             <div className="row g-4">

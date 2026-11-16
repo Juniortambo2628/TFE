@@ -5,7 +5,7 @@ import SummaryTiles from '@/Components/Common/SummaryTiles';
 import QuickActionsGrid from '@/Components/Common/QuickActionsGrid';
 import AccentCard from '@/Components/Common/AccentCard';
 import { titleCase } from '@/lib/utils';
-import { BarChart } from '@tremor/react';
+import { AdminBarChart } from '@/Components/Admin/AdminChart';
 import { Link, usePage } from '@inertiajs/react';
 import '../../../css/admin-dashboard.css';
 
@@ -95,18 +95,7 @@ export default function Dashboard({
                         <span className="tfe-slab__title-sub">Fans, partners and staff</span>
                     </div>
                     <div className="tfe-slab__body">
-                        <div className="tremor-chart-white">
-                            <BarChart
-                                className="h-64"
-                                data={roleData}
-                                index="Tier"
-                                categories={['Users']}
-                                colors={['emerald']}
-                                showAnimation
-                                showLegend={false}
-                                valueFormatter={(n) => Intl.NumberFormat('us').format(n).toString()}
-                            />
-                        </div>
+                        <AdminBarChart data={roleData} index="Tier" category="Users" colour="emerald" />
                     </div>
                 </section>
 
@@ -120,18 +109,7 @@ export default function Dashboard({
                         </span>
                     </div>
                     <div className="tfe-slab__body">
-                        <div className="tremor-chart-white">
-                            <BarChart
-                                className="h-64"
-                                data={userGrowth}
-                                index="date"
-                                categories={['Signups']}
-                                colors={['cyan']}
-                                showAnimation
-                                showLegend={false}
-                                valueFormatter={(n) => Intl.NumberFormat('us').format(n).toString()}
-                            />
-                        </div>
+                        <AdminBarChart data={userGrowth} index="date" category="Signups" colour="cyan" />
                         <div className="tfe-form-actions">
                             <Link href={route('admin.analytics')} className="tfe-btn tfe-btn--sm">
                                 Open analytics <i className="fas fa-arrow-right" />

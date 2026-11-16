@@ -9,8 +9,6 @@ export default {
         './resources/js/**/*.jsx',
     ],
 
-    // Tremor's runtime chart colours: see the @source inline() line in
-    // resources/css/app.css (Tailwind 4 has no regex safelist).
 
     darkMode: ["class"],
     theme: {

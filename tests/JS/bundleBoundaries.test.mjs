@@ -26,14 +26,18 @@ const importers = (re) => SOURCES.filter((f) => re.test(f.src)).map((f) => f.pat
 // A static `import … from 'x'` — a lazy `import('x')` is the point of a boundary.
 const staticImport = (mod) => new RegExp(`^\\s*import[^;]*?from\\s+['"]${mod}['"]`, 'm');
 
-test('@tremor/react is admin-only (~200KB gzip)', () => {
-    for (const f of importers(staticImport('@tremor/react'))) {
-        assert.match(f, /^(Pages|Components)\/Admin\//, `${f} pulls Tremor outside the admin`);
-    }
+test('@tremor/react is gone: the admin charts are Recharts (kit migration, decision 5)', () => {
+    assert.deepEqual(importers(staticImport('@tremor/react')), []);
 });
 
-test('recharts is only reached through the lazily loaded calculator results', () => {
-    assert.deepEqual(importers(staticImport('recharts')), ['Components/Fan/CostScenarioChart.jsx']);
+test('recharts is reached only through the lazy calculator results and the admin charts', () => {
+    assert.deepEqual(importers(staticImport('recharts')), [
+        'Components/Admin/AdminChart.jsx',
+        'Components/Fan/CostScenarioChart.jsx',
+    ]);
+    for (const f of importers(staticImport('@/Components/Admin/AdminChart'))) {
+        assert.match(f, /^Pages\/Admin\//, `${f} pulls recharts outside the admin`);
+    }
     assert.deepEqual(
         importers(staticImport('@/Components/Fan/CostScenarioChart')),
         ['Components/Fan/Calculator/CalculatorResults.jsx'],
