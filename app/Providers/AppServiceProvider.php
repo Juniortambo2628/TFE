@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -31,15 +30,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Schema::defaultStringLength(191);
-
-        // okjt/laravel-kit points reset links at config('app.frontend_url')
-        // (a separate front-end app, http://localhost:3000 by default). TFE
-        // serves its own reset page, so the link goes back to that route.
-        // Guarded by ResetLinkUrlTest.
-        ResetPassword::createUrlUsing(fn ($user, string $token) => route('password.reset', [
-            'token' => $token,
-            'email' => $user->getEmailForPasswordReset(),
-        ]));
 
         // NOTE: Vite::prefetch() (blanket asset prefetch) is deliberately
         // NOT enabled. It injects a script that eagerly downloads EVERY
