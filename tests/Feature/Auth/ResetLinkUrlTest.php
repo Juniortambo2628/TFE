@@ -8,9 +8,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * okjt/laravel-kit sets its own reset-link builder when it boots. The link
- * must still open TFE's own reset page (route password.reset), with the
- * email, on this site's address.
+ * The reset email must open TFE's own reset page (route password.reset),
+ * with the email, on this site's address. okjt/laravel-kit builds the link;
+ * since 0.10 it uses the app's own password.reset route when one exists
+ * (okjt.auth.password_reset.link_to_app left at null), so TFE needs no
+ * override of its own.
  */
 class ResetLinkUrlTest extends TestCase
 {
