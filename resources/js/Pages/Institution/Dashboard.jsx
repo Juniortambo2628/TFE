@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import InstitutionLayout from '@/Layouts/InstitutionLayout';
-import DashboardHero from '@/Components/Common/DashboardHero';
+import { AdminPageHero, AdminPageLayout, AdminSummaryCards } from '@okjt/dashboard';
 import ContentCard from '@/Components/Common/ContentCard';
 import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import MinorsBadge from '@/Components/Common/MinorsBadge';
@@ -38,16 +38,24 @@ export default function InstitutionDashboard({ institution, trips = [], stats })
 
     return (
         <InstitutionLayout title="Group Dashboard">
-            <div className="container-fluid">
-                <DashboardHero
-                    role="institution"
-                    title={institution?.institution_name || 'Your institution'}
-                    subtitle={[institution?.type_label, institution?.location].filter(Boolean).join(' · ')
-                        || 'Plan and declare group trips in one place.'}
-                    breadcrumbs={[{ label: 'Group Dashboard' }]}
-                    bgImage="/assets/img/backdrops/stadium-fans.jpg"
-                />
-
+            <AdminPageLayout
+                hero={
+                    <AdminPageHero
+                        title={institution?.institution_name || 'Your institution'}
+                        subtitle={[institution?.type_label, institution?.location].filter(Boolean).join(' · ')
+                            || 'Plan and declare group trips in one place.'}
+                        breadcrumbs={[{ label: 'Group Dashboard' }]}
+                        actions={
+                            <Link href={route('fan.budget-calculator')} className="tfe-btn tfe-btn--filled tfe-btn--sm">
+                                <i className="fas fa-plus"></i> Plan a trip
+                            </Link>
+                        }
+                    />
+                }
+                summary={
+                    <AdminSummaryCards columns={5} stackOnPhones cards={summaryCards(stats)} />
+                }
+            >
                 {/* Verification is stated, never assumed. An account that
                     could present itself as verified on self-declaration is an
                     account whose verification means nothing. */}
@@ -66,25 +74,6 @@ export default function InstitutionDashboard({ institution, trips = [], stats })
                         </div>
                     </div>
                 )}
-
-                <div className="summary-cards-grid mt-4">
-                    <Tile icon="fas fa-route" variant="teal" value={stats.trips} label="Group trips" />
-                    <Tile icon="fas fa-file-signature" variant="blue" value={stats.declared} label="Declared" />
-                    <Tile
-                        icon="fas fa-triangle-exclamation"
-                        variant={stats.undeclared > 0 ? 'amber' : 'graph'}
-                        value={stats.undeclared}
-                        label="Awaiting declaration"
-                        // "All trips declared" for an institution with no
-                        // trips is a claim about nothing — the same small
-                        // untruth as an "0 minors" chip on a solo trip.
-                        subtext={stats.undeclared > 0
-                            ? 'A partner may already be quoting these'
-                            : (stats.trips > 0 ? 'All trips declared' : null)}
-                    />
-                    <Tile icon="fas fa-child" variant="rose" value={stats.minors} label="Travellers under 18" subtext={`${stats.adults} accompanying adults`} />
-                    <Tile icon="fas fa-hourglass-half" variant="violet" value={stats.awaiting_partner} label="Awaiting partner" />
-                </div>
 
                 {undeclared.length > 0 && (
                     <div className="mt-4">
@@ -227,7 +216,7 @@ export default function InstitutionDashboard({ institution, trips = [], stats })
                     onConfirm={handleWithdraw}
                     confirmText="Withdraw declaration"
                 />
-            </div>
+            </AdminPageLayout>
 
             <style>{`
                 .inst-row {
@@ -253,15 +242,24 @@ export default function InstitutionDashboard({ institution, trips = [], stats })
     );
 }
 
-function Tile({ icon, variant, value, label, subtext }) {
-    return (
-        <div className={`tfe-tile tfe-tile--${variant}`}>
-            <div className="tfe-tile__head">
-                <span className="tfe-tile__icon"><i className={icon}></i></span>
-            </div>
-            <div className="tfe-tile__value">{value}</div>
-            <div className="tfe-tile__label">{label}</div>
-            {subtext && <div className="tfe-tile__subtext">{subtext}</div>}
-        </div>
-    );
+/**
+ * The summary row (the kit's AdminSummaryCards). "Awaiting declaration"
+ * leads the attention: a partner may already be quoting those plans.
+ * "All trips declared" is only said when there are trips; for an
+ * institution with none it would be a claim about nothing, the same small
+ * untruth as an "0 minors" chip on a solo trip.
+ */
+function summaryCards(stats) {
+    return [
+        { label: 'Group trips', value: stats.trips, icon: 'fas fa-route' },
+        { label: 'Declared', value: stats.declared, icon: 'fas fa-file-signature' },
+        {
+            label: 'Awaiting declaration',
+            value: stats.undeclared,
+            icon: 'fas fa-triangle-exclamation',
+            hint: stats.undeclared > 0 ? 'A partner may already be quoting these' : (stats.trips > 0 ? 'All trips declared' : undefined),
+        },
+        { label: 'Travellers under 18', value: stats.minors, icon: 'fas fa-child', hint: `${stats.adults} accompanying adults` },
+        { label: 'Awaiting partner', value: stats.awaiting_partner, icon: 'fas fa-hourglass-half' },
+    ];
 }

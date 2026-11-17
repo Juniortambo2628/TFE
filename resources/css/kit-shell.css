@@ -87,3 +87,18 @@
 @media (min-width: 1024px) {
     .tfe-kit-page { --sidebar-width: var(--okjt-sidebar-w, 272px); }
 }
+
+/* Bootstrap's utilities (loaded on dashboards, !important) share some class
+   names with the kit: text-body and text-muted among the colours. Inside the
+   shell they read the kit's dashboard colours, so a kit breadcrumb is not
+   drawn in Bootstrap's dark body text on the dark page. (The spacing names,
+   p-/m-/gap- 3 to 5, still take Bootstrap's larger steps until TFE's pages
+   stop using its utilities; see docs/proposals/okjt-kit-migration.md.) */
+.tfe-kit-shell {
+    --bs-body-color-rgb: 242, 242, 243;
+    --bs-secondary-color: rgb(255 255 255 / 0.58);
+}
+
+/* Pages already on the kit's page layout have no use for TFE's floating
+   toolbar (it only offered "find" and page navigation there, and sat on
+   the profile's save bar). KitPage leaves it out for them. */

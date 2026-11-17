@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 import InstitutionLayout from '@/Layouts/InstitutionLayout';
-import DashboardHero from '@/Components/Common/DashboardHero';
+import { AdminPageHero, AdminPageLayout } from '@okjt/dashboard';
 import ContentCard from '@/Components/Common/ContentCard';
 import SplitEditorLayout from '@/Components/Common/SplitEditorLayout';
 import IdentityPreview from '@/Components/Common/IdentityPreview';
@@ -53,18 +53,20 @@ export default function InstitutionProfile({ profile, institutionTypes = {} }) {
 
     return (
         <InstitutionLayout title="Institution">
-            <div className="container-fluid">
-                <DashboardHero
-                    role="institution"
-                    title="Institution details"
-                    subtitle="Who you are, and who is authorised to act for you."
-                    breadcrumbs={[
-                        { label: 'Group Dashboard', href: route('institution.dashboard') },
-                        { label: 'Institution' },
-                    ]}
-                    bgImage="/assets/img/backdrops/stadium-fans.jpg"
-                />
-
+            <AdminPageLayout
+                hero={
+                    <AdminPageHero
+                        title="Institution details"
+                        subtitle="Who you are, and who is authorised to act for you."
+                        breadcrumbs={[
+                            // A path, not Ziggy's absolute URL: the kit's links
+                            // go through react-router (InertiaRouter).
+                            { label: 'Group Dashboard', href: route('institution.dashboard', undefined, false) },
+                            { label: 'Institution' },
+                        ]}
+                    />
+                }
+            >
                 <div className="mt-4">
                     <SplitEditorLayout preview={preview}>
                         <form onSubmit={submit} id="institution-form">
@@ -209,7 +211,7 @@ export default function InstitutionProfile({ profile, institutionTypes = {} }) {
                         </form>
                     </SplitEditorLayout>
                 </div>
-            </div>
+            </AdminPageLayout>
         </InstitutionLayout>
     );
 }

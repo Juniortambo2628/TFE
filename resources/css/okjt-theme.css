@@ -49,7 +49,7 @@
   --color-accent: #e31b23;
   --color-accent-strong: #ff4b52;
   --color-accent-dark: #ff4b52;
-  --color-accent-soft: rgb(227 27 35 / 0.14);
+  --color-accent-soft: #ffb3b6;
   --color-line: rgb(255 255 255 / 0.07);
   --color-line-strong: rgb(255 255 255 / 0.14);
   --color-tint: rgb(255 255 255 / 0.05);
@@ -64,10 +64,10 @@
   --color-tone-100: rgb(255 255 255 / 0.07);
   --color-tone-200: rgb(255 255 255 / 0.14);
   --color-tone-300: rgb(255 255 255 / 0.2);
-  --color-tone-400: rgb(255 255 255 / 0.38);
-  --color-tone-500: rgb(255 255 255 / 0.5);
-  --color-tone-600: rgb(255 255 255 / 0.58);
-  --color-tone-700: rgb(255 255 255 / 0.72);
+  --color-tone-400: rgb(255 255 255 / 0.58);
+  --color-tone-500: rgb(255 255 255 / 0.62);
+  --color-tone-600: rgb(255 255 255 / 0.68);
+  --color-tone-700: rgb(255 255 255 / 0.75);
   --color-tone-800: rgb(255 255 255 / 0.85);
   --color-tone-900: rgb(255 255 255 / 0.95);
   --color-tone-950: #ffffff;
