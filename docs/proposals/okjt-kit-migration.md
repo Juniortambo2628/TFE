@@ -284,3 +284,30 @@ pages follow when the kit's content editing exists.
   Tremor (~200 KB gzip).
 - [ ] Bootstrap utilities stay as they are (decision 3); converted page by
   page in phase 4.
+
+### Phase 4 (one TFE PR per role)
+
+**Institution** (the first):
+
+- [x] `@okjt/dashboard` 0.11.0, `@okjt/inertia` 0.1.0, `@okjt/ui` 0.6.0
+  (exact), and the kit's peers (react-router-dom, react-query,
+  react-hot-toast, date-fns, react-hook-form): the kit's index re-exports
+  everything, so a build resolves all of them even where the shell uses few.
+- [x] `okjt.config.js` + `resources/css/okjt-theme.css`: TFE's dark
+  dashboard as `theme.dashboard`; the base `accent`/`muted` set to shadcn's
+  own values, since the names collide. The app CSS before and after: 615
+  rules added (the kit's classes), 12 rewritten to read the same value
+  through a variable, none removed or changed in value.
+- [x] `Layouts/KitShell` (generic) + `InstitutionKitShell`; `FanShell`
+  picks it for institution accounts on Fan/ and Institution/ pages, so the
+  shell stays mounted across both. Fans never load it.
+- [x] Kept inside the kit frame for now: TFE's page content, page toolbar,
+  page-change skeleton, bell/envelope/account, Back, footer.
+- [x] Checked: e2e (`institution-kit-shell.spec.js`: shell kept across
+  visits, Back, axe clean on both institution pages, a fan unaffected);
+  the full e2e suite; the baseline comparison of every other page.
+- [ ] Next for this role: its two pages onto `AdminPageLayout` /
+  `AdminPageHero` / `AdminSummaryCards`, which retires `PageToolbar` here.
+- [ ] Kit candidates found: no option to leave out the current-item dot;
+  no per-item `badge` in `shell.nav`; `pageSkeleton` cannot see a router's
+  own wait (an Inertia visit).

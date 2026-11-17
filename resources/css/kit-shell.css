@@ -1,0 +1,89 @@
+/*
+ * TFE pages inside the OKJT kit's dashboard shell (Layouts/KitShell, kit
+ * migration phase 4). The frame is the kit's; this file only fits TFE's own
+ * pieces into it, and goes away as the pages move to the kit's page parts.
+ */
+
+/* The page keeps TFE's dashboard look (.tfe-dv2), but no longer the frame's
+   job: no minimum height or background of its own beyond the kit's. */
+.tfe-kit-page {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+}
+.tfe-kit-page > .tfe-dv2__page {
+    flex: 1 0 auto;
+    padding: 24px 28px 48px;
+    min-width: 0;
+}
+@media (max-width: 767.98px) {
+    .tfe-kit-page > .tfe-dv2__page { padding: 16px 16px 32px; }
+}
+
+/* Font Awesome icons in the kit's sidebar and tab bar: the kit sizes its
+   lucide icons with w-4/h-4; a font icon needs its box centred too. */
+.tfe-kit-fa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+/* Back and the role badge, after the kit's menu button. */
+.tfe-kit-header-start {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.tfe-kit-header-start .tfe-header-back:empty { display: none; }
+
+/* TFE's bell, envelope and account menu in the kit's header. */
+.tfe-kit-cluster {
+    display: flex;
+    align-items: center;
+}
+
+/* Below lg the kit's tab bar is on screen (it publishes its height as
+   --okjt-tabbar-h). TFE's pieces that sit above a tab bar read
+   --tfe-tabbar-h: the page toolbar and a page's own pinned action bar. */
+@media (max-width: 1023.98px) {
+    body:has(.tfe-kit-shell) { --tfe-tabbar-h: var(--okjt-tabbar-h, 0px); }
+    .tfe-kit-shell .tfe-dv2-toolbar {
+        left: auto;
+        right: 12px;
+        width: auto;
+        max-width: calc(100vw - 24px);
+        transform: none;
+        bottom: calc(var(--tfe-tabbar-h, 0px) + 12px);
+    }
+    body:has(.tfe-kit-shell) .tfe-mobile-actionbar { bottom: var(--tfe-tabbar-h, 0px); }
+    body:has(.tfe-kit-shell .tfe-mobile-actionbar) .tfe-dv2-toolbar { bottom: calc(var(--tfe-tabbar-h, 0px) + 84px); }
+    /* The kit leaves room for its tab bar after the page; the footer only
+       needs to clear the toolbar. */
+    .tfe-kit-page { --tfe-bottom-clearance: 72px; }
+}
+
+/* The kit marks the current sidebar item with a dot in the accent colour.
+   On TFE red means "new" and nothing else (CLAUDE.md, UX plan F + G), and
+   the light pill already marks the page. Kit candidate: a shell option to
+   leave the dot out; until then it is hidden here. */
+.tfe-kit-shell nav[aria-label='Main'] a[aria-current='page'] > div[style*='--color-accent'] {
+    display: none;
+}
+
+/* Phones: Back, the role badge and the bell do not all fit. On inner pages
+   Back wins (it is arrow-only below 480px, header.css); the badge returns on
+   the dashboard home, where there is no Back. */
+@media (max-width: 639.98px) {
+    .tfe-kit-header-start:has(.tfe-backnav-header) .tfe-kit-badge { display: none; }
+}
+
+/* The page toolbar centres itself on the content column from
+   --sidebar-width; the kit publishes its sidebar's width as --okjt-sidebar-w
+   (on screen from lg; a drawer below it). */
+.tfe-kit-page { --sidebar-width: 0px; }
+@media (min-width: 1024px) {
+    .tfe-kit-page { --sidebar-width: var(--okjt-sidebar-w, 272px); }
+}

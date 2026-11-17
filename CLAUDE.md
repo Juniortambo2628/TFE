@@ -2139,6 +2139,50 @@ looks different from Tailwind 3. Details and the before/after comparison:
   here), then `node node_modules/@okjt/ui/tools/style-snapshot.mjs compare
   <before>/styles <after>/styles`.
 
+### The institution dashboard is on the OKJT kit (kit migration phase 4, Nov 2026)
+
+The first role moved onto the kit's dashboard shell (`@okjt/dashboard`
+`DashboardShell`, through `@okjt/inertia`'s `InertiaRouter`). The others
+follow in the plan's order: partner, admin, fan.
+
+- **`Layouts/KitShell.jsx`** is the generic piece: a TFE role's menu
+  constant (`{ label, icon, route }` + `{ heading }`) becomes the kit's
+  `shell.nav` (`navFromMenu`), its tab picks the kit's `shell.tabBar`, and
+  the page sits in `.tfe-dv2` (`KitPage`) so it looks as before. Moving a
+  role = a ten-line `XKitShell` like `InstitutionKitShell`.
+- **The shell follows the ACCOUNT, not the page.** `Layouts/FanShell` is the
+  persistent layout of every `Fan/` and `Institution/` page: an institution
+  (`auth.user.account_type`) gets the kit shell on both, so it stays mounted
+  when a school moves from its dashboard to the Budget Calculator; a fan gets
+  `FanLayout`. The kit is lazy-loaded inside it, so a fan never downloads it
+  (`tests/e2e/institution-kit-shell.spec.js` checks).
+- **Still TFE's, inside the kit's frame**: the pages, `PageToolbar` (hero
+  actions portal into it), `PageTransition` (the skeleton during an Inertia
+  visit; the kit's `pageSkeleton` only covers lazy routes), the bell /
+  envelope / account menu (`shell.Notifications`), Back + the role badge
+  (`shell.HeaderStart`), the footer. They move to the kit's page parts page
+  by page.
+- **Off**: the kit's collaboration (no `api`), Share, Version history, the
+  tour (`headerActions: []`, `ShareModal`/`HistoryDrawer` as `() => null`).
+- **Theme**: `okjt.config.js` → `resources/css/okjt-theme.css`
+  (`npm run theme`; `npm run theme:check` fails when stale).
+  `theme.dashboard` holds TFE's dark dashboard values and applies while the
+  shell is mounted (`admin-theme` on `<html>`). The kit's `accent` and
+  `muted` are also shadcn's names, and a Tailwind theme has one variable per
+  name, so the BASE values are set to shadcn's own (`hsl(var(--accent))`):
+  outside the kit shell nothing changes. Inside it, a shadcn `bg-accent` is
+  TFE red.
+- The kit's classes are scanned with `@source` in `app.css`, not the
+  config's `content` list (Tailwind skips `node_modules` there).
+- `resources/css/kit-shell.css` fits TFE's pieces into the frame: the page
+  toolbar and `MobileActionBar` above the kit's tab bar (`--okjt-tabbar-h`),
+  the toolbar centred on the kit's sidebar width (`--okjt-sidebar-w`), Back
+  arrow-only and the badge hidden on phones. It also hides the kit's
+  current-item dot (red means "new" only on TFE). **Kit candidates**: a shell
+  option to leave that dot out; `badge` on a nav item (TFE's activity
+  counts; the Messages row has no count in the kit sidebar yet); a
+  `pageSkeleton` for router waits (an Inertia visit), not only Suspense.
+
 ## Public section pages + heroes (post-Sprint 30)
 
 The landing page was split to stay light. `About`, `Features`, `Services`,

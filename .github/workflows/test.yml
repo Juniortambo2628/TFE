@@ -63,6 +63,10 @@ jobs:
     - name: Run JS unit tests
       run: npm run test:js
 
+    # The OKJT kit's theme file must match okjt.config.js (npm run theme).
+    - name: Check the kit theme is up to date
+      run: npm run theme:check
+
     - name: Set directory permissions
       run: chmod -R 777 storage bootstrap/cache
 
