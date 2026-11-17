@@ -310,8 +310,19 @@ pages follow when the kit's content editing exists.
   after: no differences on any public, fan, partner or admin page; only the
   two institution pages differ, which also shows the comparison catches a
   change.
-- [ ] Next for this role: its two pages onto `AdminPageLayout` /
-  `AdminPageHero` / `AdminSummaryCards`, which retires `PageToolbar` here.
+- [x] Its two pages on `AdminPageLayout` / `AdminPageHero` /
+  `AdminSummaryCards` (the kit's `bold` look, via `componentDefaults`); TFE's
+  `PageToolbar` no longer shows on them. It stays for the fan pages an
+  institution visits, until those move with the fan role. Content panels are
+  still TFE's `ContentCard` (the kit's `AdminCard` is a bare panel).
+- [x] Found: Bootstrap's utilities (`!important` on dashboards) share names
+  with the kit's classes: `text-body` drew the kit's breadcrumb in dark
+  text (fixed in the shell with Bootstrap's variables), and `p-`/`m-`/`gap-`
+  3 to 5 are larger than Tailwind's. Decision 3's page-by-page conversion
+  is what removes this; until then the kit's spacing at those steps is
+  Bootstrap's in TFE.
+- [x] The dashboard theme's `accentSoft` is a pale red (the kit draws icons
+  in it) and its text tones are at least 58% white (axe).
 - [ ] Kit candidates found: no option to leave out the current-item dot;
   no per-item `badge` in `shell.nav`; `pageSkeleton` cannot see a router's
   own wait (an Inertia visit).

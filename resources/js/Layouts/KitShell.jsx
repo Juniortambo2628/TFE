@@ -44,11 +44,15 @@ import '../../css/kit-shell.css';
  */
 
 /** A Font Awesome class as the component the kit's sidebar expects. */
+const FA_ICONS = new Map();
 function faIcon(className) {
+    // One component per class, so a re-render never swaps the icon's type.
+    if (FA_ICONS.has(className)) return FA_ICONS.get(className);
     function FaIcon({ className: extra = '' }) {
         return <i className={`${className} tfe-kit-fa ${extra}`} aria-hidden="true" />;
     }
     FaIcon.displayName = `FaIcon(${className})`;
+    FA_ICONS.set(className, FaIcon);
     return FaIcon;
 }
 
@@ -120,8 +124,17 @@ function RoleBadge({ icon, label }) {
     );
 }
 
+/**
+ * Pages built on the kit's own page parts (AdminPageLayout). They do not
+ * get TFE's floating PageToolbar: their actions are in the kit's hero. The
+ * other pages in the shell still portal their hero actions into it.
+ */
+const KIT_PAGE_PREFIXES = ['Institution/'];
+
 /** The page under the kit's frame, with TFE's page styles around it. */
 function KitPage({ role, children }) {
+    const { component } = usePage();
+    const onKitPage = KIT_PAGE_PREFIXES.some((p) => component.startsWith(p));
     return (
         <div className="tfe-dv2 tfe-kit-page" data-dashboard="v2" data-role={role}>
             <div className="tfe-dv2__page">
@@ -130,7 +143,7 @@ function KitPage({ role, children }) {
                 </ShellProvider>
             </div>
             <Footer />
-            <PageToolbar />
+            {!onKitPage && <PageToolbar />}
         </div>
     );
 }
@@ -157,6 +170,17 @@ export default function KitShell({ role, menu, tabs, homeRoute, badge, children 
         }
         return {
             home: { label: 'Dashboard', path: homePath },
+            // A page passes a Font Awesome class ('fas fa-route') wherever the
+            // kit takes an icon; the kit's own names fall back to its icons.
+            iconFor: (name) => (/^fa[srb]? fa-/.test(name) ? faIcon(name) : null),
+            // The kit's look for dark dashboards (Najenga's): pages that use
+            // AdminPageLayout / AdminPageHero / AdminSummaryCards get it.
+            componentDefaults: {
+                PageLayout: { variant: 'bold' },
+                PageHero: { variant: 'bold' },
+                SummaryCards: { variant: 'bold' },
+                EmptyState: { variant: 'card' },
+            },
             shell: {
                 logo: { src: assetPath('/assets/img/logo/TFE-logo.png'), alt: 'The Football Experience', to: homePath },
                 nav: navFromMenu(menu),

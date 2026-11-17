@@ -2183,6 +2183,22 @@ follow in the plan's order: partner, admin, fan.
   counts; the Messages row has no count in the kit sidebar yet); a
   `pageSkeleton` for router waits (an Inertia visit), not only Suspense.
 
+- **The institution's own pages are on the kit's page parts**:
+  `AdminPageLayout` + `AdminPageHero` (+ `AdminSummaryCards` on the
+  dashboard), in the kit's `bold` look for dark dashboards, set once in
+  `KitShell`'s `componentDefaults`. A page passes Font Awesome classes
+  wherever the kit takes an icon (`iconFor`). Pages on the kit layout are
+  listed in `KIT_PAGE_PREFIXES` and do not get TFE's floating toolbar (their
+  actions are in the kit hero). A breadcrumb link is a PATH
+  (`route(name, undefined, false)`): the kit's links go through react-router.
+- **Bootstrap's utilities share class names with the kit** (`text-body`,
+  `text-muted`, `border`, `rounded`, `shadow-lg`, and `p-`/`m-`/`gap-` 1 to
+  5) and are `!important` on dashboards, so they win. The colours are pointed
+  at the kit's inside the shell (`kit-shell.css`); the spacing steps 3 to 5
+  stay Bootstrap's (larger) until TFE's pages stop using its utilities.
+- The dashboard tone ramp's text steps (`tone-400` up) are at least 58%
+  white: the kit draws hints in `tone-400`, and axe fails anything fainter.
+
 ## Public section pages + heroes (post-Sprint 30)
 
 The landing page was split to stay light. `About`, `Features`, `Services`,

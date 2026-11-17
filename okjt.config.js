@@ -50,7 +50,9 @@ export default {
         // 3.9:1 on a card (CLAUDE.md, UX plan PRs J + K).
         accentStrong: '#ff4b52',
         accentDark: '#ff4b52',
-        accentSoft: 'rgb(227 27 35 / 0.14)',
+        // Decorative accent: the kit draws icons in it (summary cards), so a
+        // pale TFE red, as Najenga does, not a see-through fill.
+        accentSoft: '#ffb3b6',
         line: 'rgb(255 255 255 / 0.07)',
         lineStrong: 'rgb(255 255 255 / 0.14)',
         tint: 'rgb(255 255 255 / 0.05)',
@@ -66,10 +68,12 @@ export default {
           100: 'rgb(255 255 255 / 0.07)',
           200: 'rgb(255 255 255 / 0.14)',
           300: 'rgb(255 255 255 / 0.2)',
-          400: 'rgb(255 255 255 / 0.38)',
-          500: 'rgb(255 255 255 / 0.5)',
-          600: 'rgb(255 255 255 / 0.58)',
-          700: 'rgb(255 255 255 / 0.72)',
+          // 400 up is text (the kit's hints and labels): at least 58% white,
+          // TFE's floor for muted text on the dark surfaces (axe, AA).
+          400: 'rgb(255 255 255 / 0.58)',
+          500: 'rgb(255 255 255 / 0.62)',
+          600: 'rgb(255 255 255 / 0.68)',
+          700: 'rgb(255 255 255 / 0.75)',
           800: 'rgb(255 255 255 / 0.85)',
           900: 'rgb(255 255 255 / 0.95)',
           950: '#ffffff',
