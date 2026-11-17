@@ -305,7 +305,11 @@ pages follow when the kit's content editing exists.
   page-change skeleton, bell/envelope/account, Back, footer.
 - [x] Checked: e2e (`institution-kit-shell.spec.js`: shell kept across
   visits, Back, axe clean on both institution pages, a fan unaffected);
-  the full e2e suite; the baseline comparison of every other page.
+  the full e2e suite (71 passed); the baseline comparison
+  (`scripts/visual-baseline.mjs`, 138 pages, 1440 and 390 px) before and
+  after: no differences on any public, fan, partner or admin page; only the
+  two institution pages differ, which also shows the comparison catches a
+  change.
 - [ ] Next for this role: its two pages onto `AdminPageLayout` /
   `AdminPageHero` / `AdminSummaryCards`, which retires `PageToolbar` here.
 - [ ] Kit candidates found: no option to leave out the current-item dot;
