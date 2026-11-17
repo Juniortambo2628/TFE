@@ -43,8 +43,10 @@ const appName = import.meta.env.VITE_APP_NAME || 'The Football Experience';
 // whole rule. Public pages have no prefix here and render unwrapped.
 const SHELLS = {
     Admin: () => import('./Layouts/AdminLayout'),
-    Fan: () => import('./Layouts/FanLayout'),
-    Institution: () => import('./Layouts/InstitutionLayout'),
+    // One layout for both: an institution plans on fan pages, and gets the
+    // OKJT kit's shell on both (Layouts/FanShell, kit migration phase 4).
+    Fan: () => import('./Layouts/FanShell'),
+    Institution: () => import('./Layouts/FanShell'),
     Partner: () => import('./Layouts/PartnerLayout'),
 };
 
