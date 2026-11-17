@@ -102,3 +102,24 @@
 /* Pages already on the kit's page layout have no use for TFE's floating
    toolbar (it only offered "find" and page navigation there, and sat on
    the profile's save bar). KitPage leaves it out for them. */
+
+/* Each role's accent (TFE's role colours, as in dashboard-v2.css): the
+   kit's accent tokens, so its tab bar, summary-card icons and buttons take
+   the role's colour. Fills keep the strong shade; text on the dark surfaces
+   takes the lighter one (accentStrong/accentDark), for contrast. Set on
+   <html>, because the kit portals its tab bar (and dialogs) to <body>,
+   outside the shell element. */
+html:has(.tfe-kit-shell[data-role='partner']) {
+    --color-accent: #d97706;
+    --color-accent-strong: #f59e0b;
+    --color-accent-dark: #f59e0b;
+    --color-accent-soft: #fcd9a8;
+    --color-action: #d97706;
+}
+html:has(.tfe-kit-shell[data-role='institution']) {
+    --color-accent: #0d9488;
+    --color-accent-strong: #2dd4bf;
+    --color-accent-dark: #2dd4bf;
+    --color-accent-soft: #99f6e4;
+    --color-action: #0d9488;
+}

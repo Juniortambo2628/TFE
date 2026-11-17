@@ -4,7 +4,7 @@ import AppSidebar from '@/Components/Common/AppSidebar';
 // Sprint 23 — partner_type-aware label so a finance partner doesn't
 // see "Travel Partner" in the sidebar avatar block. Matches the header
 // resolver in Common/DashboardHeader.jsx.
-const ROLE_LABEL = {
+export const PARTNER_ROLE_LABEL = {
     travel_agent: 'Travel Partner',
     finance_partner: 'Finance Partner',
     airline: 'Airline Partner',
@@ -18,9 +18,15 @@ const ROLE_LABEL = {
     school_community: 'Schools & Communities',
 };
 
-export default function PartnerSidebar({ user }) {
+/**
+ * A partner's menu. Exported as data as well as drawn here, because the
+ * partner dashboard runs in the OKJT kit's shell (Layouts/PartnerKitShell),
+ * which reads the same list: one definition, nothing to drift. A ticketing
+ * partner sells seats, so Tickets / Sales replace Publish / Convert.
+ */
+export function partnerMenu(user) {
     const isTicketing = user?.partner_type === 'ticketing_partner';
-    const menuItems = [
+    return [
         { label: 'Dashboard', icon: 'fas fa-home', route: 'partner.dashboard', path: '/partner/dashboard' },
         isTicketing
             ? { label: 'Tickets', icon: 'fas fa-ticket-alt', route: 'partner.tickets.index', path: '/partner/tickets' }
@@ -33,14 +39,19 @@ export default function PartnerSidebar({ user }) {
         { label: 'Profile', icon: 'fas fa-user', route: 'partner.profile', path: '/partner/profile' },
         { label: 'Security', icon: 'fas fa-shield-alt', route: 'partner.security', path: '/partner/security' },
     ];
+}
 
+/** The partner's bottom tabs on phones, picked from the menu (a route not in it is skipped). */
+export const PARTNER_TABS = ['partner.dashboard', 'partner.listings.index', 'partner.tickets.index', 'partner.requests', 'partner.tickets.sales', 'partner.messages'];
+
+export default function PartnerSidebar({ user }) {
     return (
         <AppSidebar
             user={user}
-            roleLabel={ROLE_LABEL[user?.partner_type] || 'Partner'}
+            roleLabel={PARTNER_ROLE_LABEL[user?.partner_type] || 'Partner'}
             accentColor="#d97706" // amber-600
-            menuItems={menuItems}
-            tabs={['partner.dashboard', 'partner.listings.index', 'partner.tickets.index', 'partner.requests', 'partner.tickets.sales', 'partner.messages']}
+            menuItems={partnerMenu(user)}
+            tabs={PARTNER_TABS}
         />
     );
 }

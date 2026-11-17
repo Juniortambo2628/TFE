@@ -2141,9 +2141,9 @@ looks different from Tailwind 3. Details and the before/after comparison:
 
 ### The institution dashboard is on the OKJT kit (kit migration phase 4, Nov 2026)
 
-The first role moved onto the kit's dashboard shell (`@okjt/dashboard`
-`DashboardShell`, through `@okjt/inertia`'s `InertiaRouter`). The others
-follow in the plan's order: partner, admin, fan.
+The institution and partner roles run on the kit's dashboard shell
+(`@okjt/dashboard` `DashboardShell`, through `@okjt/inertia`'s
+`InertiaRouter`). Admin and fan follow, in that order.
 
 - **`Layouts/KitShell.jsx`** is the generic piece: a TFE role's menu
   constant (`{ label, icon, route }` + `{ heading }`) becomes the kit's
@@ -2183,6 +2183,17 @@ follow in the plan's order: partner, admin, fan.
   counts; the Messages row has no count in the kit sidebar yet); a
   `pageSkeleton` for router waits (an Inertia visit), not only Suspense.
 
+- **Partners** (`Layouts/PartnerKitShell`, `SHELLS.Partner`): the menu is
+  `partnerMenu(user)` from `Components/Partner/Sidebar.jsx`, the ONE list
+  (a ticketing partner gets Tickets / Sales), and the header badge reads
+  `PARTNER_ROLE_LABEL`. The pages themselves are unchanged so far.
+- **Role accents** are the kit's accent tokens, set per role in
+  `kit-shell.css` on `html:has(.tfe-kit-shell[data-role=…])` (amber for
+  partners, teal for institutions): on `<html>`, because the kit portals its
+  tab bar and dialogs to `<body>`, outside the shell element.
+- Kit 0.11.0's sidebar marked every item whose path the page starts with
+  (a ticketing partner's Sales page lit Tickets too); fixed in kit 0.11.1
+  (OKJT#52). Move to it when it is released.
 - **The institution's own pages are on the kit's page parts**:
   `AdminPageLayout` + `AdminPageHero` (+ `AdminSummaryCards` on the
   dashboard), in the kit's `bold` look for dark dashboards, set once in
