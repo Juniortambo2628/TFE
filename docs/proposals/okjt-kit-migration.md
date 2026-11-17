@@ -326,3 +326,22 @@ pages follow when the kit's content editing exists.
 - [ ] Kit candidates found: no option to leave out the current-item dot;
   no per-item `badge` in `shell.nav`; `pageSkeleton` cannot see a router's
   own wait (an Inertia visit).
+
+**Partner** (the second):
+
+- [x] `Layouts/PartnerKitShell` for every `Partner/` page; the menu and
+  badge follow `partner_type` (`partnerMenu`, `PARTNER_ROLE_LABEL`, one
+  list shared with the old sidebar). Pages unchanged.
+- [x] Role accents as the kit's accent tokens per role (amber, teal), set on
+  `<html>` because the kit portals its tab bar and dialogs to `<body>`.
+- [x] Found: kit 0.11.0's sidebar marked both Tickets and Sales on a
+  ticketing partner's Sales page. Fixed in the kit (OKJT#52, dashboard
+  0.11.1: the longest match is current); TFE moves to it when released.
+- [x] Found by the new axe pass on partner pages: the image upload's hint
+  was 42% white (0.6 colour x 0.7 opacity), now 62% (all roles).
+- [x] Checked: `partner-kit-shell.spec.js` (shell kept across visits, the
+  ticketing menu, axe on five partner pages), the full e2e suite (76
+  passed), and the baseline comparison of every other role.
+- [ ] Next for this role: its pages onto the kit's page parts, as the
+  institution's were.
+

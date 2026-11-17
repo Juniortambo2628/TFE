@@ -47,7 +47,8 @@ const SHELLS = {
     // OKJT kit's shell on both (Layouts/FanShell, kit migration phase 4).
     Fan: () => import('./Layouts/FanShell'),
     Institution: () => import('./Layouts/FanShell'),
-    Partner: () => import('./Layouts/PartnerLayout'),
+    // On the OKJT kit's shell (kit migration phase 4).
+    Partner: () => import('./Layouts/PartnerKitShell'),
 };
 
 createInertiaApp({

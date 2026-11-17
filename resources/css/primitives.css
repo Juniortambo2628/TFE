@@ -1870,7 +1870,8 @@ label.tfe-modal-row__title { cursor: pointer; }
 
 .tfe-image-upload__drop i { font-size: 1.5rem; }
 .tfe-image-upload__drop span { font-weight: 600; color: #fff; }
-.tfe-image-upload__drop small { font-size: 0.75rem; opacity: 0.7; }
+/* At least 58% white, TFE's floor for muted text (axe): 0.6 x 0.7 opacity was 42%. */
+.tfe-image-upload__drop small { font-size: 0.75rem; color: rgba(255, 255, 255, 0.62); }
 
 .tfe-image-upload__preview {
     position: relative;
