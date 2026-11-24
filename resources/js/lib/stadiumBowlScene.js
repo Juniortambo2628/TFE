@@ -18,7 +18,15 @@
  */
 import * as THREE from 'three';
 
-import { LEN_K, WID_K, resolveTiers } from './stadiumBowl';
+import {
+    LEN_K,
+    WID_K,
+    nearestAngle,
+    orbitFromEye,
+    resolveTiers,
+    seatView,
+    standView,
+} from './stadiumBowl';
 import { buildVenue } from './stadiumBowlGeometry';
 
 const SKY_TOP = 0x08080a;
@@ -56,20 +64,34 @@ export function createBowlScene(host) {
     // ---------------------------------------------------------------
     // Camera / orbit state
     // ---------------------------------------------------------------
-    const target = new THREE.Vector3(0, 6, 0);
+    // Everything the camera does is an orbit around `target`: the overview,
+    // a stand close-up and the view from a seat are all (target, radius,
+    // azimuth, polar), so moving between any two is one eased tween.
+    const HOME_TARGET = new THREE.Vector3(0, 6, 0);
+    const HOME_POLAR = Math.PI * 0.36;
+    const target = HOME_TARGET.clone();
+    const desiredTarget = HOME_TARGET.clone();
     let radius = 220;
     let targetRadius = 220;
     let azimuth = Math.PI * 0.22;
     let targetAzimuth = azimuth;
-    let polar = Math.PI * 0.36;
+    let polar = HOME_POLAR;
     let targetPolar = polar;
     const MIN_RADIUS = 55;
+    const STAND_MIN_RADIUS = 10;
     const MAX_RADIUS = 480;
     const MIN_POLAR = 0.14;
     const MAX_POLAR = Math.PI * 0.49;
 
     let autoRotate = true;
     let userHasInteracted = false;
+    // 'home' (the overview), 'stand' (flown to a tier, still orbitable
+    // around it) or 'seat' (sitting in it — input is ignored so the
+    // sightline holds still).
+    let mode = 'home';
+    let minRadius = MIN_RADIUS;
+    let payloadNow = null;
+    let tiersNow = [];
     let frame = null;
     let disposed = false;
 
@@ -102,6 +124,8 @@ export function createBowlScene(host) {
     }
 
     function onPointerDown(e) {
+        if (mode === 'seat') return;
+
         pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
         el.setPointerCapture?.(e.pointerId);
         userHasInteracted = true;
@@ -127,7 +151,7 @@ export function createBowlScene(host) {
 
         if (pointers.size === 2 && pinchStart > 0) {
             const scale = pinchDistance() / pinchStart;
-            targetRadius = clamp(pinchStartRadius / (scale || 1), MIN_RADIUS, MAX_RADIUS);
+            targetRadius = clamp(pinchStartRadius / (scale || 1), minRadius, MAX_RADIUS);
             return;
         }
 
@@ -141,8 +165,9 @@ export function createBowlScene(host) {
             return;
         }
 
-        // Not dragging — hit-test for the hover tooltip.
-        updateHover(e);
+        // Not dragging — hit-test for the hover tooltip. Nothing to hover
+        // from inside a seat: the tier under the cursor is your own.
+        if (mode !== 'seat') updateHover(e);
     }
 
     function endPointer(e) {
@@ -157,10 +182,12 @@ export function createBowlScene(host) {
     }
 
     function onWheel(e) {
+        if (mode === 'seat') return;
+
         e.preventDefault();
         userHasInteracted = true;
         autoRotate = false;
-        targetRadius = clamp(targetRadius + e.deltaY * 0.15, MIN_RADIUS, MAX_RADIUS);
+        targetRadius = clamp(targetRadius + e.deltaY * 0.15, minRadius, MAX_RADIUS);
     }
 
     function onPointerLeave() {
@@ -169,6 +196,8 @@ export function createBowlScene(host) {
     }
 
     function onClick(e) {
+        if (mode === 'seat') return;
+
         const mesh = pick(e);
 
         if (mesh && selectHandler) selectHandler(mesh.userData.tier);
@@ -274,12 +303,16 @@ export function createBowlScene(host) {
         clearGroup(venueGroup);
         tierMeshes = [];
         hovered = null;
+        payloadNow = payload || null;
+        tiersNow = [];
 
         if (!payload) return;
 
         const tiers = resolveTiers(payload.tiers, payload.capacity);
 
         if (!tiers.length) return;
+
+        tiersNow = tiers;
 
         buildVenue(venueGroup, payload, tiers, (mesh) => tierMeshes.push(mesh));
 
@@ -292,6 +325,11 @@ export function createBowlScene(host) {
 
         const framed = frameDistance();
         targetRadius = framed;
+
+        // A new venue always starts on its overview.
+        mode = 'home';
+        minRadius = MIN_RADIUS;
+        desiredTarget.copy(HOME_TARGET);
 
         if (!userHasInteracted) {
             radius = framed;
@@ -309,8 +347,104 @@ export function createBowlScene(host) {
 
         // Re-frame: a rotated phone or a reflowed panel changes which axis
         // binds, and a bowl framed for the old aspect is cropped or lost.
-        if (!userHasInteracted) {
+        if (!userHasInteracted && mode === 'home') {
             targetRadius = frameDistance();
+        }
+    }
+
+    function viewOpts() {
+        return {
+            cornerRatio: payloadNow?.corner_ratio,
+            partial: Boolean(payloadNow?.partial_bowl),
+        };
+    }
+
+    function aim(orbit) {
+        desiredTarget.set(...orbit.target);
+        targetRadius = orbit.radius;
+        targetAzimuth = nearestAngle(azimuth, orbit.azimuth);
+        targetPolar = orbit.polar;
+    }
+
+    /**
+     * Move the camera to a view:
+     *   null                                   — the overview
+     *   { tierKey, viewKey, seat: false }      — fly to that stand
+     *   { tierKey, viewKey, seat: true }       — sit in it
+     * A tier this venue does not draw falls back to the overview.
+     */
+    function setView(view) {
+        autoRotate = false;
+
+        if (view && view.tierKey) {
+            const opts = viewOpts();
+
+            if (view.seat) {
+                const seat = seatView(tiersNow, view.tierKey, view.viewKey, opts);
+
+                if (seat) {
+                    mode = 'seat';
+                    aim(orbitFromEye(seat.eye, seat.look));
+                    setHover(null);
+                    hoverHandler?.(null, 0, 0);
+                    return;
+                }
+            } else {
+                const stand = standView(tiersNow, view.tierKey, view.viewKey, opts);
+
+                if (stand) {
+                    mode = 'stand';
+                    minRadius = STAND_MIN_RADIUS;
+                    aim(stand);
+                    return;
+                }
+            }
+        }
+
+        mode = 'home';
+        minRadius = MIN_RADIUS;
+        desiredTarget.copy(HOME_TARGET);
+        targetRadius = frameDistance();
+        targetPolar = HOME_POLAR;
+    }
+
+    /**
+     * A still of the view from a seat, as a data URL, without moving the
+     * visible camera. Rendered on the live canvas and copied off in the same
+     * task — the browser has not composited yet, so the frame is never seen,
+     * and the next line puts the real view back. (A render target would avoid
+     * the double render but skips the canvas's sRGB output conversion, so the
+     * thumbnail would come out darker than the scene it previews.)
+     */
+    function snapshot(tierKey, viewKey, w = 320, h = 180) {
+        const seat = seatView(tiersNow, tierKey, viewKey, viewOpts());
+
+        if (!seat) return null;
+
+        try {
+            const src = renderer.domElement;
+            const cam = new THREE.PerspectiveCamera(camera.fov, src.width / src.height, 0.1, 3000);
+            cam.position.set(...seat.eye);
+            cam.lookAt(new THREE.Vector3(...seat.look));
+            renderer.render(scene, cam);
+
+            const out = document.createElement('canvas');
+            out.width = w;
+            out.height = h;
+
+            // Centre-crop the canvas to the thumbnail's aspect.
+            const scale = Math.min(src.width / w, src.height / h);
+            const sw = w * scale;
+            const sh = h * scale;
+            out.getContext('2d').drawImage(
+                src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, w, h,
+            );
+
+            renderer.render(scene, camera);
+
+            return out.toDataURL('image/jpeg', 0.82);
+        } catch (e) {
+            return null;
         }
     }
 
@@ -319,11 +453,12 @@ export function createBowlScene(host) {
 
         frame = requestAnimationFrame(tick);
 
-        if (autoRotate && !dragging) targetAzimuth += 0.0018;
+        if (autoRotate && !dragging && mode === 'home') targetAzimuth += 0.0018;
 
         azimuth += (targetAzimuth - azimuth) * 0.08;
         polar += (targetPolar - polar) * 0.08;
         radius += (targetRadius - radius) * 0.08;
+        target.lerp(desiredTarget, 0.08);
 
         camera.position.set(
             target.x + radius * Math.sin(polar) * Math.sin(azimuth),
@@ -346,7 +481,9 @@ export function createBowlScene(host) {
         highlight(key) {
             setHover(key ? tierMeshes.find((m) => m.userData.tier.key === key) || null : null);
         },
-        setAutoRotate(on) { autoRotate = Boolean(on); },
+        setAutoRotate(on) { autoRotate = Boolean(on) && mode === 'home'; },
+        setView,
+        snapshot,
         dispose() {
             disposed = true;
 

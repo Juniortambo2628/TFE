@@ -15,6 +15,10 @@ import { createBowlScene } from '@/lib/stadiumBowlScene';
  *   highlightKey  string?  — tier key to light up from outside (legend hover).
  *   onHover       fn?      — (tier|null, x, y) in client coordinates.
  *   onSelect      fn?      — (tier) when a tier is clicked.
+ *   view          object?  — { tierKey, viewKey, seat } to fly to, or null
+ *                            for the overview. See `setView` in the scene.
+ *   onSnapshot    fn?      — (dataUrl|null) a still of the view from the
+ *                            focused tier, whenever the focus changes.
  *   height        number?  — canvas height in px.
  */
 export default function StadiumBowlCanvas({
@@ -22,18 +26,22 @@ export default function StadiumBowlCanvas({
     highlightKey = null,
     onHover,
     onSelect,
+    view = null,
+    onSnapshot,
     height = 420,
 }) {
     const hostRef = useRef(null);
     const sceneRef = useRef(null);
     const hoverRef = useRef(onHover);
     const selectRef = useRef(onSelect);
+    const snapshotRef = useRef(onSnapshot);
     const [failed, setFailed] = useState(false);
 
     // Keep the latest callbacks reachable without tearing the scene down and
     // rebuilding it every time the parent re-renders with new closures.
     hoverRef.current = onHover;
     selectRef.current = onSelect;
+    snapshotRef.current = onSnapshot;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -83,6 +91,20 @@ export default function StadiumBowlCanvas({
     useEffect(() => {
         sceneRef.current?.highlight(highlightKey);
     }, [highlightKey]);
+
+    // Declared after the venue effect on purpose: on first mount the bowl has
+    // to exist before the camera can be pointed at one of its tiers.
+    useEffect(() => {
+        const scene = sceneRef.current;
+
+        if (!scene) return;
+
+        scene.setView(view);
+
+        if (view?.tierKey && !view.seat) {
+            snapshotRef.current?.(scene.snapshot(view.tierKey, view.viewKey));
+        }
+    }, [bowl?.slug, view?.tierKey, view?.viewKey, view?.seat]);
 
     if (failed) {
         return (

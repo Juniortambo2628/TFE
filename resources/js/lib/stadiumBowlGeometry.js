@@ -11,7 +11,17 @@
  */
 import * as THREE from 'three';
 
-import { LEN_K, WID_K, seedForSlug, seededRandom, stadiumXZ } from './stadiumBowl';
+import {
+    LEN_K,
+    MAIN_STAND_CENTER,
+    MAIN_STAND_HALF_SPAN,
+    PARTIAL_TERRACE_K,
+    TIER_STEP,
+    WID_K,
+    seedForSlug,
+    seededRandom,
+    stadiumXZ,
+} from './stadiumBowl';
 
 // Regulation pitch + track, in bowl units. Fixed for every venue: a pitch is
 // the same size in a 15,000-seat ground as in a 60,000-seat one, and scaling
@@ -21,9 +31,9 @@ const TRACK_INNER = 11.5;
 const FIELD_HALF_LEN = 16.1;
 const FIELD_HALF_WID = 6.6;
 
-// ~150 degrees of covered main stand on a partial-bowl ground.
-const MAIN_STAND_CENTER = Math.PI / 2;
-const MAIN_STAND_HALF_SPAN = Math.PI * 0.42;
+// The covered main stand on a partial-bowl ground (~150 degrees) and the tier
+// stacking rule live in lib/stadiumBowl.js: the seat-view camera is placed from
+// the same numbers, so it lands on the stand rather than inside it.
 
 /**
  * @param {THREE.Group} group    cleared group to build into
@@ -147,14 +157,14 @@ export function buildVenue(group, payload, tiers, registerTier) {
             addTierMesh(wedgeShape(tier.innerR, tier.outerR, a0, a1), tier.height, tier);
             addTierMesh(
                 wedgeShape(tier.innerR, tier.outerR, a1, a0 + Math.PI * 2),
-                tier.height * 0.4,
+                tier.height * PARTIAL_TERRACE_K,
                 tier,
             );
         } else {
             addTierMesh(polygonRingShape(tier.innerR, tier.outerR, 96), tier.height, tier);
         }
 
-        yCursor += tier.height * 0.35;
+        yCursor += tier.height * TIER_STEP;
     });
 
     const topTier = tiers[tiers.length - 1];

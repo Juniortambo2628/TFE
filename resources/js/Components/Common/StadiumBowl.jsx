@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
 
 import Skeleton from '@/Components/Common/Skeleton';
-import { resolveTiers } from '@/lib/stadiumBowl';
+import { nextViewpoint, resolveTiers, viewpoint } from '@/lib/stadiumBowl';
 import { formatMoney, formatNumber } from '@/lib/utils';
 
 import '../../../css/stadium-bowl.css';
@@ -22,6 +22,12 @@ const StadiumBowlCanvas = lazy(() => import('@/Components/Common/StadiumBowlCanv
  * `has_inventory: false` (a ground with no ticket rows) renders as a seating
  * layout with capacities and no percentages — the surfaces this replaced used
  * to invent a figure in that case.
+ *
+ * Clicking a tier (on the map or in the legend) flies the camera to that
+ * stand and opens a card with a still of the view from it; "View from seat"
+ * then sits the camera in the tier, and "Another view" moves round the
+ * ground. The sightline is approximate — the bowl is generic, not a replica —
+ * and the card says so.
  *
  * Props:
  *   bowls          array|object — one payload, or several to offer a switcher.
@@ -47,6 +53,9 @@ export default function StadiumBowl({
     const [activeSlug, setActiveSlug] = useState(null);
     const [hovered, setHovered] = useState(null);
     const [tooltip, setTooltip] = useState(null);
+    // { tierKey, viewKey, seat } — where the camera is, or null for the overview.
+    const [focus, setFocus] = useState(null);
+    const [still, setStill] = useState(null);
 
     const bowl = useMemo(
         () => list.find((b) => b.slug === activeSlug) || list[0] || null,
@@ -80,6 +89,27 @@ export default function StadiumBowl({
         onTierSelect(tier);
     };
 
+    const focusTier = (tier) => {
+        if (!tier) return;
+
+        setTooltip(null);
+        setFocus((f) => ({
+            tierKey: tier.key,
+            viewKey: f?.viewKey ?? viewpoint().key,
+            seat: false,
+        }));
+        handleSelect(tier);
+    };
+
+    const switchVenue = (slug) => {
+        setActiveSlug(slug);
+        setFocus(null);
+        setStill(null);
+    };
+
+    const focused = focus ? tiers.find((t) => t.key === focus.tierKey) || null : null;
+    const spot = focus ? viewpoint(focus.viewKey) : null;
+
     return (
         <div className="tfe-bowl">
             <header className="tfe-bowl__head">
@@ -97,7 +127,7 @@ export default function StadiumBowl({
                         <select
                             className="tfe-select tfe-select--sm tfe-bowl__switcher"
                             value={bowl.slug}
-                            onChange={(e) => setActiveSlug(e.target.value)}
+                            onChange={(e) => switchVenue(e.target.value)}
                             aria-label="Choose a venue"
                         >
                             {list.map((v) => (
@@ -134,11 +164,30 @@ export default function StadiumBowl({
                     <StadiumBowlCanvas
                         bowl={bowl}
                         height={height}
-                        highlightKey={hovered}
+                        highlightKey={hovered ?? focus?.tierKey ?? null}
                         onHover={handleHover}
-                        onSelect={handleSelect}
+                        onSelect={focusTier}
+                        view={focused ? focus : null}
+                        onSnapshot={setStill}
                     />
                 </Suspense>
+
+                {focused && (
+                    <FocusCard
+                        tier={focused}
+                        spot={spot}
+                        seat={focus.seat}
+                        still={still}
+                        live={live}
+                        currency={bowl.currency}
+                        isSelected={selectedTierKey === focused.key}
+                        canPick={canPick}
+                        onSit={() => setFocus((f) => ({ ...f, seat: true }))}
+                        onStand={() => setFocus((f) => ({ ...f, seat: false }))}
+                        onNext={() => setFocus((f) => ({ ...f, viewKey: nextViewpoint(f.viewKey).key }))}
+                        onClose={() => { setFocus(null); setStill(null); }}
+                    />
+                )}
 
                 {tooltip && (
                     <div
@@ -155,31 +204,36 @@ export default function StadiumBowl({
                     </div>
                 )}
 
-                <p className="tfe-bowl__hint">Drag to rotate · scroll or pinch to zoom</p>
+                {!focused && (
+                    <p className="tfe-bowl__hint">Drag to rotate · scroll or pinch to zoom · tap a tier to fly there</p>
+                )}
             </div>
 
             <ul className="tfe-bowl__legend">
                 {tiers.map((tier) => {
-                    const isSelected = selectedTierKey === tier.key;
+                    const isSelected = canPick
+                        ? selectedTierKey === tier.key
+                        : focus?.tierKey === tier.key;
                     const soldOut = Boolean(tier.isSoldOut);
-                    const Row = canPick ? 'button' : 'div';
 
+                    // Every row is a button now: on a surface that sells
+                    // nothing it still flies the camera to the tier, which is
+                    // also the keyboard way into the view from it.
                     return (
                         <li key={tier.key}>
-                            <Row
-                                type={canPick ? 'button' : undefined}
+                            <button
+                                type="button"
                                 className={[
                                     'tfe-bowl__legend-row',
+                                    'is-pickable',
                                     hovered === tier.key ? 'is-hovered' : '',
                                     isSelected ? 'is-active' : '',
-                                    canPick ? 'is-pickable' : '',
                                     soldOut ? 'is-soldout' : '',
                                 ].filter(Boolean).join(' ')}
                                 onMouseEnter={() => setHovered(tier.key)}
                                 onMouseLeave={() => setHovered(null)}
-                                onClick={canPick ? () => handleSelect(tier) : undefined}
-                                disabled={canPick && soldOut ? true : undefined}
-                                aria-pressed={canPick ? isSelected : undefined}
+                                onClick={() => focusTier(tier)}
+                                aria-pressed={isSelected}
                             >
                                 <span
                                     className="tfe-bowl__swatch"
@@ -199,7 +253,7 @@ export default function StadiumBowl({
                                     {!soldOut && tier.booked !== null && `${Math.round(tier.booked * 100)}%`}
                                     {!soldOut && tier.booked === null && `${formatNumber(Number(tier.capacity || 0))} seats`}
                                 </span>
-                            </Row>
+                            </button>
                         </li>
                     );
                 })}
@@ -214,6 +268,84 @@ export default function StadiumBowl({
                 </p>
             )}
         </div>
+    );
+}
+
+/**
+ * The stage overlay for a focused tier — the recording's "ticket card": which
+ * tier, where in the ground, what it costs, and a still of the view from it.
+ * In the seat itself the still is redundant (you are looking at it), so the
+ * card shrinks to the controls.
+ */
+function FocusCard({
+    tier, spot, seat, still, live, currency, isSelected, canPick,
+    onSit, onStand, onNext, onClose,
+}) {
+    const soldOut = Boolean(tier.isSoldOut);
+    const priced = tier.price !== null && tier.price !== undefined;
+
+    let figure = `${formatNumber(Number(tier.capacity || 0))} seats`;
+    if (soldOut) figure = 'Sold out';
+    else if (live && tier.booked !== null) figure = `${Math.round(tier.booked * 100)}% booked`;
+
+    return (
+        <section
+            className={`tfe-bowl__card${seat ? ' is-seat' : ''}`}
+            aria-label={`${tier.name} — ${spot.label}`}
+        >
+            {!seat && (
+                <div className="tfe-bowl__card-view">
+                    {still
+                        ? <img src={still} alt={`Approximate view from ${tier.name}, ${spot.label.toLowerCase()}`} />
+                        : <span className="tfe-bowl__card-view-empty" aria-hidden="true" />}
+                    <span className="tfe-bowl__card-tag">Your view</span>
+                </div>
+            )}
+
+            <div className="tfe-bowl__card-body">
+                <div className="tfe-bowl__card-head">
+                    <div className="tfe-bowl__card-ident">
+                        <span className="tfe-bowl__card-eyebrow">{spot.label}</span>
+                        <strong className="tfe-bowl__card-title">{tier.name}</strong>
+                    </div>
+                    {priced && (
+                        <span className="tfe-bowl__card-price">{formatMoney(tier.price, currency)}</span>
+                    )}
+                </div>
+
+                <p className="tfe-bowl__card-meta">
+                    {figure}
+                    {seat && ' · approximate sightline'}
+                </p>
+
+                <div className="tfe-bowl__card-actions">
+                    {seat ? (
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={onStand}>
+                            <i className="fas fa-arrow-up" aria-hidden="true" /> Stand view
+                        </button>
+                    ) : (
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={onSit}>
+                            <i className="fas fa-eye" aria-hidden="true" /> View from seat
+                        </button>
+                    )}
+                    <button type="button" className="tfe-btn tfe-btn--sm" onClick={onNext}>
+                        <i className="fas fa-sync-alt" aria-hidden="true" /> Another view
+                    </button>
+                    {canPick && isSelected && (
+                        <span className="tfe-pill tfe-pill--approved">Selected</span>
+                    )}
+                </div>
+            </div>
+
+            <button
+                type="button"
+                className="tfe-btn tfe-btn--icon tfe-btn--sm tfe-bowl__card-close"
+                onClick={onClose}
+                aria-label="Back to the whole stadium"
+            >
+                <i className="fas fa-times" aria-hidden="true" />
+            </button>
+        </section>
     );
 }
 

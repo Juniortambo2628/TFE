@@ -1352,6 +1352,27 @@ shared `stadiumImages` map already indexes every alias to the same url a bowl
 payload carries, so this reuses the server's alias table rather than growing a
 second copy. A venue with no payload renders an empty state, never a guess.
 
+**Fly-to and view from a seat (Nov 2026, phase 1 of the stadium drill-down).**
+Clicking a tier, on the map or in the legend (every legend row is a button
+now, on every surface), flies the camera to that stand and opens a stage
+card with a still of the view from it; "View from seat" sits the camera in
+the tier, and "Another view" cycles `VIEWPOINTS` (halfway line, corner flag,
+behind the goal).
+- The camera is ONE orbit (target, radius, azimuth, polar) for every view, so
+  any move is one eased tween. `seatView` / `standView` / `orbitFromEye` /
+  `nearestAngle` are pure, in `lib/stadiumBowl.js`, guarded by
+  `tests/JS/stadiumBowlViews.test.mjs`.
+- `TIER_STEP`, `PARTIAL_TERRACE_K` and the main stand arc are shared by the
+  geometry and the camera. Change the stacking in one place, or the eye ends
+  up inside a stand.
+- World z is the NEGATED outline z (the tier shapes are laid flat with
+  `rotateX(-PI/2)`); `worldXZ()` does it.
+- The still is drawn on the live canvas and copied in the same task (a render
+  target skips the sRGB output conversion and comes out dark).
+- The sightline is labelled **approximate**: the bowl is generic. Phases 2–5
+  (stands and blocks, individual seats from a sold-seats table only,
+  upgrade offers, skyboxes) are not built.
+
 ### Tiered ticket inventory (Sprint 57)
 
 `tickets` carried one flat `price`/`capacity`/`sold` per fixture, so there was

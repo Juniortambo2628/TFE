@@ -189,3 +189,170 @@ export function resolveTiers(payloadTiers, capacity) {
             };
         });
 }
+
+// ===================================================================
+// Viewpoints — where the camera goes when a fan focuses a tier or asks
+// for the view from it. Pure numbers, so the scene and the tests read the
+// same answer.
+// ===================================================================
+
+/**
+ * The covered main stand on a partial bowl: centred on the halfway line,
+ * spanning most of one long side. `stadiumBowlGeometry` draws the top tier at
+ * full height inside this arc and as low terracing outside it.
+ */
+export const MAIN_STAND_CENTER = Math.PI / 2;
+export const MAIN_STAND_HALF_SPAN = Math.PI * 0.42;
+
+/** Each tier sits this fraction of the previous tier's height above it. */
+export const TIER_STEP = 0.35;
+
+/** Top tier height factor outside the main stand of a partial bowl. */
+export const PARTIAL_TERRACE_K = 0.4;
+
+/** Eye height above the tier's surface, in bowl units. */
+export const EYE_HEIGHT = 1.4;
+
+/**
+ * Named places to sit, as an angle around the footprint. Angle 0 is behind
+ * the goal (the pitch runs along x); PI/2 is the halfway line on the main
+ * stand side. "Another view" cycles through these in order.
+ */
+export const VIEWPOINTS = [
+    { key: 'halfway', label: 'Halfway line', angle: Math.PI / 2 },
+    { key: 'corner', label: 'Corner flag', angle: Math.PI / 4 },
+    { key: 'goal', label: 'Behind the goal', angle: 0 },
+];
+
+export function viewpoint(key) {
+    return VIEWPOINTS.find((v) => v.key === key) || VIEWPOINTS[0];
+}
+
+/** The viewpoint after `key`, wrapping round. */
+export function nextViewpoint(key) {
+    const i = VIEWPOINTS.findIndex((v) => v.key === key);
+
+    return VIEWPOINTS[(i + 1) % VIEWPOINTS.length];
+}
+
+/**
+ * The y each tier's mesh starts at. `stadiumBowlGeometry` stacks the tiers
+ * with exactly this rule, so a camera placed from it sits on the stand rather
+ * than inside or above it.
+ */
+export function tierBaseHeights(tiers) {
+    let y = 0;
+
+    return tiers.map((tier) => {
+        const base = y;
+        y += tier.height * TIER_STEP;
+        return base;
+    });
+}
+
+/** Is `angle` inside the covered main stand of a partial bowl? */
+export function inMainStand(angle) {
+    const twoPi = Math.PI * 2;
+    const d = ((((angle - MAIN_STAND_CENTER) % twoPi) + twoPi + Math.PI) % twoPi) - Math.PI;
+
+    return Math.abs(d) <= MAIN_STAND_HALF_SPAN;
+}
+
+/**
+ * World position of a point on the footprint. The tier shapes are drawn in a
+ * plane and rotated flat with `rotateX(-PI/2)`, which maps the shape's second
+ * axis to world -z — so the world z is the NEGATED outline z.
+ */
+export function worldXZ(angle, R, cornerRatio) {
+    const [x, z] = stadiumXZ(angle, R, cornerRatio);
+
+    return [x, -z];
+}
+
+/**
+ * Where a fan sitting in `tierKey` at `viewKey` has their eyes, and what they
+ * look at (the centre spot). Null for a tier the bowl does not draw.
+ *
+ * This is an APPROXIMATE sightline: the bowl is a generic parametric shape,
+ * so the view is right about height and distance, not about a particular
+ * ground's architecture. The UI says so.
+ *
+ * @param {Array} tiers resolveTiers() output, innermost first
+ * @param {object} opts { cornerRatio, partial }
+ */
+export function seatView(tiers, tierKey, viewKey, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1) return null;
+
+    const tier = tiers[idx];
+    const { angle } = viewpoint(viewKey);
+    const isTop = idx === tiers.length - 1;
+    const height = opts.partial && isTop && !inMainStand(angle)
+        ? tier.height * PARTIAL_TERRACE_K
+        : tier.height;
+    const base = tierBaseHeights(tiers)[idx];
+
+    // A third of the way back: far enough up the tier to be "in" it, close
+    // enough to the front that the tier below does not hide the pitch.
+    const R = tier.innerR + (tier.outerR - tier.innerR) / 3;
+    const [x, z] = worldXZ(angle, R, opts.cornerRatio);
+
+    return {
+        eye: [x, base + height + EYE_HEIGHT, z],
+        look: [0, 0, 0],
+    };
+}
+
+/**
+ * Orbit parameters (target, radius, azimuth, polar) that put the camera at
+ * `eye` looking at `look` — the scene's camera is an orbit, so every view is
+ * expressed in its terms and the move between two views is one smooth tween.
+ */
+export function orbitFromEye(eye, look) {
+    const dx = eye[0] - look[0];
+    const dy = eye[1] - look[1];
+    const dz = eye[2] - look[2];
+    const radius = Math.hypot(dx, dy, dz) || 1;
+
+    return {
+        target: [...look],
+        radius,
+        azimuth: Math.atan2(dx, dz),
+        polar: Math.acos(Math.max(-1, Math.min(1, dy / radius))),
+    };
+}
+
+/**
+ * Orbit parameters for "fly to this stand": the camera hangs just past the
+ * centre spot, a little above the tier, looking across at it. It stays LOW on
+ * purpose — every roof style covers the stands, and a closed one (`dome`)
+ * covers the pitch too, so a camera placed above the bowl sees roof.
+ */
+export function standView(tiers, tierKey, viewKey, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1) return null;
+
+    const tier = tiers[idx];
+    const { angle } = viewpoint(viewKey);
+    const mid = (tier.innerR + tier.outerR) / 2;
+    const [x, z] = worldXZ(angle, mid, opts.cornerRatio);
+    const y = tierBaseHeights(tiers)[idx] + tier.height * 0.6;
+
+    return orbitFromEye([-x * 0.12, y + 3, -z * 0.12], [x, y, z]);
+}
+
+/**
+ * `to`, shifted by whole turns so it is within PI of `from`. Without this a
+ * tween from 350° to 10° spins the long way round the stadium.
+ */
+export function nearestAngle(from, to) {
+    const twoPi = Math.PI * 2;
+    let d = (to - from) % twoPi;
+
+    if (d > Math.PI) d -= twoPi;
+    if (d < -Math.PI) d += twoPi;
+
+    return from + d;
+}
