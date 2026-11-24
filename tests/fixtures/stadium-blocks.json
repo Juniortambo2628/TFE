@@ -1,0 +1,781 @@
+{
+ "note": "Pinned by tests/JS/stadiumBlocks.test.mjs and tests/Unit/StadiumLayoutTest.php. Regenerate only on purpose: changing a code renames a block fans have bought seats in.",
+ "tiers": [
+  [
+   {
+    "code": "101",
+    "stand": "north",
+    "start": -0.372103,
+    "end": -0.186051
+   },
+   {
+    "code": "102",
+    "stand": "north",
+    "start": -0.186051,
+    "end": 0
+   },
+   {
+    "code": "103",
+    "stand": "north",
+    "start": 0,
+    "end": 0.186051
+   },
+   {
+    "code": "104",
+    "stand": "north",
+    "start": 0.186051,
+    "end": 0.372103
+   },
+   {
+    "code": "105",
+    "stand": "north_west",
+    "start": 0.372103,
+    "end": 0.572103
+   },
+   {
+    "code": "106",
+    "stand": "north_west",
+    "start": 0.572103,
+    "end": 0.772103
+   },
+   {
+    "code": "107",
+    "stand": "west",
+    "start": 0.772103,
+    "end": 0.971776
+   },
+   {
+    "code": "108",
+    "stand": "west",
+    "start": 0.971776,
+    "end": 1.17145
+   },
+   {
+    "code": "109",
+    "stand": "west",
+    "start": 1.17145,
+    "end": 1.371123
+   },
+   {
+    "code": "110",
+    "stand": "west",
+    "start": 1.371123,
+    "end": 1.570796
+   },
+   {
+    "code": "111",
+    "stand": "west",
+    "start": 1.570796,
+    "end": 1.77047
+   },
+   {
+    "code": "112",
+    "stand": "west",
+    "start": 1.77047,
+    "end": 1.970143
+   },
+   {
+    "code": "113",
+    "stand": "west",
+    "start": 1.970143,
+    "end": 2.169816
+   },
+   {
+    "code": "114",
+    "stand": "west",
+    "start": 2.169816,
+    "end": 2.36949
+   },
+   {
+    "code": "115",
+    "stand": "south_west",
+    "start": 2.36949,
+    "end": 2.56949
+   },
+   {
+    "code": "116",
+    "stand": "south_west",
+    "start": 2.56949,
+    "end": 2.76949
+   },
+   {
+    "code": "117",
+    "stand": "south",
+    "start": 2.76949,
+    "end": 2.955541
+   },
+   {
+    "code": "118",
+    "stand": "south",
+    "start": 2.955541,
+    "end": 3.141593
+   },
+   {
+    "code": "119",
+    "stand": "south",
+    "start": 3.141593,
+    "end": 3.327644
+   },
+   {
+    "code": "120",
+    "stand": "south",
+    "start": 3.327644,
+    "end": 3.513696
+   },
+   {
+    "code": "121",
+    "stand": "south_east",
+    "start": 3.513696,
+    "end": 3.713696
+   },
+   {
+    "code": "122",
+    "stand": "south_east",
+    "start": 3.713696,
+    "end": 3.913696
+   },
+   {
+    "code": "123",
+    "stand": "east",
+    "start": 3.913696,
+    "end": 4.113369
+   },
+   {
+    "code": "124",
+    "stand": "east",
+    "start": 4.113369,
+    "end": 4.313042
+   },
+   {
+    "code": "125",
+    "stand": "east",
+    "start": 4.313042,
+    "end": 4.512716
+   },
+   {
+    "code": "126",
+    "stand": "east",
+    "start": 4.512716,
+    "end": 4.712389
+   },
+   {
+    "code": "127",
+    "stand": "east",
+    "start": 4.712389,
+    "end": 4.912062
+   },
+   {
+    "code": "128",
+    "stand": "east",
+    "start": 4.912062,
+    "end": 5.111736
+   },
+   {
+    "code": "129",
+    "stand": "east",
+    "start": 5.111736,
+    "end": 5.311409
+   },
+   {
+    "code": "130",
+    "stand": "east",
+    "start": 5.311409,
+    "end": 5.511082
+   },
+   {
+    "code": "131",
+    "stand": "north_east",
+    "start": 5.511082,
+    "end": 5.711082
+   },
+   {
+    "code": "132",
+    "stand": "north_east",
+    "start": 5.711082,
+    "end": 5.911082
+   }
+  ],
+  [
+   {
+    "code": "201",
+    "stand": "north",
+    "start": -0.372103,
+    "end": -0.186051
+   },
+   {
+    "code": "202",
+    "stand": "north",
+    "start": -0.186051,
+    "end": 0
+   },
+   {
+    "code": "203",
+    "stand": "north",
+    "start": 0,
+    "end": 0.186051
+   },
+   {
+    "code": "204",
+    "stand": "north",
+    "start": 0.186051,
+    "end": 0.372103
+   },
+   {
+    "code": "205",
+    "stand": "north_west",
+    "start": 0.372103,
+    "end": 0.572103
+   },
+   {
+    "code": "206",
+    "stand": "north_west",
+    "start": 0.572103,
+    "end": 0.772103
+   },
+   {
+    "code": "207",
+    "stand": "west",
+    "start": 0.772103,
+    "end": 0.971776
+   },
+   {
+    "code": "208",
+    "stand": "west",
+    "start": 0.971776,
+    "end": 1.17145
+   },
+   {
+    "code": "209",
+    "stand": "west",
+    "start": 1.17145,
+    "end": 1.371123
+   },
+   {
+    "code": "210",
+    "stand": "west",
+    "start": 1.371123,
+    "end": 1.570796
+   },
+   {
+    "code": "211",
+    "stand": "west",
+    "start": 1.570796,
+    "end": 1.77047
+   },
+   {
+    "code": "212",
+    "stand": "west",
+    "start": 1.77047,
+    "end": 1.970143
+   },
+   {
+    "code": "213",
+    "stand": "west",
+    "start": 1.970143,
+    "end": 2.169816
+   },
+   {
+    "code": "214",
+    "stand": "west",
+    "start": 2.169816,
+    "end": 2.36949
+   },
+   {
+    "code": "215",
+    "stand": "south_west",
+    "start": 2.36949,
+    "end": 2.56949
+   },
+   {
+    "code": "216",
+    "stand": "south_west",
+    "start": 2.56949,
+    "end": 2.76949
+   },
+   {
+    "code": "217",
+    "stand": "south",
+    "start": 2.76949,
+    "end": 2.955541
+   },
+   {
+    "code": "218",
+    "stand": "south",
+    "start": 2.955541,
+    "end": 3.141593
+   },
+   {
+    "code": "219",
+    "stand": "south",
+    "start": 3.141593,
+    "end": 3.327644
+   },
+   {
+    "code": "220",
+    "stand": "south",
+    "start": 3.327644,
+    "end": 3.513696
+   },
+   {
+    "code": "221",
+    "stand": "south_east",
+    "start": 3.513696,
+    "end": 3.713696
+   },
+   {
+    "code": "222",
+    "stand": "south_east",
+    "start": 3.713696,
+    "end": 3.913696
+   },
+   {
+    "code": "223",
+    "stand": "east",
+    "start": 3.913696,
+    "end": 4.113369
+   },
+   {
+    "code": "224",
+    "stand": "east",
+    "start": 4.113369,
+    "end": 4.313042
+   },
+   {
+    "code": "225",
+    "stand": "east",
+    "start": 4.313042,
+    "end": 4.512716
+   },
+   {
+    "code": "226",
+    "stand": "east",
+    "start": 4.512716,
+    "end": 4.712389
+   },
+   {
+    "code": "227",
+    "stand": "east",
+    "start": 4.712389,
+    "end": 4.912062
+   },
+   {
+    "code": "228",
+    "stand": "east",
+    "start": 4.912062,
+    "end": 5.111736
+   },
+   {
+    "code": "229",
+    "stand": "east",
+    "start": 5.111736,
+    "end": 5.311409
+   },
+   {
+    "code": "230",
+    "stand": "east",
+    "start": 5.311409,
+    "end": 5.511082
+   },
+   {
+    "code": "231",
+    "stand": "north_east",
+    "start": 5.511082,
+    "end": 5.711082
+   },
+   {
+    "code": "232",
+    "stand": "north_east",
+    "start": 5.711082,
+    "end": 5.911082
+   }
+  ],
+  [
+   {
+    "code": "301",
+    "stand": "north",
+    "start": -0.372103,
+    "end": -0.186051
+   },
+   {
+    "code": "302",
+    "stand": "north",
+    "start": -0.186051,
+    "end": 0
+   },
+   {
+    "code": "303",
+    "stand": "north",
+    "start": 0,
+    "end": 0.186051
+   },
+   {
+    "code": "304",
+    "stand": "north",
+    "start": 0.186051,
+    "end": 0.372103
+   },
+   {
+    "code": "305",
+    "stand": "north_west",
+    "start": 0.372103,
+    "end": 0.572103
+   },
+   {
+    "code": "306",
+    "stand": "north_west",
+    "start": 0.572103,
+    "end": 0.772103
+   },
+   {
+    "code": "307",
+    "stand": "west",
+    "start": 0.772103,
+    "end": 0.971776
+   },
+   {
+    "code": "308",
+    "stand": "west",
+    "start": 0.971776,
+    "end": 1.17145
+   },
+   {
+    "code": "309",
+    "stand": "west",
+    "start": 1.17145,
+    "end": 1.371123
+   },
+   {
+    "code": "310",
+    "stand": "west",
+    "start": 1.371123,
+    "end": 1.570796
+   },
+   {
+    "code": "311",
+    "stand": "west",
+    "start": 1.570796,
+    "end": 1.77047
+   },
+   {
+    "code": "312",
+    "stand": "west",
+    "start": 1.77047,
+    "end": 1.970143
+   },
+   {
+    "code": "313",
+    "stand": "west",
+    "start": 1.970143,
+    "end": 2.169816
+   },
+   {
+    "code": "314",
+    "stand": "west",
+    "start": 2.169816,
+    "end": 2.36949
+   },
+   {
+    "code": "315",
+    "stand": "south_west",
+    "start": 2.36949,
+    "end": 2.56949
+   },
+   {
+    "code": "316",
+    "stand": "south_west",
+    "start": 2.56949,
+    "end": 2.76949
+   },
+   {
+    "code": "317",
+    "stand": "south",
+    "start": 2.76949,
+    "end": 2.955541
+   },
+   {
+    "code": "318",
+    "stand": "south",
+    "start": 2.955541,
+    "end": 3.141593
+   },
+   {
+    "code": "319",
+    "stand": "south",
+    "start": 3.141593,
+    "end": 3.327644
+   },
+   {
+    "code": "320",
+    "stand": "south",
+    "start": 3.327644,
+    "end": 3.513696
+   },
+   {
+    "code": "321",
+    "stand": "south_east",
+    "start": 3.513696,
+    "end": 3.713696
+   },
+   {
+    "code": "322",
+    "stand": "south_east",
+    "start": 3.713696,
+    "end": 3.913696
+   },
+   {
+    "code": "323",
+    "stand": "east",
+    "start": 3.913696,
+    "end": 4.113369
+   },
+   {
+    "code": "324",
+    "stand": "east",
+    "start": 4.113369,
+    "end": 4.313042
+   },
+   {
+    "code": "325",
+    "stand": "east",
+    "start": 4.313042,
+    "end": 4.512716
+   },
+   {
+    "code": "326",
+    "stand": "east",
+    "start": 4.512716,
+    "end": 4.712389
+   },
+   {
+    "code": "327",
+    "stand": "east",
+    "start": 4.712389,
+    "end": 4.912062
+   },
+   {
+    "code": "328",
+    "stand": "east",
+    "start": 4.912062,
+    "end": 5.111736
+   },
+   {
+    "code": "329",
+    "stand": "east",
+    "start": 5.111736,
+    "end": 5.311409
+   },
+   {
+    "code": "330",
+    "stand": "east",
+    "start": 5.311409,
+    "end": 5.511082
+   },
+   {
+    "code": "331",
+    "stand": "north_east",
+    "start": 5.511082,
+    "end": 5.711082
+   },
+   {
+    "code": "332",
+    "stand": "north_east",
+    "start": 5.711082,
+    "end": 5.911082
+   }
+  ],
+  [
+   {
+    "code": "401",
+    "stand": "north",
+    "start": -0.372103,
+    "end": -0.186051
+   },
+   {
+    "code": "402",
+    "stand": "north",
+    "start": -0.186051,
+    "end": 0
+   },
+   {
+    "code": "403",
+    "stand": "north",
+    "start": 0,
+    "end": 0.186051
+   },
+   {
+    "code": "404",
+    "stand": "north",
+    "start": 0.186051,
+    "end": 0.372103
+   },
+   {
+    "code": "405",
+    "stand": "north_west",
+    "start": 0.372103,
+    "end": 0.572103
+   },
+   {
+    "code": "406",
+    "stand": "north_west",
+    "start": 0.572103,
+    "end": 0.772103
+   },
+   {
+    "code": "407",
+    "stand": "west",
+    "start": 0.772103,
+    "end": 0.971776
+   },
+   {
+    "code": "408",
+    "stand": "west",
+    "start": 0.971776,
+    "end": 1.17145
+   },
+   {
+    "code": "409",
+    "stand": "west",
+    "start": 1.17145,
+    "end": 1.371123
+   },
+   {
+    "code": "410",
+    "stand": "west",
+    "start": 1.371123,
+    "end": 1.570796
+   },
+   {
+    "code": "411",
+    "stand": "west",
+    "start": 1.570796,
+    "end": 1.77047
+   },
+   {
+    "code": "412",
+    "stand": "west",
+    "start": 1.77047,
+    "end": 1.970143
+   },
+   {
+    "code": "413",
+    "stand": "west",
+    "start": 1.970143,
+    "end": 2.169816
+   },
+   {
+    "code": "414",
+    "stand": "west",
+    "start": 2.169816,
+    "end": 2.36949
+   },
+   {
+    "code": "415",
+    "stand": "south_west",
+    "start": 2.36949,
+    "end": 2.56949
+   },
+   {
+    "code": "416",
+    "stand": "south_west",
+    "start": 2.56949,
+    "end": 2.76949
+   },
+   {
+    "code": "417",
+    "stand": "south",
+    "start": 2.76949,
+    "end": 2.955541
+   },
+   {
+    "code": "418",
+    "stand": "south",
+    "start": 2.955541,
+    "end": 3.141593
+   },
+   {
+    "code": "419",
+    "stand": "south",
+    "start": 3.141593,
+    "end": 3.327644
+   },
+   {
+    "code": "420",
+    "stand": "south",
+    "start": 3.327644,
+    "end": 3.513696
+   },
+   {
+    "code": "421",
+    "stand": "south_east",
+    "start": 3.513696,
+    "end": 3.713696
+   },
+   {
+    "code": "422",
+    "stand": "south_east",
+    "start": 3.713696,
+    "end": 3.913696
+   },
+   {
+    "code": "423",
+    "stand": "east",
+    "start": 3.913696,
+    "end": 4.113369
+   },
+   {
+    "code": "424",
+    "stand": "east",
+    "start": 4.113369,
+    "end": 4.313042
+   },
+   {
+    "code": "425",
+    "stand": "east",
+    "start": 4.313042,
+    "end": 4.512716
+   },
+   {
+    "code": "426",
+    "stand": "east",
+    "start": 4.512716,
+    "end": 4.712389
+   },
+   {
+    "code": "427",
+    "stand": "east",
+    "start": 4.712389,
+    "end": 4.912062
+   },
+   {
+    "code": "428",
+    "stand": "east",
+    "start": 4.912062,
+    "end": 5.111736
+   },
+   {
+    "code": "429",
+    "stand": "east",
+    "start": 5.111736,
+    "end": 5.311409
+   },
+   {
+    "code": "430",
+    "stand": "east",
+    "start": 5.311409,
+    "end": 5.511082
+   },
+   {
+    "code": "431",
+    "stand": "north_east",
+    "start": 5.511082,
+    "end": 5.711082
+   },
+   {
+    "code": "432",
+    "stand": "north_east",
+    "start": 5.711082,
+    "end": 5.911082
+   }
+  ]
+ ]
+}

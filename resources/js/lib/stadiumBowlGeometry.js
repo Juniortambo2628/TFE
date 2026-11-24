@@ -18,6 +18,7 @@ import {
     PARTIAL_TERRACE_K,
     TIER_STEP,
     WID_K,
+    inMainStand,
     seedForSlug,
     seededRandom,
     stadiumXZ,
@@ -120,21 +121,22 @@ export function buildVenue(group, payload, tiers, registerTier) {
     // ---- the bowl --------------------------------------------------
     let yCursor = 0;
 
-    function addTierMesh(shape, depth, tier) {
+    function addBlockMesh(shape, depth, tier, block) {
         const geo = new THREE.ExtrudeGeometry(shape, {
             depth,
             bevelEnabled: true,
-            bevelThickness: 0.35,
-            bevelSize: 0.25,
-            bevelSegments: 2,
+            bevelThickness: 0.25,
+            bevelSize: 0.12,
+            bevelSegments: 1,
             curveSegments: 2,
         });
         geo.rotateX(-Math.PI / 2);
 
-        // Occupancy darkens the tier slightly. `booked` is null where there is
-        // no inventory behind the bowl — an unknown tier must render at its
-        // base colour, NOT as if it were empty.
-        const shade = tier.booked === null ? 0 : tier.booked * 0.18;
+        // Occupancy darkens a block. `booked` is null where there is no
+        // inventory behind the bowl — an unknown block renders at its tier's
+        // base colour, NOT as if it were empty. A block with no row of its
+        // own carries its tier's figure, so an aggregate bowl shades by tier.
+        const shade = block.booked === null ? 0 : block.booked * 0.4;
         const color = new THREE.Color(tier.color).multiplyScalar(1 - shade);
 
         const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
@@ -143,26 +145,32 @@ export function buildVenue(group, payload, tiers, registerTier) {
         mesh.position.y = yCursor;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        mesh.userData = { tier };
+        mesh.userData = { tier, block };
         registerTier(mesh);
         group.add(mesh);
     }
 
     tiers.forEach((tier, idx) => {
         const isTop = idx === tiers.length - 1;
+        // An aisle between blocks: a fixed width in bowl units, so it reads
+        // the same on the inner ring as the outer.
+        const aisle = 0.35 / tier.innerR;
 
-        if (partial && isTop) {
-            // Covered main stand at full height, the rest dropped to open
-            // terracing — how these grounds actually read in reference photos.
-            addTierMesh(wedgeShape(tier.innerR, tier.outerR, a0, a1), tier.height, tier);
-            addTierMesh(
-                wedgeShape(tier.innerR, tier.outerR, a1, a0 + Math.PI * 2),
-                tier.height * PARTIAL_TERRACE_K,
+        tier.blocks.forEach((block) => {
+            // On a partial bowl the top tier is covered stand at full height
+            // inside the main stand, open terracing elsewhere — how these
+            // grounds read in reference photos.
+            const depth = partial && isTop && !inMainStand(block.mid)
+                ? tier.height * PARTIAL_TERRACE_K
+                : tier.height;
+
+            addBlockMesh(
+                wedgeShape(tier.innerR, tier.outerR, block.start + aisle, block.end - aisle, 6),
+                depth,
                 tier,
+                block,
             );
-        } else {
-            addTierMesh(polygonRingShape(tier.innerR, tier.outerR, 96), tier.height, tier);
-        }
+        });
 
         yCursor += tier.height * TIER_STEP;
     });

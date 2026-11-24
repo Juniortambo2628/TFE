@@ -311,3 +311,14 @@
     .ticket-card__foot .tfe-btn { flex: none; }
     .ticket-stub__foot { grid-template-columns: 1fr 1fr; }
 }
+
+/* "Use best available instead" — an inline text button in the help line. */
+.ticket-modal__link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #ff4b52;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}

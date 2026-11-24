@@ -1353,9 +1353,9 @@ payload carries, so this reuses the server's alias table rather than growing a
 second copy. A venue with no payload renders an empty state, never a guess.
 
 **Fly-to and view from a seat (Nov 2026, phase 1 of the stadium drill-down).**
-Clicking a tier, on the map or in the legend (every legend row is a button
-now, on every surface), flies the camera to that stand and opens a stage
-card with a still of the view from it; "View from seat" sits the camera in
+Clicking a block on the map, or a tier in the legend (every legend row is a
+button, on every surface), flies the camera there and opens a stage card
+with a still of the view from it; "View from seat" sits the camera in
 the tier, and "Another view" cycles `VIEWPOINTS` (halfway line, corner flag,
 behind the goal).
 - The camera is ONE orbit (target, radius, azimuth, polar) for every view, so
@@ -1369,9 +1369,50 @@ behind the goal).
   `rotateX(-PI/2)`); `worldXZ()` does it.
 - The still is drawn on the live canvas and copied in the same task (a render
   target skips the sRGB output conversion and comes out dark).
-- The sightline is labelled **approximate**: the bowl is generic. Phases 2–5
-  (stands and blocks, individual seats from a sold-seats table only,
-  upgrade offers, skyboxes) are not built.
+- The sightline is labelled **approximate**: the bowl is generic. Phases 3–5
+  (individual seats from a sold-seats table only, upgrade offers, skyboxes)
+  are not built.
+
+**Stands and blocks (Nov 2026, phase 2).** Every tier is split into 8 stands
+(four sides plus four corners) and 32 numbered blocks: `101`–`132` for VIP up to
+`401`–`432` for Upper, numbered from the north end round through the West
+(main) stand. A ticket reads "West Stand · Block 207".
+- **`ticket_blocks` own the counts.** `TicketTier::syncBlockTotals()` derives
+  the tier's `capacity`/`sold` from them, then `Ticket::syncTierTotals()` the
+  fixture's, as before. Never `increment('sold')` on a tier that has
+  blocks. A tier with none (legacy) still owns its own count.
+- **The layout is mirrored**: `App\Support\StadiumLayout` ↔
+  `standLayout()`/`blockLayout()` in `lib/stadiumBowl.js`, both pinned by
+  `tests/fixtures/stadium-blocks.json` (asserted by
+  `tests/Unit/StadiumLayoutTest.php` and `tests/JS/stadiumBlocks.test.mjs`).
+  Changing a code renames a block people have bought seats in.
+- **Seat counts are the server's only**: each block's share of its tier is
+  its slice of the footprint's AREA (`StadiumLayout::shares($cornerRatio)`),
+  so end blocks on a long pitch hold more than side blocks of the same
+  angle. `apportion()` uses largest remainders, so blocks always sum to the
+  tier exactly.
+- **A code leads with the tier's FIXED position** (`TicketTier::number()`,
+  `BASE_TIERS` index on the client), never its index in a payload, which
+  shifts when a tier is missing.
+- **Buying**: `ticket_block_id` is optional. It is scoped to the tier, which is
+  scoped to the fixture. Without it, `TicketTier::bestBlockFor($qty)` seats
+  the order in the block with the most room. **An order is never split
+  across blocks**, so a party sits together. `blocks()` has a default
+  `orderBy('sort_order')`, so a query that sorts by anything else needs
+  `reorder()` first, or the old order wins (that bug shipped for an hour).
+- **Blocks cost their tier's price.** No per-stand pricing exists; inventing
+  stand premiums would change what fans pay.
+- **Only a fixture payload carries blocks** (with ids). Aggregate and
+  catalogue bowls draw the blocks with the TIER's figure, flagged
+  `inherited`, and the tooltip says "tier N% booked". A tier average must
+  never pass as one block's occupancy.
+- **Backfill is `TicketBlockSeeder`** (every deploy, idempotent). It spreads a
+  tier's existing sales across its new blocks by size, so no fixture loses
+  occupancy. `DemoTicketingPartnerSeeder` writes its simulated per-stand
+  demand only into tiers whose blocks have sold nothing. It used to reset
+  tier sales on every run, which erased the fan seeder's purchases.
+- **Keyboard path to every block**: a legend row focuses that tier's
+  halfway-line block, and the card's ‹ › step through the tier.
 
 ### Tiered ticket inventory (Sprint 57)
 

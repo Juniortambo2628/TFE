@@ -200,7 +200,7 @@ export function createBowlScene(host) {
 
         const mesh = pick(e);
 
-        if (mesh && selectHandler) selectHandler(mesh.userData.tier);
+        if (mesh && selectHandler) selectHandler(mesh.userData.tier, mesh.userData.block);
     }
 
     function pick(e) {
@@ -229,26 +229,38 @@ export function createBowlScene(host) {
             // wrong place the moment an ancestor carries a transform, which is
             // routine inside a modal.
             const rect = el.getBoundingClientRect();
-            hoverHandler(mesh.userData.tier, e.clientX - rect.left, e.clientY - rect.top);
+            hoverHandler(mesh.userData, e.clientX - rect.left, e.clientY - rect.top);
         } else {
             hoverHandler(null, 0, 0);
         }
     }
 
+    // What is lit: the block under the cursor, a whole tier lit from the
+    // legend, and the focused block (which stays lit while the camera is
+    // on it). Recomputed from scratch each time, so the three never fight.
+    let tierLight = null;
+    let focusBlock = null;
+
+    function paint() {
+        const hoverCode = hovered?.userData?.block?.code ?? null;
+
+        tierMeshes.forEach((m) => {
+            const { tier, block } = m.userData;
+            let hex = 0x000000;
+
+            if (tierLight !== null && tier.key === tierLight) hex = 0x220810;
+            if (block.code === hoverCode) hex = 0x4a0d18;
+            if (block.code === focusBlock) hex = 0x6a1422;
+
+            m.material.emissive.setHex(hex);
+        });
+    }
+
     function setHover(mesh) {
         if (hovered === mesh) return;
 
-        // Every mesh of the same tier lifts together — a partial bowl draws
-        // its top tier as two meshes (covered stand + open terrace) and
-        // highlighting only the one under the cursor looks like a glitch.
-        const key = mesh?.userData?.tier?.key ?? null;
-
-        tierMeshes.forEach((m) => {
-            const on = key !== null && m.userData.tier.key === key;
-            m.material.emissive.setHex(on ? 0x330a10 : 0x000000);
-        });
-
         hovered = mesh;
+        paint();
     }
 
     el.addEventListener('pointerdown', onPointerDown);
@@ -303,6 +315,8 @@ export function createBowlScene(host) {
         clearGroup(venueGroup);
         tierMeshes = [];
         hovered = null;
+        tierLight = null;
+        focusBlock = null;
         payloadNow = payload || null;
         tiersNow = [];
 
@@ -366,21 +380,33 @@ export function createBowlScene(host) {
         targetPolar = orbit.polar;
     }
 
+    /** The angle a view is centred on: its block's middle, if it names one. */
+    function angleFor(view) {
+        const tier = tiersNow.find((t) => t.key === view.tierKey);
+        const block = tier?.blocks?.find((b) => b.code === view.blockCode);
+
+        return block ? block.mid : view.viewKey;
+    }
+
     /**
      * Move the camera to a view:
-     *   null                                   — the overview
-     *   { tierKey, viewKey, seat: false }      — fly to that stand
-     *   { tierKey, viewKey, seat: true }       — sit in it
+     *   null                                        — the overview
+     *   { tierKey, blockCode, seat: false }         — fly to that block
+     *   { tierKey, blockCode, seat: true }          — sit in it
+     * (`viewKey` in place of `blockCode` names a viewpoint instead.)
      * A tier this venue does not draw falls back to the overview.
      */
     function setView(view) {
         autoRotate = false;
+        focusBlock = view?.blockCode ?? null;
+        paint();
 
         if (view && view.tierKey) {
             const opts = viewOpts();
+            const where = angleFor(view);
 
             if (view.seat) {
-                const seat = seatView(tiersNow, view.tierKey, view.viewKey, opts);
+                const seat = seatView(tiersNow, view.tierKey, where, opts);
 
                 if (seat) {
                     mode = 'seat';
@@ -390,7 +416,7 @@ export function createBowlScene(host) {
                     return;
                 }
             } else {
-                const stand = standView(tiersNow, view.tierKey, view.viewKey, opts);
+                const stand = standView(tiersNow, view.tierKey, where, opts);
 
                 if (stand) {
                     mode = 'stand';
@@ -416,8 +442,8 @@ export function createBowlScene(host) {
      * the double render but skips the canvas's sRGB output conversion, so the
      * thumbnail would come out darker than the scene it previews.)
      */
-    function snapshot(tierKey, viewKey, w = 320, h = 180) {
-        const seat = seatView(tiersNow, tierKey, viewKey, viewOpts());
+    function snapshot(view, w = 320, h = 180) {
+        const seat = view?.tierKey ? seatView(tiersNow, view.tierKey, angleFor(view), viewOpts()) : null;
 
         if (!seat) return null;
 
@@ -477,9 +503,10 @@ export function createBowlScene(host) {
         resize,
         onHover(cb) { hoverHandler = cb; },
         onSelect(cb) { selectHandler = cb; },
-        /** Highlight a tier from outside (legend hover). */
+        /** Light a whole tier from outside (legend hover), or null. */
         highlight(key) {
-            setHover(key ? tierMeshes.find((m) => m.userData.tier.key === key) || null : null);
+            tierLight = key || null;
+            paint();
         },
         setAutoRotate(on) { autoRotate = Boolean(on) && mode === 'home'; },
         setView,

@@ -13,9 +13,9 @@ import { createBowlScene } from '@/lib/stadiumBowlScene';
  * Props:
  *   bowl          object   — one StadiumBowlService payload.
  *   highlightKey  string?  — tier key to light up from outside (legend hover).
- *   onHover       fn?      — (tier|null, x, y) in client coordinates.
- *   onSelect      fn?      — (tier) when a tier is clicked.
- *   view          object?  — { tierKey, viewKey, seat } to fly to, or null
+ *   onHover       fn?      — ({ tier, block }|null, x, y), stage-relative.
+ *   onSelect      fn?      — (tier, block) when a block is clicked.
+ *   view          object?  — { tierKey, blockCode, seat } to fly to, or null
  *                            for the overview. See `setView` in the scene.
  *   onSnapshot    fn?      — (dataUrl|null) a still of the view from the
  *                            focused tier, whenever the focus changes.
@@ -56,8 +56,8 @@ export default function StadiumBowlCanvas({
         }
 
         sceneRef.current = scene;
-        scene.onHover((tier, x, y) => hoverRef.current?.(tier, x, y));
-        scene.onSelect((tier) => selectRef.current?.(tier));
+        scene.onHover((hit, x, y) => hoverRef.current?.(hit, x, y));
+        scene.onSelect((tier, block) => selectRef.current?.(tier, block));
 
         const ro = new ResizeObserver(() => scene.resize());
         ro.observe(host);
@@ -102,9 +102,9 @@ export default function StadiumBowlCanvas({
         scene.setView(view);
 
         if (view?.tierKey && !view.seat) {
-            snapshotRef.current?.(scene.snapshot(view.tierKey, view.viewKey));
+            snapshotRef.current?.(scene.snapshot(view));
         }
-    }, [bowl?.slug, view?.tierKey, view?.viewKey, view?.seat]);
+    }, [bowl?.slug, view?.tierKey, view?.blockCode, view?.viewKey, view?.seat]);
 
     if (failed) {
         return (

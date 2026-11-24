@@ -51,7 +51,10 @@ export default function TicketsPurchases({ auth, purchases = [] }) {
                                         reads correctly if the tier is later
                                         removed. Absent on pre-tier purchases. */}
                                     {p.tier_name && (
-                                        <div><i className="fas fa-chair"></i> {p.tier_name} tier</div>
+                                        <div>
+                                            <i className="fas fa-chair"></i> {p.tier_name} tier
+                                            {p.block_code && <> · Block {p.block_code}{p.block_stand && `, ${p.block_stand}`}</>}
+                                        </div>
                                     )}
                                 </div>
                             </div>

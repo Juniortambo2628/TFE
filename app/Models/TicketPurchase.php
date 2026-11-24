@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class TicketPurchase extends Model
 {
     protected $fillable = [
-        'user_id', 'ticket_id', 'ticket_tier_id', 'tier_name', 'quantity',
+        'user_id', 'ticket_id', 'ticket_tier_id', 'tier_name',
+        'ticket_block_id', 'block_code', 'quantity',
         'unit_price', 'total', 'currency',
         'reference', 'status', 'paid_with',
     ];
@@ -36,5 +37,11 @@ class TicketPurchase extends Model
     public function tier()
     {
         return $this->belongsTo(TicketTier::class, 'ticket_tier_id');
+    }
+
+    /** The block the seats are in; `block_code` is the receipt's snapshot. */
+    public function block()
+    {
+        return $this->belongsTo(TicketBlock::class, 'ticket_block_id');
     }
 }

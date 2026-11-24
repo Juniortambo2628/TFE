@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Ticket;
+use App\Models\TicketBlock;
 use App\Models\TicketTier;
 use Illuminate\Support\Collection;
 
@@ -57,6 +58,20 @@ class StadiumBowlService
             'remaining' => $t->remaining,
             'sold_pct' => $t->sold_pct,
             'is_sold_out' => $t->is_sold_out,
+            // Numbered blocks with their own counts — fixture payloads only.
+            // An aggregate across matches has no single block to buy from,
+            // and the client then shows the tier's figure, marked as such.
+            'blocks' => ($t->relationLoaded('blocks') ? $t->blocks : $t->blocks()->get())
+                ->map(fn (TicketBlock $b) => [
+                    'id' => $b->id,
+                    'code' => $b->code,
+                    'stand' => $b->stand,
+                    'capacity' => $b->capacity,
+                    'sold' => $b->sold,
+                    'remaining' => $b->remaining,
+                    'sold_pct' => $b->sold_pct,
+                    'is_sold_out' => $b->is_sold_out,
+                ])->values()->all(),
         ])->all(), 'fixture', $ticket->currency);
     }
 

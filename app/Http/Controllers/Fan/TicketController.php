@@ -24,7 +24,7 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->active()
             ->forTournament($tournamentId)
-            ->with('tiers')
+            ->with('tiers.blocks')
             ->orderBy('kickoff_at')
             ->get()
             ->map(fn (Ticket $t) => $this->format($t));
@@ -46,6 +46,9 @@ class TicketController extends Controller
                 $ticket->tiers()->exists() ? 'required' : 'nullable',
                 'integer',
             ],
+            // Optional: without one the server picks the best block. Its
+            // ownership is checked against the tier below, never trusted.
+            'ticket_block_id' => ['nullable', 'integer'],
             'paid_with' => ['nullable', 'string', 'in:card,virtual_card,mpesa'],
         ]);
 
@@ -70,7 +73,44 @@ class TicketController extends Controller
                 }
             }
 
-            $available = $tier ? $tier->remaining : $ticket->remaining;
+            // A tier with blocks sells BY block: the seats of one order sit
+            // together, so they must fit in a single block.
+            $block = null;
+
+            if ($tier && $tier->blocks()->exists()) {
+                if (! empty($data['ticket_block_id'])) {
+                    // Scoped to this tier of this fixture — a block id from
+                    // another match, or another tier's block, is refused.
+                    $block = $tier->blocks()
+                        ->whereKey($data['ticket_block_id'])
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $block) {
+                        return back()->withErrors(['ticket_block_id' => 'That block is not part of the '.$tier->name.' tier for this match.']);
+                    }
+
+                    if ($block->remaining < $data['quantity']) {
+                        return back()->withErrors([
+                            'quantity' => 'Block '.$block->code.' has '.$block->remaining.' seats left.',
+                        ]);
+                    }
+                } else {
+                    $block = $tier->bestBlockFor($data['quantity']);
+
+                    if (! $block) {
+                        return back()->withErrors([
+                            'quantity' => $tier->remaining >= $data['quantity']
+                                ? 'No single '.$tier->name.' block has '.$data['quantity'].' seats together. Try fewer seats or another tier.'
+                                : $tier->name.' has '.$tier->remaining.' seats left.',
+                        ]);
+                    }
+
+                    $block = $tier->blocks()->whereKey($block->id)->lockForUpdate()->first();
+                }
+            }
+
+            $available = $block ? $block->remaining : ($tier ? $tier->remaining : $ticket->remaining);
 
             if ($available < $data['quantity']) {
                 $where = $tier ? $tier->name.' has' : 'Only';
@@ -91,6 +131,8 @@ class TicketController extends Controller
                 'ticket_id' => $ticket->id,
                 'ticket_tier_id' => $tier?->id,
                 'tier_name' => $tier?->name,
+                'ticket_block_id' => $block?->id,
+                'block_code' => $block?->code,
                 'quantity' => $data['quantity'],
                 'unit_price' => $unit,
                 'total' => $total,
@@ -100,10 +142,14 @@ class TicketController extends Controller
                 'paid_with' => $data['paid_with'] ?? 'card',
             ]);
 
-            if ($tier) {
-                // The tier owns the count; the parent totals are derived from
-                // it. Never increment `tickets.sold` directly (see
-                // Ticket::syncTierTotals).
+            if ($block) {
+                // The block owns the count; the tier and the fixture totals
+                // are derived from it, in that order.
+                $block->increment('sold', $data['quantity']);
+                $tier->syncBlockTotals();
+                $ticket->syncTierTotals();
+            } elseif ($tier) {
+                // A legacy tier with no blocks owns its own count.
                 $tier->increment('sold', $data['quantity']);
                 $ticket->syncTierTotals();
             } else {
@@ -126,7 +172,7 @@ class TicketController extends Controller
     {
         return TicketPurchase::query()
             ->where('user_id', $userId)
-            ->with('ticket.tiers')
+            ->with(['ticket.tiers.blocks', 'block'])
             ->orderByDesc('created_at')
             ->get()
             ->map(function (TicketPurchase $p) {
@@ -142,6 +188,8 @@ class TicketController extends Controller
                     // Snapshot, so a receipt still names its tier after the
                     // tier row itself is gone.
                     'tier_name' => $p->tier_name,
+                    'block_code' => $p->block_code,
+                    'block_stand' => $p->block_code ? $p->block?->stand_name : null,
                     'created_at' => $p->created_at,
                     'ticket' => $p->ticket ? $this->format($p->ticket) : null,
                 ];

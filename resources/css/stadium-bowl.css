@@ -271,6 +271,11 @@
     margin-top: auto;
 }
 
+.tfe-bowl__card-stepper {
+    display: inline-flex;
+    gap: 4px;
+}
+
 .tfe-bowl__card-close {
     position: absolute;
     top: 8px;

@@ -89,6 +89,24 @@ class Ticket extends Model
             $this->tiers()->create($row);
         }
 
+        $this->seedDefaultBlocks();
+    }
+
+    /**
+     * Split every tier into its numbered blocks (idempotent per tier), then
+     * re-derive the fixture's totals. The ground's `corner_ratio` decides how
+     * seats spread round it, so the venue is resolved by NAME through the
+     * catalogue's alias matching, never by the partner-supplied slug.
+     */
+    public function seedDefaultBlocks(): void
+    {
+        $entry = app(StadiumImageService::class)->entryFor($this->venue_name, (string) $this->tournament_id);
+        $cornerRatio = isset($entry['corner_ratio']) ? (float) $entry['corner_ratio'] : null;
+
+        foreach ($this->tiers()->get() as $tier) {
+            $tier->seedDefaultBlocks($cornerRatio);
+        }
+
         $this->syncTierTotals();
     }
 

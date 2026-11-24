@@ -125,8 +125,14 @@ class TicketTierPurchaseTest extends TestCase
 
         // VIP nearly gone, but the fixture as a whole has tens of thousands
         // of seats left — the old flat check would have waved this through.
-        $vip->update(['sold' => $vip->capacity - 1]);
+        // Blocks own the count, so the tier is filled through them: every
+        // block full but one, which has a single seat.
+        foreach ($vip->blocks as $i => $block) {
+            $block->update(['sold' => $i === 0 ? $block->capacity - 1 : $block->capacity]);
+        }
+        $vip->syncBlockTotals();
         $ticket->syncTierTotals();
+        $this->assertSame(1, $vip->fresh()->remaining);
 
         $this->actingAs($this->fan())
             ->post(route('fan.tickets.buy', $ticket->id), [
