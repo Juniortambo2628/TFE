@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\PartnerProfile;
 use App\Models\Ticket;
+use App\Models\TicketBox;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -99,6 +100,8 @@ class DemoTicketingPartnerSeeder extends Seeder
                 // by Ticket::syncTierTotals() below, so the bowl, the tier
                 // picker and the sell-through bar can never disagree.
                 'tier_sold_pct' => ['vip' => 0.88, 'premium' => 0.81, 'standard' => 0.72, 'upper' => 0.61],
+                // Hospitality boxes already gone through other channels.
+                'booked_boxes' => ['3', '6', '7', '10'],
                 'hero_image' => 'stadiums/AFCON/moi-kasarani_hero.webp',
             ],
             [
@@ -113,13 +116,15 @@ class DemoTicketingPartnerSeeder extends Seeder
                 'price' => 60,
                 'capacity' => 50000,
                 'tier_sold_pct' => ['vip' => 0.62, 'premium' => 0.48, 'standard' => 0.38, 'upper' => 0.29],
+                'booked_boxes' => ['6'],
                 'hero_image' => 'stadiums/AFCON/benjamin-mkapa_hero.webp',
             ],
         ];
 
         foreach ($fixtures as $row) {
             $tierShares = $row['tier_sold_pct'];
-            unset($row['tier_sold_pct']);
+            $bookedBoxes = $row['booked_boxes'] ?? [];
+            unset($row['tier_sold_pct'], $row['booked_boxes']);
 
             $ticket = Ticket::firstOrCreate(
                 [
@@ -163,8 +168,43 @@ class DemoTicketingPartnerSeeder extends Seeder
             }
 
             $ticket->syncTierTotals();
+
+            $this->seedBoxes($ticket, $bookedBoxes);
         }
 
         $this->command->info('Demo ticketing partner seeded: ticketing@tfe.com (password: password) + 2 tickets, 4 tiers of 32 blocks each.');
+    }
+
+    /**
+     * Twelve hospitality boxes along the main stand. The two on the halfway
+     * line seat 12, the rest 8. Priced as the PARTNER would set them (demo
+     * data, like the fixture's own `price`): the box's seats at 1.5x the VIP
+     * seat price, to the nearest 10.
+     *
+     * Idempotent: a box is created once and never re-priced, and the boxes
+     * listed as booked elsewhere are marked so only if nobody has booked
+     * them yet.
+     */
+    private function seedBoxes(Ticket $ticket, array $booked): void
+    {
+        $vip = (float) ($ticket->tiers()->where('key', 'vip')->value('price') ?? $ticket->price * 4);
+
+        for ($i = 1; $i <= 12; $i++) {
+            $seats = in_array($i, [6, 7], true) ? 12 : 8;
+
+            $box = TicketBox::firstOrCreate(
+                ['ticket_id' => $ticket->id, 'code' => (string) $i],
+                [
+                    'name' => 'Skybox '.$i,
+                    'seats' => $seats,
+                    'price' => round($vip * $seats * 1.5 / 10) * 10,
+                    'sort_order' => $i,
+                ],
+            );
+
+            if (in_array((string) $i, $booked, true) && ! $box->isBooked()) {
+                $box->update(['booked_at' => now()]);
+            }
+        }
     }
 }

@@ -413,3 +413,8 @@
 .tfe-bowl__upgrade i {
     color: #ff4b52;
 }
+
+/* Hospitality boxes in the legend: glass, not a tier colour. */
+.tfe-bowl__swatch--glass {
+    background: linear-gradient(135deg, rgb(220 230 236 / 0.9), rgb(220 230 236 / 0.35));
+}

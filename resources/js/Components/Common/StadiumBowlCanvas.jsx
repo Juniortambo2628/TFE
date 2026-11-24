@@ -19,6 +19,8 @@ import { createBowlScene } from '@/lib/stadiumBowlScene';
  *                            fly to, or null for the overview. See `setView`.
  *   seats         object?  — one block's seats to draw (see `showSeats`),
  *                            memoised by the caller; null clears them.
+ *   boxes         object?  — { boxes, focusCode, selectedCode } (see
+ *                            `showBoxes`); the list memoised by the caller.
  *   onSnapshot    fn?      — (dataUrl|null) a still of the view from the
  *                            focused tier, whenever the focus changes.
  *   height        number?  — canvas height in px.
@@ -30,6 +32,7 @@ export default function StadiumBowlCanvas({
     onSelect,
     view = null,
     seats = null,
+    boxes = null,
     onSnapshot,
     height = 420,
 }) {
@@ -60,7 +63,7 @@ export default function StadiumBowlCanvas({
 
         sceneRef.current = scene;
         scene.onHover((hit, x, y) => hoverRef.current?.(hit, x, y));
-        scene.onSelect((tier, block, seat) => selectRef.current?.(tier, block, seat));
+        scene.onSelect((tier, block, seat, box) => selectRef.current?.(tier, block, seat, box));
 
         const ro = new ResizeObserver(() => scene.resize());
         ro.observe(host);
@@ -95,10 +98,16 @@ export default function StadiumBowlCanvas({
         sceneRef.current?.highlight(highlightKey);
     }, [highlightKey]);
 
+    // Boxes and seats before the view: the camera may be aimed at either.
+    useEffect(() => {
+        sceneRef.current?.showBoxes(boxes);
+    // The venue effect rebuilds (and so clears) on these too; redraw after it.
+    }, [bowl?.slug, bowl?.source, bowl?.sold_pct, boxes]);
+
     // Seats before the view: "view from my seat" needs the seat drawn.
     useEffect(() => {
         sceneRef.current?.showSeats(seats);
-    }, [bowl?.slug, seats]);
+    }, [bowl?.slug, bowl?.source, bowl?.sold_pct, seats]);
 
     // Declared after the venue effect on purpose: on first mount the bowl has
     // to exist before the camera can be pointed at one of its tiers.
@@ -109,11 +118,11 @@ export default function StadiumBowlCanvas({
 
         scene.setView(view);
 
-        if (view?.tierKey && !view.seat) {
+        if ((view?.tierKey || view?.boxCode) && !view.seat) {
             snapshotRef.current?.(scene.snapshot(view));
         }
     }, [
-        bowl?.slug, view?.tierKey, view?.blockCode, view?.viewKey, view?.seat, view?.close,
+        bowl?.slug, view?.tierKey, view?.blockCode, view?.boxCode, view?.viewKey, view?.seat, view?.close,
         view?.seatAt ? `${view.seatAt.row}:${view.seatAt.number}` : null,
     ]);
 

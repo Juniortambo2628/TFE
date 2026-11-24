@@ -3,6 +3,8 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 import Skeleton from '@/Components/Common/Skeleton';
 import {
     blockAt,
+    boxLayout,
+    cheapestOpenBox,
     describeSeats,
     nextViewpoint,
     resolveTiers,
@@ -54,6 +56,8 @@ const StadiumBowlCanvas = lazy(() => import('@/Components/Common/StadiumBowlCanv
  *                                    block and its seats can be picked.
  *   selectedSeats     array?       — [{ row, number }] picked in that block.
  *   onSeatToggle      fn?          — ({ row, number }) when a free seat is clicked.
+ *   selectedBoxCode   string?      — the hospitality box picked, if any.
+ *   onBoxSelect       fn?          — (box) when "Choose" is pressed on a box.
  *   note              node?        — small print under the legend.
  */
 export default function StadiumBowl({
@@ -66,6 +70,8 @@ export default function StadiumBowl({
     seatMap = null,
     selectedSeats = [],
     onSeatToggle,
+    selectedBoxCode = null,
+    onBoxSelect,
     note,
 }) {
     const list = useMemo(
@@ -85,6 +91,17 @@ export default function StadiumBowl({
     const bowl = useMemo(
         () => list.find((b) => b.slug === activeSlug) || list[0] || null,
         [list, activeSlug],
+    );
+
+    // Hospitality boxes, placed along the main stand. Memoised on the bowl so
+    // the canvas builds them once and only repaints focus changes.
+    const boxList = useMemo(
+        () => (bowl ? boxLayout(resolveTiers(bowl.tiers, bowl.capacity), bowl.boxes, { cornerRatio: bowl.corner_ratio }) : []),
+        [bowl],
+    );
+    const boxes = useMemo(
+        () => (boxList.length ? { boxes: boxList, focusCode: focus?.boxCode ?? null, selectedCode: selectedBoxCode } : null),
+        [boxList, focus?.boxCode, selectedBoxCode],
     );
 
     // The seats to draw: only the open block's, and only when it is the one
@@ -140,9 +157,24 @@ export default function StadiumBowl({
         }));
     };
 
+    const canBook = canPick && typeof onBoxSelect === 'function';
+
+    const showBox = (box) => {
+        if (!box) return;
+
+        setTooltip(null);
+        setFocus((f) => ({ boxCode: box.code, seat: Boolean(f?.boxCode && f.seat) }));
+    };
+
     // Clicking a block on the map picks THAT block; clicking a seat of the
-    // open block toggles it.
-    const onMapSelect = (tier, block, seat) => {
+    // open block toggles it; clicking a box shows it (a box costs thousands,
+    // so it is only booked with an explicit "Choose").
+    const onMapSelect = (tier, block, seat, box) => {
+        if (box) {
+            showBox(box);
+            return;
+        }
+
         if (seat) {
             if (!seat.taken && seatsOpen && typeof onSeatToggle === 'function') {
                 onSeatToggle({ row: seat.row, number: seat.number });
@@ -168,7 +200,8 @@ export default function StadiumBowl({
         setStill(null);
     };
 
-    const focusedTier = focus ? tiers.find((t) => t.key === focus.tierKey) || null : null;
+    const focusedBox = focus?.boxCode ? boxList.find((b) => b.code === focus.boxCode) || null : null;
+    const focusedTier = focus?.tierKey ? tiers.find((t) => t.key === focus.tierKey) || null : null;
     const focusedBlock = focusedTier?.blocks.find((b) => b.code === focus.blockCode) || null;
 
     // The next tier up, offered once the fan has picked this tier: the real
@@ -180,6 +213,14 @@ export default function StadiumBowl({
     const takeUpgrade = () => {
         show(upgrade.tier, upgrade.block);
         pick(upgrade.tier, upgrade.block);
+    };
+
+    // From VIP there is no tier above; a box is the next step up.
+    const boxOffer = canBook && focusedTier?.key === 'vip' ? cheapestOpenBox(boxList) : null;
+
+    const stepBox = (dir) => {
+        const i = boxList.findIndex((b) => b.code === focusedBox.code);
+        showBox(boxList[(i + dir + boxList.length) % boxList.length]);
     };
 
     const step = (dir) => {
@@ -254,8 +295,9 @@ export default function StadiumBowl({
                             ...focus,
                             close: seatsOpen,
                             seatAt: seatsOpen && selectedSeats?.length ? selectedSeats[0] : null,
-                        } : null}
+                        } : focusedBox ? { boxCode: focusedBox.code, seat: focus.seat } : null}
                         seats={seats}
+                        boxes={boxes}
                         onSnapshot={setStill}
                     />
                 </Suspense>
@@ -276,11 +318,29 @@ export default function StadiumBowl({
                         mySeats={seatsOpen ? selectedSeats : []}
                         upgrade={upgrade}
                         onUpgrade={takeUpgrade}
+                        boxOffer={boxOffer}
+                        onBoxOffer={() => showBox(boxOffer)}
                         onPick={() => pick(focusedTier, focusedBlock)}
                         onSit={() => setFocus((f) => ({ ...f, seat: true }))}
                         onStand={() => setFocus((f) => ({ ...f, seat: false }))}
                         onStep={step}
                         onNext={anotherView}
+                        onClose={() => { setFocus(null); setStill(null); }}
+                    />
+                )}
+
+                {focusedBox && (
+                    <BoxCard
+                        box={focusedBox}
+                        seat={focus.seat}
+                        still={still}
+                        currency={bowl.currency}
+                        canBook={canBook}
+                        isSelected={selectedBoxCode === focusedBox.code}
+                        onBook={() => onBoxSelect(focusedBox)}
+                        onSit={() => setFocus((f) => ({ ...f, seat: true }))}
+                        onStand={() => setFocus((f) => ({ ...f, seat: false }))}
+                        onStep={stepBox}
                         onClose={() => { setFocus(null); setStill(null); }}
                     />
                 )}
@@ -291,7 +351,18 @@ export default function StadiumBowl({
                         style={{ left: tooltip.x, top: tooltip.y }}
                         role="status"
                     >
-                        {tooltip.seat ? (
+                        {tooltip.box ? (
+                            <>
+                                <strong>{tooltip.box.name} · {tooltip.box.seats} seats</strong>
+                                <span>
+                                    {tooltip.box.isBooked
+                                        ? 'Booked'
+                                        : tooltip.box.price != null
+                                            ? `${formatMoney(tooltip.box.price, bowl.currency)} for the box`
+                                            : 'Hospitality box'}
+                                </span>
+                            </>
+                        ) : tooltip.seat ? (
                             <>
                                 <strong>Row {tooltip.seat.row} · Seat {tooltip.seat.number}</strong>
                                 <span>
@@ -312,7 +383,7 @@ export default function StadiumBowl({
                     </div>
                 )}
 
-                {!focusedBlock && (
+                {!focusedBlock && !focusedBox && (
                     <p className="tfe-bowl__hint">Drag to rotate · scroll or pinch to zoom · tap a block to fly there</p>
                 )}
             </div>
@@ -366,6 +437,31 @@ export default function StadiumBowl({
                         </li>
                     );
                 })}
+                {boxList.length > 0 && (
+                    <li>
+                        <button
+                            type="button"
+                            className={[
+                                'tfe-bowl__legend-row',
+                                'is-pickable',
+                                focusedBox || selectedBoxCode ? 'is-active' : '',
+                            ].filter(Boolean).join(' ')}
+                            onClick={() => showBox(cheapestOpenBox(boxList) || boxList[0])}
+                            aria-pressed={Boolean(selectedBoxCode)}
+                        >
+                            <span className="tfe-bowl__swatch tfe-bowl__swatch--glass" aria-hidden="true" />
+                            <span className="tfe-bowl__legend-name">Hospitality boxes</span>
+                            {cheapestOpenBox(boxList) && (
+                                <span className="tfe-bowl__legend-price">
+                                    from {formatMoney(cheapestOpenBox(boxList).price, bowl.currency)}
+                                </span>
+                            )}
+                            <span className="tfe-bowl__legend-figure">
+                                {boxList.filter((b) => !b.isBooked).length} of {boxList.length} free
+                            </span>
+                        </button>
+                    </li>
+                )}
             </ul>
 
             {note && <p className="tfe-bowl__note">{note}</p>}
@@ -404,7 +500,7 @@ function blockFigure(tier, block, live) {
  */
 function FocusCard({
     tier, block, seat, still, live, currency, canPick, isSelected, pickable,
-    seatsOpen, mySeats, upgrade, onUpgrade,
+    seatsOpen, mySeats, upgrade, onUpgrade, boxOffer, onBoxOffer,
     onPick, onSit, onStand, onStep, onNext, onClose,
 }) {
     const priced = tier.price !== null && tier.price !== undefined;
@@ -491,9 +587,89 @@ function FocusCard({
                             {' '}Upgrade to {upgrade.tier.name} · +{formatMoney(upgrade.extra, currency)} a seat
                         </button>
                     )}
+                    {boxOffer && (
+                        <button type="button" className="tfe-btn tfe-btn--sm tfe-bowl__upgrade" onClick={onBoxOffer}>
+                            <i className="fas fa-arrow-circle-up" aria-hidden="true" />
+                            {' '}Hospitality box · from {formatMoney(boxOffer.price, currency)}
+                        </button>
+                    )}
                     {pickable && !isSelected && (
                         <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={onPick}>
                             Choose block {block.code}
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            <button
+                type="button"
+                className="tfe-btn tfe-btn--icon tfe-btn--sm tfe-bowl__card-close"
+                onClick={onClose}
+                aria-label="Back to the whole stadium"
+            >
+                <i className="fas fa-times" aria-hidden="true" />
+            </button>
+        </section>
+    );
+}
+
+/**
+ * The stage card for a hospitality box: which box, how many it seats, the
+ * price of the WHOLE box, and the view from inside it.
+ */
+function BoxCard({
+    box, seat, still, currency, canBook, isSelected, onBook, onSit, onStand, onStep, onClose,
+}) {
+    return (
+        <section className={`tfe-bowl__card${seat ? ' is-seat' : ''}`} aria-label={`${box.name}, hospitality box`}>
+            {!seat && (
+                <div className="tfe-bowl__card-view">
+                    {still
+                        ? <img src={still} alt={`Approximate view from ${box.name}`} />
+                        : <span className="tfe-bowl__card-view-empty" aria-hidden="true" />}
+                    <span className="tfe-bowl__card-tag">Your view</span>
+                </div>
+            )}
+
+            <div className="tfe-bowl__card-body">
+                <div className="tfe-bowl__card-head">
+                    <div className="tfe-bowl__card-ident">
+                        <span className="tfe-bowl__card-eyebrow">West Stand · Hospitality</span>
+                        <strong className="tfe-bowl__card-title">{box.name}</strong>
+                    </div>
+                    {box.price !== null && (
+                        <span className="tfe-bowl__card-price">{formatMoney(box.price, currency)}</span>
+                    )}
+                </div>
+
+                <p className="tfe-bowl__card-meta">
+                    {box.seats} seats · the whole box{box.isBooked && ' · booked'}
+                    {seat && ' · approximate sightline'}
+                </p>
+
+                <div className="tfe-bowl__card-actions">
+                    <span className="tfe-bowl__card-stepper">
+                        <button type="button" className="tfe-btn tfe-btn--icon tfe-btn--sm" onClick={() => onStep(-1)} aria-label="Previous box">
+                            <i className="fas fa-chevron-left" aria-hidden="true" />
+                        </button>
+                        <button type="button" className="tfe-btn tfe-btn--icon tfe-btn--sm" onClick={() => onStep(1)} aria-label="Next box">
+                            <i className="fas fa-chevron-right" aria-hidden="true" />
+                        </button>
+                    </span>
+                    {seat ? (
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={onStand}>
+                            <i className="fas fa-arrow-up" aria-hidden="true" /> Outside view
+                        </button>
+                    ) : (
+                        <button type="button" className="tfe-btn tfe-btn--sm" onClick={onSit}>
+                            <i className="fas fa-eye" aria-hidden="true" /> View from the box
+                        </button>
+                    )}
+                    {box.isBooked && <span className="tfe-pill tfe-pill--rejected">Booked</span>}
+                    {isSelected && <span className="tfe-pill tfe-pill--approved">Selected</span>}
+                    {canBook && !box.isBooked && !isSelected && box.boxId && (
+                        <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={onBook}>
+                            Choose {box.name}
                         </button>
                     )}
                 </div>

@@ -23,6 +23,8 @@ import {
     LEN_K,
     WID_K,
     blockView,
+    boxOutsideView,
+    boxSeatView,
     nearestAngle,
     orbitFromEye,
     resolveTiers,
@@ -213,6 +215,7 @@ export function createBowlScene(host) {
     function onPointerLeave() {
         setHover(null);
         setSeatHover(-1);
+        setBoxHover(null);
         hoverHandler?.(null, 0, 0);
     }
 
@@ -223,7 +226,7 @@ export function createBowlScene(host) {
 
         const hit = pick(e);
 
-        if (hit && selectHandler) selectHandler(hit.tier, hit.block, hit.seat || null);
+        if (hit && selectHandler) selectHandler(hit.tier || null, hit.block || null, hit.seat || null, hit.box || null);
     }
 
     /**
@@ -256,6 +259,12 @@ export function createBowlScene(host) {
             }
         }
 
+        if (boxMeshes.length) {
+            const boxHits = raycaster.intersectObjects(boxMeshes, false);
+
+            if (boxHits.length) return { box: boxHits[0].object.userData.box, boxMesh: boxHits[0].object };
+        }
+
         const hits = raycaster.intersectObjects(tierMeshes, false);
 
         return hits.length
@@ -267,6 +276,7 @@ export function createBowlScene(host) {
         const hit = pick(e);
         setHover(hit?.mesh ?? null);
         setSeatHover(hit?.seatIndex ?? -1);
+        setBoxHover(hit?.box?.code ?? null);
 
         if (!hoverHandler) return;
 
@@ -276,7 +286,7 @@ export function createBowlScene(host) {
             // wrong place the moment an ancestor carries a transform, which is
             // routine inside a modal.
             const rect = el.getBoundingClientRect();
-            const { mesh, seatIndex, ...rest } = hit;
+            const { mesh, seatIndex, boxMesh, ...rest } = hit;
             hoverHandler(rest, e.clientX - rect.left, e.clientY - rect.top);
         } else {
             hoverHandler(null, 0, 0);
@@ -368,6 +378,9 @@ export function createBowlScene(host) {
         clearGroup(seatGroup);
         seatLayer = null;
         seatHover = -1;
+        clearGroup(boxGroup);
+        boxMeshes = [];
+        boxSpec = null;
         payloadNow = payload || null;
         tiersNow = [];
 
@@ -563,6 +576,155 @@ export function createBowlScene(host) {
         return { eye: [x, y + EYE_HEIGHT, z], look: [0, 0, 0] };
     }
 
+    // ---------------------------------------------------------------
+    // Hospitality boxes: glass shells along the main stand, lit inside
+    // when they can still be had, dark when booked, with their seats.
+    // ---------------------------------------------------------------
+    const boxGroup = new THREE.Group();
+    scene.add(boxGroup);
+    let boxMeshes = [];
+    let boxSpec = null;
+    let boxHover = null;
+
+    function paintBoxes() {
+        boxMeshes.forEach((m) => {
+            const { code } = m.userData.box;
+            let hex = 0x000000;
+
+            if (code === boxHover) hex = 0x2a2a2a;
+            if (boxSpec?.focusCode === code) hex = 0x3a0a10;
+            if (boxSpec?.selectedCode === code) hex = 0x6a1422;
+
+            m.material.emissive.setHex(hex);
+        });
+    }
+
+    function setBoxHover(code) {
+        if (code === boxHover) return;
+
+        boxHover = code;
+        paintBoxes();
+    }
+
+    /**
+     * Draw the boxes: { boxes: boxLayout() output, focusCode, selectedCode },
+     * or null. The same list again only repaints.
+     */
+    function showBoxes(spec) {
+        if (spec && boxSpec && spec.boxes === boxSpec.boxes) {
+            boxSpec = spec;
+            paintBoxes();
+            return;
+        }
+
+        clearGroup(boxGroup);
+        boxMeshes = [];
+        boxSpec = spec;
+        boxHover = null;
+
+        if (!spec?.boxes?.length) return;
+
+        const structureMaterial = new THREE.MeshStandardMaterial({ color: 0x1b1b1f, roughness: 0.8 });
+        const chairsTotal = spec.boxes.reduce((n, b) => n + b.seats, 0);
+        const chairs = new THREE.InstancedMesh(
+            new THREE.BoxGeometry(0.42, 0.5, 0.42),
+            new THREE.MeshStandardMaterial({ color: 0x7a1220, roughness: 0.7 }),
+            chairsTotal,
+        );
+        const dummy = new THREE.Object3D();
+        let c = 0;
+
+        spec.boxes.forEach((b) => {
+            const geo = new THREE.BoxGeometry(b.width, b.height, b.depth);
+            const shell = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+                color: b.isBooked ? 0x24262e : 0xeef3f6,
+                transparent: true,
+                opacity: b.isBooked ? 0.88 : 0.5,
+                roughness: 0.1,
+                metalness: 0.2,
+                // Glass must not hide the seats behind it from the depth test.
+                depthWrite: false,
+            }));
+            shell.position.set(...b.center);
+            // +z towards the pitch: the glass front faces the centre spot.
+            shell.lookAt(0, b.center[1], 0);
+            shell.userData = { box: b };
+            boxGroup.add(shell);
+            boxMeshes.push(shell);
+
+            // Solid structure: a slab roof and floor, and the plinth that
+            // carries the row down to the Premium tier. Glass alone reads as
+            // nothing against a red stand.
+            const slabGeo = new THREE.BoxGeometry(b.width * 1.08, 0.22, b.depth * 1.1);
+            [b.height / 2, -b.height / 2].forEach((dy) => {
+                const slab = new THREE.Mesh(slabGeo, structureMaterial);
+                slab.position.copy(shell.position);
+                slab.quaternion.copy(shell.quaternion);
+                slab.translateY(dy);
+                boxGroup.add(slab);
+            });
+
+            const plinthH = b.floor - b.plinth;
+            if (plinthH > 0.2) {
+                const plinth = new THREE.Mesh(
+                    new THREE.BoxGeometry(b.width * 1.08, plinthH, b.depth * 0.5),
+                    structureMaterial,
+                );
+                plinth.position.copy(shell.position);
+                plinth.quaternion.copy(shell.quaternion);
+                // Under the back half of the box, down to the Premium tier.
+                plinth.translateY(-b.height / 2 - plinthH / 2);
+                plinth.translateZ(-b.depth * 0.25);
+                boxGroup.add(plinth);
+            }
+
+            const frame = new THREE.LineSegments(
+                new THREE.EdgesGeometry(geo),
+                new THREE.LineBasicMaterial({ color: 0x111114 }),
+            );
+            frame.position.copy(shell.position);
+            frame.quaternion.copy(shell.quaternion);
+            boxGroup.add(frame);
+
+            if (!b.isBooked) {
+                // A warm back wall: the box is open and lit.
+                const wall = new THREE.Mesh(
+                    new THREE.PlaneGeometry(b.width * 0.96, b.height * 0.9),
+                    new THREE.MeshBasicMaterial({ color: 0x9a6a48 }),
+                );
+                wall.position.copy(shell.position);
+                wall.quaternion.copy(shell.quaternion);
+                wall.translateZ(-b.depth / 2 + 0.05);
+                boxGroup.add(wall);
+            }
+
+            // Two rows of seats facing the glass.
+            const perRow = Math.ceil(b.seats / 2);
+            for (let i = 0; i < b.seats; i += 1) {
+                const row = i < perRow ? 0 : 1;
+                const n = row === 0 ? i : i - perRow;
+                const count = row === 0 ? perRow : b.seats - perRow;
+
+                dummy.position.copy(shell.position);
+                dummy.quaternion.copy(shell.quaternion);
+                dummy.translateX(((n + 0.5) / count - 0.5) * b.width * 0.85);
+                dummy.translateZ(row === 0 ? b.depth * 0.12 : -b.depth * 0.18);
+                dummy.translateY(-b.height / 2 + 0.25 + row * 0.25);
+                dummy.updateMatrix();
+                chairs.setMatrixAt(c, dummy.matrix);
+                c += 1;
+            }
+        });
+
+        chairs.instanceMatrix.needsUpdate = true;
+        boxGroup.add(chairs);
+        paintBoxes();
+    }
+
+    function boxNamed(code) {
+        return boxSpec?.boxes?.find((b) => b.code === code) || null;
+    }
+
     /** The angle a view is centred on: its block's middle, if it names one. */
     function angleFor(view) {
         const tier = tiersNow.find((t) => t.key === view.tierKey);
@@ -583,6 +745,23 @@ export function createBowlScene(host) {
         autoRotate = false;
         focusBlock = view?.blockCode ?? null;
         paint();
+
+        const box = view?.boxCode ? boxNamed(view.boxCode) : null;
+
+        if (box) {
+            if (view.seat) {
+                const inside = boxSeatView(box);
+                mode = 'seat';
+                aim(orbitFromEye(inside.eye, inside.look));
+                setHover(null);
+                hoverHandler?.(null, 0, 0);
+            } else {
+                mode = 'stand';
+                minRadius = 4;
+                aim(boxOutsideView(box));
+            }
+            return;
+        }
 
         if (view && view.tierKey) {
             const opts = viewOpts();
@@ -631,9 +810,12 @@ export function createBowlScene(host) {
      * thumbnail would come out darker than the scene it previews.)
      */
     function snapshot(view, w = 320, h = 180) {
-        const seat = view?.tierKey
-            ? eyeAt(view.seatAt) || seatView(tiersNow, view.tierKey, angleFor(view), viewOpts())
-            : null;
+        const box = view?.boxCode ? boxNamed(view.boxCode) : null;
+        const seat = box
+            ? boxSeatView(box)
+            : view?.tierKey
+                ? eyeAt(view.seatAt) || seatView(tiersNow, view.tierKey, angleFor(view), viewOpts())
+                : null;
 
         if (!seat) return null;
 
@@ -701,6 +883,7 @@ export function createBowlScene(host) {
         setAutoRotate(on) { autoRotate = Boolean(on) && mode === 'home'; },
         setView,
         showSeats,
+        showBoxes,
         snapshot,
         dispose() {
             disposed = true;

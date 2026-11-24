@@ -215,3 +215,36 @@ test('no prices, no upgrade: an aggregate or catalogue bowl offers none', async 
 
     assert.equal(upgradeFor(tiers, 'premium', tiers[1].blocks[0]), null);
 });
+
+test('boxes sit in a row along the main stand, between Premium and Standard', async () => {
+    const { boxLayout, boxSeatView, cheapestOpenBox, inMainStand, tierBaseHeights } = await import('../../resources/js/lib/stadiumBowl.js');
+    const tiers = resolveTiers(BASE_TIERS.map((t) => ({ key: t.key })), 60000);
+    const payload = Array.from({ length: 12 }, (_, i) => ({
+        id: i + 1, code: String(i + 1), name: `Skybox ${i + 1}`, seats: 8, price: 1000 + i, is_booked: i === 0,
+    }));
+    const boxes = boxLayout(tiers, payload);
+    const premium = tiers[1];
+    const bases = tierBaseHeights(tiers);
+
+    assert.equal(boxes.length, 12);
+    boxes.forEach((b) => assert.ok(inMainStand(b.angle), `${b.name} is on the main stand`));
+    boxes.slice(1).forEach((b, i) => assert.ok(b.angle > boxes[i].angle, 'in order'));
+    boxes.forEach((b) => {
+        const r = Math.hypot(b.center[0], b.center[2]);
+        assert.ok(r > premium.innerR, 'outside the Premium front');
+        assert.ok(b.floor >= bases[1] + premium.height, 'standing on the Premium tier');
+    });
+
+    // The guest looks out from inside their own box, towards the pitch.
+    const v = boxSeatView(boxes[5]);
+    assert.ok(Math.hypot(v.eye[0], v.eye[2]) < Math.hypot(boxes[5].center[0], boxes[5].center[2]));
+
+    assert.equal(cheapestOpenBox(boxes).code, '2', 'box 1 is booked');
+});
+
+test('no Premium or Standard tier, no boxes: nowhere honest to put them', async () => {
+    const { boxLayout } = await import('../../resources/js/lib/stadiumBowl.js');
+    const tiers = resolveTiers([{ key: 'vip' }, { key: 'upper' }], 60000);
+
+    assert.deepEqual(boxLayout(tiers, [{ id: 1, code: '1', name: 'Skybox 1', seats: 8 }]), []);
+});

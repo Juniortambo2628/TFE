@@ -61,4 +61,27 @@ test.describe('match tickets', () => {
         // Nothing above VIP: no offer once there.
         await expect(page.getByRole('button', { name: /Upgrade to/ })).toHaveCount(0);
     });
+
+    test('a fan books a whole hospitality box at the box price', async ({ page }) => {
+        const errors = watchErrors(page);
+        await signIn(page);
+        await page.goto('/fan/tickets');
+        await page.getByText('Buy tickets').first().click();
+
+        await page.getByRole('button', { name: /Hospitality boxes/ }).click();
+        // Step to a box nobody has booked (the demo books some elsewhere).
+        for (let i = 0; i < 12 && !(await page.getByRole('button', { name: /^Choose Skybox/ }).count()); i += 1) {
+            await page.getByRole('button', { name: 'Next box' }).click();
+        }
+        await page.getByRole('button', { name: /^Choose Skybox/ }).click();
+        await expect(page.locator('.tfe-modal__foot-note')).toContainText(/Skybox \d+ · \d+ seats · \$[\d,.]+ for the box/);
+
+        await page.getByRole('button', { name: 'Continue', exact: true }).click();
+        await expect(page.locator('.ticket-modal__seats')).toContainText('the whole box');
+        await page.getByRole('button', { name: /Pay \$/ }).click();
+
+        await page.waitForURL(/\/fan\/tickets\/purchases/);
+        await expect(page.locator('body')).toContainText(/Skybox \d+ · \d+ seats, the whole box/);
+        expect(errors).toEqual([]);
+    });
 });

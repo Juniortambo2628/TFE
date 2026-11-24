@@ -27,7 +27,7 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->active()
             ->forTournament($tournamentId)
-            ->with('tiers.blocks')
+            ->with(['tiers.blocks', 'boxes'])
             ->orderBy('kickoff_at')
             ->get()
             ->map(fn (Ticket $t) => $this->format($t));
@@ -46,9 +46,12 @@ class TicketController extends Controller
             // seeded or created since tiered inventory landed. Left optional
             // so a legacy untiered row stays purchasable.
             'ticket_tier_id' => [
-                $ticket->tiers()->exists() ? 'required' : 'nullable',
+                $ticket->tiers()->exists() ? 'required_without:ticket_box_id' : 'nullable',
+                'nullable',
                 'integer',
             ],
+            // A hospitality box, bought whole. Scoped to this fixture below.
+            'ticket_box_id' => ['nullable', 'integer'],
             // Optional: without one the server picks the best block. Its
             // ownership is checked against the tier below, never trusted.
             'ticket_block_id' => ['nullable', 'integer'],
@@ -61,6 +64,10 @@ class TicketController extends Controller
         ]);
 
         abort_if(! $ticket->is_active, 404);
+
+        if (! empty($data['ticket_box_id'])) {
+            return DB::transaction(fn () => $this->buyBox($request, $ticket, $data));
+        }
 
         $chosen = null;
 
@@ -79,6 +86,47 @@ class TicketController extends Controller
             // written is rolled back with it.
             return back()->withErrors(['seats' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * A hospitality box: the whole box, at the box's price. The box id is
+     * client-supplied, so it is scoped to THIS fixture, and a box booked by
+     * anyone (here or through another channel) is refused. Boxes are not part
+     * of the tiers, so the fixture's seat totals do not move.
+     */
+    private function buyBox(Request $request, Ticket $ticket, array $data)
+    {
+        $box = $ticket->boxes()->whereKey($data['ticket_box_id'])->lockForUpdate()->first();
+
+        if (! $box) {
+            return back()->withErrors(['ticket_box_id' => 'That box is not part of this match.']);
+        }
+
+        if ($box->isBooked()) {
+            return back()->withErrors(['ticket_box_id' => $box->name.' has just been booked.']);
+        }
+
+        $purchase = TicketPurchase::create([
+            'user_id' => $request->user()->id,
+            'ticket_id' => $ticket->id,
+            'tier_name' => 'Hospitality',
+            'ticket_box_id' => $box->id,
+            'box_name' => $box->name,
+            'quantity' => $box->seats,
+            // Price from the box row, never the request. `total` is the box
+            // price exactly; the per-seat figure is for display.
+            'unit_price' => round((float) $box->price / max(1, $box->seats), 2),
+            'total' => $box->price,
+            'currency' => $ticket->currency,
+            'reference' => 'MDA-'.strtoupper(Str::random(8)),
+            'status' => 'confirmed',
+            'paid_with' => $data['paid_with'] ?? 'card',
+        ]);
+
+        $box->update(['booked_at' => now(), 'ticket_purchase_id' => $purchase->id]);
+
+        return redirect()->route('fan.tickets.purchases')
+            ->with('success', $box->name.' booked — reference '.$purchase->reference);
     }
 
     private function buy(Request $request, Ticket $ticket, array $data, ?array $chosen)
@@ -250,6 +298,7 @@ class TicketController extends Controller
                     // receipt and the e-Ticket cannot word it differently.
                     'seats' => $p->seats->map(fn ($seat) => ['row' => $seat->row, 'number' => $seat->number])->all(),
                     'seat_label' => TicketSeatLabel::for($p->seats),
+                    'box_name' => $p->box_name,
                     'created_at' => $p->created_at,
                     'ticket' => $p->ticket ? $this->format($p->ticket) : null,
                 ];

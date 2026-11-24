@@ -8,7 +8,7 @@ class TicketPurchase extends Model
 {
     protected $fillable = [
         'user_id', 'ticket_id', 'ticket_tier_id', 'tier_name',
-        'ticket_block_id', 'block_code', 'quantity',
+        'ticket_block_id', 'block_code', 'ticket_box_id', 'box_name', 'quantity',
         'unit_price', 'total', 'currency',
         'reference', 'status', 'paid_with',
     ];
@@ -49,5 +49,11 @@ class TicketPurchase extends Model
     public function seats()
     {
         return $this->hasMany(TicketSeat::class)->orderBy('row')->orderBy('number');
+    }
+
+    /** The hospitality box bought whole, if this order was one. */
+    public function box()
+    {
+        return $this->belongsTo(TicketBox::class, 'ticket_box_id');
     }
 }

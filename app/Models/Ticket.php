@@ -44,6 +44,12 @@ class Ticket extends Model
         return $this->hasMany(TicketTier::class)->orderBy('sort_order');
     }
 
+    /** Hospitality boxes, sold whole; not part of the tiers or the totals. */
+    public function boxes()
+    {
+        return $this->hasMany(TicketBox::class)->orderBy('sort_order');
+    }
+
     public function scopeActive($q)
     {
         return $q->where('is_active', true);

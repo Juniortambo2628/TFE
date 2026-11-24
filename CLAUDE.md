@@ -1459,6 +1459,30 @@ behind the goal).
   `RegisterInstitution` and Admin Events. `tests/e2e/tickets.spec.js`
   guards the ticket one.
 
+**Hospitality boxes (Nov 2026, phase 5).** "Skybox 6 · 12 seats", sold WHOLE
+at one price per fixture (`ticket_boxes`).
+- **Not part of the tiers.** No rows or seat numbers, and not counted in
+  `tickets.capacity`/`sold`; the bowl's sell-through is about the stands.
+  `booked_at` = gone (however it went); `ticket_purchase_id` = through TFE.
+- **Buying** is its own branch, `Fan\TicketController::buyBox()`. The box id
+  is scoped to the fixture, and a booked box is refused. The purchase takes
+  the box's seats as its quantity and the box price as its total. The
+  request never sets either.
+- **Only fixture payloads carry `boxes`.** Aggregate and catalogue bowls send
+  `[]`.
+- **Placement is the client's** (`boxLayout()`, tested): a row along the main
+  stand, hung on the lip of the Standard tier and overhanging the Premium
+  tier, on a plinth. **Raised on purpose**: the tiers are flat-topped, so a
+  box sitting ON the Premium tier looked across 12 units of flat stand and
+  lost the near touchline. No Premium or Standard tier means no boxes.
+- **Booked only with an explicit "Choose"**: a click on a box shows it, never
+  books it. A box costs thousands.
+- From the VIP tier, the stage card offers "Hospitality box · from $X". There
+  is no tier above VIP.
+- **Partners cannot create boxes yet.** Only `DemoTicketingPartnerSeeder`
+  makes them (12 per demo fixture, the halfway pair seating 12; demo prices
+  of 1.5x the VIP seat price). A fixture with none shows none.
+
 ### Tiered ticket inventory (Sprint 57)
 
 `tickets` carried one flat `price`/`capacity`/`sold` per fixture, so there was

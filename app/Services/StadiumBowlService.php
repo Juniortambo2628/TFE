@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Ticket;
 use App\Models\TicketBlock;
+use App\Models\TicketBox;
 use App\Models\TicketTier;
 use Illuminate\Support\Collection;
 
@@ -72,7 +73,27 @@ class StadiumBowlService
                     'sold_pct' => $b->sold_pct,
                     'is_sold_out' => $b->is_sold_out,
                 ])->values()->all(),
-        ])->all(), 'fixture', $ticket->currency);
+        ])->all(), 'fixture', $ticket->currency, $this->boxes($ticket));
+    }
+
+    /**
+     * A fixture's hospitality boxes. Fixture payloads only: a box is sold
+     * for one match, so an aggregate has nothing to show for it.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function boxes(Ticket $ticket): array
+    {
+        $boxes = $ticket->relationLoaded('boxes') ? $ticket->boxes : $ticket->boxes()->get();
+
+        return $boxes->map(fn (TicketBox $b) => [
+            'id' => $b->id,
+            'code' => $b->code,
+            'name' => $b->name,
+            'seats' => $b->seats,
+            'price' => (float) $b->price,
+            'is_booked' => $b->isBooked(),
+        ])->values()->all();
     }
 
     /**
@@ -288,7 +309,7 @@ class StadiumBowlService
      *
      * @param  array<int, array<string, mixed>>  $tiers
      */
-    private function payload(array $venue, array $tiers, string $source, ?string $currency): array
+    private function payload(array $venue, array $tiers, string $source, ?string $currency, array $boxes = []): array
     {
         $capacity = (int) ($venue['capacity'] ?? 0);
         $totalSeats = array_sum(array_map(fn ($t) => (int) ($t['capacity'] ?? 0), $tiers));
@@ -323,6 +344,7 @@ class StadiumBowlService
                 ? (int) round($totalSold / $totalSeats * 100)
                 : null,
             'tiers' => $tiers,
+            'boxes' => $boxes,
         ];
     }
 }

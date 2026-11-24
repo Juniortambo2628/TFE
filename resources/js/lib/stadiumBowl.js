@@ -668,3 +668,102 @@ export function upgradeFor(tiers, tierKey, block) {
 
     return null;
 }
+
+// ===================================================================
+// Hospitality boxes — glass boxes in a row along the main stand, in the
+// band between the Premium and Standard tiers, where a ground puts its
+// executive level. Sold whole; the server only knows their names, seats,
+// prices and whether they are booked, so WHERE they sit is decided here.
+// ===================================================================
+
+/** Share of the main stand's arc the row of boxes runs along. */
+export const BOX_ARC_SHARE = 0.75;
+
+/**
+ * Join the payload's boxes onto their places. Empty when the bowl has no
+ * Premium or Standard tier to sit between (nowhere honest to put them).
+ *
+ * @param {Array} tiers resolveTiers() output
+ * @param {Array} payloadBoxes StadiumBowlService `boxes`
+ */
+export function boxLayout(tiers, payloadBoxes, opts = {}) {
+    const boxes = payloadBoxes || [];
+    const p = tiers.findIndex((t) => t.key === 'premium');
+    const s = tiers.findIndex((t) => t.key === 'standard');
+
+    if (!boxes.length || p === -1 || s === -1) return [];
+
+    const premium = tiers[p];
+    const standard = tiers[s];
+    const bases = tierBaseHeights(tiers);
+    const depth = premium.outerR - premium.innerR;
+
+    // Hung on the lip of the Standard tier, overhanging the back of the
+    // Premium tier: raised, the way a ground puts its executive level, so a
+    // guest sees over the stands in front. (The tiers are flat-topped; a box
+    // sitting ON the Premium tier would look across 12 units of flat stand
+    // and lose the near touchline.)
+    const r0 = premium.outerR - depth * 0.2;
+    const r1 = premium.outerR + 1.0;
+    const y0 = bases[s] + standard.height + 0.3;
+    const h = Math.max(1.8, standard.height * 0.45);
+    // Where the structure under the row starts: the Premium tier's surface.
+    const plinth = bases[p] + premium.height;
+
+    const half = MAIN_STAND_HALF_SPAN * BOX_ARC_SHARE;
+    const start = MAIN_STAND_CENTER - half;
+    const slot = (2 * half) / boxes.length;
+
+    return boxes.map((b, i) => {
+        const angle = start + slot * (i + 0.5);
+        const rMid = (r0 + r1) / 2;
+        const [x, z] = worldXZ(angle, rMid, opts.cornerRatio);
+        const [ax, az] = worldXZ(angle - slot * 0.43, rMid, opts.cornerRatio);
+        const [bx, bz] = worldXZ(angle + slot * 0.43, rMid, opts.cornerRatio);
+
+        return {
+            boxId: b.id ?? null,
+            code: String(b.code),
+            name: b.name,
+            seats: b.seats,
+            price: b.price ?? null,
+            isBooked: Boolean(b.is_booked),
+            angle,
+            width: Math.hypot(bx - ax, bz - az),
+            depth: r1 - r0,
+            height: h,
+            center: [x, y0 + h / 2, z],
+            floor: y0,
+            plinth,
+        };
+    });
+}
+
+/** The eye of a guest at the front of a box, looking at the centre spot. */
+export function boxSeatView(box) {
+    const [x, , z] = box.center;
+    const len = Math.hypot(x, z) || 1;
+    // Towards the glass front (the pitch side), at seated eye height.
+    const k = (len - box.depth * 0.3) / len;
+
+    return { eye: [x * k, box.floor + EYE_HEIGHT, z * k], look: [0, 0, 0] };
+}
+
+/** Orbit parameters looking at a box from over the pitch. */
+export function boxOutsideView(box) {
+    const [x, y, z] = box.center;
+    const len = Math.hypot(x, z) || 1;
+    // From over the pitch, a little above the box, near enough that it
+    // and its neighbours fill the frame.
+    const back = Math.max(9, box.width * 2.6);
+    const eye = [x - (x / len) * back, y + back * 0.3, z - (z / len) * back];
+
+    return orbitFromEye(eye, box.center);
+}
+
+/** The cheapest box still to be had, or null. */
+export function cheapestOpenBox(boxes) {
+    const open = (boxes || []).filter((b) => !b.isBooked && b.boxId && b.price !== null);
+
+    return open.length ? open.reduce((a, b) => (b.price < a.price ? b : a)) : null;
+}
