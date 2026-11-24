@@ -56,6 +56,9 @@ export default function TicketsPurchases({ auth, purchases = [] }) {
                                             {p.block_code && <> · Block {p.block_code}{p.block_stand && `, ${p.block_stand}`}</>}
                                         </div>
                                     )}
+                                    {p.seat_label && (
+                                        <div><i className="fas fa-couch"></i> {p.seat_label}</div>
+                                    )}
                                 </div>
                             </div>
                             <div className="ticket-stub__foot">

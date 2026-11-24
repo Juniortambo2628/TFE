@@ -6,7 +6,7 @@ use App\Models\Ticket;
 use Illuminate\Database\Seeder;
 
 /**
- * Gives every tiered fixture its numbered blocks.
+ * Gives every tiered fixture its numbered blocks, and every sale a seat.
  *
  * This is the backfill for tiers created before blocks existed, and it runs
  * on every deploy (the deploy seeds), so it must be idempotent:
@@ -18,6 +18,15 @@ class TicketBlockSeeder extends Seeder
 {
     public function run(): void
     {
-        Ticket::query()->whereHas('tiers')->each(fn (Ticket $ticket) => $ticket->seedDefaultBlocks());
+        Ticket::query()->whereHas('tiers')->each(function (Ticket $ticket) {
+            $ticket->seedDefaultBlocks();
+
+            // Then a seat for every sale that has none (TicketBlock::seatAllSales):
+            // TFE purchases together, other channels in a fixed scatter. Also
+            // idempotent, and `sold` is unchanged by it.
+            foreach ($ticket->tiers()->with('blocks.tier')->get() as $tier) {
+                $tier->blocks->each->seatAllSales();
+            }
+        });
     }
 }

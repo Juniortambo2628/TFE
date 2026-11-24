@@ -507,3 +507,126 @@ export function bestBlock(tier) {
 
     return open.reduce((best, b) => (b.remaining > best.remaining ? b : best));
 }
+
+// ===================================================================
+// Seats — rows and numbers inside a block.
+//
+// Nothing stores an empty seat: a block's grid is DERIVED from its
+// capacity by `seatGrid()`, mirrored in App\Support\StadiumLayout::seatGrid()
+// and pinned by the `seat_grids` cases in tests/fixtures/stadium-blocks.json.
+// Only taken seats are rows (`ticket_seats`).
+// ===================================================================
+
+/**
+ * Rows per block, by tier number: deeper tiers have more rows. Chosen so a
+ * seat comes out roughly square on the map — a block is narrow and deep (32
+ * of them share a ring), so its grid is too.
+ */
+export const ROWS_PER_TIER = { 1: 14, 2: 16, 3: 24, 4: 30 };
+
+/**
+ * A block's seat grid: `rows` rows of `perRow` seats, the back row holding
+ * `lastRow` (it takes the remainder, so the grid holds exactly `capacity`).
+ * Row 1 is at the front, nearest the pitch; seats are numbered along the
+ * row in the block's own angle order.
+ */
+export function seatGrid(capacity, tierNumber) {
+    const cap = Math.max(0, Math.floor(Number(capacity) || 0));
+
+    if (cap === 0) return { rows: 0, perRow: 0, lastRow: 0 };
+
+    const target = Math.min(ROWS_PER_TIER[tierNumber] || 10, cap);
+    const perRow = Math.ceil(cap / target);
+    const rows = Math.ceil(cap / perRow);
+
+    return { rows, perRow, lastRow: cap - perRow * (rows - 1) };
+}
+
+/** Seats in `row` of a grid (the back row may be short). */
+export function seatsInRow(grid, row) {
+    if (row < 1 || row > grid.rows) return 0;
+
+    return row === grid.rows ? grid.lastRow : grid.perRow;
+}
+
+/** "Row 4 · Seats 7–9", "Row 4 · Seat 7", or one entry per row. */
+export function describeSeats(seats) {
+    const byRow = new Map();
+
+    [...(seats || [])]
+        .sort((a, b) => a.row - b.row || a.number - b.number)
+        .forEach((s) => byRow.set(s.row, [...(byRow.get(s.row) || []), s.number]));
+
+    return [...byRow.entries()].map(([row, nums]) => {
+        const runs = [];
+
+        nums.forEach((n) => {
+            const last = runs[runs.length - 1];
+            if (last && n === last[1] + 1) last[1] = n; else runs.push([n, n]);
+        });
+
+        const text = runs.map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join(', ');
+
+        return `Row ${row} · Seat${nums.length > 1 ? 's' : ''} ${text}`;
+    }).join('; ');
+}
+
+/**
+ * Where a seat sits in the world: its row's radius across the block's depth
+ * and its number's angle along the block, on the block's top surface. Used to
+ * draw the seats and to put the camera in one ("view from your seat").
+ *
+ * @param {Array} tiers resolveTiers() output
+ * @param {object} block one of tier.blocks
+ * @param {object} grid  seatGrid() of that block
+ */
+export function seatPosition(tiers, tierKey, block, grid, row, number, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1 || !grid.rows) return null;
+
+    const tier = tiers[idx];
+    const isTop = idx === tiers.length - 1;
+    const height = opts.partial && isTop && !inMainStand(block.mid)
+        ? tier.height * PARTIAL_TERRACE_K
+        : tier.height;
+    const top = tierBaseHeights(tiers)[idx] + height;
+
+    // Inset from the block's edges so seats sit on it, not over the aisle.
+    const pad = (tier.outerR - tier.innerR) * 0.06;
+    const R = tier.innerR + pad + ((tier.outerR - tier.innerR - 2 * pad) * (row - 0.5)) / grid.rows;
+    const aisle = 0.6 / tier.innerR;
+    const span = block.end - block.start - 2 * aisle;
+    const angle = block.start + aisle + (span * (number - 0.5)) / grid.perRow;
+    const [x, z] = worldXZ(angle, R, opts.cornerRatio);
+
+    return { position: [x, top + 0.35, z], angle, radius: R };
+}
+
+/**
+ * Orbit parameters for a close look at one block's seats: the camera hangs
+ * in front of the block, over the pitch, high enough to look down across
+ * its rows. Closer than `standView`, which frames the whole stand.
+ */
+export function blockView(tiers, tierKey, where, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1) return null;
+
+    const tier = tiers[idx];
+    const angle = angleOf(where);
+    const mid = (tier.innerR + tier.outerR) / 2;
+    const [x, z] = worldXZ(angle, mid, opts.cornerRatio);
+    const y = tierBaseHeights(tiers)[idx] + tier.height;
+    const depth = tier.outerR - tier.innerR;
+    const len = Math.hypot(x, z) || 1;
+
+    // Close and steep: about one block-depth away, mostly above it, so its
+    // rows run up the screen and fill it. Further back, a block is a sliver
+    // in a wide panel and its seats unreadable.
+    const back = depth * 0.55;
+    const up = depth * 0.9;
+    const eye = [x - (x / len) * back, y + up, z - (z / len) * back];
+
+    return orbitFromEye(eye, [x, y, z]);
+}

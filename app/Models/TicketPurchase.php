@@ -44,4 +44,10 @@ class TicketPurchase extends Model
     {
         return $this->belongsTo(TicketBlock::class, 'ticket_block_id');
     }
+
+    /** The seats this order holds. */
+    public function seats()
+    {
+        return $this->hasMany(TicketSeat::class)->orderBy('row')->orderBy('number');
+    }
 }

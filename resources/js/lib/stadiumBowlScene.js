@@ -19,12 +19,16 @@
 import * as THREE from 'three';
 
 import {
+    EYE_HEIGHT,
     LEN_K,
     WID_K,
+    blockView,
     nearestAngle,
     orbitFromEye,
     resolveTiers,
+    seatPosition,
     seatView,
+    seatsInRow,
     standView,
 } from './stadiumBowl';
 import { buildVenue } from './stadiumBowlGeometry';
@@ -32,6 +36,18 @@ import { buildVenue } from './stadiumBowlGeometry';
 const SKY_TOP = 0x08080a;
 const SKY_HORIZON = 0x7a1f22;
 const FOG_COLOR = 0x180b0c;
+
+// Seat colours. Inside the locked palette: free seats are near-white, taken
+// ones a muted slate (so the free ones stand out), the fan's own red.
+const SEAT_FREE = 0xe9e4e4;
+const SEAT_TAKEN = 0x3d4256;
+const SEAT_HOVER = 0xffffff;
+const SEAT_PICKED = 0xe0263f;
+const SEAT_PICKED_HOVER = 0xff5a6e;
+
+// A pointer that travels further than this between down and up was a drag,
+// not a click — orbiting the bowl must not pick whatever it ends over.
+const CLICK_SLOP = 6;
 
 export function createBowlScene(host) {
     const scene = new THREE.Scene();
@@ -123,7 +139,11 @@ export function createBowlScene(host) {
         return Math.hypot(a.x - b.x, a.y - b.y);
     }
 
+    let downAt = null;
+
     function onPointerDown(e) {
+        downAt = { x: e.clientX, y: e.clientY };
+
         if (mode === 'seat') return;
 
         pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -192,17 +212,25 @@ export function createBowlScene(host) {
 
     function onPointerLeave() {
         setHover(null);
+        setSeatHover(-1);
         hoverHandler?.(null, 0, 0);
     }
 
     function onClick(e) {
         if (mode === 'seat') return;
 
-        const mesh = pick(e);
+        if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > CLICK_SLOP) return;
 
-        if (mesh && selectHandler) selectHandler(mesh.userData.tier, mesh.userData.block);
+        const hit = pick(e);
+
+        if (hit && selectHandler) selectHandler(hit.tier, hit.block, hit.seat || null);
     }
 
+    /**
+     * What is under the pointer: a seat of the open block (checked first —
+     * the seats sit on top of their block), else a block. `{ tier, block,
+     * seat? , mesh? }` or null.
+     */
     function pick(e) {
         const rect = el.getBoundingClientRect();
 
@@ -212,24 +240,44 @@ export function createBowlScene(host) {
         pointerNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(pointerNdc, camera);
 
+        if (seatLayer) {
+            const seatHits = raycaster.intersectObjects(seatLayer.meshes, false);
+
+            if (seatHits.length && seatHits[0].instanceId !== undefined) {
+                const index = seatHits[0].instanceId;
+                const cell = seatLayer.cells[index];
+
+                return {
+                    tier: seatLayer.tier,
+                    block: seatLayer.block,
+                    seat: { row: cell.row, number: cell.number, taken: seatLayer.taken.has(cell.key) },
+                    seatIndex: index,
+                };
+            }
+        }
+
         const hits = raycaster.intersectObjects(tierMeshes, false);
 
-        return hits.length ? hits[0].object : null;
+        return hits.length
+            ? { tier: hits[0].object.userData.tier, block: hits[0].object.userData.block, mesh: hits[0].object }
+            : null;
     }
 
     function updateHover(e) {
-        const mesh = pick(e);
-        setHover(mesh);
+        const hit = pick(e);
+        setHover(hit?.mesh ?? null);
+        setSeatHover(hit?.seatIndex ?? -1);
 
         if (!hoverHandler) return;
 
-        if (mesh) {
+        if (hit) {
             // Canvas-relative, NOT clientX/clientY: the tooltip is positioned
             // inside the stage. A viewport-positioned overlay would land in the
             // wrong place the moment an ancestor carries a transform, which is
             // routine inside a modal.
             const rect = el.getBoundingClientRect();
-            hoverHandler(mesh.userData, e.clientX - rect.left, e.clientY - rect.top);
+            const { mesh, seatIndex, ...rest } = hit;
+            hoverHandler(rest, e.clientX - rect.left, e.clientY - rect.top);
         } else {
             hoverHandler(null, 0, 0);
         }
@@ -317,6 +365,9 @@ export function createBowlScene(host) {
         hovered = null;
         tierLight = null;
         focusBlock = null;
+        clearGroup(seatGroup);
+        seatLayer = null;
+        seatHover = -1;
         payloadNow = payload || null;
         tiersNow = [];
 
@@ -380,6 +431,138 @@ export function createBowlScene(host) {
         targetPolar = orbit.polar;
     }
 
+    // ---------------------------------------------------------------
+    // Seats of one open block. Two instanced meshes (cushions and backs)
+    // whatever the seat count, so a 800-seat Upper block is two draw calls.
+    // Empty seats exist only here, derived from the grid; only the taken
+    // ones came from the server.
+    // ---------------------------------------------------------------
+    const seatGroup = new THREE.Group();
+    scene.add(seatGroup);
+    let seatLayer = null;
+    let seatHover = -1;
+    const seatColor = new THREE.Color();
+
+    function paintSeats() {
+        if (!seatLayer) return;
+
+        seatLayer.cells.forEach((cell, i) => {
+            const picked = seatLayer.selected.has(cell.key);
+            let hex = SEAT_FREE;
+
+            if (seatLayer.taken.has(cell.key)) hex = SEAT_TAKEN;
+            else if (picked) hex = i === seatHover ? SEAT_PICKED_HOVER : SEAT_PICKED;
+            else if (i === seatHover) hex = SEAT_HOVER;
+
+            seatColor.setHex(hex);
+            seatLayer.meshes.forEach((m) => m.setColorAt(i, seatColor));
+        });
+
+        seatLayer.meshes.forEach((m) => { m.instanceColor.needsUpdate = true; });
+    }
+
+    function setSeatHover(index) {
+        if (index === seatHover) return;
+
+        seatHover = index;
+        paintSeats();
+    }
+
+    /**
+     * Draw one block's seats, or clear them with null:
+     *   { tierKey, blockCode, grid: {rows, perRow, lastRow},
+     *     taken: Set<"row:number">, selected: Set<"row:number"> }
+     * Calling again with the same block only repaints (a selection change),
+     * so picking a seat does not rebuild 800 instances.
+     */
+    function showSeats(spec) {
+        const same = spec && seatLayer
+            && seatLayer.block.code === spec.blockCode && seatLayer.tier.key === spec.tierKey
+            && seatLayer.cells.length === countSeats(spec.grid);
+
+        if (same) {
+            seatLayer.taken = spec.taken;
+            seatLayer.selected = spec.selected;
+            paintSeats();
+            return;
+        }
+
+        clearGroup(seatGroup);
+        seatLayer = null;
+        seatHover = -1;
+
+        const tier = spec && tiersNow.find((t) => t.key === spec.tierKey);
+        const block = tier?.blocks?.find((b) => b.code === spec.blockCode);
+
+        if (!tier || !block || !spec.grid?.rows) return;
+
+        const opts = viewOpts();
+        const place = (row, n) => seatPosition(tiersNow, tier.key, block, spec.grid, row, n, opts);
+        const cells = [];
+
+        for (let row = 1; row <= spec.grid.rows; row += 1) {
+            for (let n = 1; n <= seatsInRow(spec.grid, row); n += 1) {
+                cells.push({ row, number: n, key: `${row}:${n}`, at: place(row, n) });
+            }
+        }
+
+        // Seat size from the spacing of the grid itself.
+        const a = place(1, 1).position;
+        const along = spec.grid.perRow > 1 ? dist(a, place(1, 2).position) : 1;
+        const across = spec.grid.rows > 1 ? dist(a, place(2, 1).position) : 1;
+        const w = Math.min(along * 0.8, 1.4);
+        const d = Math.min(across * 0.5, 1.2);
+        const backH = Math.min(across * 0.45, 0.9);
+
+        const material = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.05 });
+        const cushions = new THREE.InstancedMesh(new THREE.BoxGeometry(w, 0.16, d), material, cells.length);
+        const backs = new THREE.InstancedMesh(new THREE.BoxGeometry(w, backH, 0.1), material, cells.length);
+        const dummy = new THREE.Object3D();
+
+        cells.forEach((cell, i) => {
+            const [x, y, z] = cell.at.position;
+
+            // Face the pitch: local +z towards the centre, so x runs along
+            // the row and the back sits behind, on the far side from the pitch.
+            dummy.position.set(x, y, z);
+            dummy.lookAt(0, y, 0);
+            dummy.updateMatrix();
+            cushions.setMatrixAt(i, dummy.matrix);
+
+            dummy.translateZ(-d / 2);
+            dummy.position.y += backH / 2;
+            dummy.updateMatrix();
+            backs.setMatrixAt(i, dummy.matrix);
+        });
+
+        [cushions, backs].forEach((m) => {
+            m.instanceMatrix.needsUpdate = true;
+            seatGroup.add(m);
+        });
+
+        seatLayer = {
+            tier, block, cells, meshes: [cushions, backs], taken: spec.taken, selected: spec.selected,
+        };
+        paintSeats();
+    }
+
+    function countSeats(grid) {
+        return grid?.rows ? grid.perRow * (grid.rows - 1) + grid.lastRow : 0;
+    }
+
+    /** Eye position of a seat of the open block, or null. */
+    function eyeAt(seat) {
+        if (!seatLayer || !seat) return null;
+
+        const cell = seatLayer.cells.find((c) => c.row === seat.row && c.number === seat.number);
+
+        if (!cell) return null;
+
+        const [x, y, z] = cell.at.position;
+
+        return { eye: [x, y + EYE_HEIGHT, z], look: [0, 0, 0] };
+    }
+
     /** The angle a view is centred on: its block's middle, if it names one. */
     function angleFor(view) {
         const tier = tiersNow.find((t) => t.key === view.tierKey);
@@ -406,7 +589,8 @@ export function createBowlScene(host) {
             const where = angleFor(view);
 
             if (view.seat) {
-                const seat = seatView(tiersNow, view.tierKey, where, opts);
+                // A picked seat of the open block, else the block's middle.
+                const seat = eyeAt(view.seatAt) || seatView(tiersNow, view.tierKey, where, opts);
 
                 if (seat) {
                     mode = 'seat';
@@ -416,11 +600,15 @@ export function createBowlScene(host) {
                     return;
                 }
             } else {
-                const stand = standView(tiersNow, view.tierKey, where, opts);
+                // Close in when the block's seats are on show; frame the
+                // stand otherwise.
+                const stand = view.close
+                    ? blockView(tiersNow, view.tierKey, where, opts)
+                    : standView(tiersNow, view.tierKey, where, opts);
 
                 if (stand) {
                     mode = 'stand';
-                    minRadius = STAND_MIN_RADIUS;
+                    minRadius = view.close ? 6 : STAND_MIN_RADIUS;
                     aim(stand);
                     return;
                 }
@@ -443,7 +631,9 @@ export function createBowlScene(host) {
      * thumbnail would come out darker than the scene it previews.)
      */
     function snapshot(view, w = 320, h = 180) {
-        const seat = view?.tierKey ? seatView(tiersNow, view.tierKey, angleFor(view), viewOpts()) : null;
+        const seat = view?.tierKey
+            ? eyeAt(view.seatAt) || seatView(tiersNow, view.tierKey, angleFor(view), viewOpts())
+            : null;
 
         if (!seat) return null;
 
@@ -510,6 +700,7 @@ export function createBowlScene(host) {
         },
         setAutoRotate(on) { autoRotate = Boolean(on) && mode === 'home'; },
         setView,
+        showSeats,
         snapshot,
         dispose() {
             disposed = true;
@@ -544,6 +735,10 @@ export function createBowlScene(host) {
 // ===================================================================
 // Scene furniture
 // ===================================================================
+
+function dist(a, b) {
+    return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
 
 function clamp(v, lo, hi) {
     return Math.min(hi, Math.max(lo, v));

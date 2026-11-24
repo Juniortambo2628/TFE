@@ -377,7 +377,7 @@ class DemoFanActivitySeeder extends Seeder
                     // picks when a fan does not choose one.
                     $block = $tier->bestBlockFor($qty);
 
-                    TicketPurchase::create([
+                    $purchase = TicketPurchase::create([
                         'user_id' => $buyer->id,
                         'ticket_id' => $ticket->id,
                         'ticket_tier_id' => $tier->id,
@@ -394,7 +394,9 @@ class DemoFanActivitySeeder extends Seeder
                     ]);
 
                     if ($block) {
-                        $block->increment('sold', $qty);
+                        // The same seating the purchase flow does: seats
+                        // together, and the block's count from its seats.
+                        $block->assignSeats($purchase, $qty);
                         $tier->syncBlockTotals();
                     } else {
                         $tier->increment('sold', $qty);

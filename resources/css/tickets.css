@@ -322,3 +322,71 @@
     text-decoration: underline;
     cursor: pointer;
 }
+
+/* Seat picker: the keyboard way to the seats the map shows. */
+.seat-picker {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.seat-picker__left {
+    font-weight: 400;
+    color: rgb(255 255 255 / 0.6);
+}
+
+.seat-picker__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.seat-picker__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: rgb(255 255 255 / 0.65);
+}
+
+.seat-picker__chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.seat-picker__chips .tfe-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.seat-picker__remove {
+    display: inline-grid;
+    place-items: center;
+    /* 24px: WCAG 2.2 target size. */
+    width: 24px;
+    height: 24px;
+    margin: -4px -6px -4px 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.ticket-modal__seats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ticket-modal__seats p {
+    margin: 0;
+}

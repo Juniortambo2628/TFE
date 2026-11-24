@@ -1369,9 +1369,8 @@ behind the goal).
   `rotateX(-PI/2)`); `worldXZ()` does it.
 - The still is drawn on the live canvas and copied in the same task (a render
   target skips the sRGB output conversion and comes out dark).
-- The sightline is labelled **approximate**: the bowl is generic. Phases 3–5
-  (individual seats from a sold-seats table only, upgrade offers, skyboxes)
-  are not built.
+- The sightline is labelled **approximate**: the bowl is generic. Phases 4–5
+  (upgrade offers, skyboxes) are not built.
 
 **Stands and blocks (Nov 2026, phase 2).** Every tier is split into 8 stands
 (four sides plus four corners) and 32 numbered blocks: `101`–`132` for VIP up to
@@ -1413,6 +1412,46 @@ behind the goal).
   tier sales on every run, which erased the fan seeder's purchases.
 - **Keyboard path to every block**: a legend row focuses that tier's
   halfway-line block, and the card's ‹ › step through the tier.
+
+**Seats (Nov 2026, phase 3).** A fan can pick exact seats ("Block 211 · Row
+10 · Seats 2–3"), on the map or in `Components/Fan/SeatPicker`.
+- **Only TAKEN seats are stored** (`ticket_seats`: block, row, number,
+  purchase or null). A block's grid is DERIVED from its capacity by
+  `seatGrid()` / `StadiumLayout::seatGrid()`, mirrored and pinned by the
+  `seat_grids` cases in `tests/fixtures/stadium-blocks.json`. Row 1 is the
+  front; the back row takes the remainder. `ROWS_PER_TIER` makes seats
+  roughly square on the map. Changing it moves every sold seat, so treat it
+  like a block code.
+- **Seats own the count**: `TicketBlock::syncSeatTotals()` sets `sold` from
+  the seat rows, then tier, then fixture. Seats are only taken through
+  `TicketBlock::assignSeats()` (the purchase flow and the seeders share it).
+  It takes the fan's picks, or `SeatAllocator::together()` (best row a third
+  of the way back, centred), falling back to `nearest()`.
+- **The unique index is the double-sale guard**, not a hold. Checkout
+  confirms in the same request; the second INSERT fails and the fan reads
+  "just taken". Add a timed hold once payment leaves the site.
+- **`SeatsUnavailable` is thrown INSIDE the purchase transaction**, so the
+  purchase row rolls back with it; the controller catches it outside.
+- **Sales without seats** (from before seats, or simulated demand) get them
+  from `seatAllSales()` (deploy seeder, lazily before any purchase, and on
+  the seat-map read). TFE purchases are seated together first; the rest
+  ("sold elsewhere", `ticket_purchase_id` null) by `SeatAllocator::scatter`,
+  a crc32 ranking. No randomness, and `sold` is unchanged.
+- **The seat map is fetched per block** (`fan.tickets.blocks.seats`): the
+  grid plus `taken` as "row:number". Never send seats with the bowl payload.
+  A fixture has tens of thousands.
+- **3D**: two `InstancedMesh`es (cushions, backs) per open block, hit-tested
+  by `instanceId`; the camera closes in with `blockView`. "View from your
+  seat" puts the eye on the first picked seat. A drag of more than 6px no
+  longer counts as a click.
+- Receipts carry `seat_label` from `App\Support\TicketSeatLabel`, which
+  mirrors `describeSeats()` (same cases tested on both sides).
+- **Footer buttons that swap between `button` and `submit` need distinct
+  `key`s.** Otherwise React reuses one element, flips its type during the
+  click, and the browser submits. That made the ticket dialog's Continue
+  place the order without showing Payment, and the same bug was in
+  `RegisterInstitution` and Admin Events. `tests/e2e/tickets.spec.js`
+  guards the ticket one.
 
 ### Tiered ticket inventory (Sprint 57)
 
@@ -2537,6 +2576,10 @@ tests/
   a no-op on the fan and partner security pages and the QR dialog came up in
   shadcn's navy instead of the platform's near-black. The house dialog classes
   are the ones StatusDialog / ConfirmationDialog use (Sprint 56).
+- Never swap a dialog footer's `type="button"` for a `type="submit"` in a
+  ternary without distinct `key`s on the two buttons. React keeps one
+  element, the type flips during the click, and the browser submits the
+  form: the ticket dialog's Continue bought the tickets (Nov 2026).
 - Never answer an Inertia POST with `noContent()`/204 — the client has nothing
   to navigate to and silently stays put (Sprint 48, passkey login).
 - Never pin the CSRF token once at module load. Logging in regenerates the

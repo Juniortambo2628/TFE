@@ -3,6 +3,7 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 import Skeleton from '@/Components/Common/Skeleton';
 import {
     blockAt,
+    describeSeats,
     nextViewpoint,
     resolveTiers,
     viewpoint,
@@ -45,6 +46,13 @@ const StadiumBowlCanvas = lazy(() => import('@/Components/Common/StadiumBowlCanv
  *   selectedBlockCode string?      — currently picked block, or null for
  *                                    "best available" in that tier.
  *   onTierSelect      fn?          — (tier, block|null) when something is picked.
+ *   seatMap           object?      — the selected block's seats from
+ *                                    `fan.tickets.blocks.seats` ({ code, rows,
+ *                                    per_row, last_row, taken: ["r:n"] }).
+ *                                    With it, the camera closes in on the
+ *                                    block and its seats can be picked.
+ *   selectedSeats     array?       — [{ row, number }] picked in that block.
+ *   onSeatToggle      fn?          — ({ row, number }) when a free seat is clicked.
  *   note              node?        — small print under the legend.
  */
 export default function StadiumBowl({
@@ -54,6 +62,9 @@ export default function StadiumBowl({
     selectedTierKey = null,
     selectedBlockCode = null,
     onTierSelect,
+    seatMap = null,
+    selectedSeats = [],
+    onSeatToggle,
     note,
 }) {
     const list = useMemo(
@@ -74,6 +85,19 @@ export default function StadiumBowl({
         () => list.find((b) => b.slug === activeSlug) || list[0] || null,
         [list, activeSlug],
     );
+
+    // The seats to draw: only the open block's, and only when it is the one
+    // whose seat map we hold. Memoised so the canvas repaints rather than
+    // rebuilding when nothing changed.
+    const seatsOpen = Boolean(seatMap && focus && focus.blockCode === seatMap.code);
+    const selectedKey = (selectedSeats || []).map((x) => `${x.row}:${x.number}`).join(',');
+    const seats = useMemo(() => (seatsOpen ? {
+        tierKey: focus.tierKey,
+        blockCode: seatMap.code,
+        grid: { rows: seatMap.rows, perRow: seatMap.per_row, lastRow: seatMap.last_row },
+        taken: new Set(seatMap.taken || []),
+        selected: new Set(selectedKey ? selectedKey.split(',') : []),
+    } : null), [seatsOpen, focus?.tierKey, seatMap, selectedKey]);
 
     if (!bowl) return null;
 
@@ -115,8 +139,16 @@ export default function StadiumBowl({
         }));
     };
 
-    // Clicking a block on the map picks THAT block.
-    const onMapSelect = (tier, block) => {
+    // Clicking a block on the map picks THAT block; clicking a seat of the
+    // open block toggles it.
+    const onMapSelect = (tier, block, seat) => {
+        if (seat) {
+            if (!seat.taken && seatsOpen && typeof onSeatToggle === 'function') {
+                onSeatToggle({ row: seat.row, number: seat.number });
+            }
+            return;
+        }
+
         show(tier, block);
         pick(tier, block);
     };
@@ -206,7 +238,12 @@ export default function StadiumBowl({
                         highlightKey={hovered}
                         onHover={handleHover}
                         onSelect={onMapSelect}
-                        view={focusedBlock ? focus : null}
+                        view={focusedBlock ? {
+                            ...focus,
+                            close: seatsOpen,
+                            seatAt: seatsOpen && selectedSeats?.length ? selectedSeats[0] : null,
+                        } : null}
+                        seats={seats}
                         onSnapshot={setStill}
                     />
                 </Suspense>
@@ -223,6 +260,8 @@ export default function StadiumBowl({
                         isSelected={canPick && selectedTierKey === focusedTier.key
                             && selectedBlockCode === focusedBlock.code}
                         pickable={canPick && blockPickable(focusedBlock)}
+                        seatsOpen={seatsOpen}
+                        mySeats={seatsOpen ? selectedSeats : []}
                         onPick={() => pick(focusedTier, focusedBlock)}
                         onSit={() => setFocus((f) => ({ ...f, seat: true }))}
                         onStand={() => setFocus((f) => ({ ...f, seat: false }))}
@@ -238,8 +277,24 @@ export default function StadiumBowl({
                         style={{ left: tooltip.x, top: tooltip.y }}
                         role="status"
                     >
-                        <strong>Block {tooltip.block.code} · {tooltip.block.standName}</strong>
-                        <span>{tooltip.tier.name} · {blockFigure(tooltip.tier, tooltip.block, live)}</span>
+                        {tooltip.seat ? (
+                            <>
+                                <strong>Row {tooltip.seat.row} · Seat {tooltip.seat.number}</strong>
+                                <span>
+                                    Block {tooltip.block.code} ·{' '}
+                                    {tooltip.seat.taken
+                                        ? 'Taken'
+                                        : tooltip.tier.price != null
+                                            ? formatMoney(tooltip.tier.price, bowl.currency)
+                                            : 'Free'}
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <strong>Block {tooltip.block.code} · {tooltip.block.standName}</strong>
+                                <span>{tooltip.tier.name} · {blockFigure(tooltip.tier, tooltip.block, live)}</span>
+                            </>
+                        )}
                     </div>
                 )}
 
@@ -335,6 +390,7 @@ function blockFigure(tier, block, live) {
  */
 function FocusCard({
     tier, block, seat, still, live, currency, canPick, isSelected, pickable,
+    seatsOpen, mySeats,
     onPick, onSit, onStand, onStep, onNext, onClose,
 }) {
     const priced = tier.price !== null && tier.price !== undefined;
@@ -372,6 +428,14 @@ function FocusCard({
                     {seat && ' · approximate sightline'}
                 </p>
 
+                {seatsOpen && (
+                    <p className="tfe-bowl__card-seats">
+                        {mySeats.length
+                            ? <>Your seats: <strong>{describeSeats(mySeats)}</strong></>
+                            : 'Tap free seats to pick them, or leave it to us for the best seats together.'}
+                    </p>
+                )}
+
                 <div className="tfe-bowl__card-actions">
                     <span className="tfe-bowl__card-stepper">
                         <button
@@ -397,7 +461,8 @@ function FocusCard({
                         </button>
                     ) : (
                         <button type="button" className="tfe-btn tfe-btn--sm" onClick={onSit}>
-                            <i className="fas fa-eye" aria-hidden="true" /> View from seat
+                            <i className="fas fa-eye" aria-hidden="true" />
+                            {mySeats.length ? ' View from your seat' : ' View from seat'}
                         </button>
                     )}
                     <button type="button" className="tfe-btn tfe-btn--sm" onClick={onNext}>

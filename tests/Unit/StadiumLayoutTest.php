@@ -92,4 +92,34 @@ class StadiumLayoutTest extends TestCase
         $this->assertSame('North-East Corner', StadiumLayout::standName('north_east'));
         $this->assertNull(StadiumLayout::standName('nope'));
     }
+
+    public function test_seat_grids_match_the_shared_fixture(): void
+    {
+        $fixture = json_decode(file_get_contents(__DIR__.'/../fixtures/stadium-blocks.json'), true);
+
+        foreach ($fixture['seat_grids'] as $case) {
+            $this->assertSame(
+                ['rows' => $case['rows'], 'per_row' => $case['per_row'], 'last_row' => $case['last_row']],
+                StadiumLayout::seatGrid($case['capacity'], $case['tier']),
+                "capacity {$case['capacity']}, tier {$case['tier']}",
+            );
+        }
+    }
+
+    public function test_a_seat_grid_holds_exactly_its_capacity(): void
+    {
+        foreach ([1, 7, 49, 104, 360, 799, 12345] as $capacity) {
+            foreach ([1, 2, 3, 4] as $tier) {
+                $grid = StadiumLayout::seatGrid($capacity, $tier);
+                $total = 0;
+
+                for ($row = 1; $row <= $grid['rows']; $row++) {
+                    $this->assertGreaterThan(0, StadiumLayout::seatsInRow($grid, $row));
+                    $total += StadiumLayout::seatsInRow($grid, $row);
+                }
+
+                $this->assertSame($capacity, $total, "capacity {$capacity}, tier {$tier}");
+            }
+        }
+    }
 }

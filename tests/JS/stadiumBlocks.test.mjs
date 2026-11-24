@@ -6,6 +6,11 @@ import {
     bestBlock,
     blockAt,
     blockLayout,
+    blockView,
+    describeSeats,
+    seatGrid,
+    seatPosition,
+    seatsInRow,
     resolveTiers,
     standLayout,
     viewpoint,
@@ -113,4 +118,65 @@ test('bestBlock picks the most room among real, open blocks', () => {
 
     assert.equal(bestBlock(tiers[0]).code, '102');
     assert.equal(bestBlock(resolveTiers([{ key: 'vip' }], 60000)[0]), null);
+});
+
+test('seat grids match the shared fixture', () => {
+    fixture.seat_grids.forEach((c) => {
+        assert.deepEqual(
+            seatGrid(c.capacity, c.tier),
+            { rows: c.rows, perRow: c.per_row, lastRow: c.last_row },
+            `capacity ${c.capacity}, tier ${c.tier}`,
+        );
+    });
+});
+
+test('a seat grid holds exactly its capacity', () => {
+    [1, 7, 49, 104, 360, 799, 12345].forEach((cap) => {
+        [1, 2, 3, 4].forEach((tier) => {
+            const g = seatGrid(cap, tier);
+            let total = 0;
+            for (let r = 1; r <= g.rows; r += 1) total += seatsInRow(g, r);
+            assert.equal(total, cap, `capacity ${cap}, tier ${tier}`);
+        });
+    });
+});
+
+test('describeSeats groups runs by row, as the receipt does', () => {
+    // Same cases as tests/Unit/SeatAllocatorTest.php's label test.
+    assert.equal(
+        describeSeats([
+            { row: 4, number: 9 }, { row: 4, number: 7 }, { row: 4, number: 8 },
+            { row: 5, number: 2 }, { row: 4, number: 12 },
+        ]),
+        'Row 4 · Seats 7–9, 12; Row 5 · Seat 2',
+    );
+    assert.equal(describeSeats([{ row: 1, number: 3 }]), 'Row 1 · Seat 3');
+    assert.equal(describeSeats([]), '');
+});
+
+test('seats sit inside their block: front row nearest the pitch, numbers along it', () => {
+    const tiers = resolveTiers(BASE_TIERS.map((t) => ({ key: t.key })), 60000);
+    const tier = tiers[2];
+    const block = tier.blocks[10];
+    const grid = seatGrid(360, 3);
+
+    const front = seatPosition(tiers, tier.key, block, grid, 1, 1);
+    const back = seatPosition(tiers, tier.key, block, grid, grid.rows, 1);
+    const last = seatPosition(tiers, tier.key, block, grid, 1, grid.perRow);
+
+    assert.ok(front.radius < back.radius, 'row 1 is the front');
+    assert.ok(front.radius > tier.innerR && back.radius < tier.outerR, 'within the tier');
+    [front, last].forEach((s) => assert.ok(s.angle > block.start && s.angle < block.end, 'within the block'));
+    assert.ok(last.angle > front.angle, 'numbers run in angle order');
+});
+
+test('the close block view looks at the block from the pitch side', () => {
+    const tiers = resolveTiers(BASE_TIERS.map((t) => ({ key: t.key })), 60000);
+    const v = blockView(tiers, 'upper', Math.PI / 2);
+    const camX = v.target[0] + v.radius * Math.sin(v.polar) * Math.sin(v.azimuth);
+    const camZ = v.target[2] + v.radius * Math.sin(v.polar) * Math.cos(v.azimuth);
+    const camY = v.target[1] + v.radius * Math.cos(v.polar);
+
+    assert.ok(Math.hypot(camX, camZ) < Math.hypot(v.target[0], v.target[2]), 'in front of the block');
+    assert.ok(camY > v.target[1], 'looking down across the rows');
 });

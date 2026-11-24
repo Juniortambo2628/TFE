@@ -777,5 +777,70 @@
     "end": 5.911082
    }
   ]
+ ],
+ "seat_grids": [
+  {
+   "capacity": 0,
+   "tier": 1,
+   "rows": 0,
+   "per_row": 0,
+   "last_row": 0
+  },
+  {
+   "capacity": 1,
+   "tier": 1,
+   "rows": 1,
+   "per_row": 1,
+   "last_row": 1
+  },
+  {
+   "capacity": 5,
+   "tier": 1,
+   "rows": 5,
+   "per_row": 1,
+   "last_row": 1
+  },
+  {
+   "capacity": 49,
+   "tier": 1,
+   "rows": 13,
+   "per_row": 4,
+   "last_row": 1
+  },
+  {
+   "capacity": 104,
+   "tier": 1,
+   "rows": 13,
+   "per_row": 8,
+   "last_row": 8
+  },
+  {
+   "capacity": 115,
+   "tier": 2,
+   "rows": 15,
+   "per_row": 8,
+   "last_row": 3
+  },
+  {
+   "capacity": 360,
+   "tier": 3,
+   "rows": 24,
+   "per_row": 15,
+   "last_row": 15
+  },
+  {
+   "capacity": 799,
+   "tier": 4,
+   "rows": 30,
+   "per_row": 27,
+   "last_row": 16
+  },
+  {
+   "capacity": 12345,
+   "tier": 4,
+   "rows": 30,
+   "per_row": 412,
+   "last_row": 397
+  }
  ]
 }

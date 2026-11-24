@@ -29,6 +29,9 @@ class StadiumLayout
 
     public const BLOCK_SPAN = 0.2;
 
+    /** Rows per block by tier number; mirrors ROWS_PER_TIER in JS. */
+    public const ROWS_PER_TIER = [1 => 14, 2 => 16, 3 => 24, 4 => 30];
+
     /** Integration steps per block, for the area shares. */
     private const STEPS = 48;
 
@@ -197,5 +200,39 @@ class StadiumLayout
         $disc = max(0, $b * $b - 4 * $c);
 
         return (-$b + sqrt($disc)) / 2;
+    }
+
+    /**
+     * A block's seat grid, derived from its capacity — no empty seat is ever
+     * stored. Mirrors `seatGrid()` in lib/stadiumBowl.js, pinned by the
+     * `seat_grids` cases in tests/fixtures/stadium-blocks.json. Row 1 is the
+     * front; the back row takes the remainder so the grid holds exactly
+     * `$capacity`.
+     *
+     * @return array{rows:int, per_row:int, last_row:int}
+     */
+    public static function seatGrid(int $capacity, int $tierNumber): array
+    {
+        $cap = max(0, $capacity);
+
+        if ($cap === 0) {
+            return ['rows' => 0, 'per_row' => 0, 'last_row' => 0];
+        }
+
+        $target = min(self::ROWS_PER_TIER[$tierNumber] ?? 10, $cap);
+        $perRow = (int) ceil($cap / $target);
+        $rows = (int) ceil($cap / $perRow);
+
+        return ['rows' => $rows, 'per_row' => $perRow, 'last_row' => $cap - $perRow * ($rows - 1)];
+    }
+
+    /** Seats in `$row` of a grid (the back row may be short). */
+    public static function seatsInRow(array $grid, int $row): int
+    {
+        if ($row < 1 || $row > $grid['rows']) {
+            return 0;
+        }
+
+        return $row === $grid['rows'] ? $grid['last_row'] : $grid['per_row'];
     }
 }

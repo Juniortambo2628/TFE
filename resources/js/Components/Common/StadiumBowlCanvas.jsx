@@ -14,9 +14,11 @@ import { createBowlScene } from '@/lib/stadiumBowlScene';
  *   bowl          object   — one StadiumBowlService payload.
  *   highlightKey  string?  — tier key to light up from outside (legend hover).
  *   onHover       fn?      — ({ tier, block }|null, x, y), stage-relative.
- *   onSelect      fn?      — (tier, block) when a block is clicked.
- *   view          object?  — { tierKey, blockCode, seat } to fly to, or null
- *                            for the overview. See `setView` in the scene.
+ *   onSelect      fn?      — (tier, block, seat|null) on a click.
+ *   view          object?  — { tierKey, blockCode, seat, close, seatAt } to
+ *                            fly to, or null for the overview. See `setView`.
+ *   seats         object?  — one block's seats to draw (see `showSeats`),
+ *                            memoised by the caller; null clears them.
  *   onSnapshot    fn?      — (dataUrl|null) a still of the view from the
  *                            focused tier, whenever the focus changes.
  *   height        number?  — canvas height in px.
@@ -27,6 +29,7 @@ export default function StadiumBowlCanvas({
     onHover,
     onSelect,
     view = null,
+    seats = null,
     onSnapshot,
     height = 420,
 }) {
@@ -57,7 +60,7 @@ export default function StadiumBowlCanvas({
 
         sceneRef.current = scene;
         scene.onHover((hit, x, y) => hoverRef.current?.(hit, x, y));
-        scene.onSelect((tier, block) => selectRef.current?.(tier, block));
+        scene.onSelect((tier, block, seat) => selectRef.current?.(tier, block, seat));
 
         const ro = new ResizeObserver(() => scene.resize());
         ro.observe(host);
@@ -92,6 +95,11 @@ export default function StadiumBowlCanvas({
         sceneRef.current?.highlight(highlightKey);
     }, [highlightKey]);
 
+    // Seats before the view: "view from my seat" needs the seat drawn.
+    useEffect(() => {
+        sceneRef.current?.showSeats(seats);
+    }, [bowl?.slug, seats]);
+
     // Declared after the venue effect on purpose: on first mount the bowl has
     // to exist before the camera can be pointed at one of its tiers.
     useEffect(() => {
@@ -104,7 +112,10 @@ export default function StadiumBowlCanvas({
         if (view?.tierKey && !view.seat) {
             snapshotRef.current?.(scene.snapshot(view));
         }
-    }, [bowl?.slug, view?.tierKey, view?.blockCode, view?.viewKey, view?.seat]);
+    }, [
+        bowl?.slug, view?.tierKey, view?.blockCode, view?.viewKey, view?.seat, view?.close,
+        view?.seatAt ? `${view.seatAt.row}:${view.seatAt.number}` : null,
+    ]);
 
     if (failed) {
         return (
