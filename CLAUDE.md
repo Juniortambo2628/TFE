@@ -1352,6 +1352,137 @@ shared `stadiumImages` map already indexes every alias to the same url a bowl
 payload carries, so this reuses the server's alias table rather than growing a
 second copy. A venue with no payload renders an empty state, never a guess.
 
+**Fly-to and view from a seat (Nov 2026, phase 1 of the stadium drill-down).**
+Clicking a block on the map, or a tier in the legend (every legend row is a
+button, on every surface), flies the camera there and opens a stage card
+with a still of the view from it; "View from seat" sits the camera in
+the tier, and "Another view" cycles `VIEWPOINTS` (halfway line, corner flag,
+behind the goal).
+- The camera is ONE orbit (target, radius, azimuth, polar) for every view, so
+  any move is one eased tween. `seatView` / `standView` / `orbitFromEye` /
+  `nearestAngle` are pure, in `lib/stadiumBowl.js`, guarded by
+  `tests/JS/stadiumBowlViews.test.mjs`.
+- `TIER_STEP`, `PARTIAL_TERRACE_K` and the main stand arc are shared by the
+  geometry and the camera. Change the stacking in one place, or the eye ends
+  up inside a stand.
+- World z is the NEGATED outline z (the tier shapes are laid flat with
+  `rotateX(-PI/2)`); `worldXZ()` does it.
+- The still is drawn on the live canvas and copied in the same task (a render
+  target skips the sRGB output conversion and comes out dark).
+- The sightline is labelled **approximate**: the bowl is generic.
+- **Upgrade offers (phase 4)**: `upgradeFor()` (lib, tested) offers the
+  nearest better tier that can be bought: it has a tier id, a price and
+  seats left, and it costs more. It offers the block at the same place
+  round the ground, else that tier's roomiest. `extra` is the REAL per-seat
+  difference. No price on either side means no offer, so aggregate and
+  catalogue bowls never show one. On the stage card once the fan has picked
+  the tier, and on the Payment step.
+
+**Stands and blocks (Nov 2026, phase 2).** Every tier is split into 8 stands
+(four sides plus four corners) and 32 numbered blocks: `101`–`132` for VIP up to
+`401`–`432` for Upper, numbered from the north end round through the West
+(main) stand. A ticket reads "West Stand · Block 207".
+- **`ticket_blocks` own the counts.** `TicketTier::syncBlockTotals()` derives
+  the tier's `capacity`/`sold` from them, then `Ticket::syncTierTotals()` the
+  fixture's, as before. Never `increment('sold')` on a tier that has
+  blocks. A tier with none (legacy) still owns its own count.
+- **The layout is mirrored**: `App\Support\StadiumLayout` ↔
+  `standLayout()`/`blockLayout()` in `lib/stadiumBowl.js`, both pinned by
+  `tests/fixtures/stadium-blocks.json` (asserted by
+  `tests/Unit/StadiumLayoutTest.php` and `tests/JS/stadiumBlocks.test.mjs`).
+  Changing a code renames a block people have bought seats in.
+- **Seat counts are the server's only**: each block's share of its tier is
+  its slice of the footprint's AREA (`StadiumLayout::shares($cornerRatio)`),
+  so end blocks on a long pitch hold more than side blocks of the same
+  angle. `apportion()` uses largest remainders, so blocks always sum to the
+  tier exactly.
+- **A code leads with the tier's FIXED position** (`TicketTier::number()`,
+  `BASE_TIERS` index on the client), never its index in a payload, which
+  shifts when a tier is missing.
+- **Buying**: `ticket_block_id` is optional. It is scoped to the tier, which is
+  scoped to the fixture. Without it, `TicketTier::bestBlockFor($qty)` seats
+  the order in the block with the most room. **An order is never split
+  across blocks**, so a party sits together. `blocks()` has a default
+  `orderBy('sort_order')`, so a query that sorts by anything else needs
+  `reorder()` first, or the old order wins (that bug shipped for an hour).
+- **Blocks cost their tier's price.** No per-stand pricing exists; inventing
+  stand premiums would change what fans pay.
+- **Only a fixture payload carries blocks** (with ids). Aggregate and
+  catalogue bowls draw the blocks with the TIER's figure, flagged
+  `inherited`, and the tooltip says "tier N% booked". A tier average must
+  never pass as one block's occupancy.
+- **Backfill is `TicketBlockSeeder`** (every deploy, idempotent). It spreads a
+  tier's existing sales across its new blocks by size, so no fixture loses
+  occupancy. `DemoTicketingPartnerSeeder` writes its simulated per-stand
+  demand only into tiers whose blocks have sold nothing. It used to reset
+  tier sales on every run, which erased the fan seeder's purchases.
+- **Keyboard path to every block**: a legend row focuses that tier's
+  halfway-line block, and the card's ‹ › step through the tier.
+
+**Seats (Nov 2026, phase 3).** A fan can pick exact seats ("Block 211 · Row
+10 · Seats 2–3"), on the map or in `Components/Fan/SeatPicker`.
+- **Only TAKEN seats are stored** (`ticket_seats`: block, row, number,
+  purchase or null). A block's grid is DERIVED from its capacity by
+  `seatGrid()` / `StadiumLayout::seatGrid()`, mirrored and pinned by the
+  `seat_grids` cases in `tests/fixtures/stadium-blocks.json`. Row 1 is the
+  front; the back row takes the remainder. `ROWS_PER_TIER` makes seats
+  roughly square on the map. Changing it moves every sold seat, so treat it
+  like a block code.
+- **Seats own the count**: `TicketBlock::syncSeatTotals()` sets `sold` from
+  the seat rows, then tier, then fixture. Seats are only taken through
+  `TicketBlock::assignSeats()` (the purchase flow and the seeders share it).
+  It takes the fan's picks, or `SeatAllocator::together()` (best row a third
+  of the way back, centred), falling back to `nearest()`.
+- **The unique index is the double-sale guard**, not a hold. Checkout
+  confirms in the same request; the second INSERT fails and the fan reads
+  "just taken". Add a timed hold once payment leaves the site.
+- **`SeatsUnavailable` is thrown INSIDE the purchase transaction**, so the
+  purchase row rolls back with it; the controller catches it outside.
+- **Sales without seats** (from before seats, or simulated demand) get them
+  from `seatAllSales()` (deploy seeder, lazily before any purchase, and on
+  the seat-map read). TFE purchases are seated together first; the rest
+  ("sold elsewhere", `ticket_purchase_id` null) by `SeatAllocator::scatter`,
+  a crc32 ranking. No randomness, and `sold` is unchanged.
+- **The seat map is fetched per block** (`fan.tickets.blocks.seats`): the
+  grid plus `taken` as "row:number". Never send seats with the bowl payload.
+  A fixture has tens of thousands.
+- **3D**: two `InstancedMesh`es (cushions, backs) per open block, hit-tested
+  by `instanceId`; the camera closes in with `blockView`. "View from your
+  seat" puts the eye on the first picked seat. A drag of more than 6px no
+  longer counts as a click.
+- Receipts carry `seat_label` from `App\Support\TicketSeatLabel`, which
+  mirrors `describeSeats()` (same cases tested on both sides).
+- **Footer buttons that swap between `button` and `submit` need distinct
+  `key`s.** Otherwise React reuses one element, flips its type during the
+  click, and the browser submits. That made the ticket dialog's Continue
+  place the order without showing Payment, and the same bug was in
+  `RegisterInstitution` and Admin Events. `tests/e2e/tickets.spec.js`
+  guards the ticket one.
+
+**Hospitality boxes (Nov 2026, phase 5).** "Skybox 6 · 12 seats", sold WHOLE
+at one price per fixture (`ticket_boxes`).
+- **Not part of the tiers.** No rows or seat numbers, and not counted in
+  `tickets.capacity`/`sold`; the bowl's sell-through is about the stands.
+  `booked_at` = gone (however it went); `ticket_purchase_id` = through TFE.
+- **Buying** is its own branch, `Fan\TicketController::buyBox()`. The box id
+  is scoped to the fixture, and a booked box is refused. The purchase takes
+  the box's seats as its quantity and the box price as its total. The
+  request never sets either.
+- **Only fixture payloads carry `boxes`.** Aggregate and catalogue bowls send
+  `[]`.
+- **Placement is the client's** (`boxLayout()`, tested): a row along the main
+  stand, hung on the lip of the Standard tier and overhanging the Premium
+  tier, on a plinth. **Raised on purpose**: the tiers are flat-topped, so a
+  box sitting ON the Premium tier looked across 12 units of flat stand and
+  lost the near touchline. No Premium or Standard tier means no boxes.
+- **Booked only with an explicit "Choose"**: a click on a box shows it, never
+  books it. A box costs thousands.
+- From the VIP tier, the stage card offers "Hospitality box · from $X". There
+  is no tier above VIP.
+- **Partners cannot create boxes yet.** Only `DemoTicketingPartnerSeeder`
+  makes them (12 per demo fixture, the halfway pair seating 12; demo prices
+  of 1.5x the VIP seat price). A fixture with none shows none.
+
 ### Tiered ticket inventory (Sprint 57)
 
 `tickets` carried one flat `price`/`capacity`/`sold` per fixture, so there was
@@ -2475,6 +2606,10 @@ tests/
   a no-op on the fan and partner security pages and the QR dialog came up in
   shadcn's navy instead of the platform's near-black. The house dialog classes
   are the ones StatusDialog / ConfirmationDialog use (Sprint 56).
+- Never swap a dialog footer's `type="button"` for a `type="submit"` in a
+  ternary without distinct `key`s on the two buttons. React keeps one
+  element, the type flips during the click, and the browser submits the
+  form: the ticket dialog's Continue bought the tickets (Nov 2026).
 - Never answer an Inertia POST with `noContent()`/204 — the client has nothing
   to navigate to and silently stays put (Sprint 48, passkey login).
 - Never pin the CSRF token once at module load. Logging in regenerates the

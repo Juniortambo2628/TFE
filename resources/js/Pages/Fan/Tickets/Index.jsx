@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { assetPath } from '@/lib/assets';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -6,7 +7,9 @@ import FanLayout from '@/Layouts/FanLayout';
 import DashboardHero from '@/Components/Common/DashboardHero';
 import StadiumBowl from '@/Components/Common/StadiumBowl';
 import TfeModal from '@/Components/Common/TfeModal';
+import SeatPicker from '@/Components/Fan/SeatPicker';
 import { formatMoney, formatNumber, formatKickoff } from '@/lib/utils';
+import { blockAt, describeSeats, resolveTiers, upgradeFor, viewpoint } from '@/lib/stadiumBowl';
 import '../../../../css/fan/fan-pages.css';
 import '../../../../css/tickets.css';
 
@@ -149,8 +152,56 @@ function PurchaseModal({ ticket, onClose }) {
     const { data, setData, post, processing, reset, errors } = useForm({
         quantity: 1,
         ticket_tier_id: defaultTier?.id ?? null,
+        // Null = "best available": the server seats the order in the block
+        // of this tier with the most room.
+        ticket_block_id: null,
+        // "row:number" for each seat the fan picked; empty = the server
+        // seats the order together in the best seats left.
+        seats: [],
+        // A hospitality box, bought whole; set instead of a tier/block.
+        ticket_box_id: null,
         paid_with: 'card',
     });
+
+    // The picked block's seat map, fetched when a block is picked: a fixture
+    // has tens of thousands of seats and the fan looks at one block.
+    const [seatMap, setSeatMap] = useState(null);
+    const [seatMapError, setSeatMapError] = useState(null);
+
+    useEffect(() => {
+        setSeatMap(null);
+        setSeatMapError(null);
+
+        if (!data.ticket_block_id) return undefined;
+
+        let live = true;
+        axios.get(route('fan.tickets.blocks.seats', [ticket?.id, data.ticket_block_id]))
+            .then((res) => { if (live) setSeatMap(res.data); })
+            .catch(() => { if (live) setSeatMapError('Could not load the seats for this block. You can still book the best seats left.'); });
+
+        return () => { live = false; };
+    }, [ticket?.id, data.ticket_block_id]);
+
+    const selectedSeats = data.seats.map((k) => {
+        const [row, number] = k.split(':').map(Number);
+        return { row, number };
+    });
+
+    const toggleSeat = ({ row, number }) => {
+        const key = `${row}:${number}`;
+
+        setData((prev) => {
+            const had = prev.seats.includes(key);
+
+            if (!had && prev.seats.length >= 10) return prev;
+
+            const seats = had ? prev.seats.filter((k) => k !== key) : [...prev.seats, key];
+
+            // Picked seats ARE the quantity; with none picked, keep the
+            // quantity the fan typed.
+            return { ...prev, seats, quantity: seats.length || prev.quantity };
+        });
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -164,20 +215,46 @@ function PurchaseModal({ ticket, onClose }) {
     if (!ticket) return null;
 
     const tier = tiers.find((t) => t.id === data.ticket_tier_id) || null;
-    // An untiered legacy fixture still prices off the ticket row.
+    // The picked block, read from the same bowl payload the map draws.
+    const bowlTier = ticket.bowl?.tiers?.find((t) => t.tier_id === data.ticket_tier_id);
+    const block = bowlTier?.blocks?.find((b) => b.id === data.ticket_block_id) || null;
+    // An untiered legacy fixture still prices off the ticket row. A block
+    // costs its tier's price.
     const unit = Number(tier ? tier.price : ticket.price);
-    const seatsLeft = tier ? tier.remaining : ticket.remaining;
+    // The same upgrade the map's card offers, for a fan who skipped the map:
+    // from the picked block, or the tier's halfway-line block.
+    const upgrade = (() => {
+        if (!ticket.bowl || !tier) return null;
+        const resolved = resolveTiers(ticket.bowl.tiers, ticket.bowl.capacity);
+        const mine = resolved.find((t) => t.tierId === tier.id);
+        if (!mine) return null;
+        const from = mine.blocks.find((b) => b.blockId === data.ticket_block_id)
+            || blockAt(mine, viewpoint('halfway').angle);
+        return upgradeFor(resolved, mine.key, from);
+    })();
+
+    const seatsLeft = block ? block.remaining : (tier ? tier.remaining : ticket.remaining);
     const maxQty = Math.max(1, Math.min(10, seatsLeft));
-    const total = (Number(data.quantity) || 0) * unit;
+    // A box is the whole box at the box's price.
+    const box = ticket.bowl?.boxes?.find((b) => b.id === data.ticket_box_id) || null;
+    const total = box ? Number(box.price) : (Number(data.quantity) || 0) * unit;
+
+    const pickBox = (b) => setData((prev) => ({
+        ...prev, ticket_box_id: b.boxId, ticket_block_id: null, seats: [],
+    }));
 
     // Both entry points (the bowl/legend and the select below) normalise to
     // this, so there is one place that knows what picking a tier means.
-    const pickTier = (tierId, remaining) => {
+    const pickTier = (tierId, remaining, blockId = null) => {
         if (!tierId) return;
 
         setData((prev) => ({
             ...prev,
             ticket_tier_id: tierId,
+            ticket_block_id: blockId,
+            ticket_box_id: null,
+            // Seats belong to one block; a new pick starts with none.
+            seats: prev.ticket_block_id === blockId ? prev.seats : [],
             // Clamp, or a fan who picked 8 Upper seats then switched to a VIP
             // tier with 3 left would submit a quantity the server rejects.
             quantity: Math.min(prev.quantity, Math.max(1, remaining ?? 10)),
@@ -201,15 +278,23 @@ function PurchaseModal({ ticket, onClose }) {
             footer={(
                 <>
                     <span className="tfe-modal__foot-note">
-                        {tier ? `${tier.name} · ${formatMoney(unit, ticket.currency)} each` : 'Pick a tier to continue'}
+                        {box
+                            ? `${box.name} · ${box.seats} seats · ${formatMoney(box.price, ticket.currency)} for the box`
+                            : tier
+                            ? `${tier.name}${block ? ` · Block ${block.code}` : ''}${selectedSeats.length ? ` · ${selectedSeats.length} seat${selectedSeats.length === 1 ? '' : 's'}` : ''} · ${formatMoney(unit, ticket.currency)} each`
+                            : 'Pick a tier to continue'}
                     </span>
                     <button type="button" className="tfe-btn" onClick={onClose}>Cancel</button>
+                    {/* Different `key`s on purpose. Without them React reuses
+                        ONE <button> and flips its type to "submit" during the
+                        Continue click, and the browser then runs the submit:
+                        Continue placed the order without showing Payment. */}
                     {step === 'seats' ? (
-                        <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => setStep('payment')} disabled={!data.ticket_tier_id}>
+                        <button key="continue" type="button" className="tfe-btn tfe-btn--filled" onClick={() => setStep('payment')} disabled={!data.ticket_tier_id && !box}>
                             Continue
                         </button>
                     ) : (
-                        <button type="submit" form="ticket-purchase-form" disabled={processing} className="tfe-btn tfe-btn--filled">
+                        <button key="pay" type="submit" form="ticket-purchase-form" disabled={processing} className="tfe-btn tfe-btn--filled">
                             <i className="fas fa-lock" /> Pay {formatMoney(total, ticket.currency)}
                         </button>
                     )}
@@ -230,13 +315,30 @@ function PurchaseModal({ ticket, onClose }) {
                             height={320}
                             selectable
                             selectedTierKey={tier?.key ?? null}
-                            onTierSelect={(t) => pickTier(t.tierId, t.remaining)}
-                            note="Pick a tier on the map or in the list. Exact seat allocation is confirmed on your e-Ticket."
+                            selectedBlockCode={block?.code ?? null}
+                            seatMap={seatMap}
+                            selectedSeats={selectedSeats}
+                            onSeatToggle={toggleSeat}
+                            selectedBoxCode={box ? String(box.code) : null}
+                            onBoxSelect={pickBox}
+                            onTierSelect={(t, b) => pickTier(t.tierId, b ? b.remaining : t.remaining, b?.blockId ?? null)}
+                            note="Pick a block on the map, or a tier for the best available block. Your seats in an order sit together; seat numbers are confirmed on your e-Ticket."
                         />
                     </div>
                 )}
 
-                {tiers.length > 0 && (
+                {box && (
+                    <div className="ticket-modal__seats">
+                        <span className="tfe-form-label">Hospitality box</span>
+                        <p>{box.name} · {box.seats} seats, the whole box · {formatMoney(box.price, ticket.currency)}</p>
+                        <button type="button" className="ticket-modal__link" onClick={() => setData('ticket_box_id', null)}>
+                            Book seats in the stands instead
+                        </button>
+                        {errors.ticket_box_id && <p className="tfe-form-error">{errors.ticket_box_id}</p>}
+                    </div>
+                )}
+
+                {!box && tiers.length > 0 && (
                     <>
                         <label className="tfe-form-label" htmlFor="tier">Seating tier</label>
                         <select
@@ -256,21 +358,70 @@ function PurchaseModal({ ticket, onClose }) {
                             ))}
                         </select>
                         {errors.ticket_tier_id && <p className="tfe-form-error">{errors.ticket_tier_id}</p>}
+
+                        <p className="tfe-form-help">
+                            {block ? (
+                                <>
+                                    Block {block.code} · {formatNumber(block.remaining)} seats left.{' '}
+                                    <button
+                                        type="button"
+                                        className="ticket-modal__link"
+                                        onClick={() => pickTier(tier.id, tier.remaining)}
+                                    >
+                                        Use best available instead
+                                    </button>
+                                </>
+                            ) : (
+                                'Best available block in this tier, with your seats together.'
+                            )}
+                        </p>
+                        {errors.ticket_block_id && <p className="tfe-form-error">{errors.ticket_block_id}</p>}
+
+                        {seatMap && seatMap.block_id === data.ticket_block_id && (
+                            <SeatPicker seatMap={seatMap} selected={selectedSeats} onToggle={toggleSeat} />
+                        )}
+                        {seatMapError && <p className="tfe-form-help">{seatMapError}</p>}
+                        {(errors.seats || errors['seats.0']) && (
+                            <p className="tfe-form-error">{errors.seats || errors['seats.0']}</p>
+                        )}
                     </>
                 )}
 
                 </>)}
 
                 {step === 'payment' && (<>
-                <label className="tfe-form-label" htmlFor="qty">
-                    Quantity (max {maxQty})
-                </label>
-                <input
-                    id="qty" type="number" min="1" max={maxQty}
-                    className="tfe-input"
-                    value={data.quantity}
-                    onChange={(e) => setData('quantity', Number(e.target.value))}
-                />
+                {box ? (
+                    <div className="ticket-modal__seats">
+                        <span className="tfe-form-label">Your box</span>
+                        <p>{box.name} · {box.seats} seats, the whole box</p>
+                        <button type="button" className="ticket-modal__link" onClick={() => setStep('seats')}>
+                            Change
+                        </button>
+                    </div>
+                ) : selectedSeats.length > 0 ? (
+                    <div className="ticket-modal__seats">
+                        <span className="tfe-form-label">Your seats</span>
+                        <p>
+                            {selectedSeats.length} seat{selectedSeats.length === 1 ? '' : 's'} in block {block?.code}:{' '}
+                            {describeSeats(selectedSeats)}
+                        </p>
+                        <button type="button" className="ticket-modal__link" onClick={() => setStep('seats')}>
+                            Change seats
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <label className="tfe-form-label" htmlFor="qty">
+                            Quantity (max {maxQty})
+                        </label>
+                        <input
+                            id="qty" type="number" min="1" max={maxQty}
+                            className="tfe-input"
+                            value={data.quantity}
+                            onChange={(e) => setData('quantity', Number(e.target.value))}
+                        />
+                    </>
+                )}
                 {errors.quantity && <p className="tfe-form-error">{errors.quantity}</p>}
 
                 <label className="tfe-form-label" htmlFor="paid_with" style={{ marginTop: 16 }}>Pay with</label>
@@ -283,6 +434,24 @@ function PurchaseModal({ ticket, onClose }) {
                     <option value="virtual_card">Ecobank virtual card</option>
                     <option value="mpesa">M-PESA</option>
                 </select>
+
+                {upgrade && !box && (
+                    <p className="tfe-form-help ticket-modal__upgrade">
+                        <i className="fas fa-arrow-circle-up" aria-hidden="true" /> {upgrade.tier.name} is
+                        {' '}{formatMoney(upgrade.extra, ticket.currency)} more a seat.{' '}
+                        <button
+                            type="button"
+                            className="ticket-modal__link"
+                            onClick={() => {
+                                const b = upgrade.block?.blockId && !upgrade.block.isSoldOut ? upgrade.block : null;
+                                pickTier(upgrade.tier.tierId, b ? b.remaining : upgrade.tier.remaining, b?.blockId ?? null);
+                                setStep('seats');
+                            }}
+                        >
+                            Upgrade{upgrade.block?.blockId ? ` to block ${upgrade.block.code}` : ''}
+                        </button>
+                    </p>
+                )}
 
                 <div className="ticket-modal__total">
                     <span>Total</span>

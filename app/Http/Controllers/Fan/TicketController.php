@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Fan;
 
+use App\Exceptions\SeatsUnavailable;
 use App\Http\Controllers\Controller;
 use App\Models\PartnerProfile;
 use App\Models\Ticket;
+use App\Models\TicketBlock;
 use App\Models\TicketPurchase;
 use App\Models\User;
 use App\Services\StadiumBowlService;
+use App\Support\TicketSeatLabel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,7 +27,7 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->active()
             ->forTournament($tournamentId)
-            ->with('tiers')
+            ->with(['tiers.blocks', 'boxes'])
             ->orderBy('kickoff_at')
             ->get()
             ->map(fn (Ticket $t) => $this->format($t));
@@ -43,76 +46,223 @@ class TicketController extends Controller
             // seeded or created since tiered inventory landed. Left optional
             // so a legacy untiered row stays purchasable.
             'ticket_tier_id' => [
-                $ticket->tiers()->exists() ? 'required' : 'nullable',
+                $ticket->tiers()->exists() ? 'required_without:ticket_box_id' : 'nullable',
+                'nullable',
                 'integer',
             ],
+            // A hospitality box, bought whole. Scoped to this fixture below.
+            'ticket_box_id' => ['nullable', 'integer'],
+            // Optional: without one the server picks the best block. Its
+            // ownership is checked against the tier below, never trusted.
+            'ticket_block_id' => ['nullable', 'integer'],
+            // Seats the fan picked, as "row:number". Optional: without them
+            // the server seats the order together where it can. Only with a
+            // block, and checked against that block's grid and taken seats.
+            'seats' => ['nullable', 'array', 'max:10'],
+            'seats.*' => ['string', 'regex:/^\d{1,4}:\d{1,4}$/', 'distinct'],
             'paid_with' => ['nullable', 'string', 'in:card,virtual_card,mpesa'],
         ]);
 
         abort_if(! $ticket->is_active, 404);
 
-        return DB::transaction(function () use ($request, $ticket, $data) {
-            $ticket->refresh();
+        if (! empty($data['ticket_box_id'])) {
+            return DB::transaction(fn () => $this->buyBox($request, $ticket, $data));
+        }
 
-            $tier = null;
+        $chosen = null;
 
-            if (! empty($data['ticket_tier_id'])) {
-                // Scoped to THIS fixture's tiers — a tier id is client-supplied
-                // and must never be trusted to belong to the ticket in the URL,
-                // or a fan could buy a cheap tier's price into a dear fixture.
-                $tier = $ticket->tiers()
-                    ->whereKey($data['ticket_tier_id'])
+        if (! empty($data['seats'])) {
+            if (empty($data['ticket_block_id'])) {
+                return back()->withErrors(['seats' => 'Pick a block before picking seats.']);
+            }
+
+            $chosen = array_map(fn ($s) => array_map('intval', explode(':', $s)), $data['seats']);
+        }
+
+        try {
+            return DB::transaction(fn () => $this->buy($request, $ticket, $data, $chosen));
+        } catch (SeatsUnavailable $e) {
+            // Thrown inside the transaction, so the purchase row it may have
+            // written is rolled back with it.
+            return back()->withErrors(['seats' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * A hospitality box: the whole box, at the box's price. The box id is
+     * client-supplied, so it is scoped to THIS fixture, and a box booked by
+     * anyone (here or through another channel) is refused. Boxes are not part
+     * of the tiers, so the fixture's seat totals do not move.
+     */
+    private function buyBox(Request $request, Ticket $ticket, array $data)
+    {
+        $box = $ticket->boxes()->whereKey($data['ticket_box_id'])->lockForUpdate()->first();
+
+        if (! $box) {
+            return back()->withErrors(['ticket_box_id' => 'That box is not part of this match.']);
+        }
+
+        if ($box->isBooked()) {
+            return back()->withErrors(['ticket_box_id' => $box->name.' has just been booked.']);
+        }
+
+        $purchase = TicketPurchase::create([
+            'user_id' => $request->user()->id,
+            'ticket_id' => $ticket->id,
+            'tier_name' => 'Hospitality',
+            'ticket_box_id' => $box->id,
+            'box_name' => $box->name,
+            'quantity' => $box->seats,
+            // Price from the box row, never the request. `total` is the box
+            // price exactly; the per-seat figure is for display.
+            'unit_price' => round((float) $box->price / max(1, $box->seats), 2),
+            'total' => $box->price,
+            'currency' => $ticket->currency,
+            'reference' => 'MDA-'.strtoupper(Str::random(8)),
+            'status' => 'confirmed',
+            'paid_with' => $data['paid_with'] ?? 'card',
+        ]);
+
+        $box->update(['booked_at' => now(), 'ticket_purchase_id' => $purchase->id]);
+
+        return redirect()->route('fan.tickets.purchases')
+            ->with('success', $box->name.' booked — reference '.$purchase->reference);
+    }
+
+    private function buy(Request $request, Ticket $ticket, array $data, ?array $chosen)
+    {
+        $ticket->refresh();
+
+        $tier = null;
+
+        if (! empty($data['ticket_tier_id'])) {
+            // Scoped to THIS fixture's tiers — a tier id is client-supplied
+            // and must never be trusted to belong to the ticket in the URL,
+            // or a fan could buy a cheap tier's price into a dear fixture.
+            $tier = $ticket->tiers()
+                ->whereKey($data['ticket_tier_id'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $tier) {
+                return back()->withErrors(['ticket_tier_id' => 'That seating tier is not available for this match.']);
+            }
+        }
+
+        // A tier with blocks sells BY block: the seats of one order sit
+        // together, so they must fit in a single block.
+        $block = null;
+
+        if ($tier && $tier->blocks()->exists()) {
+            if (! empty($data['ticket_block_id'])) {
+                // Scoped to this tier of this fixture — a block id from
+                // another match, or another tier's block, is refused.
+                $block = $tier->blocks()
+                    ->whereKey($data['ticket_block_id'])
                     ->lockForUpdate()
                     ->first();
 
-                if (! $tier) {
-                    return back()->withErrors(['ticket_tier_id' => 'That seating tier is not available for this match.']);
+                if (! $block) {
+                    return back()->withErrors(['ticket_block_id' => 'That block is not part of the '.$tier->name.' tier for this match.']);
                 }
-            }
 
-            $available = $tier ? $tier->remaining : $ticket->remaining;
-
-            if ($available < $data['quantity']) {
-                $where = $tier ? $tier->name.' has' : 'Only';
-
-                return back()->withErrors([
-                    'quantity' => $tier
-                        ? $where.' '.$available.' seats left.'
-                        : 'Only '.$available.' seats left.',
-                ]);
-            }
-
-            // Price comes from the tier, never from the request.
-            $unit = (float) ($tier->price ?? $ticket->price);
-            $total = round($unit * $data['quantity'], 2);
-
-            $purchase = TicketPurchase::create([
-                'user_id' => $request->user()->id,
-                'ticket_id' => $ticket->id,
-                'ticket_tier_id' => $tier?->id,
-                'tier_name' => $tier?->name,
-                'quantity' => $data['quantity'],
-                'unit_price' => $unit,
-                'total' => $total,
-                'currency' => $ticket->currency,
-                'reference' => 'MDA-'.strtoupper(Str::random(8)),
-                'status' => 'confirmed',
-                'paid_with' => $data['paid_with'] ?? 'card',
-            ]);
-
-            if ($tier) {
-                // The tier owns the count; the parent totals are derived from
-                // it. Never increment `tickets.sold` directly (see
-                // Ticket::syncTierTotals).
-                $tier->increment('sold', $data['quantity']);
-                $ticket->syncTierTotals();
+                if ($block->remaining < $data['quantity']) {
+                    return back()->withErrors([
+                        'quantity' => 'Block '.$block->code.' has '.$block->remaining.' seats left.',
+                    ]);
+                }
             } else {
-                $ticket->increment('sold', $data['quantity']);
-            }
+                $block = $tier->bestBlockFor($data['quantity']);
 
-            return redirect()->route('fan.tickets.purchases')
-                ->with('success', 'Ticket booked — reference '.$purchase->reference);
-        });
+                if (! $block) {
+                    return back()->withErrors([
+                        'quantity' => $tier->remaining >= $data['quantity']
+                            ? 'No single '.$tier->name.' block has '.$data['quantity'].' seats together. Try fewer seats or another tier.'
+                            : $tier->name.' has '.$tier->remaining.' seats left.',
+                    ]);
+                }
+
+                $block = $tier->blocks()->whereKey($block->id)->lockForUpdate()->first();
+            }
+        }
+
+        $available = $block ? $block->remaining : ($tier ? $tier->remaining : $ticket->remaining);
+
+        if ($available < $data['quantity']) {
+            $where = $tier ? $tier->name.' has' : 'Only';
+
+            return back()->withErrors([
+                'quantity' => $tier
+                    ? $where.' '.$available.' seats left.'
+                    : 'Only '.$available.' seats left.',
+            ]);
+        }
+
+        // Price comes from the tier, never from the request.
+        $unit = (float) ($tier->price ?? $ticket->price);
+        $total = round($unit * $data['quantity'], 2);
+
+        $purchase = TicketPurchase::create([
+            'user_id' => $request->user()->id,
+            'ticket_id' => $ticket->id,
+            'ticket_tier_id' => $tier?->id,
+            'tier_name' => $tier?->name,
+            'ticket_block_id' => $block?->id,
+            'block_code' => $block?->code,
+            'quantity' => $data['quantity'],
+            'unit_price' => $unit,
+            'total' => $total,
+            'currency' => $ticket->currency,
+            'reference' => 'MDA-'.strtoupper(Str::random(8)),
+            'status' => 'confirmed',
+            'paid_with' => $data['paid_with'] ?? 'card',
+        ]);
+
+        if ($block) {
+            // Seats own the count: the block's `sold` is its seat rows,
+            // then the tier and fixture totals follow, in that order.
+            $block->assignSeats($purchase, $data['quantity'], $chosen);
+            $tier->syncBlockTotals();
+            $ticket->syncTierTotals();
+        } elseif ($tier) {
+            // A legacy tier with no blocks owns its own count.
+            $tier->increment('sold', $data['quantity']);
+            $ticket->syncTierTotals();
+        } else {
+            $ticket->increment('sold', $data['quantity']);
+        }
+
+        return redirect()->route('fan.tickets.purchases')
+            ->with('success', 'Ticket booked — reference '.$purchase->reference);
+    }
+
+    /**
+     * One block's seat map: its grid and which seats are taken. Fetched when
+     * a fan opens a block, rather than sent with every ticket — a fixture has
+     * tens of thousands of seats and the fan looks at one block.
+     */
+    public function seats(Ticket $ticket, TicketBlock $block)
+    {
+        // The block must belong to this fixture. Route-model binding is not
+        // an authorization check (see CLAUDE.md).
+        abort_unless($block->tier && $block->tier->ticket_id === $ticket->id && $ticket->is_active, 404);
+
+        // Older sales get their seats first, so `taken` agrees with `sold`.
+        $block->seatAllSales();
+        $grid = $block->grid();
+
+        return response()->json([
+            'block_id' => $block->id,
+            'code' => $block->code,
+            'stand' => $block->stand,
+            'rows' => $grid['rows'],
+            'per_row' => $grid['per_row'],
+            'last_row' => $grid['last_row'],
+            'capacity' => $block->capacity,
+            'remaining' => $block->fresh()->remaining,
+            // "row:number", compact: a full Upper block is ~500 of them.
+            'taken' => array_keys($block->takenMap()),
+        ]);
     }
 
     public function purchases(Request $request)
@@ -126,7 +276,7 @@ class TicketController extends Controller
     {
         return TicketPurchase::query()
             ->where('user_id', $userId)
-            ->with('ticket.tiers')
+            ->with(['ticket.tiers.blocks', 'block', 'seats'])
             ->orderByDesc('created_at')
             ->get()
             ->map(function (TicketPurchase $p) {
@@ -142,6 +292,13 @@ class TicketController extends Controller
                     // Snapshot, so a receipt still names its tier after the
                     // tier row itself is gone.
                     'tier_name' => $p->tier_name,
+                    'block_code' => $p->block_code,
+                    'block_stand' => $p->block_code ? $p->block?->stand_name : null,
+                    // "Row 4 · Seats 7–9" — the server formats it, so the
+                    // receipt and the e-Ticket cannot word it differently.
+                    'seats' => $p->seats->map(fn ($seat) => ['row' => $seat->row, 'number' => $seat->number])->all(),
+                    'seat_label' => TicketSeatLabel::for($p->seats),
+                    'box_name' => $p->box_name,
                     'created_at' => $p->created_at,
                     'ticket' => $p->ticket ? $this->format($p->ticket) : null,
                 ];

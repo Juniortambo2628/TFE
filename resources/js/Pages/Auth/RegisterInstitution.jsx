@@ -301,8 +301,12 @@ export default function RegisterInstitution({ institutionTypes = {} }) {
                         </Link>
                     )}
 
+                    {/* Distinct keys: one shared <button> would flip to
+                        "submit" mid-click and send the form a step early
+                        (the bug Register.jsx already fixed this way). */}
                     {step < STEPS.length ? (
                         <button
+                            key="continue"
                             type="button"
                             className="tfe-btn tfe-btn--filled"
                             disabled={step === 1 ? !institutionReady : !officialReady}
@@ -312,6 +316,7 @@ export default function RegisterInstitution({ institutionTypes = {} }) {
                         </button>
                     ) : (
                         <button
+                            key="submit"
                             type="submit"
                             className="tfe-btn tfe-btn--filled"
                             disabled={processing || !accountReady}

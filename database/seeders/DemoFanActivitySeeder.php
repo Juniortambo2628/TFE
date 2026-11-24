@@ -338,8 +338,9 @@ class DemoFanActivitySeeder extends Seeder
     /**
      * Ticket sales through TFE.
      *
-     * These mirror the real purchase flow exactly: bump the TIER's `sold`,
-     * then let `Ticket::syncTierTotals()` derive the parent totals. Writing
+     * These mirror the real purchase flow exactly: bump the BLOCK's `sold`,
+     * then let `syncBlockTotals()` and `Ticket::syncTierTotals()` derive the
+     * totals above it. Writing
      * `tickets.sold` here would be the bug that method exists to prevent.
      *
      * Note `seats_sold` (these purchases) and `sellthrough` (the tiers' own
@@ -348,7 +349,7 @@ class DemoFanActivitySeeder extends Seeder
      */
     private function ticketPurchases(array $fans): void
     {
-        $tickets = Ticket::with('tiers')->get();
+        $tickets = Ticket::with('tiers.blocks')->get();
         if ($tickets->isEmpty()) {
             $this->command?->warn('No tickets — skipping purchases.');
 
@@ -372,11 +373,17 @@ class DemoFanActivitySeeder extends Seeder
                         continue;
                     }
 
-                    TicketPurchase::create([
+                    // The same "best available" block the purchase flow
+                    // picks when a fan does not choose one.
+                    $block = $tier->bestBlockFor($qty);
+
+                    $purchase = TicketPurchase::create([
                         'user_id' => $buyer->id,
                         'ticket_id' => $ticket->id,
                         'ticket_tier_id' => $tier->id,
                         'tier_name' => $tier->name,
+                        'ticket_block_id' => $block?->id,
+                        'block_code' => $block?->code,
                         'quantity' => $qty,
                         'unit_price' => $tier->price,
                         'total' => round($tier->price * $qty, 2),
@@ -386,7 +393,14 @@ class DemoFanActivitySeeder extends Seeder
                         'paid_with' => 'card',
                     ]);
 
-                    $tier->increment('sold', $qty);
+                    if ($block) {
+                        // The same seating the purchase flow does: seats
+                        // together, and the block's count from its seats.
+                        $block->assignSeats($purchase, $qty);
+                        $tier->syncBlockTotals();
+                    } else {
+                        $tier->increment('sold', $qty);
+                    }
                 }
             }
 

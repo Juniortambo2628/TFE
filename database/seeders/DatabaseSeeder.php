@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             DemoFinancePartnerSeeder::class,
             DemoExtraPartnersSeeder::class,
             DemoTicketingPartnerSeeder::class,
+            TicketBlockSeeder::class,
             DemoPartnerOfferingsSeeder::class,
             DemoSchoolsPartnerSeeder::class,
             DemoLearningResourcesSeeder::class,

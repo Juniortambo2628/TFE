@@ -182,13 +182,15 @@ export default function Events({ auth, events = { data: [] }, stats = {}, filter
                             {isViewOnly ? 'Close' : 'Cancel'}
                         </button>
                         {isViewOnly ? (
-                            <button type="button" className="tfe-btn tfe-btn--filled" onClick={() => setIsViewOnly(false)}>
+                            // Distinct keys: one shared <button> flips to
+                            // "submit" mid-click and saves the unedited form.
+                            <button key="edit" type="button" className="tfe-btn tfe-btn--filled" onClick={() => setIsViewOnly(false)}>
                                 <i className="fas fa-pen" /> Edit Event
                             </button>
                         ) : (
                             /* The form lives in the pane body, so the footer's
                                submit reaches it by id rather than by nesting. */
-                            <button type="submit" form="admin-event-form" className="tfe-btn tfe-btn--filled" disabled={processing}>
+                            <button key="save" type="submit" form="admin-event-form" className="tfe-btn tfe-btn--filled" disabled={processing}>
                                 <i className="fas fa-check" />
                                 {eventToEdit ? 'Save Changes' : 'Create Event'}
                             </button>

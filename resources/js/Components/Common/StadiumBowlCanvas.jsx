@@ -13,8 +13,16 @@ import { createBowlScene } from '@/lib/stadiumBowlScene';
  * Props:
  *   bowl          object   — one StadiumBowlService payload.
  *   highlightKey  string?  — tier key to light up from outside (legend hover).
- *   onHover       fn?      — (tier|null, x, y) in client coordinates.
- *   onSelect      fn?      — (tier) when a tier is clicked.
+ *   onHover       fn?      — ({ tier, block }|null, x, y), stage-relative.
+ *   onSelect      fn?      — (tier, block, seat|null) on a click.
+ *   view          object?  — { tierKey, blockCode, seat, close, seatAt } to
+ *                            fly to, or null for the overview. See `setView`.
+ *   seats         object?  — one block's seats to draw (see `showSeats`),
+ *                            memoised by the caller; null clears them.
+ *   boxes         object?  — { boxes, focusCode, selectedCode } (see
+ *                            `showBoxes`); the list memoised by the caller.
+ *   onSnapshot    fn?      — (dataUrl|null) a still of the view from the
+ *                            focused tier, whenever the focus changes.
  *   height        number?  — canvas height in px.
  */
 export default function StadiumBowlCanvas({
@@ -22,18 +30,24 @@ export default function StadiumBowlCanvas({
     highlightKey = null,
     onHover,
     onSelect,
+    view = null,
+    seats = null,
+    boxes = null,
+    onSnapshot,
     height = 420,
 }) {
     const hostRef = useRef(null);
     const sceneRef = useRef(null);
     const hoverRef = useRef(onHover);
     const selectRef = useRef(onSelect);
+    const snapshotRef = useRef(onSnapshot);
     const [failed, setFailed] = useState(false);
 
     // Keep the latest callbacks reachable without tearing the scene down and
     // rebuilding it every time the parent re-renders with new closures.
     hoverRef.current = onHover;
     selectRef.current = onSelect;
+    snapshotRef.current = onSnapshot;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -48,8 +62,8 @@ export default function StadiumBowlCanvas({
         }
 
         sceneRef.current = scene;
-        scene.onHover((tier, x, y) => hoverRef.current?.(tier, x, y));
-        scene.onSelect((tier) => selectRef.current?.(tier));
+        scene.onHover((hit, x, y) => hoverRef.current?.(hit, x, y));
+        scene.onSelect((tier, block, seat, box) => selectRef.current?.(tier, block, seat, box));
 
         const ro = new ResizeObserver(() => scene.resize());
         ro.observe(host);
@@ -83,6 +97,34 @@ export default function StadiumBowlCanvas({
     useEffect(() => {
         sceneRef.current?.highlight(highlightKey);
     }, [highlightKey]);
+
+    // Boxes and seats before the view: the camera may be aimed at either.
+    useEffect(() => {
+        sceneRef.current?.showBoxes(boxes);
+    // The venue effect rebuilds (and so clears) on these too; redraw after it.
+    }, [bowl?.slug, bowl?.source, bowl?.sold_pct, boxes]);
+
+    // Seats before the view: "view from my seat" needs the seat drawn.
+    useEffect(() => {
+        sceneRef.current?.showSeats(seats);
+    }, [bowl?.slug, bowl?.source, bowl?.sold_pct, seats]);
+
+    // Declared after the venue effect on purpose: on first mount the bowl has
+    // to exist before the camera can be pointed at one of its tiers.
+    useEffect(() => {
+        const scene = sceneRef.current;
+
+        if (!scene) return;
+
+        scene.setView(view);
+
+        if ((view?.tierKey || view?.boxCode) && !view.seat) {
+            snapshotRef.current?.(scene.snapshot(view));
+        }
+    }, [
+        bowl?.slug, view?.tierKey, view?.blockCode, view?.boxCode, view?.viewKey, view?.seat, view?.close,
+        view?.seatAt ? `${view.seatAt.row}:${view.seatAt.number}` : null,
+    ]);
 
     if (failed) {
         return (

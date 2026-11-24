@@ -50,8 +50,17 @@ export default function TicketsPurchases({ auth, purchases = [] }) {
                                     {/* Snapshot taken at purchase, so it still
                                         reads correctly if the tier is later
                                         removed. Absent on pre-tier purchases. */}
-                                    {p.tier_name && (
-                                        <div><i className="fas fa-chair"></i> {p.tier_name} tier</div>
+                                    {p.tier_name && !p.box_name && (
+                                        <div>
+                                            <i className="fas fa-chair"></i> {p.tier_name} tier
+                                            {p.block_code && <> · Block {p.block_code}{p.block_stand && `, ${p.block_stand}`}</>}
+                                        </div>
+                                    )}
+                                    {p.box_name && (
+                                        <div><i className="fas fa-glass-cheers"></i> {p.box_name} · {p.quantity} seats, the whole box</div>
+                                    )}
+                                    {p.seat_label && (
+                                        <div><i className="fas fa-couch"></i> {p.seat_label}</div>
                                     )}
                                 </div>
                             </div>

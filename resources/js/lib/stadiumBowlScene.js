@@ -18,12 +18,38 @@
  */
 import * as THREE from 'three';
 
-import { LEN_K, WID_K, resolveTiers } from './stadiumBowl';
+import {
+    EYE_HEIGHT,
+    LEN_K,
+    WID_K,
+    blockView,
+    boxOutsideView,
+    boxSeatView,
+    nearestAngle,
+    orbitFromEye,
+    resolveTiers,
+    seatPosition,
+    seatView,
+    seatsInRow,
+    standView,
+} from './stadiumBowl';
 import { buildVenue } from './stadiumBowlGeometry';
 
 const SKY_TOP = 0x08080a;
 const SKY_HORIZON = 0x7a1f22;
 const FOG_COLOR = 0x180b0c;
+
+// Seat colours. Inside the locked palette: free seats are near-white, taken
+// ones a muted slate (so the free ones stand out), the fan's own red.
+const SEAT_FREE = 0xe9e4e4;
+const SEAT_TAKEN = 0x3d4256;
+const SEAT_HOVER = 0xffffff;
+const SEAT_PICKED = 0xe0263f;
+const SEAT_PICKED_HOVER = 0xff5a6e;
+
+// A pointer that travels further than this between down and up was a drag,
+// not a click — orbiting the bowl must not pick whatever it ends over.
+const CLICK_SLOP = 6;
 
 export function createBowlScene(host) {
     const scene = new THREE.Scene();
@@ -56,20 +82,34 @@ export function createBowlScene(host) {
     // ---------------------------------------------------------------
     // Camera / orbit state
     // ---------------------------------------------------------------
-    const target = new THREE.Vector3(0, 6, 0);
+    // Everything the camera does is an orbit around `target`: the overview,
+    // a stand close-up and the view from a seat are all (target, radius,
+    // azimuth, polar), so moving between any two is one eased tween.
+    const HOME_TARGET = new THREE.Vector3(0, 6, 0);
+    const HOME_POLAR = Math.PI * 0.36;
+    const target = HOME_TARGET.clone();
+    const desiredTarget = HOME_TARGET.clone();
     let radius = 220;
     let targetRadius = 220;
     let azimuth = Math.PI * 0.22;
     let targetAzimuth = azimuth;
-    let polar = Math.PI * 0.36;
+    let polar = HOME_POLAR;
     let targetPolar = polar;
     const MIN_RADIUS = 55;
+    const STAND_MIN_RADIUS = 10;
     const MAX_RADIUS = 480;
     const MIN_POLAR = 0.14;
     const MAX_POLAR = Math.PI * 0.49;
 
     let autoRotate = true;
     let userHasInteracted = false;
+    // 'home' (the overview), 'stand' (flown to a tier, still orbitable
+    // around it) or 'seat' (sitting in it — input is ignored so the
+    // sightline holds still).
+    let mode = 'home';
+    let minRadius = MIN_RADIUS;
+    let payloadNow = null;
+    let tiersNow = [];
     let frame = null;
     let disposed = false;
 
@@ -101,7 +141,13 @@ export function createBowlScene(host) {
         return Math.hypot(a.x - b.x, a.y - b.y);
     }
 
+    let downAt = null;
+
     function onPointerDown(e) {
+        downAt = { x: e.clientX, y: e.clientY };
+
+        if (mode === 'seat') return;
+
         pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
         el.setPointerCapture?.(e.pointerId);
         userHasInteracted = true;
@@ -127,7 +173,7 @@ export function createBowlScene(host) {
 
         if (pointers.size === 2 && pinchStart > 0) {
             const scale = pinchDistance() / pinchStart;
-            targetRadius = clamp(pinchStartRadius / (scale || 1), MIN_RADIUS, MAX_RADIUS);
+            targetRadius = clamp(pinchStartRadius / (scale || 1), minRadius, MAX_RADIUS);
             return;
         }
 
@@ -141,8 +187,9 @@ export function createBowlScene(host) {
             return;
         }
 
-        // Not dragging — hit-test for the hover tooltip.
-        updateHover(e);
+        // Not dragging — hit-test for the hover tooltip. Nothing to hover
+        // from inside a seat: the tier under the cursor is your own.
+        if (mode !== 'seat') updateHover(e);
     }
 
     function endPointer(e) {
@@ -157,23 +204,36 @@ export function createBowlScene(host) {
     }
 
     function onWheel(e) {
+        if (mode === 'seat') return;
+
         e.preventDefault();
         userHasInteracted = true;
         autoRotate = false;
-        targetRadius = clamp(targetRadius + e.deltaY * 0.15, MIN_RADIUS, MAX_RADIUS);
+        targetRadius = clamp(targetRadius + e.deltaY * 0.15, minRadius, MAX_RADIUS);
     }
 
     function onPointerLeave() {
         setHover(null);
+        setSeatHover(-1);
+        setBoxHover(null);
         hoverHandler?.(null, 0, 0);
     }
 
     function onClick(e) {
-        const mesh = pick(e);
+        if (mode === 'seat') return;
 
-        if (mesh && selectHandler) selectHandler(mesh.userData.tier);
+        if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > CLICK_SLOP) return;
+
+        const hit = pick(e);
+
+        if (hit && selectHandler) selectHandler(hit.tier || null, hit.block || null, hit.seat || null, hit.box || null);
     }
 
+    /**
+     * What is under the pointer: a seat of the open block (checked first —
+     * the seats sit on top of their block), else a block. `{ tier, block,
+     * seat? , mesh? }` or null.
+     */
     function pick(e) {
         const rect = el.getBoundingClientRect();
 
@@ -183,43 +243,82 @@ export function createBowlScene(host) {
         pointerNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(pointerNdc, camera);
 
+        if (seatLayer) {
+            const seatHits = raycaster.intersectObjects(seatLayer.meshes, false);
+
+            if (seatHits.length && seatHits[0].instanceId !== undefined) {
+                const index = seatHits[0].instanceId;
+                const cell = seatLayer.cells[index];
+
+                return {
+                    tier: seatLayer.tier,
+                    block: seatLayer.block,
+                    seat: { row: cell.row, number: cell.number, taken: seatLayer.taken.has(cell.key) },
+                    seatIndex: index,
+                };
+            }
+        }
+
+        if (boxMeshes.length) {
+            const boxHits = raycaster.intersectObjects(boxMeshes, false);
+
+            if (boxHits.length) return { box: boxHits[0].object.userData.box, boxMesh: boxHits[0].object };
+        }
+
         const hits = raycaster.intersectObjects(tierMeshes, false);
 
-        return hits.length ? hits[0].object : null;
+        return hits.length
+            ? { tier: hits[0].object.userData.tier, block: hits[0].object.userData.block, mesh: hits[0].object }
+            : null;
     }
 
     function updateHover(e) {
-        const mesh = pick(e);
-        setHover(mesh);
+        const hit = pick(e);
+        setHover(hit?.mesh ?? null);
+        setSeatHover(hit?.seatIndex ?? -1);
+        setBoxHover(hit?.box?.code ?? null);
 
         if (!hoverHandler) return;
 
-        if (mesh) {
+        if (hit) {
             // Canvas-relative, NOT clientX/clientY: the tooltip is positioned
             // inside the stage. A viewport-positioned overlay would land in the
             // wrong place the moment an ancestor carries a transform, which is
             // routine inside a modal.
             const rect = el.getBoundingClientRect();
-            hoverHandler(mesh.userData.tier, e.clientX - rect.left, e.clientY - rect.top);
+            const { mesh, seatIndex, boxMesh, ...rest } = hit;
+            hoverHandler(rest, e.clientX - rect.left, e.clientY - rect.top);
         } else {
             hoverHandler(null, 0, 0);
         }
     }
 
+    // What is lit: the block under the cursor, a whole tier lit from the
+    // legend, and the focused block (which stays lit while the camera is
+    // on it). Recomputed from scratch each time, so the three never fight.
+    let tierLight = null;
+    let focusBlock = null;
+
+    function paint() {
+        const hoverCode = hovered?.userData?.block?.code ?? null;
+
+        tierMeshes.forEach((m) => {
+            const { tier, block } = m.userData;
+            let hex = 0x000000;
+
+            if (tierLight !== null && tier.key === tierLight) hex = 0x220810;
+            if (block.code === hoverCode) hex = 0x4a0d18;
+            if (block.code === focusBlock) hex = 0x6a1422;
+
+            m.material.emissive.setHex(hex);
+        });
+    }
+
     function setHover(mesh) {
         if (hovered === mesh) return;
 
-        // Every mesh of the same tier lifts together — a partial bowl draws
-        // its top tier as two meshes (covered stand + open terrace) and
-        // highlighting only the one under the cursor looks like a glitch.
-        const key = mesh?.userData?.tier?.key ?? null;
-
-        tierMeshes.forEach((m) => {
-            const on = key !== null && m.userData.tier.key === key;
-            m.material.emissive.setHex(on ? 0x330a10 : 0x000000);
-        });
-
         hovered = mesh;
+        paint();
     }
 
     el.addEventListener('pointerdown', onPointerDown);
@@ -274,12 +373,24 @@ export function createBowlScene(host) {
         clearGroup(venueGroup);
         tierMeshes = [];
         hovered = null;
+        tierLight = null;
+        focusBlock = null;
+        clearGroup(seatGroup);
+        seatLayer = null;
+        seatHover = -1;
+        clearGroup(boxGroup);
+        boxMeshes = [];
+        boxSpec = null;
+        payloadNow = payload || null;
+        tiersNow = [];
 
         if (!payload) return;
 
         const tiers = resolveTiers(payload.tiers, payload.capacity);
 
         if (!tiers.length) return;
+
+        tiersNow = tiers;
 
         buildVenue(venueGroup, payload, tiers, (mesh) => tierMeshes.push(mesh));
 
@@ -292,6 +403,11 @@ export function createBowlScene(host) {
 
         const framed = frameDistance();
         targetRadius = framed;
+
+        // A new venue always starts on its overview.
+        mode = 'home';
+        minRadius = MIN_RADIUS;
+        desiredTarget.copy(HOME_TARGET);
 
         if (!userHasInteracted) {
             radius = framed;
@@ -309,8 +425,424 @@ export function createBowlScene(host) {
 
         // Re-frame: a rotated phone or a reflowed panel changes which axis
         // binds, and a bowl framed for the old aspect is cropped or lost.
-        if (!userHasInteracted) {
+        if (!userHasInteracted && mode === 'home') {
             targetRadius = frameDistance();
+        }
+    }
+
+    function viewOpts() {
+        return {
+            cornerRatio: payloadNow?.corner_ratio,
+            partial: Boolean(payloadNow?.partial_bowl),
+        };
+    }
+
+    function aim(orbit) {
+        desiredTarget.set(...orbit.target);
+        targetRadius = orbit.radius;
+        targetAzimuth = nearestAngle(azimuth, orbit.azimuth);
+        targetPolar = orbit.polar;
+    }
+
+    // ---------------------------------------------------------------
+    // Seats of one open block. Two instanced meshes (cushions and backs)
+    // whatever the seat count, so a 800-seat Upper block is two draw calls.
+    // Empty seats exist only here, derived from the grid; only the taken
+    // ones came from the server.
+    // ---------------------------------------------------------------
+    const seatGroup = new THREE.Group();
+    scene.add(seatGroup);
+    let seatLayer = null;
+    let seatHover = -1;
+    const seatColor = new THREE.Color();
+
+    function paintSeats() {
+        if (!seatLayer) return;
+
+        seatLayer.cells.forEach((cell, i) => {
+            const picked = seatLayer.selected.has(cell.key);
+            let hex = SEAT_FREE;
+
+            if (seatLayer.taken.has(cell.key)) hex = SEAT_TAKEN;
+            else if (picked) hex = i === seatHover ? SEAT_PICKED_HOVER : SEAT_PICKED;
+            else if (i === seatHover) hex = SEAT_HOVER;
+
+            seatColor.setHex(hex);
+            seatLayer.meshes.forEach((m) => m.setColorAt(i, seatColor));
+        });
+
+        seatLayer.meshes.forEach((m) => { m.instanceColor.needsUpdate = true; });
+    }
+
+    function setSeatHover(index) {
+        if (index === seatHover) return;
+
+        seatHover = index;
+        paintSeats();
+    }
+
+    /**
+     * Draw one block's seats, or clear them with null:
+     *   { tierKey, blockCode, grid: {rows, perRow, lastRow},
+     *     taken: Set<"row:number">, selected: Set<"row:number"> }
+     * Calling again with the same block only repaints (a selection change),
+     * so picking a seat does not rebuild 800 instances.
+     */
+    function showSeats(spec) {
+        const same = spec && seatLayer
+            && seatLayer.block.code === spec.blockCode && seatLayer.tier.key === spec.tierKey
+            && seatLayer.cells.length === countSeats(spec.grid);
+
+        if (same) {
+            seatLayer.taken = spec.taken;
+            seatLayer.selected = spec.selected;
+            paintSeats();
+            return;
+        }
+
+        clearGroup(seatGroup);
+        seatLayer = null;
+        seatHover = -1;
+
+        const tier = spec && tiersNow.find((t) => t.key === spec.tierKey);
+        const block = tier?.blocks?.find((b) => b.code === spec.blockCode);
+
+        if (!tier || !block || !spec.grid?.rows) return;
+
+        const opts = viewOpts();
+        const place = (row, n) => seatPosition(tiersNow, tier.key, block, spec.grid, row, n, opts);
+        const cells = [];
+
+        for (let row = 1; row <= spec.grid.rows; row += 1) {
+            for (let n = 1; n <= seatsInRow(spec.grid, row); n += 1) {
+                cells.push({ row, number: n, key: `${row}:${n}`, at: place(row, n) });
+            }
+        }
+
+        // Seat size from the spacing of the grid itself.
+        const a = place(1, 1).position;
+        const along = spec.grid.perRow > 1 ? dist(a, place(1, 2).position) : 1;
+        const across = spec.grid.rows > 1 ? dist(a, place(2, 1).position) : 1;
+        const w = Math.min(along * 0.8, 1.4);
+        const d = Math.min(across * 0.5, 1.2);
+        const backH = Math.min(across * 0.45, 0.9);
+
+        const material = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.05 });
+        const cushions = new THREE.InstancedMesh(new THREE.BoxGeometry(w, 0.16, d), material, cells.length);
+        const backs = new THREE.InstancedMesh(new THREE.BoxGeometry(w, backH, 0.1), material, cells.length);
+        const dummy = new THREE.Object3D();
+
+        cells.forEach((cell, i) => {
+            const [x, y, z] = cell.at.position;
+
+            // Face the pitch: local +z towards the centre, so x runs along
+            // the row and the back sits behind, on the far side from the pitch.
+            dummy.position.set(x, y, z);
+            dummy.lookAt(0, y, 0);
+            dummy.updateMatrix();
+            cushions.setMatrixAt(i, dummy.matrix);
+
+            dummy.translateZ(-d / 2);
+            dummy.position.y += backH / 2;
+            dummy.updateMatrix();
+            backs.setMatrixAt(i, dummy.matrix);
+        });
+
+        [cushions, backs].forEach((m) => {
+            m.instanceMatrix.needsUpdate = true;
+            seatGroup.add(m);
+        });
+
+        seatLayer = {
+            tier, block, cells, meshes: [cushions, backs], taken: spec.taken, selected: spec.selected,
+        };
+        paintSeats();
+    }
+
+    function countSeats(grid) {
+        return grid?.rows ? grid.perRow * (grid.rows - 1) + grid.lastRow : 0;
+    }
+
+    /** Eye position of a seat of the open block, or null. */
+    function eyeAt(seat) {
+        if (!seatLayer || !seat) return null;
+
+        const cell = seatLayer.cells.find((c) => c.row === seat.row && c.number === seat.number);
+
+        if (!cell) return null;
+
+        const [x, y, z] = cell.at.position;
+
+        return { eye: [x, y + EYE_HEIGHT, z], look: [0, 0, 0] };
+    }
+
+    // ---------------------------------------------------------------
+    // Hospitality boxes: glass shells along the main stand, lit inside
+    // when they can still be had, dark when booked, with their seats.
+    // ---------------------------------------------------------------
+    const boxGroup = new THREE.Group();
+    scene.add(boxGroup);
+    let boxMeshes = [];
+    let boxSpec = null;
+    let boxHover = null;
+
+    function paintBoxes() {
+        boxMeshes.forEach((m) => {
+            const { code } = m.userData.box;
+            let hex = 0x000000;
+
+            if (code === boxHover) hex = 0x2a2a2a;
+            if (boxSpec?.focusCode === code) hex = 0x3a0a10;
+            if (boxSpec?.selectedCode === code) hex = 0x6a1422;
+
+            m.material.emissive.setHex(hex);
+        });
+    }
+
+    function setBoxHover(code) {
+        if (code === boxHover) return;
+
+        boxHover = code;
+        paintBoxes();
+    }
+
+    /**
+     * Draw the boxes: { boxes: boxLayout() output, focusCode, selectedCode },
+     * or null. The same list again only repaints.
+     */
+    function showBoxes(spec) {
+        if (spec && boxSpec && spec.boxes === boxSpec.boxes) {
+            boxSpec = spec;
+            paintBoxes();
+            return;
+        }
+
+        clearGroup(boxGroup);
+        boxMeshes = [];
+        boxSpec = spec;
+        boxHover = null;
+
+        if (!spec?.boxes?.length) return;
+
+        const structureMaterial = new THREE.MeshStandardMaterial({ color: 0x1b1b1f, roughness: 0.8 });
+        const chairsTotal = spec.boxes.reduce((n, b) => n + b.seats, 0);
+        const chairs = new THREE.InstancedMesh(
+            new THREE.BoxGeometry(0.42, 0.5, 0.42),
+            new THREE.MeshStandardMaterial({ color: 0x7a1220, roughness: 0.7 }),
+            chairsTotal,
+        );
+        const dummy = new THREE.Object3D();
+        let c = 0;
+
+        spec.boxes.forEach((b) => {
+            const geo = new THREE.BoxGeometry(b.width, b.height, b.depth);
+            const shell = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+                color: b.isBooked ? 0x24262e : 0xeef3f6,
+                transparent: true,
+                opacity: b.isBooked ? 0.88 : 0.5,
+                roughness: 0.1,
+                metalness: 0.2,
+                // Glass must not hide the seats behind it from the depth test.
+                depthWrite: false,
+            }));
+            shell.position.set(...b.center);
+            // +z towards the pitch: the glass front faces the centre spot.
+            shell.lookAt(0, b.center[1], 0);
+            shell.userData = { box: b };
+            boxGroup.add(shell);
+            boxMeshes.push(shell);
+
+            // Solid structure: a slab roof and floor, and the plinth that
+            // carries the row down to the Premium tier. Glass alone reads as
+            // nothing against a red stand.
+            const slabGeo = new THREE.BoxGeometry(b.width * 1.08, 0.22, b.depth * 1.1);
+            [b.height / 2, -b.height / 2].forEach((dy) => {
+                const slab = new THREE.Mesh(slabGeo, structureMaterial);
+                slab.position.copy(shell.position);
+                slab.quaternion.copy(shell.quaternion);
+                slab.translateY(dy);
+                boxGroup.add(slab);
+            });
+
+            const plinthH = b.floor - b.plinth;
+            if (plinthH > 0.2) {
+                const plinth = new THREE.Mesh(
+                    new THREE.BoxGeometry(b.width * 1.08, plinthH, b.depth * 0.5),
+                    structureMaterial,
+                );
+                plinth.position.copy(shell.position);
+                plinth.quaternion.copy(shell.quaternion);
+                // Under the back half of the box, down to the Premium tier.
+                plinth.translateY(-b.height / 2 - plinthH / 2);
+                plinth.translateZ(-b.depth * 0.25);
+                boxGroup.add(plinth);
+            }
+
+            const frame = new THREE.LineSegments(
+                new THREE.EdgesGeometry(geo),
+                new THREE.LineBasicMaterial({ color: 0x111114 }),
+            );
+            frame.position.copy(shell.position);
+            frame.quaternion.copy(shell.quaternion);
+            boxGroup.add(frame);
+
+            if (!b.isBooked) {
+                // A warm back wall: the box is open and lit.
+                const wall = new THREE.Mesh(
+                    new THREE.PlaneGeometry(b.width * 0.96, b.height * 0.9),
+                    new THREE.MeshBasicMaterial({ color: 0x9a6a48 }),
+                );
+                wall.position.copy(shell.position);
+                wall.quaternion.copy(shell.quaternion);
+                wall.translateZ(-b.depth / 2 + 0.05);
+                boxGroup.add(wall);
+            }
+
+            // Two rows of seats facing the glass.
+            const perRow = Math.ceil(b.seats / 2);
+            for (let i = 0; i < b.seats; i += 1) {
+                const row = i < perRow ? 0 : 1;
+                const n = row === 0 ? i : i - perRow;
+                const count = row === 0 ? perRow : b.seats - perRow;
+
+                dummy.position.copy(shell.position);
+                dummy.quaternion.copy(shell.quaternion);
+                dummy.translateX(((n + 0.5) / count - 0.5) * b.width * 0.85);
+                dummy.translateZ(row === 0 ? b.depth * 0.12 : -b.depth * 0.18);
+                dummy.translateY(-b.height / 2 + 0.25 + row * 0.25);
+                dummy.updateMatrix();
+                chairs.setMatrixAt(c, dummy.matrix);
+                c += 1;
+            }
+        });
+
+        chairs.instanceMatrix.needsUpdate = true;
+        boxGroup.add(chairs);
+        paintBoxes();
+    }
+
+    function boxNamed(code) {
+        return boxSpec?.boxes?.find((b) => b.code === code) || null;
+    }
+
+    /** The angle a view is centred on: its block's middle, if it names one. */
+    function angleFor(view) {
+        const tier = tiersNow.find((t) => t.key === view.tierKey);
+        const block = tier?.blocks?.find((b) => b.code === view.blockCode);
+
+        return block ? block.mid : view.viewKey;
+    }
+
+    /**
+     * Move the camera to a view:
+     *   null                                        — the overview
+     *   { tierKey, blockCode, seat: false }         — fly to that block
+     *   { tierKey, blockCode, seat: true }          — sit in it
+     * (`viewKey` in place of `blockCode` names a viewpoint instead.)
+     * A tier this venue does not draw falls back to the overview.
+     */
+    function setView(view) {
+        autoRotate = false;
+        focusBlock = view?.blockCode ?? null;
+        paint();
+
+        const box = view?.boxCode ? boxNamed(view.boxCode) : null;
+
+        if (box) {
+            if (view.seat) {
+                const inside = boxSeatView(box);
+                mode = 'seat';
+                aim(orbitFromEye(inside.eye, inside.look));
+                setHover(null);
+                hoverHandler?.(null, 0, 0);
+            } else {
+                mode = 'stand';
+                minRadius = 4;
+                aim(boxOutsideView(box));
+            }
+            return;
+        }
+
+        if (view && view.tierKey) {
+            const opts = viewOpts();
+            const where = angleFor(view);
+
+            if (view.seat) {
+                // A picked seat of the open block, else the block's middle.
+                const seat = eyeAt(view.seatAt) || seatView(tiersNow, view.tierKey, where, opts);
+
+                if (seat) {
+                    mode = 'seat';
+                    aim(orbitFromEye(seat.eye, seat.look));
+                    setHover(null);
+                    hoverHandler?.(null, 0, 0);
+                    return;
+                }
+            } else {
+                // Close in when the block's seats are on show; frame the
+                // stand otherwise.
+                const stand = view.close
+                    ? blockView(tiersNow, view.tierKey, where, opts)
+                    : standView(tiersNow, view.tierKey, where, opts);
+
+                if (stand) {
+                    mode = 'stand';
+                    minRadius = view.close ? 6 : STAND_MIN_RADIUS;
+                    aim(stand);
+                    return;
+                }
+            }
+        }
+
+        mode = 'home';
+        minRadius = MIN_RADIUS;
+        desiredTarget.copy(HOME_TARGET);
+        targetRadius = frameDistance();
+        targetPolar = HOME_POLAR;
+    }
+
+    /**
+     * A still of the view from a seat, as a data URL, without moving the
+     * visible camera. Rendered on the live canvas and copied off in the same
+     * task — the browser has not composited yet, so the frame is never seen,
+     * and the next line puts the real view back. (A render target would avoid
+     * the double render but skips the canvas's sRGB output conversion, so the
+     * thumbnail would come out darker than the scene it previews.)
+     */
+    function snapshot(view, w = 320, h = 180) {
+        const box = view?.boxCode ? boxNamed(view.boxCode) : null;
+        const seat = box
+            ? boxSeatView(box)
+            : view?.tierKey
+                ? eyeAt(view.seatAt) || seatView(tiersNow, view.tierKey, angleFor(view), viewOpts())
+                : null;
+
+        if (!seat) return null;
+
+        try {
+            const src = renderer.domElement;
+            const cam = new THREE.PerspectiveCamera(camera.fov, src.width / src.height, 0.1, 3000);
+            cam.position.set(...seat.eye);
+            cam.lookAt(new THREE.Vector3(...seat.look));
+            renderer.render(scene, cam);
+
+            const out = document.createElement('canvas');
+            out.width = w;
+            out.height = h;
+
+            // Centre-crop the canvas to the thumbnail's aspect.
+            const scale = Math.min(src.width / w, src.height / h);
+            const sw = w * scale;
+            const sh = h * scale;
+            out.getContext('2d').drawImage(
+                src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, w, h,
+            );
+
+            renderer.render(scene, camera);
+
+            return out.toDataURL('image/jpeg', 0.82);
+        } catch (e) {
+            return null;
         }
     }
 
@@ -319,11 +851,12 @@ export function createBowlScene(host) {
 
         frame = requestAnimationFrame(tick);
 
-        if (autoRotate && !dragging) targetAzimuth += 0.0018;
+        if (autoRotate && !dragging && mode === 'home') targetAzimuth += 0.0018;
 
         azimuth += (targetAzimuth - azimuth) * 0.08;
         polar += (targetPolar - polar) * 0.08;
         radius += (targetRadius - radius) * 0.08;
+        target.lerp(desiredTarget, 0.08);
 
         camera.position.set(
             target.x + radius * Math.sin(polar) * Math.sin(azimuth),
@@ -342,11 +875,16 @@ export function createBowlScene(host) {
         resize,
         onHover(cb) { hoverHandler = cb; },
         onSelect(cb) { selectHandler = cb; },
-        /** Highlight a tier from outside (legend hover). */
+        /** Light a whole tier from outside (legend hover), or null. */
         highlight(key) {
-            setHover(key ? tierMeshes.find((m) => m.userData.tier.key === key) || null : null);
+            tierLight = key || null;
+            paint();
         },
-        setAutoRotate(on) { autoRotate = Boolean(on); },
+        setAutoRotate(on) { autoRotate = Boolean(on) && mode === 'home'; },
+        setView,
+        showSeats,
+        showBoxes,
+        snapshot,
         dispose() {
             disposed = true;
 
@@ -380,6 +918,10 @@ export function createBowlScene(host) {
 // ===================================================================
 // Scene furniture
 // ===================================================================
+
+function dist(a, b) {
+    return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
 
 function clamp(v, lo, hi) {
     return Math.min(hi, Math.max(lo, v));

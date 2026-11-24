@@ -8,7 +8,12 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: ubuntu-latest moved to 26.04 in Nov 2026,
+    # which Playwright 1.56 cannot install Chromium on ("Playwright does not
+    # support chromium on ubuntu26.04-x64"), so the e2e smoke failed before
+    # running a test. Move to ubuntu-latest once the Playwright in
+    # package.json supports the image it points at.
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
 

@@ -187,5 +187,583 @@ export function resolveTiers(payloadTiers, capacity) {
                 // 0..1, or null where occupancy is genuinely unknown.
                 booked: typeof pct === 'number' ? Math.min(1, Math.max(0, pct / 100)) : null,
             };
+        })
+        // The block code leads with the tier's FIXED position (VIP 1 … Upper 4),
+        // as the server's does — not its index here, which shifts if a
+        // payload leaves a tier out.
+        .map((tier) => ({
+            ...tier,
+            blocks: resolveBlocks(tier, BASE_TIERS.findIndex((g) => g.key === tier.key), bySlug.get(tier.key).blocks),
+        }));
+}
+
+// ===================================================================
+// Viewpoints — where the camera goes when a fan focuses a tier or asks
+// for the view from it. Pure numbers, so the scene and the tests read the
+// same answer.
+// ===================================================================
+
+/**
+ * The covered main stand on a partial bowl: centred on the halfway line,
+ * spanning most of one long side. `stadiumBowlGeometry` draws the top tier at
+ * full height inside this arc and as low terracing outside it.
+ */
+export const MAIN_STAND_CENTER = Math.PI / 2;
+export const MAIN_STAND_HALF_SPAN = Math.PI * 0.42;
+
+/** Each tier sits this fraction of the previous tier's height above it. */
+export const TIER_STEP = 0.35;
+
+/** Top tier height factor outside the main stand of a partial bowl. */
+export const PARTIAL_TERRACE_K = 0.4;
+
+/** Eye height above the tier's surface, in bowl units. */
+export const EYE_HEIGHT = 1.4;
+
+/**
+ * Named places to sit, as an angle around the footprint. Angle 0 is behind
+ * the goal (the pitch runs along x); PI/2 is the halfway line on the main
+ * stand side. "Another view" cycles through these in order.
+ */
+export const VIEWPOINTS = [
+    { key: 'halfway', label: 'Halfway line', angle: Math.PI / 2 },
+    // The footprint's own diagonal, not 45 degrees: the pitch is longer than
+    // it is wide, so PI/4 lands on the side stand, not in the corner.
+    { key: 'corner', label: 'Corner flag', angle: Math.atan2(WID_K, LEN_K) },
+    { key: 'goal', label: 'Behind the goal', angle: 0 },
+];
+
+export function viewpoint(key) {
+    return VIEWPOINTS.find((v) => v.key === key) || VIEWPOINTS[0];
+}
+
+/** A viewpoint key or a bare angle, as an angle. */
+function angleOf(where) {
+    return typeof where === 'number' ? where : viewpoint(where).angle;
+}
+
+/** The viewpoint after `key`, wrapping round. */
+export function nextViewpoint(key) {
+    const i = VIEWPOINTS.findIndex((v) => v.key === key);
+
+    return VIEWPOINTS[(i + 1) % VIEWPOINTS.length];
+}
+
+/**
+ * The y each tier's mesh starts at. `stadiumBowlGeometry` stacks the tiers
+ * with exactly this rule, so a camera placed from it sits on the stand rather
+ * than inside or above it.
+ */
+export function tierBaseHeights(tiers) {
+    let y = 0;
+
+    return tiers.map((tier) => {
+        const base = y;
+        y += tier.height * TIER_STEP;
+        return base;
+    });
+}
+
+/** Is `angle` inside the covered main stand of a partial bowl? */
+export function inMainStand(angle) {
+    const twoPi = Math.PI * 2;
+    const d = ((((angle - MAIN_STAND_CENTER) % twoPi) + twoPi + Math.PI) % twoPi) - Math.PI;
+
+    return Math.abs(d) <= MAIN_STAND_HALF_SPAN;
+}
+
+/**
+ * World position of a point on the footprint. The tier shapes are drawn in a
+ * plane and rotated flat with `rotateX(-PI/2)`, which maps the shape's second
+ * axis to world -z — so the world z is the NEGATED outline z.
+ */
+export function worldXZ(angle, R, cornerRatio) {
+    const [x, z] = stadiumXZ(angle, R, cornerRatio);
+
+    return [x, -z];
+}
+
+/**
+ * Where a fan sitting in `tierKey` at `where` (a viewpoint key or an angle,
+ * e.g. a block's `mid`) has their eyes, and what they
+ * look at (the centre spot). Null for a tier the bowl does not draw.
+ *
+ * This is an APPROXIMATE sightline: the bowl is a generic parametric shape,
+ * so the view is right about height and distance, not about a particular
+ * ground's architecture. The UI says so.
+ *
+ * @param {Array} tiers resolveTiers() output, innermost first
+ * @param {object} opts { cornerRatio, partial }
+ */
+export function seatView(tiers, tierKey, where, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1) return null;
+
+    const tier = tiers[idx];
+    const angle = angleOf(where);
+    const isTop = idx === tiers.length - 1;
+    const height = opts.partial && isTop && !inMainStand(angle)
+        ? tier.height * PARTIAL_TERRACE_K
+        : tier.height;
+    const base = tierBaseHeights(tiers)[idx];
+
+    // A third of the way back: far enough up the tier to be "in" it, close
+    // enough to the front that the tier below does not hide the pitch.
+    const R = tier.innerR + (tier.outerR - tier.innerR) / 3;
+    const [x, z] = worldXZ(angle, R, opts.cornerRatio);
+
+    return {
+        eye: [x, base + height + EYE_HEIGHT, z],
+        look: [0, 0, 0],
+    };
+}
+
+/**
+ * Orbit parameters (target, radius, azimuth, polar) that put the camera at
+ * `eye` looking at `look` — the scene's camera is an orbit, so every view is
+ * expressed in its terms and the move between two views is one smooth tween.
+ */
+export function orbitFromEye(eye, look) {
+    const dx = eye[0] - look[0];
+    const dy = eye[1] - look[1];
+    const dz = eye[2] - look[2];
+    const radius = Math.hypot(dx, dy, dz) || 1;
+
+    return {
+        target: [...look],
+        radius,
+        azimuth: Math.atan2(dx, dz),
+        polar: Math.acos(Math.max(-1, Math.min(1, dy / radius))),
+    };
+}
+
+/**
+ * Orbit parameters for "fly to this stand": the camera hangs just past the
+ * centre spot, a little above the tier, looking across at it. It stays LOW on
+ * purpose — every roof style covers the stands, and a closed one (`dome`)
+ * covers the pitch too, so a camera placed above the bowl sees roof.
+ */
+export function standView(tiers, tierKey, where, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1) return null;
+
+    const tier = tiers[idx];
+    const angle = angleOf(where);
+    const mid = (tier.innerR + tier.outerR) / 2;
+    const [x, z] = worldXZ(angle, mid, opts.cornerRatio);
+    const y = tierBaseHeights(tiers)[idx] + tier.height * 0.6;
+
+    return orbitFromEye([-x * 0.12, y + 3, -z * 0.12], [x, y, z]);
+}
+
+/**
+ * `to`, shifted by whole turns so it is within PI of `from`. Without this a
+ * tween from 350° to 10° spins the long way round the stadium.
+ */
+export function nearestAngle(from, to) {
+    const twoPi = Math.PI * 2;
+    let d = (to - from) % twoPi;
+
+    if (d > Math.PI) d -= twoPi;
+    if (d < -Math.PI) d += twoPi;
+
+    return from + d;
+}
+
+// ===================================================================
+// Stands and blocks — the ground divided the way a ticket names a seat.
+//
+// MIRRORED in app/Support/StadiumLayout.php. The codes and stands both sides
+// produce are pinned by tests/fixtures/stadium-blocks.json, which
+// tests/JS/stadiumBlocks.test.mjs and tests/Unit/StadiumLayoutTest.php each
+// assert against — change one side and both fail until the other follows.
+// Seat COUNTS are the server's alone (it owns the inventory); this side only
+// needs to know where each block is.
+// ===================================================================
+
+/** Half the angle a corner stand spans either side of the diagonal. */
+export const CORNER_HALF = 0.2;
+
+/** Target angle per block; each stand is split into the nearest whole number. */
+export const BLOCK_SPAN = 0.2;
+
+/** The footprint's diagonal — where a corner stand is centred. */
+const DIAGONAL = Math.atan2(WID_K, LEN_K);
+
+/**
+ * The eight stands, in angle order from the north end. Angles are in the
+ * outline's own plane (see `worldXZ`); `west` is the main stand, on the
+ * halfway line at PI/2, which is why the "Halfway line" viewpoint sits in it.
+ */
+export function standLayout() {
+    const c = DIAGONAL;
+    const h = CORNER_HALF;
+    const pi = Math.PI;
+
+    return [
+        { key: 'north', name: 'North Stand', start: -(c - h), end: c - h },
+        { key: 'north_west', name: 'North-West Corner', start: c - h, end: c + h },
+        { key: 'west', name: 'West Stand', start: c + h, end: pi - c - h },
+        { key: 'south_west', name: 'South-West Corner', start: pi - c - h, end: pi - c + h },
+        { key: 'south', name: 'South Stand', start: pi - c + h, end: pi + c - h },
+        { key: 'south_east', name: 'South-East Corner', start: pi + c - h, end: pi + c + h },
+        { key: 'east', name: 'East Stand', start: pi + c + h, end: 2 * pi - c - h },
+        { key: 'north_east', name: 'North-East Corner', start: 2 * pi - c - h, end: 2 * pi - c + h },
+    ];
+}
+
+/**
+ * Every block of one tier, in order round the ground. `tierNumber` is the
+ * tier's 1-based position (VIP 1 … Upper 4) and leads the code, so block
+ * 307 is the seventh block of the third tier — the way a ticket reads.
+ */
+export function blockLayout(tierNumber) {
+    const out = [];
+
+    standLayout().forEach((stand) => {
+        const span = stand.end - stand.start;
+        const n = Math.max(1, Math.round(span / BLOCK_SPAN));
+
+        for (let i = 0; i < n; i += 1) {
+            const start = stand.start + (span * i) / n;
+            const end = stand.start + (span * (i + 1)) / n;
+
+            out.push({
+                code: String(tierNumber * 100 + out.length + 1),
+                stand: stand.key,
+                standName: stand.name,
+                start,
+                end,
+                mid: (start + end) / 2,
+            });
+        }
+    });
+
+    return out;
+}
+
+/**
+ * Join the server's block rows onto the layout for one tier.
+ *
+ * A block with a row of its own carries real figures and an id (fixture
+ * payloads only). Without one — an aggregate across fixtures, or a ground
+ * with nothing on sale — it carries the TIER's occupancy and says so with
+ * `inherited`, so a tooltip never presents a tier figure as the block's own.
+ */
+function resolveBlocks(tier, index, payloadBlocks) {
+    const rows = new Map((payloadBlocks || []).map((b) => [String(b.code), b]));
+
+    return blockLayout(index + 1).map((b) => {
+        const row = rows.get(b.code);
+
+        if (!row) {
+            return {
+                ...b,
+                tierKey: tier.key,
+                blockId: null,
+                capacity: null,
+                remaining: null,
+                isSoldOut: false,
+                booked: tier.booked,
+                inherited: true,
+            };
+        }
+
+        const pct = row.sold_pct;
+
+        return {
+            ...b,
+            tierKey: tier.key,
+            blockId: row.id ?? null,
+            capacity: row.capacity ?? null,
+            remaining: row.remaining ?? null,
+            isSoldOut: Boolean(row.is_sold_out),
+            booked: typeof pct === 'number' ? Math.min(1, Math.max(0, pct / 100)) : null,
+            inherited: false,
+        };
+    });
+}
+
+/** The block of `tier` that contains `angle` (any turn). */
+export function blockAt(tier, angle) {
+    const blocks = tier?.blocks || [];
+
+    if (!blocks.length) return null;
+
+    const twoPi = Math.PI * 2;
+    const first = blocks[0].start;
+    const a = ((((angle - first) % twoPi) + twoPi) % twoPi) + first;
+
+    return blocks.find((b) => a >= b.start && a < b.end) || blocks[blocks.length - 1];
+}
+
+/** The tier's block with the most seats left, for "best available". */
+export function bestBlock(tier) {
+    const open = (tier?.blocks || []).filter((b) => b.remaining !== null && !b.isSoldOut);
+
+    if (!open.length) return null;
+
+    return open.reduce((best, b) => (b.remaining > best.remaining ? b : best));
+}
+
+// ===================================================================
+// Seats — rows and numbers inside a block.
+//
+// Nothing stores an empty seat: a block's grid is DERIVED from its
+// capacity by `seatGrid()`, mirrored in App\Support\StadiumLayout::seatGrid()
+// and pinned by the `seat_grids` cases in tests/fixtures/stadium-blocks.json.
+// Only taken seats are rows (`ticket_seats`).
+// ===================================================================
+
+/**
+ * Rows per block, by tier number: deeper tiers have more rows. Chosen so a
+ * seat comes out roughly square on the map — a block is narrow and deep (32
+ * of them share a ring), so its grid is too.
+ */
+export const ROWS_PER_TIER = { 1: 14, 2: 16, 3: 24, 4: 30 };
+
+/**
+ * A block's seat grid: `rows` rows of `perRow` seats, the back row holding
+ * `lastRow` (it takes the remainder, so the grid holds exactly `capacity`).
+ * Row 1 is at the front, nearest the pitch; seats are numbered along the
+ * row in the block's own angle order.
+ */
+export function seatGrid(capacity, tierNumber) {
+    const cap = Math.max(0, Math.floor(Number(capacity) || 0));
+
+    if (cap === 0) return { rows: 0, perRow: 0, lastRow: 0 };
+
+    const target = Math.min(ROWS_PER_TIER[tierNumber] || 10, cap);
+    const perRow = Math.ceil(cap / target);
+    const rows = Math.ceil(cap / perRow);
+
+    return { rows, perRow, lastRow: cap - perRow * (rows - 1) };
+}
+
+/** Seats in `row` of a grid (the back row may be short). */
+export function seatsInRow(grid, row) {
+    if (row < 1 || row > grid.rows) return 0;
+
+    return row === grid.rows ? grid.lastRow : grid.perRow;
+}
+
+/** "Row 4 · Seats 7–9", "Row 4 · Seat 7", or one entry per row. */
+export function describeSeats(seats) {
+    const byRow = new Map();
+
+    [...(seats || [])]
+        .sort((a, b) => a.row - b.row || a.number - b.number)
+        .forEach((s) => byRow.set(s.row, [...(byRow.get(s.row) || []), s.number]));
+
+    return [...byRow.entries()].map(([row, nums]) => {
+        const runs = [];
+
+        nums.forEach((n) => {
+            const last = runs[runs.length - 1];
+            if (last && n === last[1] + 1) last[1] = n; else runs.push([n, n]);
         });
+
+        const text = runs.map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join(', ');
+
+        return `Row ${row} · Seat${nums.length > 1 ? 's' : ''} ${text}`;
+    }).join('; ');
+}
+
+/**
+ * Where a seat sits in the world: its row's radius across the block's depth
+ * and its number's angle along the block, on the block's top surface. Used to
+ * draw the seats and to put the camera in one ("view from your seat").
+ *
+ * @param {Array} tiers resolveTiers() output
+ * @param {object} block one of tier.blocks
+ * @param {object} grid  seatGrid() of that block
+ */
+export function seatPosition(tiers, tierKey, block, grid, row, number, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1 || !grid.rows) return null;
+
+    const tier = tiers[idx];
+    const isTop = idx === tiers.length - 1;
+    const height = opts.partial && isTop && !inMainStand(block.mid)
+        ? tier.height * PARTIAL_TERRACE_K
+        : tier.height;
+    const top = tierBaseHeights(tiers)[idx] + height;
+
+    // Inset from the block's edges so seats sit on it, not over the aisle.
+    const pad = (tier.outerR - tier.innerR) * 0.06;
+    const R = tier.innerR + pad + ((tier.outerR - tier.innerR - 2 * pad) * (row - 0.5)) / grid.rows;
+    const aisle = 0.6 / tier.innerR;
+    const span = block.end - block.start - 2 * aisle;
+    const angle = block.start + aisle + (span * (number - 0.5)) / grid.perRow;
+    const [x, z] = worldXZ(angle, R, opts.cornerRatio);
+
+    return { position: [x, top + 0.35, z], angle, radius: R };
+}
+
+/**
+ * Orbit parameters for a close look at one block's seats: the camera hangs
+ * in front of the block, over the pitch, high enough to look down across
+ * its rows. Closer than `standView`, which frames the whole stand.
+ */
+export function blockView(tiers, tierKey, where, opts = {}) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx === -1) return null;
+
+    const tier = tiers[idx];
+    const angle = angleOf(where);
+    const mid = (tier.innerR + tier.outerR) / 2;
+    const [x, z] = worldXZ(angle, mid, opts.cornerRatio);
+    const y = tierBaseHeights(tiers)[idx] + tier.height;
+    const depth = tier.outerR - tier.innerR;
+    const len = Math.hypot(x, z) || 1;
+
+    // Close and steep: about one block-depth away, mostly above it, so its
+    // rows run up the screen and fill it. Further back, a block is a sliver
+    // in a wide panel and its seats unreadable.
+    const back = depth * 0.55;
+    const up = depth * 0.9;
+    const eye = [x - (x / len) * back, y + up, z - (z / len) * back];
+
+    return orbitFromEye(eye, [x, y, z]);
+}
+
+/**
+ * The upgrade on offer from `block` of `tierKey`: the nearest better tier
+ * (tiers run best-first, VIP innermost) that can actually be bought — it has
+ * a tier id, a price and seats left. The block offered is the one at the
+ * same place round the ground if it can be bought on its own, else that
+ * tier's roomiest block. `extra` is the real price difference per seat.
+ *
+ * Null when there is nothing better to buy. An offer is never invented:
+ * no price on either side means no offer.
+ */
+export function upgradeFor(tiers, tierKey, block) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx <= 0 || !block) return null;
+
+    const from = tiers[idx];
+
+    if (from.price === null || from.price === undefined) return null;
+
+    for (let j = idx - 1; j >= 0; j -= 1) {
+        const to = tiers[j];
+
+        if (!to.tierId || to.isSoldOut || to.price === null || to.price === undefined) continue;
+        if (Number(to.price) <= Number(from.price)) continue;
+
+        const same = blockAt(to, block.mid);
+        const target = same && same.blockId && !same.isSoldOut ? same : bestBlock(to);
+
+        return {
+            tier: to,
+            block: target || same,
+            extra: Number(to.price) - Number(from.price),
+        };
+    }
+
+    return null;
+}
+
+// ===================================================================
+// Hospitality boxes — glass boxes in a row along the main stand, in the
+// band between the Premium and Standard tiers, where a ground puts its
+// executive level. Sold whole; the server only knows their names, seats,
+// prices and whether they are booked, so WHERE they sit is decided here.
+// ===================================================================
+
+/** Share of the main stand's arc the row of boxes runs along. */
+export const BOX_ARC_SHARE = 0.75;
+
+/**
+ * Join the payload's boxes onto their places. Empty when the bowl has no
+ * Premium or Standard tier to sit between (nowhere honest to put them).
+ *
+ * @param {Array} tiers resolveTiers() output
+ * @param {Array} payloadBoxes StadiumBowlService `boxes`
+ */
+export function boxLayout(tiers, payloadBoxes, opts = {}) {
+    const boxes = payloadBoxes || [];
+    const p = tiers.findIndex((t) => t.key === 'premium');
+    const s = tiers.findIndex((t) => t.key === 'standard');
+
+    if (!boxes.length || p === -1 || s === -1) return [];
+
+    const premium = tiers[p];
+    const standard = tiers[s];
+    const bases = tierBaseHeights(tiers);
+    const depth = premium.outerR - premium.innerR;
+
+    // Hung on the lip of the Standard tier, overhanging the back of the
+    // Premium tier: raised, the way a ground puts its executive level, so a
+    // guest sees over the stands in front. (The tiers are flat-topped; a box
+    // sitting ON the Premium tier would look across 12 units of flat stand
+    // and lose the near touchline.)
+    const r0 = premium.outerR - depth * 0.2;
+    const r1 = premium.outerR + 1.0;
+    const y0 = bases[s] + standard.height + 0.3;
+    const h = Math.max(1.8, standard.height * 0.45);
+    // Where the structure under the row starts: the Premium tier's surface.
+    const plinth = bases[p] + premium.height;
+
+    const half = MAIN_STAND_HALF_SPAN * BOX_ARC_SHARE;
+    const start = MAIN_STAND_CENTER - half;
+    const slot = (2 * half) / boxes.length;
+
+    return boxes.map((b, i) => {
+        const angle = start + slot * (i + 0.5);
+        const rMid = (r0 + r1) / 2;
+        const [x, z] = worldXZ(angle, rMid, opts.cornerRatio);
+        const [ax, az] = worldXZ(angle - slot * 0.43, rMid, opts.cornerRatio);
+        const [bx, bz] = worldXZ(angle + slot * 0.43, rMid, opts.cornerRatio);
+
+        return {
+            boxId: b.id ?? null,
+            code: String(b.code),
+            name: b.name,
+            seats: b.seats,
+            price: b.price ?? null,
+            isBooked: Boolean(b.is_booked),
+            angle,
+            width: Math.hypot(bx - ax, bz - az),
+            depth: r1 - r0,
+            height: h,
+            center: [x, y0 + h / 2, z],
+            floor: y0,
+            plinth,
+        };
+    });
+}
+
+/** The eye of a guest at the front of a box, looking at the centre spot. */
+export function boxSeatView(box) {
+    const [x, , z] = box.center;
+    const len = Math.hypot(x, z) || 1;
+    // Towards the glass front (the pitch side), at seated eye height.
+    const k = (len - box.depth * 0.3) / len;
+
+    return { eye: [x * k, box.floor + EYE_HEIGHT, z * k], look: [0, 0, 0] };
+}
+
+/** Orbit parameters looking at a box from over the pitch. */
+export function boxOutsideView(box) {
+    const [x, y, z] = box.center;
+    const len = Math.hypot(x, z) || 1;
+    // From over the pitch, a little above the box, near enough that it
+    // and its neighbours fill the frame.
+    const back = Math.max(9, box.width * 2.6);
+    const eye = [x - (x / len) * back, y + back * 0.3, z - (z / len) * back];
+
+    return orbitFromEye(eye, box.center);
+}
+
+/** The cheapest box still to be had, or null. */
+export function cheapestOpenBox(boxes) {
+    const open = (boxes || []).filter((b) => !b.isBooked && b.boxId && b.price !== null);
+
+    return open.length ? open.reduce((a, b) => (b.price < a.price ? b : a)) : null;
 }

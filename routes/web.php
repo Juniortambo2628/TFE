@@ -258,6 +258,7 @@ Route::middleware(['auth', 'verified'])->prefix('fan')->name('fan.')->group(func
     Route::get('/tickets', [FanTicketController::class, 'index'])->name('tickets.index');
     Route::get('/tickets/purchases', [FanTicketController::class, 'purchases'])->name('tickets.purchases');
     Route::post('/tickets/{ticket}/buy', [FanTicketController::class, 'store'])->name('tickets.buy');
+    Route::get('/tickets/{ticket}/blocks/{block}/seats', [FanTicketController::class, 'seats'])->name('tickets.blocks.seats');
 
     // Ecobank multicurrency virtual card (Sprint 46)
     Route::get('/virtual-card', [VirtualCardController::class, 'show'])->name('virtual-card');
