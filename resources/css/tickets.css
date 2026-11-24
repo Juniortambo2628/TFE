@@ -390,3 +390,11 @@
 .ticket-modal__seats p {
     margin: 0;
 }
+
+.ticket-modal__upgrade {
+    margin-top: 12px;
+}
+
+.ticket-modal__upgrade i {
+    color: #ff4b52;
+}

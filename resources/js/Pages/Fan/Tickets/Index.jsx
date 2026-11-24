@@ -9,7 +9,7 @@ import StadiumBowl from '@/Components/Common/StadiumBowl';
 import TfeModal from '@/Components/Common/TfeModal';
 import SeatPicker from '@/Components/Fan/SeatPicker';
 import { formatMoney, formatNumber, formatKickoff } from '@/lib/utils';
-import { describeSeats } from '@/lib/stadiumBowl';
+import { blockAt, describeSeats, resolveTiers, upgradeFor, viewpoint } from '@/lib/stadiumBowl';
 import '../../../../css/fan/fan-pages.css';
 import '../../../../css/tickets.css';
 
@@ -219,6 +219,18 @@ function PurchaseModal({ ticket, onClose }) {
     // An untiered legacy fixture still prices off the ticket row. A block
     // costs its tier's price.
     const unit = Number(tier ? tier.price : ticket.price);
+    // The same upgrade the map's card offers, for a fan who skipped the map:
+    // from the picked block, or the tier's halfway-line block.
+    const upgrade = (() => {
+        if (!ticket.bowl || !tier) return null;
+        const resolved = resolveTiers(ticket.bowl.tiers, ticket.bowl.capacity);
+        const mine = resolved.find((t) => t.tierId === tier.id);
+        if (!mine) return null;
+        const from = mine.blocks.find((b) => b.blockId === data.ticket_block_id)
+            || blockAt(mine, viewpoint('halfway').angle);
+        return upgradeFor(resolved, mine.key, from);
+    })();
+
     const seatsLeft = block ? block.remaining : (tier ? tier.remaining : ticket.remaining);
     const maxQty = Math.max(1, Math.min(10, seatsLeft));
     const total = (Number(data.quantity) || 0) * unit;
@@ -390,6 +402,24 @@ function PurchaseModal({ ticket, onClose }) {
                     <option value="virtual_card">Ecobank virtual card</option>
                     <option value="mpesa">M-PESA</option>
                 </select>
+
+                {upgrade && (
+                    <p className="tfe-form-help ticket-modal__upgrade">
+                        <i className="fas fa-arrow-circle-up" aria-hidden="true" /> {upgrade.tier.name} is
+                        {' '}{formatMoney(upgrade.extra, ticket.currency)} more a seat.{' '}
+                        <button
+                            type="button"
+                            className="ticket-modal__link"
+                            onClick={() => {
+                                const b = upgrade.block?.blockId && !upgrade.block.isSoldOut ? upgrade.block : null;
+                                pickTier(upgrade.tier.tierId, b ? b.remaining : upgrade.tier.remaining, b?.blockId ?? null);
+                                setStep('seats');
+                            }}
+                        >
+                            Upgrade{upgrade.block?.blockId ? ` to block ${upgrade.block.code}` : ''}
+                        </button>
+                    </p>
+                )}
 
                 <div className="ticket-modal__total">
                     <span>Total</span>

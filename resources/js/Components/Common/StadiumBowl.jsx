@@ -6,6 +6,7 @@ import {
     describeSeats,
     nextViewpoint,
     resolveTiers,
+    upgradeFor,
     viewpoint,
 } from '@/lib/stadiumBowl';
 import { formatMoney, formatNumber } from '@/lib/utils';
@@ -170,6 +171,17 @@ export default function StadiumBowl({
     const focusedTier = focus ? tiers.find((t) => t.key === focus.tierKey) || null : null;
     const focusedBlock = focusedTier?.blocks.find((b) => b.code === focus.blockCode) || null;
 
+    // The next tier up, offered once the fan has picked this tier: the real
+    // price difference, and only where that tier still has seats.
+    const upgrade = canPick && focusedTier && selectedTierKey === focusedTier.key
+        ? upgradeFor(tiers, focusedTier.key, focusedBlock)
+        : null;
+
+    const takeUpgrade = () => {
+        show(upgrade.tier, upgrade.block);
+        pick(upgrade.tier, upgrade.block);
+    };
+
     const step = (dir) => {
         const blocks = focusedTier.blocks;
         const i = blocks.findIndex((b) => b.code === focusedBlock.code);
@@ -262,6 +274,8 @@ export default function StadiumBowl({
                         pickable={canPick && blockPickable(focusedBlock)}
                         seatsOpen={seatsOpen}
                         mySeats={seatsOpen ? selectedSeats : []}
+                        upgrade={upgrade}
+                        onUpgrade={takeUpgrade}
                         onPick={() => pick(focusedTier, focusedBlock)}
                         onSit={() => setFocus((f) => ({ ...f, seat: true }))}
                         onStand={() => setFocus((f) => ({ ...f, seat: false }))}
@@ -390,7 +404,7 @@ function blockFigure(tier, block, live) {
  */
 function FocusCard({
     tier, block, seat, still, live, currency, canPick, isSelected, pickable,
-    seatsOpen, mySeats,
+    seatsOpen, mySeats, upgrade, onUpgrade,
     onPick, onSit, onStand, onStep, onNext, onClose,
 }) {
     const priced = tier.price !== null && tier.price !== undefined;
@@ -470,6 +484,12 @@ function FocusCard({
                     </button>
                     {canPick && isSelected && (
                         <span className="tfe-pill tfe-pill--approved">Selected</span>
+                    )}
+                    {upgrade && (
+                        <button type="button" className="tfe-btn tfe-btn--sm tfe-bowl__upgrade" onClick={onUpgrade}>
+                            <i className="fas fa-arrow-circle-up" aria-hidden="true" />
+                            {' '}Upgrade to {upgrade.tier.name} · +{formatMoney(upgrade.extra, currency)} a seat
+                        </button>
                     )}
                     {pickable && !isSelected && (
                         <button type="button" className="tfe-btn tfe-btn--sm tfe-btn--filled" onClick={onPick}>

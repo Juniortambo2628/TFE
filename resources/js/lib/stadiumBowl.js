@@ -630,3 +630,41 @@ export function blockView(tiers, tierKey, where, opts = {}) {
 
     return orbitFromEye(eye, [x, y, z]);
 }
+
+/**
+ * The upgrade on offer from `block` of `tierKey`: the nearest better tier
+ * (tiers run best-first, VIP innermost) that can actually be bought — it has
+ * a tier id, a price and seats left. The block offered is the one at the
+ * same place round the ground if it can be bought on its own, else that
+ * tier's roomiest block. `extra` is the real price difference per seat.
+ *
+ * Null when there is nothing better to buy. An offer is never invented:
+ * no price on either side means no offer.
+ */
+export function upgradeFor(tiers, tierKey, block) {
+    const idx = tiers.findIndex((t) => t.key === tierKey);
+
+    if (idx <= 0 || !block) return null;
+
+    const from = tiers[idx];
+
+    if (from.price === null || from.price === undefined) return null;
+
+    for (let j = idx - 1; j >= 0; j -= 1) {
+        const to = tiers[j];
+
+        if (!to.tierId || to.isSoldOut || to.price === null || to.price === undefined) continue;
+        if (Number(to.price) <= Number(from.price)) continue;
+
+        const same = blockAt(to, block.mid);
+        const target = same && same.blockId && !same.isSoldOut ? same : bestBlock(to);
+
+        return {
+            tier: to,
+            block: target || same,
+            extra: Number(to.price) - Number(from.price),
+        };
+    }
+
+    return null;
+}

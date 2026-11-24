@@ -408,3 +408,8 @@
         display: none;
     }
 }
+
+/* The upgrade offer: a normal button, its icon carrying the accent. */
+.tfe-bowl__upgrade i {
+    color: #ff4b52;
+}

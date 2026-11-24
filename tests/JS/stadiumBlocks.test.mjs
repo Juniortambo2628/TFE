@@ -180,3 +180,38 @@ test('the close block view looks at the block from the pitch side', () => {
     assert.ok(Math.hypot(camX, camZ) < Math.hypot(v.target[0], v.target[2]), 'in front of the block');
     assert.ok(camY > v.target[1], 'looking down across the rows');
 });
+
+test('an upgrade offers the next tier up, at the same place, for the real difference', async () => {
+    const { upgradeFor } = await import('../../resources/js/lib/stadiumBowl.js');
+    const tiers = resolveTiers([
+        { key: 'vip', tier_id: 1, price: 240, sold_pct: 50, blocks: [{ id: 11, code: '111', remaining: 9, sold_pct: 50 }] },
+        { key: 'premium', tier_id: 2, price: 120, sold_pct: 50, blocks: [{ id: 21, code: '211', remaining: 9, sold_pct: 50 }] },
+        { key: 'standard', tier_id: 3, price: 60, sold_pct: 50 },
+    ], 60000);
+    const premium211 = tiers[1].blocks.find((b) => b.code === '211');
+    const offer = upgradeFor(tiers, 'premium', premium211);
+
+    assert.equal(offer.tier.key, 'vip');
+    assert.equal(offer.extra, 120);
+    assert.equal(offer.block.code, '111', 'same place round the ground');
+});
+
+test('an upgrade skips a sold-out tier and offers nothing from the best tier', async () => {
+    const { upgradeFor } = await import('../../resources/js/lib/stadiumBowl.js');
+    const tiers = resolveTiers([
+        { key: 'vip', tier_id: 1, price: 240, is_sold_out: true },
+        { key: 'premium', tier_id: 2, price: 120, is_sold_out: true },
+        { key: 'standard', tier_id: 3, price: 60 },
+    ], 60000);
+    const standard = tiers[2].blocks[5];
+
+    assert.equal(upgradeFor(tiers, 'standard', standard), null, 'both better tiers sold out');
+    assert.equal(upgradeFor(tiers, 'vip', tiers[0].blocks[0]), null, 'nothing above VIP');
+});
+
+test('no prices, no upgrade: an aggregate or catalogue bowl offers none', async () => {
+    const { upgradeFor } = await import('../../resources/js/lib/stadiumBowl.js');
+    const tiers = resolveTiers([{ key: 'vip' }, { key: 'premium' }], 60000);
+
+    assert.equal(upgradeFor(tiers, 'premium', tiers[1].blocks[0]), null);
+});

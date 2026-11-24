@@ -46,4 +46,19 @@ test.describe('match tickets', () => {
         await expect(page.locator('body')).toContainText(/Row \d+ · Seats? /);
         expect(errors).toEqual([]);
     });
+
+    test('the upgrade offer moves the order to the next tier up at its real price', async ({ page }) => {
+        await signIn(page);
+        await page.goto('/fan/tickets');
+        await page.getByText('Buy tickets').first().click();
+
+        await page.getByRole('button', { name: /Premium/ }).first().click();
+        const offer = page.getByRole('button', { name: /Upgrade to VIP · \+\$[\d,.]+ a seat/ });
+        await expect(offer).toBeVisible();
+        await offer.click();
+
+        await expect(page.locator('.tfe-modal__foot-note')).toContainText(/^VIP/);
+        // Nothing above VIP: no offer once there.
+        await expect(page.getByRole('button', { name: /Upgrade to/ })).toHaveCount(0);
+    });
 });

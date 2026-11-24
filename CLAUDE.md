@@ -1369,8 +1369,14 @@ behind the goal).
   `rotateX(-PI/2)`); `worldXZ()` does it.
 - The still is drawn on the live canvas and copied in the same task (a render
   target skips the sRGB output conversion and comes out dark).
-- The sightline is labelled **approximate**: the bowl is generic. Phases 4–5
-  (upgrade offers, skyboxes) are not built.
+- The sightline is labelled **approximate**: the bowl is generic.
+- **Upgrade offers (phase 4)**: `upgradeFor()` (lib, tested) offers the
+  nearest better tier that can be bought: it has a tier id, a price and
+  seats left, and it costs more. It offers the block at the same place
+  round the ground, else that tier's roomiest. `extra` is the REAL per-seat
+  difference. No price on either side means no offer, so aggregate and
+  catalogue bowls never show one. On the stage card once the fan has picked
+  the tier, and on the Payment step.
 
 **Stands and blocks (Nov 2026, phase 2).** Every tier is split into 8 stands
 (four sides plus four corners) and 32 numbered blocks: `101`–`132` for VIP up to
