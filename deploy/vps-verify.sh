@@ -42,11 +42,24 @@ for p in tfe-queue tfe-scheduler; do
   st="$(pm2 jlist 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const p=JSON.parse(d||"[]").find(x=>x.name===process.argv[1]);console.log(p?p.pm2_env.status:"missing")})' "$p")"
   if [[ "$st" == online ]]; then ok "$p online"; else bad "$p is $st (pm2 logs $p)"; fi
 done
-# "online" can hide a crash loop; give them a moment, then check restarts.
+# "online" can hide a crash loop; give them a moment, then check whether
+# they have restarted RECENTLY. The queue restarts about once an hour by
+# design (--max-time=3600), so its TOTAL restart count only grows and
+# comparing it to zero fails every run a day after a deploy. A crash loop
+# shows up as several restarts inside the last hour instead.
 sleep 10
+now="$(date +%s)"
 for p in tfe-queue tfe-scheduler; do
-  r="$(pm2 jlist 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const p=JSON.parse(d||"[]").find(x=>x.name===process.argv[1]);console.log(p?p.pm2_env.restart_time:-1)})' "$p")"
-  if [[ "$r" == 0 ]]; then ok "$p stable (no restarts)"; else bad "$p restarted $r times (pm2 logs $p --lines 50)"; fi
+  # pm2.log lines look like: 2026-11-27T01:32:56: PM2 log: App [tfe-queue:556] online
+  n="$(grep -a "App \[$p:" "${HOME}/.pm2/pm2.log" 2>/dev/null | grep -a 'online' \
+      | sed -n 's/^\([0-9-]*\)T\([0-9:]*\):.*/\1 \2/p' \
+      | while read -r d t; do
+          ts="$(date -d "$d $t" +%s 2>/dev/null || echo 0)"
+          [[ "$ts" -ge $((now - 3600)) ]] && echo x
+        done | wc -l)"
+  n=$((n + 0))
+  if [[ "$n" -le 3 ]]; then ok "$p stable ($n restart(s) in the last hour)"
+  else bad "$p restarted $n times in the last hour (pm2 logs $p --lines 50)"; fi
 done
 
 # Hestia's nginx listens on the server's public IP, not 127.0.0.1, so aim
