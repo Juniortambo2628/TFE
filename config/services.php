@@ -37,6 +37,17 @@ return [
         'kes_per_usd' => env('PAYSTACK_KES_PER_USD'),
     ],
 
+    // Safaricom Daraja. Staged (Nov 2026) for a direct M-Pesa integration —
+    // nothing reads these yet: M-Pesa checkout currently runs through
+    // Paystack's mobile_money channel (see 'paystack' above).
+    'mpesa' => [
+        'env' => env('MPESA_ENV', 'sandbox'),
+        'shortcode' => env('MPESA_SHORTCODE'),
+        'consumer_key' => env('MPESA_CONSUMER_KEY'),
+        'consumer_secret' => env('MPESA_CONSUMER_SECRET'),
+        'passkey' => env('MPESA_PASSKEY'),
+    ],
+
     // Opt-in SMS / WhatsApp alerts (Sprint 66). Empty = messages are logged only.
     'africastalking' => [
         'username' => env('AT_USERNAME'),
