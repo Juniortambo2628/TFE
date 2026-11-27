@@ -570,6 +570,52 @@ Follow-on to Sprint 64, from the same tester feedback.
 - **Instalments are NOT built** — see `docs/proposals/bank-partner-savings.md`:
   TFE never holds fan savings; the bank does.
 
+### Two payment rails: direct M-Pesa + Paystack (Nov 2026)
+
+`method=mpesa` takes the **direct Daraja STK push** when `MpesaService` is
+configured (`services.mpesa.*` — the fan gets a PIN prompt on their SIM, the
+result arrives server-to-server); with no keys it falls through to Sprint 66's
+hosted Paystack `mobile_money` checkout, and `method=card` is always Paystack.
+Configured keys are an explicit opt-in: the STK branch runs BEFORE the demo
+short-circuit, so a dev machine with keys pushes real sandbox prompts.
+
+- **`MpesaService`** — OAuth token (cached ~55min, only when non-empty),
+  `stkPush()` / `stkQuery()`, `kesAmount()` (falls back to
+  `PAYSTACK_KES_PER_USD` so one rate stays the truth), `normalizePhone()`, and
+  `applyResult()` — the ONE settlement path for a callback AND a recovered
+  query, so they cannot disagree. Idempotent: a completed payment is never
+  re-credited; a callback claiming a different amount than we asked Safaricom
+  to charge is recorded `failed`, never settled (Sprint-65 rule).
+- **Callback** `POST /mpesa/callback` (`MpesaCallbackController`) — public,
+  CSRF-exempt (`bootstrap/app.php`), throttled. Finds the payment by
+  `payments.gateway_reference` (CheckoutRequestID, migration
+  `2026_11_27_000002`). Acknowledges unknown/malformed payloads with 200 —
+  retrying those can never succeed, and a non-2xx makes Safaricom hammer us.
+- **Lost callbacks recover via `stkQuery`** — `JourneyController::show`'s
+  `mpesaAttempt()` polls: a pending prompt older than 75s (STK dies at ~60)
+  asks Safaricom directly, throttled to once per attempt per 30s. The page's
+  `MpesaWatcher` (`usePoll` 3s, `only: ['booking','mpesaAttempt']`) unmounts
+  when the attempt settles, stopping the poll.
+- **`BookingSettlement`** — extracted from `BookingPaymentController`'s
+  private `settle()` so the demo path, the Paystack callback and the Daraja
+  callback share ONE copy (it advances `amount_paid`, derives the booking
+  status from the arithmetic, notifies). `BankSavingsController` still has its
+  own variant — it always force-sets `confirmed` and writes no
+  `settles_amount`.
+- **UI** (`BookingDetails.jsx`): the M-Pesa button opens a `TfeModal` phone
+  prompt (prefilled from `notification_contacts`), then shows a "check your
+  phone" panel while pending; card and savings buttons stand down during a
+  live prompt so the same balance cannot settle twice. Flash banners render
+  here now — every controller rejection used to be invisible on this page.
+- **Never push while a fresh prompt is live** (`payByStk` refuses); prompts
+  older than `MpesaService::PENDING_TTL_MINUTES` (15) are retired `failed` so
+  they cannot block a retry.
+- **Sandbox only for now**: shortcode 174379 is Safaricom's sandbox. Go Live
+  on the portal + `MPESA_ENV=production` for real money — no code changes.
+- Tests: `tests/Feature/Fan/MpesaDirectTest.php` (13) — push, callback
+  settle/idempotency/amount-mismatch, lost-callback recovery, and the
+  no-keys fallback proving the Paystack path is untouched.
+
 ### Saving with a bank partner — prototype (Sprint 67)
 
 Design + decisions: `docs/proposals/bank-partner-savings.md`. **TFE never holds,
