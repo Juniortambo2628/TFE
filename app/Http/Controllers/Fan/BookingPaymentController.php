@@ -5,25 +5,37 @@ namespace App\Http\Controllers\Fan;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
-use App\Notifications\BookingPaidNotification;
+use App\Services\BookingSettlement;
+use App\Services\MpesaService;
 use App\Services\PaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 /**
  * Pay for a booking without leaving TFE (Sprint 65).
+ *
+ * Two rails since Nov 2026: `method=mpesa` takes the DIRECT Daraja STK push
+ * when MpesaService is configured (the prompt lands on the fan's SIM and the
+ * result comes back server-to-server), otherwise it falls through to
+ * Paystack's hosted mobile_money checkout. `method=card` is always Paystack.
  */
 class BookingPaymentController extends Controller
 {
-    public function __construct(private PaystackService $paystack) {}
+    public function __construct(
+        private PaystackService $paystack,
+        private MpesaService $mpesa,
+        private BookingSettlement $settlement,
+    ) {}
 
     public function pay(Request $request, Booking $booking)
     {
-        $method = $request->validate(['method' => 'nullable|in:card,mpesa'])['method'] ?? 'card';
+        $method = $request->validate([
+            'method' => 'nullable|in:card,mpesa',
+            'phone' => 'nullable|string|max:25',
+        ])['method'] ?? 'card';
 
         abort_unless($booking->user_id === Auth::id(), 403);
 
@@ -39,8 +51,17 @@ class BookingPaymentController extends Controller
         $currency = $booking->currency ?: 'USD';
         $reference = 'TFE-'.$booking->id.'-'.Str::upper(Str::random(10));
 
+        // Direct Daraja STK push (Nov 2026): the prompt lands on the fan's SIM
+        // and the result comes back server-to-server — no off-site checkout.
+        // Deliberately BEFORE the demo short-circuit: configured keys are an
+        // explicit opt-in to real (sandbox) pushes even on a dev machine.
+        // Falls through to Paystack's hosted mobile_money when not configured.
+        if ($method === 'mpesa' && $this->mpesa->configured()) {
+            return $this->payByStk($request, $booking, $balance, $currency, $reference);
+        }
+
         if ($this->paystack->demo()) {
-            $this->settle($booking, $reference, $balance, $currency, 'demo');
+            $this->settlement->settle($booking, $reference, $balance, $currency, 'demo');
 
             return redirect()->route('fan.bookings.show', $booking)
                 ->with('success', 'Demo payment recorded — your booking is confirmed.');
@@ -125,37 +146,87 @@ class BookingPaymentController extends Controller
 
         // Settle what the payment covers in the BOOKING's currency, not the
         // gateway's: a KES M-Pesa payment clears a USD balance.
-        $this->settle($booking, $reference, (float) ($payment->settles_amount ?? $payment->amount), $booking->currency ?: 'USD', $payment->payment_method, $payment);
+        $this->settlement->settle($booking, $reference, (float) ($payment->settles_amount ?? $payment->amount), $booking->currency ?: 'USD', $payment->payment_method, $payment);
 
         return redirect()->route('fan.bookings.show', $booking)->with('success', 'Payment received — your booking is confirmed.');
     }
 
-    private function settle(Booking $booking, string $reference, float $amount, string $currency, string $method, ?Payment $payment = null): void
+    /**
+     * Direct Daraja STK push: the fan stays on this page, the prompt lands on
+     * their SIM, and MpesaCallbackController applies the result when Safaricom
+     * calls back (recovered by stkQuery on the page poll if that is lost).
+     */
+    private function payByStk(Request $request, Booking $booking, float $balance, string $currency, string $reference)
     {
-        DB::transaction(function () use ($booking, $reference, $amount, $currency, $method, $payment) {
-            if ($payment) {
-                $payment->update(['status' => 'completed', 'paid_at' => now()]);
-            } else {
-                Payment::create([
-                    'user_id' => $booking->user_id,
-                    'booking_id' => $booking->id,
-                    'amount' => $amount,
-                    'currency' => $currency,
-                    'payment_method' => $method,
-                    'transaction_id' => $reference,
-                    'status' => 'completed',
-                    'paid_at' => now(),
-                ]);
-            }
+        $kes = $this->mpesa->kesAmount($balance, $currency);
+        if ($kes === null) {
+            return back()->with('error', 'M-Pesa is not available for this booking. Try paying by card.');
+        }
 
-            $paid = (float) $booking->amount_paid + $amount;
-            $booking->update([
-                'amount_paid' => $paid,
-                'status' => $paid + 0.001 >= (float) $booking->total_amount ? 'confirmed' : 'pending_payment',
-            ]);
-        });
+        // Daraja takes whole shillings; store exactly what it will charge so
+        // the callback's amount check cannot trip on rounding.
+        $kes = (float) (int) round($kes);
+        if ($kes < 1) {
+            return back()->with('error', 'The balance is too small for an M-Pesa payment.');
+        }
 
-        $booking->user?->notify(new BookingPaidNotification($booking->fresh(), $amount, $currency));
+        $phone = $this->mpesa->normalizePhone($request->input('phone'));
+        if (! $phone) {
+            return back()->with('error', 'Enter a valid Safaricom number, e.g. 0712345678.');
+        }
+
+        // One live prompt at a time — a second push while the first is on the
+        // phone could charge the fan twice. Prompts whose window has passed
+        // are retired first so they cannot block a retry.
+        $stale = Payment::where('booking_id', $booking->id)
+            ->where('payment_method', 'mpesa')
+            ->where('status', 'pending')
+            ->whereNotNull('gateway_reference')
+            ->where('created_at', '<', now()->subMinutes(MpesaService::PENDING_TTL_MINUTES));
+        $stale->update(['status' => 'failed']);
+
+        $live = Payment::where('booking_id', $booking->id)
+            ->where('payment_method', 'mpesa')
+            ->where('status', 'pending')
+            ->whereNotNull('gateway_reference')
+            ->where('created_at', '>=', now()->subMinutes(MpesaService::PENDING_TTL_MINUTES))
+            ->exists();
+
+        if ($live) {
+            return back()->with('error', 'An M-Pesa prompt is already waiting on your phone. Enter your PIN, or wait for it to expire.');
+        }
+
+        $payment = Payment::create([
+            'user_id' => $booking->user_id,
+            'booking_id' => $booking->id,
+            'amount' => $kes,
+            'currency' => 'KES',
+            'settles_amount' => $balance,
+            'payment_method' => 'mpesa',
+            'transaction_id' => $reference,
+            'status' => 'pending',
+        ]);
+
+        $result = $this->mpesa->stkPush(
+            $kes,
+            $phone,
+            'TFE-'.str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT),
+            'Booking pay',
+            route('mpesa.callback'),
+        );
+
+        $checkoutId = $result['CheckoutRequestID'] ?? null;
+        if ((string) ($result['ResponseCode'] ?? '') !== '0' || ! filled($checkoutId)) {
+            $payment->update(['status' => 'failed']);
+            $detail = $result['ResponseDescription'] ?? $result['CustomerMessage'] ?? null;
+
+            return back()->with('error', 'M-Pesa could not start the prompt'.($detail ? ': '.$detail : '. Please try again.'));
+        }
+
+        $payment->update(['gateway_reference' => $checkoutId]);
+
+        return redirect()->route('fan.bookings.show', $booking)
+            ->with('success', 'Check your phone — enter your M-Pesa PIN to pay KES '.number_format($kes).'.');
     }
 
     private function balance(Booking $booking): float

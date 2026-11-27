@@ -17,6 +17,8 @@ class Payment extends Model
         'settles_amount',
         'payment_method',
         'transaction_id',
+        'gateway_reference',
+        'gateway_receipt',
         'status',
         'paid_at',
         'created_at',

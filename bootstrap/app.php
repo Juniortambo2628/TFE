@@ -55,6 +55,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // sendBeacon cannot carry the CSRF header; the endpoint only
             // writes a size-capped, throttled log line (Sprint 69).
             'client-errors',
+            // Safaricom's STK result arrives server-to-server with no
+            // session and no CSRF header (Nov 2026).
+            'mpesa/callback',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

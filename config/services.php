@@ -46,6 +46,9 @@ return [
         'consumer_key' => env('MPESA_CONSUMER_KEY'),
         'consumer_secret' => env('MPESA_CONSUMER_SECRET'),
         'passkey' => env('MPESA_PASSKEY'),
+        // KES charged per USD for a direct STK push. Blank falls back to the
+        // Paystack rate below so one number stays the truth (Sprint 66 rule).
+        'kes_per_usd' => env('MPESA_KES_PER_USD'),
     ],
 
     // Opt-in SMS / WhatsApp alerts (Sprint 66). Empty = messages are logged only.

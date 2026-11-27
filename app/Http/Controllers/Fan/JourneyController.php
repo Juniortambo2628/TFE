@@ -6,13 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\BankSavingsLink;
 use App\Models\Booking;
 use App\Models\Budget;
+use App\Models\NotificationContact;
+use App\Models\Payment;
 use App\Models\PaymentSchedule;
 use App\Models\TicketPurchase;
 use App\Services\FixtureService;
+use App\Services\MpesaService;
 use App\Services\PaystackService;
 use App\Services\WeatherService;
 use App\Traits\ResolvesTournament;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class JourneyController extends Controller
@@ -118,9 +122,22 @@ class JourneyController extends Controller
             'booking' => $booking,
             'matches' => $matches,
             // Sprint 65 — 'paystack' | 'demo' | null (partner link only).
+            // 'mpesa' (Nov 2026): direct Daraja is configured and the card
+            // rail is not — the M-Pesa button still works without Paystack.
             'checkout' => $this->checkoutMode($booking),
             // Sprint 66 — KES amount when M-Pesa can pay this booking, else null.
             'mpesa' => $this->mpesaQuote($booking),
+            // Nov 2026 — direct STK configured? The UI collects a phone number
+            // first; without it the button falls through to Paystack's hosted
+            // mobile_money checkout (which asks for the number itself).
+            'mpesaDirect' => app(MpesaService::class)->configured(),
+            // The live or recently-failed direct attempt, so the page can show
+            // "check your phone" and poll until Safaricom's callback lands.
+            'mpesaAttempt' => $this->mpesaAttempt($booking),
+            // Prefill for the phone prompt — the number the fan already
+            // verified for alerts (Sprint 66), not a new thing to type.
+            'mpesaPhone' => NotificationContact::where('user_id', $booking->user_id)
+                ->whereNotNull('verified_at')->latest('verified_at')->value('phone'),
             // Sprint 67 — bank savings accounts that could pay this booking.
             // Labels only; the balance is checked by the bank when it pays.
             'savingsLinks' => BankSavingsLink::with('goal')
@@ -140,22 +157,102 @@ class JourneyController extends Controller
 
     private function checkoutMode(Booking $booking): ?string
     {
+        $currency = $booking->currency ?: 'USD';
+        $mpesa = app(MpesaService::class);
+        // "Demo" must not label a real push: when Daraja is configured AND
+        // can quote this booking, the direct rail is what the buttons do.
+        $directStk = $mpesa->configured() && $mpesa->kesAmount($this->balance($booking), $currency) !== null;
+
         $paystack = app(PaystackService::class);
-        if ($paystack->demo()) {
+        if ($paystack->demo() && ! $directStk) {
             return 'demo';
         }
 
-        return $paystack->enabled() && $paystack->supports($booking->currency ?: 'USD') ? 'paystack' : null;
+        if ($paystack->enabled() && $paystack->supports($currency)) {
+            return 'paystack';
+        }
+
+        // Direct Daraja needs no Paystack at all: the fan can still pay by
+        // phone with only these keys configured (Nov 2026).
+        if ($directStk) {
+            return 'mpesa';
+        }
+
+        return null;
     }
 
     private function mpesaQuote(Booking $booking): ?float
     {
+        $balance = max(0, (float) $booking->total_amount - (float) $booking->amount_paid);
+        $currency = $booking->currency ?: 'USD';
+
+        // Direct configuration owns its own quote; the hosted Paystack path
+        // keeps Sprint 66's rate. Same fallback chain, so one number.
+        $mpesa = app(MpesaService::class);
+        if ($mpesa->configured()) {
+            return $mpesa->kesAmount($balance, $currency);
+        }
+
         $paystack = app(PaystackService::class);
         if (! $paystack->enabled() && ! $paystack->demo()) {
             return null;
         }
-        $balance = max(0, (float) $booking->total_amount - (float) $booking->amount_paid);
 
-        return $paystack->mpesaAmount($balance, $booking->currency ?: 'USD');
+        return $paystack->mpesaAmount($balance, $currency);
+    }
+
+    /**
+     * The booking's live direct-STK attempt — pending (the page shows "check
+     * your phone" and polls) or very recently failed (so the fan sees why the
+     * buttons came back). Completed attempts are the booking's own status.
+     *
+     * A pending prompt older than the push itself must already have an answer
+     * on Safaricom's side: either their callback was lost, or the fan never
+     * acted. After 75 seconds (STK prompts time out at ~60) we ask them
+     * directly with stkQuery — throttled to once per attempt per 30s, since
+     * the page polls — and apply the result through the same path the
+     * callback uses.
+     */
+    private function mpesaAttempt(Booking $booking): ?array
+    {
+        $attempt = Payment::where('booking_id', $booking->id)
+            ->where('payment_method', 'mpesa')
+            ->whereNotNull('gateway_reference')
+            ->whereIn('status', ['pending', 'failed'])
+            ->where('created_at', '>=', now()->subMinutes(MpesaService::PENDING_TTL_MINUTES))
+            ->latest('id')
+            ->first();
+
+        if (! $attempt) {
+            return null;
+        }
+
+        if ($attempt->status === 'pending'
+            && $attempt->created_at->lt(now()->subSeconds(75))
+            && $attempt->gateway_reference
+            && Cache::add('mpesa:query:'.$attempt->id, 1, 30)) {
+            $mpesa = app(MpesaService::class);
+            $mpesa->applyResult($attempt, $mpesa->stkQuery($attempt->gateway_reference));
+            $attempt->refresh();
+
+            if ($attempt->status === 'completed') {
+                // The route-bound booking predates this settlement — refresh it
+                // so the props don't serialize a stale pending_payment.
+                $booking->refresh();
+
+                return null;
+            }
+        }
+
+        return [
+            'id' => $attempt->id,
+            'status' => $attempt->status,
+            'created_at' => $attempt->created_at->toIso8601String(),
+        ];
+    }
+
+    private function balance(Booking $booking): float
+    {
+        return round(max(0, (float) $booking->total_amount - (float) $booking->amount_paid), 2);
     }
 }

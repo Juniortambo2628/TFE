@@ -47,6 +47,7 @@ use App\Http\Controllers\Fan\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LearningHubController;
 use App\Http\Controllers\ListingShowController;
+use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\LoanReviewController;
@@ -155,6 +156,12 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 Route::post('/client-errors', [ClientErrorController::class, 'store'])
     ->middleware('throttle:30,1')
     ->name('client-errors.store');
+
+// Safaricom's STK result (Nov 2026) — public, server-to-server, throttled
+// per IP so a misbehaving gateway cannot flood the log.
+Route::post('/mpesa/callback', [MpesaCallbackController::class, 'handle'])
+    ->middleware('throttle:60,1')
+    ->name('mpesa.callback');
 
 // Public single-listing page (Sprint 63). Deliberately OUTSIDE the fan auth
 // group: every public surface linked to `fan.packages.show`, so a visitor
